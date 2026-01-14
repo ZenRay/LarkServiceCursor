@@ -1,0 +1,514 @@
+openapi: 3.0.3
+info:
+  title: Lark Service - Messaging Module API
+  description: |
+    Messaging module API contract for Lark Service core component.
+    Provides interfaces for sending text, rich text, images, files, and interactive cards.
+  version: 1.0.0
+  contact:
+    name: Lark Service Team
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Local development
+  - url: https://lark-service.internal/api/v1
+    description: Production
+
+tags:
+  - name: messaging
+    description: Message sending operations
+  - name: media
+    description: Image and file upload operations
+  - name: callback
+    description: Interactive card callback handling
+
+paths:
+  /messaging/text:
+    post:
+      tags:
+        - messaging
+      summary: Send text message
+      operationId: sendTextMessage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TextMessageRequest'
+      responses:
+        '200':
+          description: Message sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse'
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Rate limited
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /messaging/image:
+    post:
+      tags:
+        - messaging
+      summary: Send image message
+      operationId: sendImageMessage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImageMessageRequest'
+      responses:
+        '200':
+          description: Image message sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse'
+        '400':
+          description: Invalid request or image size exceeds 10MB
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /messaging/file:
+    post:
+      tags:
+        - messaging
+      summary: Send file message
+      operationId: sendFileMessage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FileMessageRequest'
+      responses:
+        '200':
+          description: File message sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse'
+        '400':
+          description: Invalid request or file size exceeds 30MB
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /messaging/card:
+    post:
+      tags:
+        - messaging
+      summary: Send interactive card
+      operationId: sendInteractiveCard
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CardMessageRequest'
+      responses:
+        '200':
+          description: Interactive card sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardResponse'
+        '400':
+          description: Invalid card configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /messaging/batch:
+    post:
+      tags:
+        - messaging
+      summary: Batch send messages
+      operationId: batchSendMessages
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchMessageRequest'
+      responses:
+        '200':
+          description: Batch send completed (includes individual results)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchSendResponse'
+
+  /media/image/upload:
+    post:
+      tags:
+        - media
+      summary: Upload image
+      operationId: uploadImage
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - app_id
+                - image
+              properties:
+                app_id:
+                  type: string
+                  pattern: '^cli_[a-z0-9]{16}$'
+                  description: Lark application ID
+                image:
+                  type: string
+                  format: binary
+                  description: Image file (max 10MB)
+      responses:
+        '200':
+          description: Image uploaded successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ImageAsset'
+
+  /media/file/upload:
+    post:
+      tags:
+        - media
+      summary: Upload file
+      operationId: uploadFile
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - app_id
+                - file
+              properties:
+                app_id:
+                  type: string
+                  pattern: '^cli_[a-z0-9]{16}$'
+                file:
+                  type: string
+                  format: binary
+                  description: File (max 30MB)
+      responses:
+        '200':
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/FileAsset'
+
+  /callback/card:
+    post:
+      tags:
+        - callback
+      summary: Handle card callback (internal endpoint)
+      operationId: handleCardCallback
+      description: Receives callbacks from Lark server when users interact with cards
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CallbackEvent'
+      responses:
+        '200':
+          description: Callback processed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: 
+                    type: integer
+                    example: 0
+
+components:
+  schemas:
+    TextMessageRequest:
+      type: object
+      required:
+        - app_id
+        - receiver_id
+        - content
+      properties:
+        app_id:
+          type: string
+          pattern: '^cli_[a-z0-9]{16}$'
+          description: Lark application ID
+          example: cli_a1b2c3d4e5f6g7h8
+        receiver_id:
+          type: string
+          minLength: 1
+          description: User ID or chat ID
+          example: ou_a1b2c3d4e5f6g7h8
+        content:
+          type: string
+          minLength: 1
+          description: Text message content
+          example: 您有新的工单待处理
+
+    ImageMessageRequest:
+      type: object
+      required:
+        - app_id
+        - receiver_id
+        - image_key
+      properties:
+        app_id:
+          type: string
+          pattern: '^cli_[a-z0-9]{16}$'
+        receiver_id:
+          type: string
+        image_key:
+          type: string
+          description: Image key from upload API
+          example: img_v2_xxxxx
+
+    FileMessageRequest:
+      type: object
+      required:
+        - app_id
+        - receiver_id
+        - file_key
+      properties:
+        app_id:
+          type: string
+          pattern: '^cli_[a-z0-9]{16}$'
+        receiver_id:
+          type: string
+        file_key:
+          type: string
+          description: File key from upload API
+          example: file_v2_xxxxx
+
+    CardMessageRequest:
+      type: object
+      required:
+        - app_id
+        - receiver_id
+        - card_content
+      properties:
+        app_id:
+          type: string
+          pattern: '^cli_[a-z0-9]{16}$'
+        receiver_id:
+          type: string
+        card_content:
+          type: object
+          description: Interactive card JSON structure
+          example:
+            header:
+              title:
+                tag: plain_text
+                content: 审批通知
+            elements:
+              - tag: div
+                text:
+                  tag: lark_md
+                  content: "**申请人**: 张三"
+              - tag: action
+                actions:
+                  - tag: button
+                    text:
+                      tag: plain_text
+                      content: 同意
+                    type: primary
+                    value: approve
+
+    BatchMessageRequest:
+      type: object
+      required:
+        - app_id
+        - receiver_ids
+        - msg_type
+        - content
+      properties:
+        app_id:
+          type: string
+        receiver_ids:
+          type: array
+          items:
+            type: string
+          minItems: 1
+          maxItems: 200
+        msg_type:
+          type: string
+          enum: [text, post, image, file]
+        content:
+          type: object
+
+    StandardResponse:
+      type: object
+      required:
+        - code
+        - message
+        - request_id
+      properties:
+        code:
+          type: integer
+          description: Business status code (0 = success)
+          example: 0
+        message:
+          type: string
+          description: Human-readable message
+          example: Success
+        request_id:
+          type: string
+          description: Unique request ID for tracing
+          example: req_a1b2c3d4e5f6g7h8
+        data:
+          type: object
+          description: Response payload
+
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+        - request_id
+      properties:
+        code:
+          type: integer
+          description: Error code
+          example: 40001
+        message:
+          type: string
+          example: Invalid app_id format
+        request_id:
+          type: string
+        error:
+          type: object
+          properties:
+            type:
+              type: string
+              example: InvalidParameter
+            details:
+              type: string
+              example: app_id must match pattern cli_[a-z0-9]{16}
+
+    BatchSendResponse:
+      allOf:
+        - $ref: '#/components/schemas/StandardResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                total:
+                  type: integer
+                  example: 5
+                success:
+                  type: integer
+                  example: 4
+                failed:
+                  type: integer
+                  example: 1
+                results:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      receiver_id:
+                        type: string
+                      status:
+                        type: string
+                        enum: [success, failed]
+                      message_id:
+                        type: string
+                      error:
+                        type: string
+
+    ImageAsset:
+      type: object
+      properties:
+        image_key:
+          type: string
+          example: img_v2_xxxxx
+        image_type:
+          type: string
+          example: message
+        file_size:
+          type: integer
+          description: Size in bytes
+          example: 1048576
+        upload_time:
+          type: string
+          format: date-time
+
+    FileAsset:
+      type: object
+      properties:
+        file_key:
+          type: string
+          example: file_v2_xxxxx
+        file_name:
+          type: string
+          example: report.pdf
+        file_type:
+          type: string
+          example: application/pdf
+        file_size:
+          type: integer
+          example: 5242880
+        upload_time:
+          type: string
+          format: date-time
+
+    CallbackEvent:
+      type: object
+      required:
+        - event_type
+        - app_id
+        - user_id
+      properties:
+        event_type:
+          type: string
+          example: card.action.trigger
+        app_id:
+          type: string
+        card_id:
+          type: string
+        user_id:
+          type: string
+        action:
+          type: object
+        signature:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
