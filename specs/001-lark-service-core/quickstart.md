@@ -81,52 +81,95 @@ lark-rabbitmq       "docker-entrypoint.s…"   rabbitmq            Up
 cp .env.example .env
 ```
 
-编辑 `.env` 文件,填入您的飞书应用凭证:
+编辑 `.env` 文件,填入数据库和加密配置:
 
 ```bash
-# 飞书应用凭证
-LARK_APP_ID=cli_a1b2c3d4e5f6g7h8         # 替换为您的 App ID
-LARK_APP_SECRET=your_secret_here          # 替换为您的 App Secret
-
-# PostgreSQL 配置
+# PostgreSQL 配置 (Token 存储和用户缓存)
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_DB=lark_service
 POSTGRES_USER=lark
 POSTGRES_PASSWORD=lark_password_123       # 修改为强密码
 
-# RabbitMQ 配置
+# RabbitMQ 配置 (消息队列)
 RABBITMQ_HOST=localhost
 RABBITMQ_PORT=5672
 RABBITMQ_USER=lark
 RABBITMQ_PASSWORD=rabbitmq_password_123   # 修改为强密码
 
-# Token 加密密钥(生成随机密钥)
-LARK_TOKEN_ENCRYPTION_KEY=$(openssl rand -base64 32)
+# 应用配置加密密钥 (SQLite 应用配置加密)
+LARK_CONFIG_ENCRYPTION_KEY=$(openssl rand -base64 32)
+
+# Token 数据加密密钥 (PostgreSQL Token 加密,可选)
+# LARK_TOKEN_ENCRYPTION_KEY=$(openssl rand -base64 32)
 
 # 日志级别
 LOG_LEVEL=INFO
 ```
 
+> **注意**: 飞书应用凭证(App ID/Secret)不在 .env 中配置,而是通过应用配置管理接口动态添加到 SQLite 数据库中。
+
 ---
 
 ## 步骤 4: 初始化数据库
 
+### 4.1 初始化 PostgreSQL (Token 存储)
+
 运行数据库迁移创建表结构:
 
 ```bash
-# 如果使用源码安装
-python -m lark_service.db.migrate
-
-# 或使用 alembic 直接运行
+# 使用 alembic 运行 PostgreSQL 迁移
 alembic upgrade head
 ```
 
 预期输出:
 ```
-INFO  [alembic.runtime.migration] Running upgrade  -> 001, Initial schema
+INFO  [alembic.runtime.migration] Running upgrade  -> 001, Initial schema (tokens, user_cache, auth_sessions)
 INFO  [alembic.runtime.migration] Running upgrade 001 -> 002, Add indexes
 ```
+
+### 4.2 初始化应用配置 (SQLite)
+
+添加您的飞书应用配置:
+
+```bash
+# 使用 CLI 添加应用配置
+python -m lark_service.cli app add \
+  --app-id "cli_a1b2c3d4e5f6g7h8" \
+  --app-secret "your_app_secret_here" \
+  --name "我的飞书应用" \
+  --description "用于内部系统集成"
+```
+
+或者使用 Python API:
+
+```python
+from lark_service.core.storage.sqlite_storage import ApplicationManager
+
+# 初始化应用管理器
+app_manager = ApplicationManager()
+
+# 添加应用配置
+app_manager.create_application(
+    app_id="cli_a1b2c3d4e5f6g7h8",
+    app_secret="your_app_secret_here",
+    name="我的飞书应用",
+    description="用于内部系统集成"
+)
+
+print("应用配置已添加到 SQLite 数据库!")
+```
+
+预期输出:
+```
+✓ 应用配置已成功添加
+  App ID: cli_a1b2c3d4e5f6g7h8
+  Name: 我的飞书应用
+  Status: active
+  Created: 2026-01-15 10:30:00
+```
+
+> **安全提示**: App Secret 会使用 `LARK_CONFIG_ENCRYPTION_KEY` 自动加密存储在 SQLite 数据库中。
 
 ---
 
@@ -137,12 +180,12 @@ INFO  [alembic.runtime.migration] Running upgrade 001 -> 002, Add indexes
 ```python
 from lark_service import LarkServiceClient
 
-# 初始化客户端
+# 初始化客户端(传入 app_id,组件会自动从 SQLite 加载配置)
 client = LarkServiceClient(
-    app_id="cli_a1b2c3d4e5f6g7h8",  # 替换为您的 App ID
+    app_id="cli_a1b2c3d4e5f6g7h8",  # 使用您在步骤4.2中添加的 App ID
 )
 
-# 发送文本消息
+# 发送文本消息(组件会自动获取和管理 Token)
 response = client.messaging.send_text(
     receiver_id="ou_xxxxxxxxxxxxxxxx",  # 替换为接收者的 user_id
     content="Hello from Lark Service! 🚀"
@@ -152,6 +195,12 @@ print(f"消息发送成功!")
 print(f"Request ID: {response.request_id}")
 print(f"Message ID: {response.data['message_id']}")
 ```
+
+> **工作原理**: 
+> 1. 组件从 SQLite 加载应用配置(App ID/Secret)
+> 2. 自动获取 `app_access_token` 并存储到 PostgreSQL
+> 3. 使用 Token 调用飞书 API 发送消息
+> 4. 整个过程对调用方完全透明!
 
 运行脚本:
 
