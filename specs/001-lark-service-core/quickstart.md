@@ -368,15 +368,22 @@ for result in response.data['results']:
 
 ## 多应用场景
 
-如果您的组织使用多个飞书自建应用,可以这样配置:
+如果您的组织使用多个飞书自建应用,需要分别添加到 SQLite 数据库:
 
 ```bash
-# .env 文件中配置多个应用
-LARK_APP_ID_1=cli_app1_xxxxxxxx
-LARK_APP_SECRET_1=secret1_xxxxxxxx
+# 添加应用 1
+python -m lark_service.cli app add \
+  --app-id "cli_app1_xxxxxxxx" \
+  --app-secret "secret1_xxxxxxxx" \
+  --name "应用1-内部系统" \
+  --description "用于内部工单系统"
 
-LARK_APP_ID_2=cli_app2_xxxxxxxx
-LARK_APP_SECRET_2=secret2_xxxxxxxx
+# 添加应用 2
+python -m lark_service.cli app add \
+  --app-id "cli_app2_xxxxxxxx" \
+  --app-secret "secret2_xxxxxxxx" \
+  --name "应用2-外部集成" \
+  --description "用于外部合作伙伴集成"
 ```
 
 代码中指定 app_id:
@@ -391,7 +398,7 @@ client2 = LarkServiceClient(app_id="cli_app2_xxxxxxxx")
 client2.messaging.send_text(receiver_id="ou_xxx", content="来自应用2的消息")
 ```
 
-组件会自动按 app_id 隔离 Token,避免混用。
+组件会自动按 app_id 隔离 Token 和配置,避免混用。
 
 ---
 
@@ -405,9 +412,19 @@ TokenAcquisitionError: Failed to get token: 10014 - app_id or app_secret invalid
 ```
 
 **解决方法**:
-1. 检查 `.env` 文件中的 `LARK_APP_ID` 和 `LARK_APP_SECRET` 是否正确
-2. 确认飞书应用状态为"已启用"
-3. 检查应用权限配置
+1. 检查 SQLite 数据库中的应用配置是否正确:
+   ```bash
+   python -m lark_service.cli app list
+   python -m lark_service.cli app show --app-id "cli_xxx"
+   ```
+2. 确认飞书应用状态为"已启用"(登录飞书开放平台查看)
+3. 检查应用权限配置是否包含所需权限
+4. 如果配置错误,可以更新:
+   ```bash
+   python -m lark_service.cli app update \
+     --app-id "cli_xxx" \
+     --app-secret "new_secret"
+   ```
 
 ### 问题 2: 数据库连接失败
 

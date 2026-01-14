@@ -1,1 +1,63 @@
+# Instructions (临时输入文件)
 instructions/*
+
+# 环境变量 (包含敏感信息)
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# 虚拟环境
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 测试
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# 数据库
+*.db
+*.sqlite
+*.sqlite3
+config/applications.db
+
+# 日志
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
