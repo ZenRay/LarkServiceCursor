@@ -74,6 +74,18 @@
 - [ ] T020 [US1] 创建 Alembic 迁移 001_initial_schema.py (tokens, user_cache, auth_sessions 表及索引)
 - [ ] T021 [US1] 实现 SQLite 初始化脚本 src/lark_service/db/init_config_db.py (创建 applications.db, 从 .env 添加默认应用)
 
+### CLI 命令行工具
+
+- [ ] T021.1 [P] [US1] 创建 CLI 入口模块 src/lark_service/cli/__init__.py (Click 命令组定义, main() 函数作为入口点)
+- [ ] T021.2 [US1] 实现 app add 命令 src/lark_service/cli/app.py (添加应用配置, 参数验证, 加密存储, 成功提示)
+- [ ] T021.3 [US1] 实现 app list 命令 src/lark_service/cli/app.py (列出所有应用, Rich 表格展示, 支持 --json 选项)
+- [ ] T021.4 [US1] 实现 app show 命令 src/lark_service/cli/app.py (显示应用详情, app_secret 脱敏显示为 secret_****, 支持 --json 选项)
+- [ ] T021.5 [US1] 实现 app update 命令 src/lark_service/cli/app.py (更新应用配置, 支持部分字段更新, 重新加密 app_secret)
+- [ ] T021.6 [US1] 实现 app delete 命令 src/lark_service/cli/app.py (删除应用配置, 交互式确认或 --force 选项, 级联删除 Token)
+- [ ] T021.7 [US1] 实现 app enable/disable 命令 src/lark_service/cli/app.py (启用/禁用应用, 更新 is_active 状态)
+- [ ] T021.8 [P] [US1] 添加 CLI 单元测试 tests/unit/cli/test_app_commands.py (命令参数验证, 输出格式, 错误处理, 退出码)
+- [ ] T021.9 [US1] 配置 setup.py 入口点 setup.py (console_scripts: lark-service-cli=lark_service.cli:main)
+
 ### 核心基础设施
 
 - [ ] T022 [P] [US1] 实现配置加载器 src/lark_service/core/config.py (加载 .env, 验证必需变量, Config dataclass)

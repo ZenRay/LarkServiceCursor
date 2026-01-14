@@ -176,6 +176,18 @@
 - **FR-004**: 组件 MUST 支持应用状态管理,包含启用(active)和禁用(disabled)两种状态,禁用的应用拒绝 Token 获取
 - **FR-005**: 组件 MUST 记录应用配置的审计信息,包含创建者、创建时间、更新时间,支持配置变更追踪
 
+#### 应用配置管理 CLI 工具
+
+- **FR-005.1**: 组件 MUST 提供命令行工具 `lark-service-cli` 用于管理应用配置,支持通过 `python -m lark_service.cli` 或安装后的 `lark-service-cli` 命令调用
+- **FR-005.2**: CLI 工具 MUST 支持 `app add` 命令添加应用配置,必需参数包括 `--app-id`、`--app-secret`、`--name`,可选参数包括 `--description`
+- **FR-005.3**: CLI 工具 MUST 支持 `app list` 命令列出所有应用,以表格形式展示 app_id、name、status、created_at,支持 `--json` 选项输出 JSON 格式
+- **FR-005.4**: CLI 工具 MUST 支持 `app show` 命令显示应用详情,必需参数为 `--app-id`,app_secret 必须脱敏显示(如 `secret_****`),支持 `--json` 选项
+- **FR-005.5**: CLI 工具 MUST 支持 `app update` 命令更新应用配置,必需参数为 `--app-id`,支持部分字段更新(name、description、app_secret)
+- **FR-005.6**: CLI 工具 MUST 支持 `app delete` 命令删除应用配置,必需参数为 `--app-id`,需要用户交互式确认或使用 `--force` 选项跳过确认
+- **FR-005.7**: CLI 工具 MUST 支持 `app enable` 和 `app disable` 命令启用或禁用应用,必需参数为 `--app-id`
+- **FR-005.8**: CLI 工具 MUST 在操作失败时返回非零退出码(参数错误返回 1,数据库错误返回 2,权限错误返回 3),并输出清晰的错误信息和修复建议
+- **FR-005.9**: CLI 工具 MUST 在所有命令中支持 `--help` 选项显示详细帮助信息,包含参数说明、使用示例和注意事项
+
 #### 凭证管理
 
 - **FR-006**: 组件 MUST 支持自动获取和维护 `app_access_token`、`tenant_access_token` 和 `user_access_token` 三种类型的访问凭证

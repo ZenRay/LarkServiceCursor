@@ -306,7 +306,228 @@ lark-service/
 
 **输出文件**: `quickstart.md`
 
-### 1.4 Agent 上下文更新
+### 1.4 CLI 工具设计
+
+**目标**: 设计命令行工具用于管理应用配置,提供友好的用户交互体验。
+
+#### 技术选型
+
+| 组件 | 技术选择 | 理由 |
+|------|---------|------|
+| **命令行框架** | Click 8.x | 声明式命令定义,自动生成帮助文档,嵌套命令支持完善,社区活跃 |
+| **表格输出** | Rich 13.x | 美观的表格展示,支持颜色和样式,提升用户体验 |
+| **JSON 输出** | 内置 json 模块 | 无额外依赖,支持 `--json` 选项便于脚本集成 |
+| **密码输入** | Click.prompt(hide_input=True) | 安全输入敏感信息,避免命令行历史记录泄露 |
+
+#### 命令结构
+
+```bash
+lark-service-cli                     # 主命令(通过 python -m lark_service.cli 或安装后的命令调用)
+├── app                              # 应用配置管理命令组
+│   ├── add                          # 添加应用配置
+│   │   --app-id TEXT               # 飞书应用 App ID (必需)
+│   │   --app-secret TEXT           # 飞书应用 App Secret (必需,可交互式输入)
+│   │   --name TEXT                 # 应用名称 (必需)
+│   │   --description TEXT          # 应用描述 (可选)
+│   │   --json                      # JSON 格式输出 (可选)
+│   │
+│   ├── list                         # 列出所有应用
+│   │   --json                      # JSON 格式输出 (可选)
+│   │
+│   ├── show                         # 显示应用详情
+│   │   --app-id TEXT               # 应用 ID (必需)
+│   │   --json                      # JSON 格式输出 (可选)
+│   │
+│   ├── update                       # 更新应用配置
+│   │   --app-id TEXT               # 应用 ID (必需)
+│   │   --app-secret TEXT           # 新的 App Secret (可选)
+│   │   --name TEXT                 # 新的应用名称 (可选)
+│   │   --description TEXT          # 新的应用描述 (可选)
+│   │   --json                      # JSON 格式输出 (可选)
+│   │
+│   ├── delete                       # 删除应用配置
+│   │   --app-id TEXT               # 应用 ID (必需)
+│   │   --force                     # 跳过确认 (可选)
+│   │   --json                      # JSON 格式输出 (可选)
+│   │
+│   ├── enable                       # 启用应用
+│   │   --app-id TEXT               # 应用 ID (必需)
+│   │   --json                      # JSON 格式输出 (可选)
+│   │
+│   └── disable                      # 禁用应用
+│       --app-id TEXT               # 应用 ID (必需)
+│       --json                      # JSON 格式输出 (可选)
+│
+└── --help                           # 显示帮助信息
+```
+
+#### 实现要点
+
+**1. 入口点配置** (`setup.py` 或 `pyproject.toml`):
+
+```python
+# setup.py
+entry_points={
+    'console_scripts': [
+        'lark-service-cli=lark_service.cli:main',
+    ],
+}
+
+# 或 pyproject.toml
+[project.scripts]
+lark-service-cli = "lark_service.cli:main"
+```
+
+**2. 命令实现示例** (`src/lark_service/cli/app.py`):
+
+```python
+import click
+from rich.console import Console
+from rich.table import Table
+from lark_service.core.storage.sqlite_storage import ApplicationManager
+
+console = Console()
+
+@click.group()
+def app():
+    """应用配置管理命令组"""
+    pass
+
+@app.command()
+@click.option('--app-id', required=True, help='飞书应用 App ID')
+@click.option('--app-secret', prompt=True, hide_input=True, help='飞书应用 App Secret')
+@click.option('--name', required=True, help='应用名称')
+@click.option('--description', default='', help='应用描述')
+@click.option('--json', 'output_json', is_flag=True, help='以 JSON 格式输出')
+def add(app_id, app_secret, name, description, output_json):
+    """添加飞书应用配置"""
+    try:
+        app_manager = ApplicationManager()
+        app_manager.create_application(
+            app_id=app_id,
+            app_secret=app_secret,
+            name=name,
+            description=description
+        )
+        
+        if output_json:
+            click.echo(json.dumps({
+                "status": "success",
+                "app_id": app_id,
+                "name": name
+            }))
+        else:
+            console.print(f"✓ 应用配置已成功添加", style="green")
+            console.print(f"  App ID: {app_id}")
+            console.print(f"  Name: {name}")
+        
+        sys.exit(0)
+    except Exception as e:
+        if output_json:
+            click.echo(json.dumps({"status": "error", "message": str(e)}))
+        else:
+            console.print(f"✗ 添加失败: {str(e)}", style="red")
+        sys.exit(1)
+
+@app.command()
+@click.option('--json', 'output_json', is_flag=True, help='以 JSON 格式输出')
+def list(output_json):
+    """列出所有应用配置"""
+    try:
+        app_manager = ApplicationManager()
+        apps = app_manager.list_applications()
+        
+        if output_json:
+            click.echo(json.dumps([{
+                "app_id": app.app_id,
+                "name": app.name,
+                "status": "active" if app.is_active else "disabled",
+                "created_at": app.created_at.isoformat()
+            } for app in apps]))
+        else:
+            table = Table(title="飞书应用配置列表")
+            table.add_column("App ID", style="cyan")
+            table.add_column("Name", style="green")
+            table.add_column("Status", style="yellow")
+            table.add_column("Created At", style="magenta")
+            
+            for app in apps:
+                status = "✓ Active" if app.is_active else "✗ Disabled"
+                table.add_row(app.app_id, app.name, status, app.created_at.strftime("%Y-%m-%d %H:%M:%S"))
+            
+            console.print(table)
+        
+        sys.exit(0)
+    except Exception as e:
+        if output_json:
+            click.echo(json.dumps({"status": "error", "message": str(e)}))
+        else:
+            console.print(f"✗ 查询失败: {str(e)}", style="red")
+        sys.exit(2)
+```
+
+**3. 安全性设计**:
+
+- **app_secret 脱敏**: `show` 命令中显示为 `secret_****` (仅显示前 6 位和后 4 位)
+- **交互式确认**: `delete` 命令需要用户输入 `yes` 确认,或使用 `--force` 跳过
+- **密码输入**: `add` 和 `update` 命令的 `--app-secret` 支持 `prompt=True, hide_input=True`,避免命令行历史记录泄露
+- **审计日志**: 所有配置变更操作记录到应用日志
+
+**4. 错误处理与退出码**:
+
+| 退出码 | 含义 | 示例场景 |
+|-------|------|---------|
+| **0** | 成功 | 操作成功完成 |
+| **1** | 参数错误 | 缺少必需参数,参数格式错误,app_id 不存在 |
+| **2** | 数据库错误 | SQLite 连接失败,写入失败,加密密钥错误 |
+| **3** | 权限错误 | 文件权限不足,数据库文件不可写 |
+
+**5. 用户体验优化**:
+
+- **彩色输出**: 使用 Rich 库提供美观的表格和彩色文本
+- **进度提示**: 长时间操作显示进度条或 spinner
+- **详细帮助**: 每个命令支持 `--help` 显示详细说明和示例
+- **友好错误**: 错误信息包含问题描述和修复建议
+
+#### 测试策略
+
+**单元测试** (`tests/unit/cli/test_app_commands.py`):
+
+```python
+from click.testing import CliRunner
+from lark_service.cli.app import app
+
+def test_app_add_success():
+    runner = CliRunner()
+    result = runner.invoke(app, ['add', 
+        '--app-id', 'cli_test123',
+        '--app-secret', 'secret_test',
+        '--name', 'Test App',
+        '--json'
+    ])
+    assert result.exit_code == 0
+    assert 'success' in result.output
+
+def test_app_list_json_output():
+    runner = CliRunner()
+    result = runner.invoke(app, ['list', '--json'])
+    assert result.exit_code == 0
+    data = json.loads(result.output)
+    assert isinstance(data, list)
+
+def test_app_delete_without_force_requires_confirmation():
+    runner = CliRunner()
+    result = runner.invoke(app, ['delete', '--app-id', 'cli_test123'], input='no\n')
+    assert result.exit_code == 1
+    assert '已取消' in result.output
+```
+
+**输出文件**: 
+- `src/lark_service/cli/__init__.py`
+- `src/lark_service/cli/app.py`
+- `tests/unit/cli/test_app_commands.py`
+
+### 1.5 Agent 上下文更新
 
 运行 `.specify/scripts/bash/update-agent-context.sh cursor-agent` 更新 AI 辅助开发的上下文信息。
 
