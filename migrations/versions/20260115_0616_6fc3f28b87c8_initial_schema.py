@@ -1,10 +1,11 @@
 """initial_schema
 
 Revision ID: 6fc3f28b87c8
-Revises: 
+Revises:
 Create Date: 2026-01-15 06:16:30.053437+00:00
 
 """
+
 from typing import Sequence, Union
 
 from alembic import op
@@ -12,7 +13,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '6fc3f28b87c8'
+revision: str = "6fc3f28b87c8"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -76,9 +77,7 @@ def upgrade() -> None:
         sa.UniqueConstraint("session_id", name="uq_session_id"),
     )
     op.create_index("idx_auth_session_state", "user_auth_sessions", ["state"], unique=False)
-    op.create_index(
-        "idx_auth_session_expires", "user_auth_sessions", ["expires_at"], unique=False
-    )
+    op.create_index("idx_auth_session_expires", "user_auth_sessions", ["expires_at"], unique=False)
 
 
 def downgrade() -> None:

@@ -1,4 +1,5 @@
 """Alembic 环境配置文件"""
+
 import os
 from logging.config import fileConfig
 
@@ -18,6 +19,7 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
+
 # 从环境变量读取数据库连接 URL
 def get_url() -> str:
     """从环境变量构建数据库连接 URL"""
@@ -28,6 +30,7 @@ def get_url() -> str:
     password = os.getenv("POSTGRES_PASSWORD", "lark_password_123")
 
     return f"postgresql://{user}:{password}@{host}:{port}/{database}"
+
 
 # 覆盖配置文件中的 URL
 config.set_main_option("sqlalchemy.url", get_url())

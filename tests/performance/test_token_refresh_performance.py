@@ -99,7 +99,7 @@ class TestTokenRefreshPerformance:
         p50_latency = latencies[int(len(latencies) * 0.50)]
         p99_latency = latencies[int(len(latencies) * 0.99)]
 
-        print(f"\n=== Token 刷新延迟统计 ===")
+        print("\n=== Token 刷新延迟统计 ===")
         print(f"请求数: {num_requests}")
         print(f"平均延迟: {avg_latency:.2f} ms")
         print(f"最小延迟: {min_latency:.2f} ms")
@@ -147,7 +147,7 @@ class TestTokenRefreshPerformance:
         # 计算吞吐量
         throughput = num_requests / duration
 
-        print(f"\n=== Token 刷新吞吐量统计 ===")
+        print("\n=== Token 刷新吞吐量统计 ===")
         print(f"请求数: {num_requests}")
         print(f"总耗时: {duration:.2f} s")
         print(f"吞吐量: {throughput:.2f} req/s")
@@ -208,7 +208,7 @@ class TestTokenRefreshPerformance:
         end = time.perf_counter()
         duration = end - start
 
-        print(f"\n=== 并发 Token 刷新统计 ===")
+        print("\n=== 并发 Token 刷新统计 ===")
         print(f"并发数: {num_concurrent}")
         print(f"成功数: {len(results)}")
         print(f"总耗时: {duration:.2f} s")
@@ -260,7 +260,7 @@ class TestTokenRefreshPerformance:
         max_latency = max(latencies)
         p95_latency = sorted(latencies)[int(len(latencies) * 0.95)]
 
-        print(f"\n=== Token 缓存命中性能统计 ===")
+        print("\n=== Token 缓存命中性能统计 ===")
         print(f"请求数: {num_requests}")
         print(f"平均延迟: {avg_latency:.4f} ms")
         print(f"最大延迟: {max_latency:.4f} ms")
@@ -300,7 +300,7 @@ class TestTokenStoragePerformance:
         avg_latency = sum(latencies) / len(latencies)
         p95_latency = latencies[int(len(latencies) * 0.95)]
 
-        print(f"\n=== Token 写入性能统计 ===")
+        print("\n=== Token 写入性能统计 ===")
         print(f"写入数: {num_writes}")
         print(f"平均延迟: {avg_latency:.2f} ms")
         print(f"P95 延迟: {p95_latency:.2f} ms")
@@ -339,7 +339,7 @@ class TestTokenStoragePerformance:
         avg_latency = sum(latencies) / len(latencies)
         p95_latency = latencies[int(len(latencies) * 0.95)]
 
-        print(f"\n=== Token 读取性能统计 ===")
+        print("\n=== Token 读取性能统计 ===")
         print(f"读取数: {num_reads}")
         print(f"平均延迟: {avg_latency:.2f} ms")
         print(f"P95 延迟: {p95_latency:.2f} ms")
