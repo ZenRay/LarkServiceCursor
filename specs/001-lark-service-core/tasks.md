@@ -47,10 +47,10 @@
 
 ### 阶段检查点
 
-- [ ] **构建验证**: `docker-compose build` 成功
-- [ ] **依赖安装**: `pip install -r requirements.txt` 无错误
+- [ ] **构建验证**: `docker compose build` 成功
+- [ ] **依赖安装**: `uv pip install -r requirements.txt` 无错误 (或使用 `pip install -r requirements.txt`)
 - [ ] **代码质量**: `ruff check .` 通过, `mypy .` 配置正确
-- [ ] **环境启动**: `docker-compose up -d` 启动 PostgreSQL 和 RabbitMQ
+- [ ] **环境启动**: `docker compose up -d` 启动 PostgreSQL 和 RabbitMQ
 - [ ] **文档完整**: README.md 和 docs/ 文件就位
 
 ---

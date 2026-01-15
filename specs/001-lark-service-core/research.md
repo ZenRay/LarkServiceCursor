@@ -578,6 +578,8 @@ RUN apt-get update && apt-get install -y \
 
 # Install Python dependencies
 COPY requirements.txt .
+# 注意: 生产环境可以使用 uv 加速安装 (10-100x 速度提升)
+# RUN pip install uv && uv pip install --no-cache-dir -r requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy source code

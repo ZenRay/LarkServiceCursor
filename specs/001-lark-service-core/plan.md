@@ -297,12 +297,17 @@ lark-service/
 **目标**: 提供 5 分钟快速上手文档,包含安装、配置、第一个调用。
 
 **内容大纲**:
-1. 环境要求(Python 3.12+, Docker, PostgreSQL, RabbitMQ)
-2. 安装步骤(`pip install lark-service`)
+1. 环境要求(Python 3.12+, Docker Compose V2, PostgreSQL, RabbitMQ)
+2. 安装步骤(`uv pip install lark-service` 或 `pip install lark-service`)
 3. 配置 .env 文件(App ID/Secret)
 4. 第一个消息发送示例代码
 5. 验证 Token 自动刷新功能
 6. 故障排查常见问题
+
+**环境管理**:
+- 推荐使用 Conda 管理 Python 环境
+- 推荐使用 uv 作为包管理器 (速度提升 10-100x)
+- 使用 Docker Compose V2 命令 (`docker compose` 而非 `docker-compose`)
 
 **输出文件**: `quickstart.md`
 
