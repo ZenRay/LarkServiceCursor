@@ -213,3 +213,52 @@ class AuthenticationError(LarkServiceError):
     """
 
     pass
+
+
+class InvalidParameterError(ValidationError):
+    """Invalid parameter errors.
+
+    Raised when input parameters are invalid (e.g., file size exceeds limit,
+    unsupported file type, empty content).
+
+    Example
+    ----------
+        >>> raise InvalidParameterError(
+        ...     "File size exceeds maximum limit of 10MB",
+        ...     details={"file_size": 12582912, "max_size": 10485760}
+        ... )
+    """
+
+    pass
+
+
+class RetryableError(APIError):
+    """Retryable API errors.
+
+    Raised when an API call fails but can be retried.
+
+    Example
+    ----------
+        >>> raise RetryableError(
+        ...     "Failed to upload image",
+        ...     details={"code": 500, "msg": "Internal server error"}
+        ... )
+    """
+
+    pass
+
+
+class RequestTimeoutError(APIError):
+    """Request timeout errors.
+
+    Raised when an API request times out.
+
+    Example
+    ----------
+        >>> raise RequestTimeoutError(
+        ...     "Request timed out after 30 seconds",
+        ...     details={"timeout": 30, "operation": "upload_image"}
+        ... )
+    """
+
+    pass
