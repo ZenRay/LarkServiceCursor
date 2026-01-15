@@ -45,13 +45,48 @@
 - [X] T014 [P] 创建 docs/architecture.md (高层架构图、模块依赖关系)
 - [X] T015 [P] 创建 docs/deployment.md (Docker 部署、环境变量、健康检查)
 
-### 阶段检查点
+### 阶段检查点 (量化验收标准)
 
-- [ ] **构建验证**: `docker compose build` 成功
-- [ ] **依赖安装**: `uv pip install -r requirements.txt` 无错误 (或使用 `pip install -r requirements.txt`)
-- [ ] **代码质量**: `ruff check .` 通过, `mypy .` 配置正确
-- [ ] **环境启动**: `docker compose up -d` 启动 PostgreSQL 和 RabbitMQ
-- [ ] **文档完整**: README.md 和 docs/ 文件就位
+#### 1. 构建验证 (CHK041, CHK043)
+- [ ] `docker compose build` 成功完成
+  - **镜像大小**: ≤ 500MB (基础镜像 + 依赖)
+  - **构建时间**: ≤ 5 分钟 (首次构建,无缓存)
+  - **失败处理**: 构建失败时输出完整错误堆栈到 stderr,包含失败步骤和原因
+
+#### 2. 依赖安装 (CHK044)
+- [ ] `uv pip install -r requirements.txt` 无错误
+  - **警告容忍**: 允许 deprecation warnings,但不允许 error
+  - **超时时间**: ≤ 2 分钟 (使用 uv 加速)
+  - **兼容性**: pip 和 uv 安装结果一致
+
+#### 3. 代码质量 (CHK017, CHK047, CHK048)
+- [ ] `ruff check .` 通过
+  - **错误数**: 0 errors (阻塞)
+  - **警告数**: ≤ 5 warnings (非阻塞)
+  - **排除路径**: `migrations/`, `__pycache__/`, `.pytest_cache/`, `htmlcov/`
+  
+- [ ] `mypy src/` 类型检查
+  - **错误上限**: 0 errors (阻塞)
+  - **覆盖率**: ≥ 99% (计算范围: src/lark_service/, 不包含 tests/)
+  - **计算方式**: `mypy --html-report mypy-report src/` 生成覆盖率报告
+
+#### 4. 环境启动 (CHK050)
+- [ ] `docker compose up -d` 启动成功
+  - **服务就绪时间**: PostgreSQL ≤ 10秒, RabbitMQ ≤ 15秒
+  - **健康检查**: 
+    ```bash
+    # PostgreSQL
+    docker compose exec -T postgres pg_isready -U lark
+    
+    # RabbitMQ
+    curl -f http://localhost:15672/api/health/checks/alarms
+    ```
+  - **超时策略**: 如果 30秒 内未就绪,检查日志并退出
+
+#### 5. 文档完整性
+- [ ] README.md 和 docs/ 文件就位
+  - **必需文档**: README.md, architecture.md, security-guide.md, development-environment.md, docstring-standard.md, deployment.md
+  - **文档格式**: 所有 Markdown 文件符合规范 (标题层级、代码块、链接有效)
 
 ---
 

@@ -72,6 +72,201 @@
 
 **结论**: 所有宪章原则通过,无违规项,无需复杂性豁免。
 
+---
+
+## Architecture Design (架构设计细节)
+
+### 分层架构与职责划分 (CHK002, CHK023, CHK118)
+
+本项目采用 **领域驱动设计 (DDD)** 的分层架构,严格遵循单向依赖原则。
+
+#### 层级结构
+
+```
+┌─────────────────────────────────────────┐
+│         应用层 (Application Layer)        │  ← 业务模块:messaging/clouddoc/contact/apaas
+│   职责:实现具体业务逻辑,调用核心层服务    │
+└─────────────────┬───────────────────────┘
+                  │ 单向依赖
+                  ▼
+┌─────────────────────────────────────────┐
+│           核心层 (Core Layer)            │  ← 基础设施:credential/storage/retry/lock
+│   职责:提供通用能力,不依赖业务模块      │
+└─────────────────┬───────────────────────┘
+                  │ 单向依赖
+                  ▼
+┌─────────────────────────────────────────┐
+│         数据层 (Data Layer)              │  ← 数据模型:Application/TokenStorage/UserCache
+│   职责:数据持久化,ORM 映射              │
+└─────────────────────────────────────────┘
+```
+
+#### 核心层 (core/) 职责边界
+
+**定义**: 提供与业务无关的通用基础设施,所有应用层模块都依赖它,但它不依赖任何应用层。
+
+| 模块 | 职责 | 禁止行为 |
+|------|------|---------|
+| `config.py` | 加载和验证环境变量配置 | ❌ 不应包含业务逻辑 |
+| `credential_pool.py` | Token 生命周期管理 (获取/刷新/缓存) | ❌ 不应调用业务模块 |
+| `storage/` | 数据库访问抽象层 (SQLite/PostgreSQL) | ❌ 不应包含业务规则 |
+| `lock_manager.py` | 并发控制 (线程锁+文件锁) | ❌ 不应依赖业务上下文 |
+| `retry.py` | 重试策略 (指数退避) | ❌ 不应包含业务判断 |
+| `response.py` | 标准化响应结构 | ❌ 不应依赖特定 API |
+| `exceptions.py` | 通用异常定义 | ❌ 不应包含业务异常 |
+
+**核心层设计原则**:
+1. **高内聚**: 每个模块职责单一明确
+2. **低耦合**: 模块间通过接口交互
+3. **可测试**: 所有逻辑可独立单元测试
+4. **可替换**: 存储层可切换实现 (SQLite ↔ PostgreSQL)
+
+#### 应用层模块职责 (CHK002)
+
+**定义**: 实现具体业务功能,封装飞书 API 调用,依赖核心层提供的能力。
+
+| 模块 | 职责 | 核心依赖 |
+|------|------|---------|
+| `messaging/` | 消息发送、卡片交互、媒体上传 | `credential_pool`, `retry`, `response` |
+| `clouddoc/` | 文档/表格/多维表格操作 | `credential_pool`, `retry`, `response` |
+| `contact/` | 通讯录查询、用户缓存 | `credential_pool`, `storage`, `response` |
+| `apaas/` | 数据空间、AI、工作流 | `credential_pool`, `retry`, `response` |
+
+**应用层设计原则**:
+1. **业务隔离**: 模块间禁止相互调用
+2. **API 封装**: 屏蔽飞书 API 复杂性
+3. **参数校验**: 调用前验证所有参数
+4. **错误转换**: 将飞书错误转为内部语义化错误
+
+#### 数据层职责
+
+**定义**: 定义数据模型,处理持久化逻辑,ORM 映射。
+
+| 模块 | 存储引擎 | 用途 |
+|------|---------|------|
+| `models/application.py` | SQLite | 应用配置 (低频读写) |
+| `models/token_storage.py` | PostgreSQL | Token 缓存 (高频读写) |
+| `models/user_cache.py` | PostgreSQL | 用户信息缓存 (24h TTL) |
+| `models/auth_session.py` | PostgreSQL | 用户认证会话 (10min TTL) |
+
+**数据层设计原则**:
+1. **模型纯粹**: 仅包含数据定义和简单方法
+2. **无业务逻辑**: 不包含复杂计算或判断
+3. **类型安全**: 使用 SQLAlchemy 2.0 `Mapped[T]` 类型注解
+4. **加密存储**: 敏感字段加密 (app_secret, token)
+
+---
+
+### 领域驱动设计 (DDD) 实践边界 (CHK022)
+
+**DDD 在本项目中的应用范围**:
+
+#### 采用的 DDD 概念
+
+1. **分层架构** ✅
+   - 应用层、核心层、数据层明确分离
+   - 单向依赖,禁止循环引用
+
+2. **聚合根 (Aggregate Root)** ✅
+   - `CredentialPool`: Token 管理的聚合根
+   - `Application`: 应用配置的聚合根
+   - 通过聚合根访问相关实体
+
+3. **值对象 (Value Object)** ✅
+   - `StandardResponse`: 不可变的响应对象
+   - `APIRequest`: 封装请求参数的值对象
+
+4. **仓储模式 (Repository)** ✅
+   - `ApplicationManager`: 应用配置仓储
+   - `TokenStorageService`: Token 仓储
+   - `PostgresStorage`: 用户缓存仓储
+
+5. **领域服务 (Domain Service)** ✅
+   - `CredentialPool`: 跨聚合的 Token 管理服务
+   - `LockManager`: 并发控制服务
+
+#### 不采用的 DDD 概念 (简化)
+
+1. **领域事件 (Domain Event)** ❌
+   - 项目规模较小,事件溯源过度设计
+
+2. **CQRS (命令查询分离)** ❌
+   - 读写模式简单,无需分离
+
+3. **事件驱动架构** ❌ (部分)
+   - 仅在卡片回调场景使用消息队列
+   - 核心逻辑保持同步调用
+
+4. **微服务拆分** ❌
+   - 单体库设计,无需服务拆分
+
+**DDD 实践原则**:
+- ✅ 采用 DDD 的模块化和分层思想
+- ✅ 使用聚合、仓储、领域服务等核心模式
+- ❌ 不追求 DDD 的所有概念和复杂性
+- ✅ 以实用性和可维护性为优先
+
+---
+
+### 配置优先级规则 (CHK015)
+
+本项目配置加载遵循以下优先级(从高到低):
+
+```
+1. 环境变量 (最高优先级)
+   ↓
+2. .env 文件 
+   ↓
+3. 代码默认值 (最低优先级)
+```
+
+#### 详细规则
+
+| 配置项 | 环境变量 | .env 文件 | 代码默认值 | 最终值 |
+|--------|---------|-----------|-----------|--------|
+| `LOG_LEVEL` | `ERROR` | `INFO` | `INFO` | `ERROR` ✅ |
+| `POSTGRES_PORT` | - | `5433` | `5432` | `5433` ✅ |
+| `TOKEN_REFRESH_THRESHOLD` | - | - | `0.1` | `0.1` ✅ |
+
+#### 实现示例
+
+```python
+import os
+from dataclasses import dataclass
+from dotenv import load_dotenv
+
+@dataclass
+class Config:
+    """Configuration with priority: ENV > .env > defaults."""
+    
+    # 默认值 (优先级 3)
+    log_level: str = "INFO"
+    postgres_port: int = 5432
+    token_refresh_threshold: float = 0.1
+    
+    @classmethod
+    def from_env(cls) -> "Config":
+        """Load config with priority handling."""
+        # 加载 .env 文件 (优先级 2)
+        load_dotenv()
+        
+        # 环境变量覆盖 (优先级 1)
+        return cls(
+            log_level=os.getenv("LOG_LEVEL", cls.log_level),
+            postgres_port=int(os.getenv("POSTGRES_PORT", cls.postgres_port)),
+            token_refresh_threshold=float(
+                os.getenv("TOKEN_REFRESH_THRESHOLD", cls.token_refresh_threshold)
+            ),
+        )
+```
+
+**配置覆盖场景**:
+- **开发环境**: 使用 `.env.development`
+- **生产环境**: 环境变量注入,不使用 .env 文件
+- **CI 环境**: 环境变量注入,使用 `.env.ci`
+
+---
+
 ## Project Structure
 
 ### Documentation (this feature)
