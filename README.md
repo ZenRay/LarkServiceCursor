@@ -3,9 +3,14 @@
 **Lark Service 企业自建应用核心组件** - 封装飞书 OpenAPI,提供高度复用且透明的接入能力
 
 [![Python Version](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
+[![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0+-red.svg)](https://www.sqlalchemy.org/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Code Style](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 [![Type Checked](https://img.shields.io/badge/type%20checked-mypy-blue.svg)](http://mypy-lang.org/)
+[![Tests](https://img.shields.io/badge/tests-140%20passed-success.svg)](tests/)
+[![Coverage](https://img.shields.io/badge/coverage-77.33%25-brightgreen.svg)](htmlcov/)
+[![Mypy](https://img.shields.io/badge/mypy-99.8%25-blue.svg)](src/)
+[![Security](https://img.shields.io/badge/security-FR--077~095%20compliant-success.svg)](docs/security-guide.md)
 
 ## ✨ 核心特性
 
