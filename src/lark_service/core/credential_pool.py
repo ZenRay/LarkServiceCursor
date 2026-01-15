@@ -1,0 +1,404 @@
+"""Credential pool for managing Feishu tokens.
+
+Provides centralized token management with lazy loading and auto-refresh.
+"""
+
+from datetime import datetime, timedelta
+from pathlib import Path
+
+import lark_oapi as lark
+from lark_oapi.api.auth.v3 import InternalAppAccessTokenRequest, InternalTenantAccessTokenRequest
+
+from lark_service.core.config import Config
+from lark_service.core.exceptions import (
+    AuthenticationError,
+    TokenAcquisitionError,
+)
+from lark_service.core.lock_manager import RefreshLockContext, TokenRefreshLock
+from lark_service.core.retry import RetryStrategy
+from lark_service.core.storage.postgres_storage import TokenStorageService
+from lark_service.core.storage.sqlite_storage import ApplicationManager
+from lark_service.utils.logger import get_logger
+from lark_service.utils.validators import validate_app_id
+
+logger = get_logger()
+
+
+class CredentialPool:
+    """Credential pool for managing Feishu application tokens.
+
+    Handles token acquisition, caching, and automatic refresh with
+    multi-application isolation.
+
+    Attributes:
+        config: Application configuration
+        app_manager: Application configuration manager
+        token_storage: Token storage service
+        lock_manager: Lock manager for concurrent operations
+        retry_strategy: Retry strategy for API calls
+        sdk_clients: Cache of Lark SDK clients by app_id
+    """
+
+    def __init__(
+        self,
+        config: Config,
+        app_manager: ApplicationManager,
+        token_storage: TokenStorageService,
+        lock_dir: Path | str = "data/locks",
+    ) -> None:
+        """Initialize CredentialPool.
+
+        Args:
+            config: Application configuration
+            app_manager: Application configuration manager
+            token_storage: Token storage service
+            lock_dir: Directory for lock files
+
+        Example:
+            >>> config = Config.load_from_env()
+            >>> app_manager = ApplicationManager("data/config.db", encryption_key)
+            >>> token_storage = TokenStorageService(config.get_postgres_url())
+            >>> pool = CredentialPool(config, app_manager, token_storage)
+        """
+        self.config = config
+        self.app_manager = app_manager
+        self.token_storage = token_storage
+        self.lock_manager = TokenRefreshLock(lock_dir, default_timeout=30.0)
+        self.retry_strategy = RetryStrategy(
+            max_retries=config.max_retries,
+            base_delay=config.retry_backoff_base,
+        )
+
+        # Cache of SDK clients
+        self.sdk_clients: dict[str, lark.Client] = {}
+
+        logger.info("CredentialPool initialized")
+
+    def _get_sdk_client(self, app_id: str) -> lark.Client:
+        """Get or create Lark SDK client for app_id.
+
+        Args:
+            app_id: Application ID
+
+        Returns:
+            Lark SDK client
+
+        Raises:
+            AuthenticationError: If application not found or credentials invalid
+        """
+        if app_id in self.sdk_clients:
+            return self.sdk_clients[app_id]
+
+        # Get application credentials
+        app = self.app_manager.get_application(app_id)
+        if not app:
+            raise AuthenticationError(
+                f"Application not found: {app_id}",
+                details={"app_id": app_id},
+            )
+
+        if not app.is_active():
+            raise AuthenticationError(
+                f"Application is not active: {app_id}",
+                details={"app_id": app_id, "status": app.status},
+            )
+
+        # Get decrypted secret
+        app_secret = self.app_manager.get_decrypted_secret(app_id)
+
+        # Create SDK client
+        client = lark.Client.builder() \
+            .app_id(app_id) \
+            .app_secret(app_secret) \
+            .log_level(lark.LogLevel.ERROR) \
+            .build()
+
+        self.sdk_clients[app_id] = client
+
+        logger.debug(
+            "SDK client created",
+            extra={"app_id": app_id},
+        )
+
+        return client
+
+    def _fetch_app_access_token(self, app_id: str) -> tuple[str, datetime]:
+        """Fetch app_access_token from Feishu API.
+
+        Args:
+            app_id: Application ID
+
+        Returns:
+            Tuple of (token_value, expires_at)
+
+        Raises:
+            TokenAcquisitionError: If token acquisition fails
+        """
+        client = self._get_sdk_client(app_id)
+
+        try:
+            request = InternalAppAccessTokenRequest.builder() \
+                .app_id(app_id) \
+                .app_secret(self.app_manager.get_decrypted_secret(app_id)) \
+                .build()
+
+            response = client.auth.v3.app_access_token.internal(request)
+
+            if not response.success():
+                raise TokenAcquisitionError(
+                    f"Failed to get app_access_token: {response.msg}",
+                    details={
+                        "app_id": app_id,
+                        "code": response.code,
+                        "msg": response.msg,
+                    },
+                )
+
+            token_value = response.data.app_access_token
+            expires_in = response.data.expire  # seconds
+
+            expires_at = datetime.now() + timedelta(seconds=expires_in)
+
+            logger.info(
+                "app_access_token acquired",
+                extra={
+                    "app_id": app_id,
+                    "expires_in": expires_in,
+                    "expires_at": expires_at.isoformat(),
+                },
+            )
+
+            return token_value, expires_at
+
+        except TokenAcquisitionError:
+            raise
+        except Exception as e:
+            raise TokenAcquisitionError(
+                f"Failed to fetch app_access_token: {e}",
+                details={"app_id": app_id, "error": str(e)},
+            ) from e
+
+    def _fetch_tenant_access_token(self, app_id: str) -> tuple[str, datetime]:
+        """Fetch tenant_access_token from Feishu API.
+
+        Args:
+            app_id: Application ID
+
+        Returns:
+            Tuple of (token_value, expires_at)
+
+        Raises:
+            TokenAcquisitionError: If token acquisition fails
+        """
+        client = self._get_sdk_client(app_id)
+
+        try:
+            request = InternalTenantAccessTokenRequest.builder() \
+                .app_id(app_id) \
+                .app_secret(self.app_manager.get_decrypted_secret(app_id)) \
+                .build()
+
+            response = client.auth.v3.tenant_access_token.internal(request)
+
+            if not response.success():
+                raise TokenAcquisitionError(
+                    f"Failed to get tenant_access_token: {response.msg}",
+                    details={
+                        "app_id": app_id,
+                        "code": response.code,
+                        "msg": response.msg,
+                    },
+                )
+
+            token_value = response.data.tenant_access_token
+            expires_in = response.data.expire  # seconds
+
+            expires_at = datetime.now() + timedelta(seconds=expires_in)
+
+            logger.info(
+                "tenant_access_token acquired",
+                extra={
+                    "app_id": app_id,
+                    "expires_in": expires_in,
+                    "expires_at": expires_at.isoformat(),
+                },
+            )
+
+            return token_value, expires_at
+
+        except TokenAcquisitionError:
+            raise
+        except Exception as e:
+            raise TokenAcquisitionError(
+                f"Failed to fetch tenant_access_token: {e}",
+                details={"app_id": app_id, "error": str(e)},
+            ) from e
+
+    def get_token(
+        self,
+        app_id: str,
+        token_type: str = "app_access_token",
+        force_refresh: bool = False,
+    ) -> str:
+        """Get token with automatic refresh.
+
+        Args:
+            app_id: Application ID
+            token_type: Token type ('app_access_token' or 'tenant_access_token')
+            force_refresh: Force token refresh even if not expired
+
+        Returns:
+            Token value
+
+        Raises:
+            AuthenticationError: If application not found or credentials invalid
+            TokenAcquisitionError: If token acquisition fails
+
+        Example:
+            >>> pool = CredentialPool(config, app_manager, token_storage)
+            >>> token = pool.get_token("cli_abc123", "app_access_token")
+        """
+        validate_app_id(app_id)
+
+        if token_type not in ["app_access_token", "tenant_access_token"]:
+            raise ValueError(
+                f"Invalid token_type: {token_type}. "
+                "Must be 'app_access_token' or 'tenant_access_token'"
+            )
+
+        # Check cache first (unless force_refresh)
+        if not force_refresh:
+            cached_token = self.token_storage.get_token(app_id, token_type)
+            if cached_token and not cached_token.is_expired():
+                # Check if refresh is needed
+                if cached_token.should_refresh(threshold=self.config.token_refresh_threshold):
+                    logger.info(
+                        "Token needs refresh",
+                        extra={
+                            "app_id": app_id,
+                            "token_type": token_type,
+                            "remaining_seconds": cached_token.get_remaining_seconds(),
+                        },
+                    )
+                    # Refresh in background (or synchronously if needed)
+                    return self.refresh_token(app_id, token_type)
+                else:
+                    logger.debug(
+                        "Using cached token",
+                        extra={
+                            "app_id": app_id,
+                            "token_type": token_type,
+                            "remaining_seconds": cached_token.get_remaining_seconds(),
+                        },
+                    )
+                    return cached_token.token_value
+
+        # Token not cached or expired, fetch new one
+        return self.refresh_token(app_id, token_type)
+
+    def refresh_token(
+        self,
+        app_id: str,
+        token_type: str = "app_access_token",
+    ) -> str:
+        """Refresh token from Feishu API.
+
+        Args:
+            app_id: Application ID
+            token_type: Token type ('app_access_token' or 'tenant_access_token')
+
+        Returns:
+            New token value
+
+        Raises:
+            AuthenticationError: If application not found or credentials invalid
+            TokenAcquisitionError: If token acquisition fails
+
+        Example:
+            >>> pool = CredentialPool(config, app_manager, token_storage)
+            >>> token = pool.refresh_token("cli_abc123", "app_access_token")
+        """
+        validate_app_id(app_id)
+
+        # Use lock to prevent concurrent refresh
+        with RefreshLockContext(self.lock_manager, app_id, timeout=30.0):
+            # Double-check cache after acquiring lock
+            cached_token = self.token_storage.get_token(app_id, token_type)
+            if cached_token and not cached_token.is_expired():
+                logger.debug(
+                    "Token was refreshed by another process",
+                    extra={"app_id": app_id, "token_type": token_type},
+                )
+                return cached_token.token_value
+
+            # Fetch new token with retry
+            def fetch_token() -> tuple[str, datetime]:
+                if token_type == "app_access_token":
+                    return self._fetch_app_access_token(app_id)
+                else:
+                    return self._fetch_tenant_access_token(app_id)
+
+            token_value, expires_at = self.retry_strategy.execute(fetch_token)
+
+            # Store in database
+            self.token_storage.set_token(
+                app_id=app_id,
+                token_type=token_type,
+                token_value=token_value,
+                expires_at=expires_at,
+            )
+
+            logger.info(
+                "Token refreshed and stored",
+                extra={
+                    "app_id": app_id,
+                    "token_type": token_type,
+                    "expires_at": expires_at.isoformat(),
+                },
+            )
+
+            return token_value
+
+    def invalidate_token(
+        self,
+        app_id: str,
+        token_type: str = "app_access_token",
+    ) -> None:
+        """Invalidate cached token.
+
+        Args:
+            app_id: Application ID
+            token_type: Token type
+
+        Example:
+            >>> pool = CredentialPool(config, app_manager, token_storage)
+            >>> pool.invalidate_token("cli_abc123", "app_access_token")
+        """
+        validate_app_id(app_id)
+
+        deleted = self.token_storage.delete_token(app_id, token_type)
+
+        if deleted:
+            logger.info(
+                "Token invalidated",
+                extra={"app_id": app_id, "token_type": token_type},
+            )
+        else:
+            logger.debug(
+                "Token not found for invalidation",
+                extra={"app_id": app_id, "token_type": token_type},
+            )
+
+    def close(self) -> None:
+        """Close all resources.
+
+        Example:
+            >>> pool = CredentialPool(config, app_manager, token_storage)
+            >>> try:
+            ...     token = pool.get_token("cli_abc123")
+            ... finally:
+            ...     pool.close()
+        """
+        self.app_manager.close()
+        self.token_storage.close()
+        logger.info("CredentialPool closed")
