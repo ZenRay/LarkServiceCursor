@@ -147,6 +147,7 @@ class TokenStorageService:
                 # Update existing token
                 existing.token_value = token_value
                 existing.expires_at = expires_at
+                existing.created_at = datetime.now()  # Update created_at for new token lifecycle
                 token = existing
             else:
                 # Create new token
