@@ -538,6 +538,197 @@ def test_app_delete_without_force_requires_confirmation():
 
 ---
 
+## Security Implementation (安全实施细节)
+
+### 配置安全
+
+**文件权限管理**:
+```bash
+# SQLite 配置文件权限
+chmod 600 ./config/applications.db
+
+# 生产环境 .env 文件权限
+chmod 600 .env.production
+```
+
+**配置敏感度分类**:
+| 类别 | 示例 | 存储方式 | 访问控制 |
+|------|------|---------|---------|
+| `public` | LOG_LEVEL, FEATURE_FLAGS | 环境变量或配置文件 | 无限制 |
+| `internal` | POSTGRES_HOST, POSTGRES_PORT | 环境变量 | 仅内部网络 |
+| `secret` | APP_SECRET, ENCRYPTION_KEY, POSTGRES_PASSWORD | 环境变量 + 加密存储 | 文件权限 0600 + 加密 |
+
+**环境隔离策略**:
+```bash
+# 开发环境
+.env.development  # 本地测试密钥和数据库
+
+# 生产环境
+.env.production   # 生产密钥,不同的数据库凭证
+
+# CI 环境
+.env.ci           # 测试专用密钥和临时数据库
+```
+
+### 密钥管理
+
+**加密密钥规范**:
+```python
+# 生成符合 Fernet 规范的密钥 (Python)
+from cryptography.fernet import Fernet
+key = Fernet.generate_key()  # 32字节 URL-safe base64编码
+print(key.decode())  # 输出: xxxxx...=
+
+# 环境变量设置
+export LARK_CONFIG_ENCRYPTION_KEY="xxxxx...="
+```
+
+**密钥轮换流程**:
+```bash
+# 1. 生成新密钥
+lark-service-cli config generate-key
+
+# 2. 轮换密钥并重新加密
+lark-service-cli config rotate-key --new-key <new_key>
+
+# 3. 更新环境变量
+export LARK_CONFIG_ENCRYPTION_KEY="<new_key>"
+
+# 4. 重启服务
+docker compose restart
+```
+
+**日志脱敏规则**:
+```python
+# 密钥类信息脱敏
+"app_secret": "cli_****"           # 仅显示前4位
+"token": "****"                    # 完全隐藏
+"password": "****"                 # 完全隐藏
+
+# 日志示例
+logger.info(f"App registered: app_id={app_id}, app_secret={app_secret[:4]}****")
+```
+
+### 依赖安全
+
+**安全扫描工具配置**:
+```yaml
+# .github/workflows/security-scan.yml (示例)
+name: Security Scan
+on: [push, pull_request]
+
+jobs:
+  dependency-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Safety Check
+        run: |
+          pip install safety
+          safety check --json --file requirements.txt
+          # 阻止 CVSS ≥ 7.0 的漏洞
+          
+  docker-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Image
+        run: docker build -t lark-service:latest .
+      - name: Trivy Scan
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy image --severity HIGH,CRITICAL lark-service:latest
+```
+
+**依赖更新策略**:
+| 优先级 | CVSS 范围 | 响应时间 | 行动 |
+|--------|----------|---------|------|
+| P0 | ≥ 9.0 (严重) | 24小时 | 立即修复并发布补丁 |
+| P1 | 7.0-8.9 (高危) | 7天 | 计划修复,下一个版本 |
+| P2 | 4.0-6.9 (中危) | 30天 | 定期修复,月度更新 |
+| P3 | < 4.0 (低危) | 90天 | 可选修复,季度评估 |
+
+**依赖锁定最佳实践**:
+```txt
+# requirements.txt - 使用精确版本
+lark-oapi==1.2.15          # ✅ 精确版本
+pydantic==2.5.3            # ✅ 精确版本
+SQLAlchemy==2.0.25         # ✅ 精确版本
+
+# ❌ 避免范围版本
+# lark-oapi>=1.2.0         # 可能引入不兼容版本
+# pydantic~=2.5.0          # 可能引入漏洞版本
+```
+
+### 容器安全
+
+**Dockerfile 安全最佳实践**:
+```dockerfile
+# 使用官方基础镜像
+FROM python:3.12-slim AS base
+
+# 非 root 用户运行
+RUN groupadd -r larkuser -g 1001 && \
+    useradd -r -u 1001 -g larkuser larkuser
+
+# 最小权限文件复制
+COPY --chown=larkuser:larkuser . /app
+WORKDIR /app
+
+# 切换到非 root 用户
+USER 1001
+
+# 仅暴露必需端口 (如果需要 HTTP 服务)
+# EXPOSE 8000
+
+CMD ["python", "-m", "lark_service"]
+```
+
+**镜像扫描集成**:
+```bash
+# CI 中的镜像扫描
+trivy image --severity HIGH,CRITICAL --exit-code 1 lark-service:latest
+
+# 本地扫描
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+  aquasec/trivy image lark-service:latest
+```
+
+### 环境隔离
+
+**多环境配置矩阵**:
+| 配置项 | 开发环境 | 生产环境 | 说明 |
+|--------|---------|---------|------|
+| ENCRYPTION_KEY | dev-key-xxx | prod-key-yyy | 不同密钥 |
+| POSTGRES_HOST | localhost | prod-db.internal | 不同数据库 |
+| LOG_LEVEL | DEBUG | INFO | 不同日志级别 |
+| POSTGRES_PASSWORD | dev-password | <vault> | 生产使用密钥管理服务 |
+
+**访问控制策略**:
+```python
+# 应用配置访问控制 (示例)
+class ApplicationManager:
+    def get_app_secret(self, app_id: str, app_context: str) -> str:
+        """Get app secret with access control.
+        
+        Args:
+            app_id: Application ID
+            app_context: Calling context (dev/prod)
+            
+        Raises:
+            PermissionError: If cross-context access detected
+        """
+        app = self.get_application(app_id)
+        
+        # 禁止跨应用访问
+        if app_context not in ["dev", "prod"]:
+            raise PermissionError("Invalid context")
+            
+        return app.get_decrypted_secret(self.encryption_key)
+```
+
+---
+
 ## Phase 2: 宪章复核 (Constitution Re-check)
 
 **前置条件**: Phase 1 设计完成
@@ -546,7 +737,7 @@ def test_app_delete_without_force_requires_confirmation():
 
 - ✅ **原则 III (架构完整性)**: 检查 data-model.md 中的模块依赖图,确认无循环依赖
 - ✅ **原则 IV (响应一致性)**: 检查 contracts/ 中的响应结构,确认统一包含状态码/请求ID/错误上下文
-- ✅ **原则 V/VII (安全性)**: 检查 Token 存储设计使用加密,配置仅通过环境变量注入
+- ✅ **原则 V/VII (安全性)**: 检查 Token 存储设计使用加密,配置仅通过环境变量注入,已补充详细安全实施细节
 
 **如发现违规**: 记录到 Complexity Tracking 表格并提供豁免理由,或回到 Phase 1 修正设计。
 

@@ -308,6 +308,37 @@
 - **FR-075**: 组件 MUST 支持配置日志级别(DEBUG、INFO、WARNING、ERROR),默认为 INFO
 - **FR-076**: 组件 MUST 在关键操作失败时记录 ERROR 级别日志,包含足够的错误上下文用于问题排查
 
+#### 安全需求 (Security Requirements)
+
+**配置安全**:
+- **FR-077**: 所有敏感配置(App Secret、加密密钥、数据库密码)MUST 仅通过环境变量注入,严禁硬编码在代码或配置文件中
+- **FR-078**: 加密密钥(LARK_CONFIG_ENCRYPTION_KEY)MUST 符合 Fernet 规范(32字节 URL-safe base64编码),最小强度为 256 bit
+- **FR-079**: SQLite 应用配置文件 MUST 设置文件权限为 0600(仅所有者读写),禁止其他用户访问
+- **FR-080**: 配置文件存储路径 MUST 在部署文档中明确指定,默认为 `./config/applications.db`(相对于项目根目录)
+- **FR-081**: 组件 MUST 将配置按敏感度分类:`public`(日志级别)、`internal`(数据库连接)、`secret`(密钥/密码),不同类别采用不同的访问控制策略
+
+**密钥管理**:
+- **FR-082**: App Secret 在 SQLite 中 MUST 使用 Fernet 对称加密存储,加密密钥来自环境变量
+- **FR-083**: 加密密钥 MUST 支持轮换机制,提供 CLI 命令重新加密所有 App Secret:`lark-service-cli config rotate-key --new-key <new_key>`
+- **FR-084**: 所有密钥类信息(App Secret、Token、密码)MUST 在日志中脱敏显示(仅显示前4位+`****`或完全隐藏)
+- **FR-085**: Token 在 PostgreSQL 中 MUST 加密存储(使用 pg_crypto 扩展),防止数据库泄露导致 Token 泄露
+
+**依赖安全**:
+- **FR-086**: 项目 MUST 使用 `safety` 工具扫描 Python 依赖的已知安全漏洞,CI 流程中集成安全检查
+- **FR-087**: 项目 MUST 每月至少检查一次依赖更新,及时修复高危和严重漏洞(CVSS ≥ 7.0)
+- **FR-088**: requirements.txt MUST 锁定依赖版本(使用 `==` 而非 `>=`),避免意外引入不兼容或有漏洞的版本
+
+**容器安全**:
+- **FR-089**: Docker 基础镜像 MUST 使用官方镜像(如 `python:3.12-slim`),并定期更新到最新补丁版本
+- **FR-090**: Docker 镜像 MUST 在 CI 流程中使用 `trivy` 或 `grype` 进行安全扫描,阻止存在高危漏洞的镜像部署
+- **FR-091**: 容器运行 MUST 使用非 root 用户(UID ≥ 1000),在 Dockerfile 中显式指定 `USER` 指令
+- **FR-092**: 容器 MUST 仅暴露必需的端口,禁止使用 `EXPOSE 0.0.0.0:*` 形式暴露所有端口
+
+**环境隔离**:
+- **FR-093**: 本地开发环境与生产环境 MUST 使用不同的加密密钥和数据库凭证,通过 `.env.development` 和 `.env.production` 区分
+- **FR-094**: 生产环境的 `.env` 文件 MUST 在部署后设置文件权限为 0600,禁止提交到版本控制系统
+- **FR-095**: 多租户场景(不同 app_id)的 Token 和配置 MUST 完全隔离,禁止跨应用访问
+
 ### Key Entities
 
 - **CredentialPool**: 凭证池,负责管理和维护所有类型的访问 Token,包含 Token 值、过期时间、刷新时间、Token 类型、app_id(应用隔离)、锁对象(并发控制)等属性
@@ -333,6 +364,23 @@
 - **AICapability**: AI 能力对象,表示飞书 AI 服务,包含能力 ID、能力类型、输入参数、输出结果等属性
 - **ErrorMapping**: 错误映射对象,将飞书原始错误码映射为内部语义化错误,包含原始错误码、错误类型、错误描述、是否可重试等属性
 
+#### 代码质量与文档
+
+**Docstring 标准**:
+- **FR-096**: 所有公共 API(模块、类、函数)MUST 包含 Docstring,覆盖率要求 100%
+- **FR-097**: Docstring MUST 采用 Google 风格,包含以下必需部分:
+  - 功能简述(单行)
+  - 详细说明(可选)
+  - Args: 参数列表(参数名、类型、说明)
+  - Returns: 返回值(类型、说明)
+  - Raises: 可能抛出的异常(异常类、触发条件)
+  - Example: 使用示例(可选,推荐用于复杂 API)
+- **FR-098**: 私有方法(以 `_` 开头)和内部工具函数 SHOULD 包含 Docstring,至少说明用途和参数
+
+**类型注解**:
+- **FR-099**: 所有公共 API MUST 包含完整的类型注解(参数和返回值),mypy strict 模式覆盖率要求 ≥ 99%
+- **FR-100**: 复杂类型(如 Union、Optional、Dict)MUST 使用类型别名(TypeAlias)提高可读性
+
 ## Success Criteria *(mandatory)*
 
 ### Measurable Outcomes
@@ -350,6 +398,8 @@
 - **SC-011**: 运维人员能在 2 分钟内通过应用配置管理接口新增一个飞书应用配置,无需修改代码或重启服务
 - **SC-012**: Contact 模块的用户信息缓存命中率达到 80% 以上,减少飞书 API 调用次数
 - **SC-013**: aPaaS 数据空间表格操作支持每秒 50 次并发查询,响应时间 95 分位数小于 2 秒
+- **SC-014**: 依赖安全扫描在 CI 中阻止存在高危漏洞(CVSS ≥ 7.0)的代码合并,实现零高危漏洞部署
+- **SC-015**: Docker 镜像安全扫描在 CI 中阻止存在严重漏洞的镜像构建,镜像安全评分 ≥ B 级
 
 ## Clarifications
 

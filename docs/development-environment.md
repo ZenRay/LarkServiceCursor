@@ -1,7 +1,78 @@
 # 开发环境配置指南
 
-**版本**: 1.0.0  
+**版本**: 2.0.0  
 **更新时间**: 2026-01-15
+
+---
+
+## 🎯 开发环境 vs 生产环境差异 (FR-093, CHK009)
+
+本项目区分**开发环境**和**生产环境**,确保安全性和可维护性。
+
+### 关键差异点
+
+| 维度 | 开发环境 | 生产环境 |
+|------|---------|---------|
+| **加密密钥** | 测试密钥(`.env.development`) | 生产密钥(环境变量/Vault) |
+| **数据库** | 本地 PostgreSQL/SQLite | 生产数据库集群 |
+| **日志级别** | `DEBUG` | `INFO` |
+| **数据持久化** | 可删除重建 | 必须备份和恢复 |
+| **安全扫描** | 可选 | 强制(CI/CD) |
+| **依赖管理** | 可以使用 `pip` | 必须使用 `uv` (速度) |
+| **错误处理** | 详细堆栈信息 | 简化错误信息 |
+| **性能要求** | 无严格要求 | 99.9% 可用性 |
+
+### 环境配置文件
+
+```bash
+# 项目根目录结构
+.
+├── .env.development      # 开发环境配置 (可提交示例)
+├── .env.production       # 生产环境配置 (禁止提交)
+├── .env.ci               # CI 环境配置
+└── .env.example          # 配置模板
+```
+
+**开发环境配置示例** (`.env.development`):
+```bash
+# 开发环境 - 使用弱密钥和本地数据库
+LARK_CONFIG_ENCRYPTION_KEY=dev-test-key-for-local-development-only==
+LOG_LEVEL=DEBUG
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_DB=lark_service_dev
+POSTGRES_USER=dev_user
+POSTGRES_PASSWORD=dev_password_123
+```
+
+**生产环境配置** (环境变量注入):
+```bash
+# 生产环境 - 使用强密钥和生产数据库
+export LARK_CONFIG_ENCRYPTION_KEY="<从 Vault 获取>"
+export LOG_LEVEL=INFO
+export POSTGRES_HOST=prod-db.internal
+export POSTGRES_DB=lark_service
+export POSTGRES_PASSWORD="<从 Vault 获取>"
+```
+
+### 环境检测
+
+代码中可以通过环境变量检测当前环境:
+
+```python
+import os
+
+ENV = os.getenv("ENVIRONMENT", "development")  # development/production/ci
+
+if ENV == "production":
+    # 生产环境逻辑
+    assert os.getenv("LARK_CONFIG_ENCRYPTION_KEY"), "Encryption key required"
+else:
+    # 开发环境逻辑
+    pass
+```
+
+---
 
 ## 1. 环境管理
 
