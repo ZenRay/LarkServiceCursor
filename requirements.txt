@@ -1,0 +1,22 @@
+# Core dependencies
+lark-oapi>=1.2.0
+pydantic>=2.0.0,<3.0.0
+SQLAlchemy>=2.0.0,<3.0.0
+psycopg2-binary>=2.9.0
+pika>=1.3.0
+cryptography>=41.0.0
+python-dotenv>=1.0.0
+filelock>=3.12.0
+click>=8.1.0
+rich>=13.0.0
+alembic>=1.12.0
+
+# Development dependencies
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+pytest-mock>=3.11.0
+ruff>=0.1.0
+mypy>=1.5.0
+types-psycopg2
+types-pika

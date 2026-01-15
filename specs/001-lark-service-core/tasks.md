@@ -23,27 +23,27 @@
 
 ### 项目结构
 
-- [ ] T001 按 plan.md 创建项目目录结构 (src/lark_service/, tests/, docs/, migrations/)
-- [ ] T002 初始化 Python 项目 pyproject.toml (Python 3.12, 项目元数据, 构建配置)
-- [ ] T003 [P] 创建 requirements.txt 包含核心依赖 (lark-oapi, pydantic v2, SQLAlchemy 2.0, psycopg2-binary, pika, cryptography)
-- [ ] T004 [P] 创建 .env.example 包含必需环境变量 (LARK_CONFIG_ENCRYPTION_KEY, POSTGRES_*, RABBITMQ_*, LOG_LEVEL)
-- [ ] T005 [P] 创建 .gitignore (排除 .env, __pycache__, *.pyc, .mypy_cache, .pytest_cache, config/applications.db)
-- [ ] T006 [P] 在 pyproject.toml 配置 ruff (line-length=100, target-version=py312)
-- [ ] T007 [P] 在 pyproject.toml 配置 mypy (strict=True, disallow_untyped_defs=True)
-- [ ] T008 [P] 在 pyproject.toml 配置 pytest (testpaths, asyncio_mode, coverage settings)
+- [X] T001 按 plan.md 创建项目目录结构 (src/lark_service/, tests/, docs/, migrations/)
+- [X] T002 初始化 Python 项目 pyproject.toml (Python 3.12, 项目元数据, 构建配置)
+- [X] T003 [P] 创建 requirements.txt 包含核心依赖 (lark-oapi, pydantic v2, SQLAlchemy 2.0, psycopg2-binary, pika, cryptography)
+- [X] T004 [P] 创建 .env.example 包含必需环境变量 (LARK_CONFIG_ENCRYPTION_KEY, POSTGRES_*, RABBITMQ_*, LOG_LEVEL)
+- [X] T005 [P] 创建 .gitignore (排除 .env, __pycache__, *.pyc, .mypy_cache, .pytest_cache, config/applications.db)
+- [X] T006 [P] 在 pyproject.toml 配置 ruff (line-length=100, target-version=py312)
+- [X] T007 [P] 在 pyproject.toml 配置 mypy (strict=True, disallow_untyped_defs=True)
+- [X] T008 [P] 在 pyproject.toml 配置 pytest (testpaths, asyncio_mode, coverage settings)
 
 ### Docker 和开发环境
 
-- [ ] T009 创建应用 Dockerfile (多阶段构建, Python 3.12-slim 基础镜像)
-- [ ] T010 创建 docker-compose.yml (postgres:15, rabbitmq:3-management, app service 挂载卷)
-- [ ] T011 [P] 创建数据库初始化脚本 migrations/init.sql (启用 pg_crypto 扩展)
-- [ ] T012 [P] 配置 Alembic PostgreSQL 迁移工具 (alembic.ini, migrations/env.py, versions/)
+- [X] T009 创建应用 Dockerfile (多阶段构建, Python 3.12-slim 基础镜像)
+- [X] T010 创建 docker-compose.yml (postgres:15, rabbitmq:3-management, app service 挂载卷)
+- [X] T011 [P] 创建数据库初始化脚本 migrations/init.sql (启用 pg_crypto 扩展)
+- [X] T012 [P] 配置 Alembic PostgreSQL 迁移工具 (alembic.ini, migrations/env.py, versions/)
 
 ### 文档
 
-- [ ] T013 [P] 创建 README.md (项目概述、安装说明、快速开始参考 quickstart.md)
-- [ ] T014 [P] 创建 docs/architecture.md (高层架构图、模块依赖关系)
-- [ ] T015 [P] 创建 docs/deployment.md (Docker 部署、环境变量、健康检查)
+- [X] T013 [P] 创建 README.md (项目概述、安装说明、快速开始参考 quickstart.md)
+- [X] T014 [P] 创建 docs/architecture.md (高层架构图、模块依赖关系)
+- [X] T015 [P] 创建 docs/deployment.md (Docker 部署、环境变量、健康检查)
 
 ### 阶段检查点
 

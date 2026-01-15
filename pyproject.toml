@@ -1,0 +1,167 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lark-service"
+version = "0.1.0"
+description = "Lark Service 企业自建应用核心组件 - 封装飞书 OpenAPI 提供高度复用且透明的接入能力"
+readme = "README.md"
+requires-python = ">=3.12"
+license = {text = "MIT"}
+authors = [
+    {name = "Ray", email = "ray@example.com"}
+]
+keywords = ["lark", "feishu", "openapi", "enterprise", "sdk"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+dependencies = [
+    "lark-oapi>=1.2.0",
+    "pydantic>=2.0.0,<3.0.0",
+    "SQLAlchemy>=2.0.0,<3.0.0",
+    "psycopg2-binary>=2.9.0",
+    "pika>=1.3.0",
+    "cryptography>=41.0.0",
+    "python-dotenv>=1.0.0",
+    "filelock>=3.12.0",
+    "click>=8.1.0",
+    "rich>=13.0.0",
+    "alembic>=1.12.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.11.0",
+    "ruff>=0.1.0",
+    "mypy>=1.5.0",
+    "types-psycopg2",
+    "types-pika",
+]
+
+[project.scripts]
+lark-service-cli = "lark_service.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/your-org/lark-service"
+Documentation = "https://github.com/your-org/lark-service/docs"
+Repository = "https://github.com/your-org/lark-service"
+Issues = "https://github.com/your-org/lark-service/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+lark_service = ["py.typed"]
+
+# Ruff 配置
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "SIM", # flake8-simplify
+]
+ignore = [
+    "E501",  # line too long (handled by formatter)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]  # unused imports in __init__.py
+"tests/**/*.py" = ["S101"]  # assert allowed in tests
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+# Mypy 配置
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_any_generics = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = [
+    "lark_oapi.*",
+    "pika.*",
+]
+ignore_missing_imports = true
+
+# Pytest 配置
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--strict-config",
+    "--cov=src/lark_service",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+    "--cov-report=xml",
+]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "contract: Contract tests",
+    "slow: Slow running tests",
+]
+asyncio_mode = "auto"
+
+# Coverage 配置
+[tool.coverage.run]
+source = ["src/lark_service"]
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+    "*/site-packages/*",
+]
+
+[tool.coverage.report]
+precision = 2
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@abstractmethod",
+]

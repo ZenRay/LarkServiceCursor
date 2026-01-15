@@ -1,0 +1,90 @@
+version: '3.8'
+
+services:
+  # PostgreSQL - Token 存储和用户缓存
+  postgres:
+    image: postgres:15-alpine
+    container_name: lark-service-postgres
+    environment:
+      POSTGRES_DB: lark_service
+      POSTGRES_USER: lark
+      POSTGRES_PASSWORD: lark_password_123
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lark -d lark_service"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - lark-network
+
+  # RabbitMQ - 消息队列 (交互式卡片回调)
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: lark-service-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: lark
+      RABBITMQ_DEFAULT_PASS: rabbitmq_password_123
+    ports:
+      - "5672:5672"   # AMQP
+      - "15672:15672" # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - lark-network
+
+  # Lark Service Application (可选,用于测试)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lark-service-app
+    environment:
+      # PostgreSQL
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: lark_service
+      POSTGRES_USER: lark
+      POSTGRES_PASSWORD: lark_password_123
+      # RabbitMQ
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: lark
+      RABBITMQ_PASSWORD: rabbitmq_password_123
+      # 加密密钥 (生产环境请使用 secrets)
+      LARK_CONFIG_ENCRYPTION_KEY: "CHANGE_THIS_TO_RANDOM_32_BYTE_KEY"
+      # 日志
+      LOG_LEVEL: INFO
+    volumes:
+      - ./src:/app/src:ro
+      - ./config:/app/config
+      - ./logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - lark-network
+    # 注释掉 command,因为这是一个库,不是服务
+    # command: python -m lark_service
+
+volumes:
+  postgres_data:
+    driver: local
+  rabbitmq_data:
+    driver: local
+
+networks:
+  lark-network:
+    driver: bridge
