@@ -10,28 +10,30 @@
 
 ### 分支模型
 
-采用 **GitFlow 简化版** + **主干开发**结合模式:
+采用 **Speckit 分支策略** - 基于数字前缀的功能分支模型:
 
 ```
 main (生产分支)
-  ├── develop (开发主干)
-  │   ├── feature/phase-3-messaging (功能分支)
-  │   ├── feature/user-auth (功能分支)
-  │   └── fix/token-refresh-bug (修复分支)
+  ├── 001-lark-service-core (功能分支 - Phase 1-2)
+  ├── 002-messaging-service (功能分支 - Phase 3)
+  ├── 003-document-integration (功能分支 - Phase 4)
   ├── release/v0.2.0 (发布分支)
-  └── hotfix/critical-security (热修复分支)
+  └── hotfix/v0.1.1-security (热修复分支)
 ```
 
 ### 分支类型与规范
 
-| 分支类型 | 命名规范 | 生命周期 | 合并目标 |
-|---------|---------|---------|---------|
-| **main** | `main` | 永久 | - |
-| **develop** | `develop` | 永久 | main |
-| **feature** | `feature/<描述>` | 临时 | develop |
-| **fix** | `fix/<描述>` | 临时 | develop |
-| **release** | `release/v<版本>` | 临时 | main + develop |
-| **hotfix** | `hotfix/<描述>` | 临时 | main + develop |
+| 分支类型 | 命名规范 | 生命周期 | 合并目标 | 说明 |
+|---------|---------|---------|---------|------|
+| **main** | `main` | 永久 | - | 生产代码 |
+| **功能分支** | `NNN-<描述>` | 临时 | main | Speckit 管理 |
+| **release** | `release/v<版本>` | 临时 | main | 发布准备 |
+| **hotfix** | `hotfix/v<版本>-<描述>` | 临时 | main | 紧急修复 |
+
+**注意**: 
+- `NNN` 是3位数字前缀 (如 `001`, `002`, `003`)
+- 功能分支由 `/speckit.specify` 命令自动创建
+- 每个功能分支对应 `specs/NNN-<描述>/` 目录
 
 ### 分支详细说明
 
@@ -53,54 +55,107 @@ git tag -a v0.1.0 -m "Release v0.1.0: Phase 1-2 完成"
 git push origin v0.1.0
 ```
 
-#### 2. develop (开发分支)
+#### 2. NNN-<描述> (Speckit 功能分支)
 
-**用途**: 集成分支,所有功能开发的目标分支
-
-**合并策略**:
-- feature/* → develop (Squash merge 或 Merge commit)
-- fix/* → develop (Squash merge)
-- develop → main (Merge commit + 标签)
-
-#### 3. feature/* (功能分支)
+**命名规范**: `NNN-<short-description>`
+- `NNN`: 3位递增数字 (001, 002, 003...)
+- `<short-description>`: 2-4 个关键词,连字符分隔
 
 **命名示例**:
 ```
-feature/phase-3-messaging
-feature/user-cache-optimization
-feature/prometheus-metrics
+001-lark-service-core
+002-messaging-service
+003-document-integration
+004-user-auth-enhancement
+```
+
+**创建方式** (使用 Speckit):
+```bash
+# 方式 1: 自动生成分支名
+/speckit.specify "Implement messaging service for group chats"
+# 创建: 002-messaging-service
+
+# 方式 2: 指定短名称
+/speckit.specify "Add OAuth2 authentication" --short-name "user-auth"
+# 创建: 003-user-auth
+
+# 方式 3: 指定分支号
+/speckit.specify "Performance optimization" --number 5
+# 创建: 005-performance-optimization
+```
+
+**分支结构**:
+```
+项目根目录/
+  ├── specs/
+  │   ├── 001-lark-service-core/
+  │   │   ├── spec.md            (需求规范)
+  │   │   ├── plan.md            (实施计划)
+  │   │   ├── tasks.md           (任务清单)
+  │   │   └── checklists/        (检查清单)
+  │   ├── 002-messaging-service/
+  │   └── 003-document-integration/
 ```
 
 **工作流程**:
 ```bash
-# 1. 从 develop 创建功能分支
-git checkout develop
-git pull origin develop
-git checkout -b feature/phase-3-messaging
+# 1. 创建功能分支 (Speckit 自动创建)
+/speckit.specify "Implement messaging service"
+# → 创建分支: 002-messaging-service
+# → 创建目录: specs/002-messaging-service/
+# → 创建文件: spec.md, plan.md, tasks.md
 
-# 2. 开发功能
+# 2. 编写规范和计划
+/speckit.plan     # 生成实施计划
+/speckit.tasks    # 生成任务清单
+
+# 3. 开发功能
 git add .
 git commit -m "feat(messaging): 实现消息发送接口"
 
-# 3. 定期同步 develop
-git fetch origin develop
-git rebase origin/develop
+# 4. 定期同步 main
+git fetch origin main
+git rebase origin/main
 
-# 4. 推送到远程
-git push -u origin feature/phase-3-messaging
+# 5. 推送到远程
+git push -u origin 002-messaging-service
 
-# 5. 创建 PR: feature/phase-3-messaging → develop
+# 6. 创建 PR: 002-messaging-service → main
 # (通过 GitHub 界面)
+
+# 7. 合并后删除分支
+git checkout main
+git pull
+git branch -d 002-messaging-service
 ```
 
-#### 4. release/* (发布分支)
+**多分支共享同一 Spec**:
+
+Speckit 支持多个分支共享同一个 spec 目录:
+
+```bash
+# 主功能分支
+001-lark-service-core
+
+# 基于同一 spec 的其他分支
+001-fix-token-bug
+001-add-metrics
+001-refactor-storage
+
+# 它们都使用 specs/001-lark-service-core/ 目录
+```
+
+#### 3. release/* (发布分支)
 
 **用途**: 准备新版本发布,仅允许 bug 修复和版本号更新
 
+**命名规范**: `release/v<版本号>`
+
 **工作流程**:
 ```bash
-# 1. 从 develop 创建发布分支
-git checkout develop
+# 1. 从 main 创建发布分支
+git checkout main
+git pull origin main
 git checkout -b release/v0.2.0
 
 # 2. 更新版本号
@@ -114,40 +169,38 @@ git commit -m "fix: 修复发布前发现的问题"
 git checkout main
 git merge --no-ff release/v0.2.0
 git tag -a v0.2.0 -m "Release v0.2.0"
+git push origin main --tags
 
-# 5. 合并回 develop
-git checkout develop
-git merge --no-ff release/v0.2.0
-
-# 6. 删除发布分支
+# 5. 删除发布分支
 git branch -d release/v0.2.0
 git push origin --delete release/v0.2.0
 ```
 
-#### 5. hotfix/* (热修复分支)
+#### 4. hotfix/* (热修复分支)
 
 **用途**: 紧急修复生产环境问题
+
+**命名规范**: `hotfix/v<版本号>-<描述>`
 
 **工作流程**:
 ```bash
 # 1. 从 main 创建热修复分支
 git checkout main
-git checkout -b hotfix/critical-security-fix
+git pull origin main
+git checkout -b hotfix/v0.1.1-security-fix
 
 # 2. 修复问题
 git commit -m "fix(security): 修复 SQL 注入漏洞"
 
 # 3. 合并到 main 并打补丁标签
 git checkout main
-git merge --no-ff hotfix/critical-security-fix
+git merge --no-ff hotfix/v0.1.1-security-fix
 git tag -a v0.1.1 -m "Hotfix v0.1.1: 安全修复"
+git push origin main --tags
 
-# 4. 合并回 develop
-git checkout develop
-git merge --no-ff hotfix/critical-security-fix
-
-# 5. 删除热修复分支
-git branch -d hotfix/critical-security-fix
+# 4. 删除热修复分支
+git branch -d hotfix/v0.1.1-security-fix
+git push origin --delete hotfix/v0.1.1-security-fix
 ```
 
 ---
@@ -199,14 +252,27 @@ git push origin --tags
 
 ### Phase 标签策略
 
-| Phase | 标签 | 说明 |
-|-------|------|------|
-| Phase 1 | v0.1.0 | 基础设施完成 |
-| Phase 2 | v0.1.0 | Token 管理完成 (同 Phase 1) |
-| Phase 3 | v0.2.0 | 消息服务完成 |
-| Phase 4 | v0.3.0 | 文档+通讯录完成 |
-| Phase 5 | v0.4.0 | aPaaS 功能完成 |
-| Stable | v1.0.0 | 生产就绪 |
+| Phase | 分支 | 标签 | 说明 |
+|-------|------|------|------|
+| Phase 1-2 | `001-lark-service-core` | v0.1.0 | 基础设施 + Token 管理 |
+| Phase 3 | `002-messaging-service` | v0.2.0 | 消息服务 |
+| Phase 4 | `003-document-integration` | v0.3.0 | 文档+通讯录 |
+| Phase 5 | `004-apaas-features` | v0.4.0 | aPaaS 功能 |
+| Stable | - | v1.0.0 | 生产就绪 |
+
+**分支与标签对应关系**:
+```bash
+# Phase 1-2 完成
+git checkout main
+git merge --no-ff 001-lark-service-core
+git tag -a v0.1.0 -m "Release v0.1.0: Phase 1-2 完成"
+
+# Phase 3 完成
+git merge --no-ff 002-messaging-service
+git tag -a v0.2.0 -m "Release v0.2.0: Phase 3 消息服务"
+
+# 以此类推...
+```
 
 ---
 
@@ -299,6 +365,9 @@ Phase N 开发 → 自测试 → Code Review → CI/CD → Phase 验收 → 打�
 
 1. **自测试** (开发者)
    ```bash
+   # 切换到功能分支
+   git checkout 001-lark-service-core
+   
    # 运行测试
    pytest tests/ --cov=src
    
@@ -310,12 +379,16 @@ Phase N 开发 → 自测试 → Code Review → CI/CD → Phase 验收 → 打�
    
    # 检查文档
    pydocstyle src/
+   
+   # 运行 Speckit 检查清单
+   /speckit.checklist
    ```
 
 2. **代码审查** (团队)
-   - 创建 PR: `feature/phase-N → develop`
+   - 创建 PR: `001-lark-service-core → main`
    - 至少 1 人审查
    - 解决所有评论
+   - 确保 `specs/001-lark-service-core/` 文档完整
 
 3. **CI/CD 验证** (自动)
    - 测试通过
@@ -324,22 +397,45 @@ Phase N 开发 → 自测试 → Code Review → CI/CD → Phase 验收 → 打�
    - 安全扫描通过
 
 4. **Phase 验收** (技术负责人)
-   - 运行检查清单
-   - 验证交付物
+   - 运行 Speckit 检查清单
+   - 验证 `specs/001-lark-service-core/` 交付物
+   - 检查 `spec.md`, `plan.md`, `tasks.md` 完成度
    - 更新文档
 
 5. **打标签发布** (维护者)
    ```bash
    git checkout main
-   git merge --no-ff develop
-   git tag -a v0.N.0 -m "Release v0.N.0: Phase N 完成"
+   git pull origin main
+   git merge --no-ff 001-lark-service-core
+   git tag -a v0.1.0 -m "Release v0.1.0: Phase 1-2 完成
+
+   - ✅ 配置管理系统
+   - ✅ Token 管理池
+   - ✅ 测试覆盖率 77.33%
+   - ✅ 安全合规 (FR-077~095)
+   
+   Spec: specs/001-lark-service-core/
+   "
    git push origin main --tags
+   
+   # 可选: 删除已合并的功能分支
+   git branch -d 001-lark-service-core
+   git push origin --delete 001-lark-service-core
    ```
 
 6. **启动下一 Phase**
-   - 创建 Phase N+1 分支
-   - 更新项目计划
-   - 分配任务
+   ```bash
+   # 使用 Speckit 创建下一个功能分支
+   /speckit.specify "Implement messaging service for group chats"
+   # → 创建: 002-messaging-service
+   # → 创建: specs/002-messaging-service/
+   
+   # 编写规范
+   /speckit.plan
+   /speckit.tasks
+   
+   # 分配任务给团队
+   ```
 
 ### Phase 过渡条件矩阵
 
@@ -398,6 +494,8 @@ PR 创建 → 自动检查 → 人工审查 → 反馈修改 → 审批合并
 
 ### PR 模板
 
+**`.github/PULL_REQUEST_TEMPLATE.md`**:
+
 ```markdown
 ## 变更类型
 - [ ] Feature (新功能)
@@ -406,25 +504,44 @@ PR 创建 → 自动检查 → 人工审查 → 反馈修改 → 审批合并
 - [ ] Refactor (重构)
 - [ ] Test (测试)
 
+## 分支信息
+**功能分支**: `XXX-<描述>`  
+**Spec 目录**: `specs/XXX-<描述>/`
+
 ## 变更描述
 [简要描述此 PR 的目的和内容]
 
 ## 相关 Issue
 Closes #<issue_number>
 
+## Speckit 文档
+- [ ] `spec.md` - 需求规范已完成
+- [ ] `plan.md` - 实施计划已完成
+- [ ] `tasks.md` - 任务清单已完成
+- [ ] `checklists/` - 检查清单已验证
+
 ## 测试
 - [ ] 单元测试已添加/更新
 - [ ] 集成测试已添加/更新
 - [ ] 手动测试已完成
+- [ ] 测试覆盖率 ≥ 75%
 
-## 检查清单
+## 代码质量
+- [ ] Ruff 检查通过 (0 错误)
+- [ ] Mypy 检查通过 (99%+ 覆盖率)
+- [ ] 所有 Docstring 已添加 (Google Style)
 - [ ] 代码符合项目规范
-- [ ] 测试全部通过
-- [ ] 文档已更新
+
+## 文档
+- [ ] README 已更新 (如需要)
+- [ ] API 文档已更新 (如需要)
 - [ ] CHANGELOG 已更新
 
 ## 截图 (如适用)
 [添加截图]
+
+## 额外说明
+[其他需要审查者注意的内容]
 ```
 
 ---
@@ -529,23 +646,53 @@ gh release create v0.1.0 \
 
 ## 🔧 常用命令
 
+### Speckit 命令
+
+```bash
+# 创建新功能分支和 spec 目录
+/speckit.specify "Feature description"
+/speckit.specify "Feature" --short-name "short-name"
+/speckit.specify "Feature" --number 5
+
+# 生成实施计划
+/speckit.plan
+
+# 生成任务清单
+/speckit.tasks
+
+# 运行检查清单
+/speckit.checklist
+
+# 分析需求
+/speckit.analyze
+
+# 澄清需求
+/speckit.clarify
+```
+
 ### 分支管理
 
 ```bash
 # 查看所有分支
 git branch -a
 
-# 创建并切换分支
-git checkout -b feature/new-feature
+# 创建功能分支 (推荐使用 Speckit)
+/speckit.specify "New feature description"
+
+# 切换分支
+git checkout 001-lark-service-core
 
 # 删除本地分支
-git branch -d feature/old-feature
+git branch -d 001-old-feature
 
 # 删除远程分支
-git push origin --delete feature/old-feature
+git push origin --delete 001-old-feature
 
 # 查看分支历史
 git log --graph --oneline --all
+
+# 查看当前分支对应的 spec 目录
+ls -la specs/$(git branch --show-current)/
 ```
 
 ### 标签管理
