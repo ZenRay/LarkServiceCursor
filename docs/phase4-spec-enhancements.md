@@ -21,6 +21,250 @@
 
 ## CloudDoc 模块补充
 
+### 0. 知识库文档特殊说明 ⚠️
+
+#### 0.1 知识库 (Wiki) vs 云空间 (Drive)
+
+飞书的云文档可以存放在两个位置,token 获取方式不同:
+
+| 存放位置 | 文档标识 | 获取方式 | API 路径 |
+|---------|---------|---------|---------|
+| **云空间 (Drive)** | `doc_token` | 直接使用文档链接中的 token | `/docx/v1/documents/{document_id}` |
+| **知识库 (Wiki)** | `node_token` | 需要先通过知识库 API 获取 | `/wiki/v2/spaces/{space_id}/nodes/{node_token}` |
+
+#### 0.2 知识库文档的访问流程
+
+```python
+# 1. 通过知识库 API 获取节点信息
+def get_wiki_node_info(space_id: str, node_token: str) -> dict:
+    """获取知识库节点信息
+
+    Args:
+        space_id: 知识空间 ID
+        node_token: 节点 token (从知识库链接获取)
+
+    Returns:
+        节点信息,包含 obj_token (实际的文档 token)
+    """
+    response = client.wiki.v2.space_node.get(
+        space_id=space_id,
+        node_token=node_token
+    )
+
+    # 2. 从响应中获取实际的文档 token
+    obj_token = response.data.node.obj_token
+    obj_type = response.data.node.obj_type  # "doc", "sheet", "bitable" 等
+
+    return {
+        "obj_token": obj_token,  # 实际的文档 token
+        "obj_type": obj_type,    # 文档类型
+        "node_token": node_token # 知识库节点 token
+    }
+
+# 3. 使用 obj_token 访问文档内容
+def get_wiki_document_content(space_id: str, node_token: str) -> dict:
+    """获取知识库文档内容"""
+    # 先获取节点信息
+    node_info = get_wiki_node_info(space_id, node_token)
+    obj_token = node_info["obj_token"]
+
+    # 使用 obj_token 访问文档
+    if node_info["obj_type"] == "doc":
+        return get_document_content(obj_token)
+    elif node_info["obj_type"] == "docx":
+        return get_docx_content(obj_token)
+    # ... 其他类型
+```
+
+#### 0.3 知识库链接格式识别
+
+```python
+class WikiLinkParser:
+    """知识库链接解析器"""
+
+    # 知识库链接格式
+    WIKI_LINK_PATTERN = r'https://[^/]+/wiki/([^/]+)/([^/?]+)'
+
+    # 云空间链接格式
+    DRIVE_LINK_PATTERN = r'https://[^/]+/(docx|sheets|base)/([^/?]+)'
+
+    @staticmethod
+    def parse_link(url: str) -> dict:
+        """解析飞书文档链接
+
+        Returns:
+            {
+                "type": "wiki" | "drive",
+                "space_id": str,  # 仅 wiki
+                "node_token": str,  # 仅 wiki
+                "doc_token": str   # 仅 drive
+            }
+        """
+        import re
+
+        # 尝试匹配知识库链接
+        wiki_match = re.match(WikiLinkParser.WIKI_LINK_PATTERN, url)
+        if wiki_match:
+            return {
+                "type": "wiki",
+                "space_id": wiki_match.group(1),
+                "node_token": wiki_match.group(2)
+            }
+
+        # 尝试匹配云空间链接
+        drive_match = re.match(WikiLinkParser.DRIVE_LINK_PATTERN, url)
+        if drive_match:
+            return {
+                "type": "drive",
+                "doc_type": drive_match.group(1),  # docx, sheets, base
+                "doc_token": drive_match.group(2)
+            }
+
+        raise ValueError(f"无法识别的飞书文档链接: {url}")
+```
+
+#### 0.4 统一的文档访问接口
+
+```python
+class UnifiedDocClient:
+    """统一的文档访问客户端"""
+
+    def get_document_by_url(self, url: str) -> Document:
+        """通过 URL 获取文档 (自动识别知识库/云空间)"""
+        link_info = WikiLinkParser.parse_link(url)
+
+        if link_info["type"] == "wiki":
+            # 知识库文档: 先获取 obj_token
+            node_info = self.get_wiki_node_info(
+                space_id=link_info["space_id"],
+                node_token=link_info["node_token"]
+            )
+            doc_token = node_info["obj_token"]
+        else:
+            # 云空间文档: 直接使用 doc_token
+            doc_token = link_info["doc_token"]
+
+        # 使用 doc_token 获取文档内容
+        return self.get_document_content(doc_token)
+```
+
+#### 0.5 知识库相关数据模型
+
+```python
+class WikiNode(BaseModel):
+    """知识库节点"""
+    space_id: str = Field(pattern=r'^[0-9]+$')
+    node_token: str = Field(pattern=r'^[a-zA-Z0-9_-]+$')
+    obj_token: str  # 实际的文档 token
+    obj_type: Literal["doc", "docx", "sheet", "mindnote", "bitable", "file"]
+    parent_node_token: str | None = None
+    node_type: Literal["origin", "shortcut"]
+    origin_node_token: str | None = None  # 快捷方式指向的原始节点
+    has_child: bool = False
+    title: str
+    obj_create_time: int  # Unix timestamp
+    obj_edit_time: int
+    node_create_time: int
+    creator: str  # open_id
+    owner: str  # open_id
+
+class WikiSpace(BaseModel):
+    """知识空间"""
+    space_id: str = Field(pattern=r'^[0-9]+$')
+    name: str
+    description: str | None = None
+    space_type: Literal["team", "personal"]
+    visibility: Literal["public", "private"]
+```
+
+#### 0.6 知识库 API 端点
+
+需要在 `contracts/clouddoc.yaml` 中补充:
+
+```yaml
+paths:
+  # 知识库节点操作
+  /wiki/v2/spaces/{space_id}/nodes/{node_token}:
+    get:
+      summary: 获取知识库节点信息
+      operationId: getWikiNode
+      tags:
+        - Wiki
+      parameters:
+        - name: space_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: node_token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      node:
+                        $ref: '#/components/schemas/WikiNode'
+```
+
+#### 0.7 使用场景示例
+
+```python
+# 场景 1: 用户提供知识库链接
+wiki_url = "https://example.feishu.cn/wiki/space123/node456"
+
+# 自动识别并获取文档
+client = UnifiedDocClient(credential_pool, retry_strategy)
+document = client.get_document_by_url(wiki_url)
+
+# 场景 2: 已知 space_id 和 node_token
+space_id = "7123456789"
+node_token = "wikcnAbCdEfGhIjKlMnOpQr"
+
+# 获取节点信息
+node_info = client.get_wiki_node_info(space_id, node_token)
+print(f"文档类型: {node_info['obj_type']}")
+print(f"文档 token: {node_info['obj_token']}")
+
+# 获取文档内容
+document = client.get_document_content(node_info["obj_token"])
+```
+
+#### 0.8 注意事项
+
+1. **权限要求**:
+   - 访问知识库文档需要 `wiki:wiki:readonly` 权限
+   - 访问云空间文档需要 `drive:drive:readonly` 权限
+
+2. **token 格式差异**:
+   - 知识库 `node_token`: 可能包含 `-` 和 `_`
+   - 云空间 `doc_token`: 通常是纯字母数字
+
+3. **快捷方式处理**:
+   - 知识库支持快捷方式 (shortcut)
+   - 需要通过 `origin_node_token` 获取实际文档
+
+4. **缓存策略**:
+   - 建议缓存 `node_token` → `obj_token` 的映射
+   - TTL: 1 小时 (知识库结构变化较少)
+
+**参考文档**: [获取知识空间节点信息 - 飞书开放平台](https://open.feishu.cn/document/server-docs/docs/wiki-v2/space-node/get_node?appId=cli_a8c8dc731cb9900e)
+
+---
+
 ### 1. 文档内容结构定义
 
 #### 1.1 ContentBlock 数据结构

@@ -12,6 +12,98 @@ servers:
 
 components:
   schemas:
+    # ==================== Wiki 知识库相关 ====================
+    WikiNode:
+      type: object
+      required:
+        - space_id
+        - node_token
+        - obj_token
+        - obj_type
+        - node_type
+        - has_child
+        - title
+      properties:
+        space_id:
+          type: string
+          pattern: '^[0-9]+$'
+          description: 知识空间 ID
+        node_token:
+          type: string
+          pattern: '^[a-zA-Z0-9_-]+$'
+          description: 节点 token
+        obj_token:
+          type: string
+          description: 实际的文档 token
+        obj_type:
+          type: string
+          enum: [doc, docx, sheet, mindnote, bitable, file]
+          description: 文档类型
+        parent_node_token:
+          type: string
+          description: 父节点 token
+          nullable: true
+        node_type:
+          type: string
+          enum: [origin, shortcut]
+          description: 节点类型 (原始节点或快捷方式)
+        origin_node_token:
+          type: string
+          description: 快捷方式指向的原始节点 token
+          nullable: true
+        has_child:
+          type: boolean
+          description: 是否有子节点
+        title:
+          type: string
+          description: 节点标题
+        obj_create_time:
+          type: integer
+          format: int64
+          description: 文档创建时间 (Unix timestamp)
+        obj_edit_time:
+          type: integer
+          format: int64
+          description: 文档编辑时间
+        node_create_time:
+          type: integer
+          format: int64
+          description: 节点创建时间
+        creator:
+          type: string
+          description: 创建者 open_id
+        owner:
+          type: string
+          description: 所有者 open_id
+
+    WikiSpace:
+      type: object
+      required:
+        - space_id
+        - name
+        - space_type
+        - visibility
+      properties:
+        space_id:
+          type: string
+          pattern: '^[0-9]+$'
+          description: 知识空间 ID
+        name:
+          type: string
+          description: 空间名称
+        description:
+          type: string
+          description: 空间描述
+          nullable: true
+        space_type:
+          type: string
+          enum: [team, personal]
+          description: 空间类型
+        visibility:
+          type: string
+          enum: [public, private]
+          description: 可见性
+
     # ==================== Document 相关 ====================
     Document:
       type: object
@@ -322,6 +414,158 @@ components:
           description: 请求 ID
 
 paths:
+  # ==================== Wiki 知识库操作 ====================
+  /wiki/v2/spaces/{space_id}/nodes/{node_token}:
+    get:
+      summary: 获取知识库节点信息
+      operationId: getWikiNode
+      description: |
+        获取知识库节点的详细信息,包括实际的文档 token (obj_token)。
+        知识库文档需要先通过此 API 获取 obj_token,再使用对应的文档 API 访问内容。
+      tags:
+        - Wiki
+      parameters:
+        - name: space_id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[0-9]+$'
+          description: 知识空间 ID
+        - name: node_token
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 节点 token
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 0
+                  msg:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      node:
+                        $ref: '#/components/schemas/WikiNode'
+        '404':
+          description: 节点不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /wiki/v2/spaces/{space_id}/nodes:
+    get:
+      summary: 获取知识库节点列表
+      operationId: listWikiNodes
+      description: 获取知识空间下的节点列表
+      tags:
+        - Wiki
+      parameters:
+        - name: space_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: parent_node_token
+          in: query
+          schema:
+            type: string
+          description: 父节点 token (不传则获取根节点)
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+        - name: page_token
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/WikiNode'
+                      has_more:
+                        type: boolean
+                      page_token:
+                        type: string
+
+  /wiki/v2/spaces:
+    get:
+      summary: 获取知识空间列表
+      operationId: listWikiSpaces
+      description: 获取用户有权限访问的知识空间列表
+      tags:
+        - Wiki
+      parameters:
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+        - name: page_token
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/WikiSpace'
+                      has_more:
+                        type: boolean
+                      page_token:
+                        type: string
+
   # ==================== Doc 文档操作 ====================
   /docx/v1/documents:
     post:
