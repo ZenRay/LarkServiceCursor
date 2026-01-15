@@ -1,519 +1,738 @@
-openapi: 3.0.3
+openapi: 3.0.0
 info:
-  title: Lark Service - Contact Module API
+  title: Contact API Contract
+  version: 1.0.0
   description: |
-    通讯录服务模块 API 契约,提供用户、群组、组织架构查询能力,支持本地缓存。
-    
-    核心特性:
-    - 用户信息查询 (邮箱/手机号查询,获取 open_id/user_id/union_id)
-    - 群组查询 (chat_id 查询)
-    - 组织架构查询 (部门成员列表)
-    - PostgreSQL 本地缓存 (24小时TTL,按 app_id 隔离)
-    - 自动懒加载刷新
-  version: 0.1.0
-  contact:
-    name: Internal Platform Team
+    飞书通讯录 API 契约定义
+    包含用户查询、部门查询、群组查询、缓存管理等功能
 
 servers:
-  - url: http://localhost:8000/api/v1
-    description: Local development server
-
-tags:
-  - name: User
-    description: 用户信息查询与缓存
-  - name: ChatGroup
-    description: 群组查询
-  - name: Department
-    description: 组织架构查询
-
-paths:
-  /contact/users/by-email:
-    get:
-      summary: 根据邮箱查询用户信息
-      description: |
-        查询用户的 open_id、user_id、union_id 等标识和详细信息。
-        优先从本地缓存查询,缓存未命中或过期时从飞书 API 刷新。
-      tags:
-        - User
-      parameters:
-        - name: app_id
-          in: query
-          required: true
-          description: 飞书应用 ID (多应用隔离)
-          schema:
-            type: string
-            example: "cli_a1b2c3d4e5f6g7h8"
-        - name: email
-          in: query
-          required: true
-          description: 用户邮箱地址
-          schema:
-            type: string
-            format: email
-            example: "zhangsan@company.com"
-      responses:
-        '200':
-          description: 查询成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserResponse'
-        '404':
-          description: 用户不存在
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                code: "USER_NOT_FOUND"
-                message: "邮箱 zhangsan@company.com 在飞书中不存在"
-                request_id: "req_1234567890"
-        '403':
-          description: 权限不足
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                code: "PERMISSION_DENIED"
-                message: "应用权限不足,无法访问用户详细信息。需要权限: contact:user:read"
-                request_id: "req_1234567890"
-
-  /contact/users/by-mobile:
-    get:
-      summary: 根据手机号查询用户信息
-      description: |
-        根据手机号查询用户信息,支持本地缓存。
-      tags:
-        - User
-      parameters:
-        - name: app_id
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: mobile
-          in: query
-          required: true
-          description: 用户手机号 (需包含国际区号,如 +86)
-          schema:
-            type: string
-            example: "+8613800138000"
-      responses:
-        '200':
-          description: 查询成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserResponse'
-        '404':
-          description: 用户不存在
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /contact/users/{user_id}:
-    get:
-      summary: 根据 user_id 获取用户详细信息
-      description: |
-        获取用户的完整详细信息,包含部门、职位、员工工号等。
-      tags:
-        - User
-      parameters:
-        - name: app_id
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: user_id
-          in: path
-          required: true
-          description: 飞书用户 ID
-          schema:
-            type: string
-            example: "ou_a1b2c3d4e5f6g7h8"
-      responses:
-        '200':
-          description: 查询成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserResponse'
-
-  /contact/chats/by-name:
-    get:
-      summary: 根据群名称查询群组信息
-      description: |
-        查询群组的 chat_id 和基本信息。
-      tags:
-        - ChatGroup
-      parameters:
-        - name: app_id
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: name
-          in: query
-          required: true
-          description: 群组名称 (支持模糊匹配)
-          schema:
-            type: string
-            example: "技术讨论群"
-      responses:
-        '200':
-          description: 查询成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ChatGroupListResponse'
-        '404':
-          description: 群组不存在
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                code: "CHAT_NOT_FOUND"
-                message: "群组不存在或已解散"
-                request_id: "req_1234567890"
-
-  /contact/chats/{chat_id}:
-    get:
-      summary: 根据 chat_id 获取群组详细信息
-      tags:
-        - ChatGroup
-      parameters:
-        - name: app_id
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: chat_id
-          in: path
-          required: true
-          description: 飞书群组 ID
-          schema:
-            type: string
-            example: "oc_a1b2c3d4e5f6g7h8"
-      responses:
-        '200':
-          description: 查询成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ChatGroupResponse'
-
-  /contact/departments/{department_id}/users:
-    get:
-      summary: 获取部门成员列表
-      description: |
-        获取指定部门的成员列表,批量更新本地缓存。
-      tags:
-        - Department
-      parameters:
-        - name: app_id
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: department_id
-          in: path
-          required: true
-          description: 部门 ID
-          schema:
-            type: string
-            example: "od_a1b2c3d4e5f6g7h8"
-        - name: page_size
-          in: query
-          schema:
-            type: integer
-            default: 50
-            minimum: 1
-            maximum: 100
-        - name: page_token
-          in: query
-          schema:
-            type: string
-      responses:
-        '200':
-          description: 查询成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DepartmentUsersResponse'
-        '404':
-          description: 部门不存在或已删除
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                code: "DEPARTMENT_NOT_FOUND"
-                message: "部门不存在或已被删除"
-                request_id: "req_1234567890"
-
-  /contact/departments/tree:
-    get:
-      summary: 获取组织架构树
-      description: |
-        获取企业的完整组织架构层级关系。
-      tags:
-        - Department
-      parameters:
-        - name: app_id
-          in: query
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: 查询成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DepartmentTreeResponse'
+  - url: https://open.feishu.cn/open-apis
+    description: 飞书开放平台
 
 components:
   schemas:
-    UserResponse:
-      type: object
-      required:
-        - code
-        - request_id
-        - data
-      properties:
-        code:
-          type: string
-          example: "OK"
-        message:
-          type: string
-          example: "查询成功"
-        request_id:
-          type: string
-          example: "req_1234567890"
-        data:
-          $ref: '#/components/schemas/User'
-
+    # ==================== User 相关 ====================
     User:
       type: object
       required:
         - open_id
         - user_id
         - union_id
+        - name
+        - status
       properties:
         open_id:
           type: string
-          description: 应用内用户唯一标识 (与 app_id 关联)
-          example: "ou_a1b2c3d4e5f6g7h8"
+          pattern: '^ou_[a-zA-Z0-9]{16}$'
+          description: 应用内用户标识
+          example: ou_abc123def456ghi7
         user_id:
           type: string
-          description: 用户在企业内的唯一标识
-          example: "6a1b2c3d"
+          description: 租户内用户标识
+          example: '7g9j1234'
         union_id:
           type: string
-          description: 用户在飞书全局的唯一标识
-          example: "on_a1b2c3d4e5f6g7h8"
+          pattern: '^on_[a-zA-Z0-9]{16}$'
+          description: 跨租户用户标识
+          example: on_xyz789abc123def4
         name:
           type: string
+          minLength: 1
+          maxLength: 100
           description: 用户姓名
-          example: "张三"
         en_name:
           type: string
+          maxLength: 100
           description: 英文名
-          example: "Zhang San"
+          nullable: true
         email:
           type: string
           format: email
-          example: "zhangsan@company.com"
+          description: 邮箱
+          nullable: true
         mobile:
           type: string
-          example: "+8613800138000"
-        avatar_url:
+          pattern: '^\+?[1-9]\d{1,14}$'
+          description: 手机号 (E.164 格式)
+          nullable: true
+        avatar:
           type: string
           format: uri
-          example: "https://example.com/avatar.jpg"
+          description: 头像 URL
+          nullable: true
         department_ids:
           type: array
           items:
             type: string
-          description: 用户所属部门 ID 列表
-          example: ["od_dept001", "od_dept002"]
-        employee_no:
+          description: 所属部门 ID 列表
+          default: []
+        status:
+          type: integer
+          enum: [1, 2, 4, 5]
+          description: |
+            用户状态:
+            1 - 正常
+            2 - 停用
+            4 - 未激活
+            5 - 退出企业
+        employee_type:
+          type: integer
+          enum: [1, 2, 3, 4, 5]
+          description: |
+            员工类型:
+            1 - 正式员工
+            2 - 实习生
+            3 - 外包
+            4 - 劳务
+            5 - 顾问
+        join_time:
+          type: integer
+          format: int64
+          description: 入职时间 (Unix timestamp)
+          nullable: true
+
+    UserCache:
+      type: object
+      required:
+        - app_id
+        - union_id
+        - open_id
+        - user_id
+        - name
+        - cached_at
+      properties:
+        app_id:
           type: string
-          description: 员工工号
-          example: "EMP001"
-        job_title:
+          pattern: '^cli_[a-z0-9]{16}$'
+          description: 应用 ID
+        union_id:
           type: string
-          description: 职位
-          example: "高级工程师"
+          pattern: '^on_[a-zA-Z0-9]{16}$'
+          description: 跨租户用户标识
+        open_id:
+          type: string
+          pattern: '^ou_[a-zA-Z0-9]{16}$'
+          description: 应用内用户标识
+        user_id:
+          type: string
+          description: 租户内用户标识
+        name:
+          type: string
+          description: 用户姓名
+        email:
+          type: string
+          format: email
+          nullable: true
+        mobile:
+          type: string
+          nullable: true
+        avatar:
+          type: string
+          format: uri
+          nullable: true
+        department_ids:
+          type: array
+          items:
+            type: string
+          default: []
         cached_at:
           type: string
           format: date-time
-          description: 缓存时间 (仅本地缓存数据返回)
-          example: "2026-01-14T10:30:00Z"
-        expires_at:
-          type: string
-          format: date-time
-          description: 缓存过期时间 (24小时TTL)
-          example: "2026-01-15T10:30:00Z"
-
-    ChatGroupResponse:
-      type: object
-      required:
-        - code
-        - request_id
-        - data
-      properties:
-        code:
-          type: string
-          example: "OK"
-        message:
-          type: string
-        request_id:
-          type: string
-        data:
-          $ref: '#/components/schemas/ChatGroup'
-
-    ChatGroupListResponse:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        request_id:
-          type: string
-        data:
-          type: object
-          properties:
-            items:
-              type: array
-              items:
-                $ref: '#/components/schemas/ChatGroup'
-            has_more:
-              type: boolean
-            page_token:
-              type: string
-
-    ChatGroup:
-      type: object
-      required:
-        - chat_id
-        - name
-      properties:
-        chat_id:
-          type: string
-          description: 群组 ID
-          example: "oc_a1b2c3d4e5f6g7h8"
-        name:
-          type: string
-          description: 群名称
-          example: "技术讨论群"
-        description:
-          type: string
-          description: 群描述
-        owner_id:
-          type: string
-          description: 群主 user_id
-          example: "ou_owner123"
-        member_count:
+          description: 缓存时间
+        ttl:
           type: integer
-          description: 成员数量
-          example: 50
-        created_at:
-          type: string
-          format: date-time
+          default: 86400
+          description: 缓存有效期 (秒)
+        version:
+          type: integer
+          default: 1
+          description: 缓存版本号 (用于乐观锁)
 
-    DepartmentUsersResponse:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        request_id:
-          type: string
-        data:
-          type: object
-          properties:
-            items:
-              type: array
-              items:
-                $ref: '#/components/schemas/User'
-            has_more:
-              type: boolean
-            page_token:
-              type: string
-
-    DepartmentTreeResponse:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        request_id:
-          type: string
-        data:
-          type: object
-          properties:
-            root:
-              $ref: '#/components/schemas/Department'
-
+    # ==================== Department 相关 ====================
     Department:
       type: object
       required:
         - department_id
         - name
+        - parent_department_id
       properties:
         department_id:
           type: string
-          example: "od_dept001"
+          pattern: '^dept_[a-zA-Z0-9]{16}$'
+          description: 部门 ID
+          example: dept_abc123def456ghi7
         name:
           type: string
-          example: "技术部"
+          minLength: 1
+          maxLength: 100
+          description: 部门名称
         parent_department_id:
           type: string
-          example: "od_root"
+          description: 父部门 ID
+        leader_user_id:
+          type: string
+          description: 部门负责人 user_id
+          nullable: true
         member_count:
           type: integer
-          example: 25
-        children:
-          type: array
-          items:
-            $ref: '#/components/schemas/Department'
+          minimum: 0
+          description: 部门成员数
+        status:
+          type: integer
+          enum: [1, 2]
+          description: |
+            部门状态:
+            1 - 正常
+            2 - 停用
+        order:
+          type: integer
+          description: 部门排序
 
-    ErrorResponse:
+    # ==================== ChatGroup 相关 ====================
+    ChatGroup:
+      type: object
+      required:
+        - chat_id
+        - name
+        - owner_id
+      properties:
+        chat_id:
+          type: string
+          pattern: '^oc_[a-zA-Z0-9]{16}$'
+          description: 群组 ID
+          example: oc_abc123def456ghi7
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: 群组名称
+        description:
+          type: string
+          maxLength: 500
+          description: 群组描述
+          nullable: true
+        owner_id:
+          type: string
+          description: 群主 open_id
+        avatar:
+          type: string
+          format: uri
+          description: 群头像 URL
+          nullable: true
+        member_count:
+          type: integer
+          minimum: 0
+          description: 群成员数
+        chat_type:
+          type: string
+          enum: [private, public]
+          description: 群类型
+        created_at:
+          type: string
+          format: date-time
+          description: 创建时间
+
+    # ==================== Error 相关 ====================
+    Error:
       type: object
       required:
         - code
         - message
-        - request_id
       properties:
         code:
-          type: string
-          description: 错误码
-          enum:
-            - USER_NOT_FOUND
-            - CHAT_NOT_FOUND
-            - DEPARTMENT_NOT_FOUND
-            - PERMISSION_DENIED
-            - INVALID_PARAMETER
-            - TOKEN_EXPIRED
-            - RATE_LIMITED
-            - INTERNAL_ERROR
-          example: "USER_NOT_FOUND"
+          type: integer
+          description: |
+            错误码:
+            40101 - 用户不存在
+            40102 - 邮箱格式错误
+            40103 - 部门不存在
+            40104 - 群组不存在
+            40105 - 权限不足
+            50101 - 缓存写入失败
+            50102 - API 调用超时
         message:
           type: string
-          description: 错误描述
-          example: "用户不存在"
+          description: 错误消息
+        details:
+          type: object
+          description: 错误详情
+          properties:
+            field:
+              type: string
+              description: 错误字段
+            suggestion:
+              type: string
+              description: 修复建议
         request_id:
           type: string
-          description: 请求追踪 ID
-          example: "req_1234567890"
-        error_details:
-          type: object
-          description: 额外的错误上下文信息
-          additionalProperties: true
+          description: 请求 ID
+
+paths:
+  # ==================== 用户查询 ====================
+  /contact/v3/users/{user_id}:
+    get:
+      summary: 根据 user_id 查询用户
+      operationId: getUserById
+      tags:
+        - User
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: user_id_type
+          in: query
+          schema:
+            type: string
+            enum: [open_id, user_id, union_id]
+            default: open_id
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 0
+                  msg:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+        '404':
+          description: 用户不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /contact/v3/users/batch_get_id:
+    post:
+      summary: 通过邮箱或手机号批量查询用户
+      operationId: getUsersByEmailOrMobile
+      tags:
+        - User
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                emails:
+                  type: array
+                  items:
+                    type: string
+                    format: email
+                  maxItems: 200
+                  description: 邮箱列表
+                mobiles:
+                  type: array
+                  items:
+                    type: string
+                  maxItems: 200
+                  description: 手机号列表
+                user_id_type:
+                  type: string
+                  enum: [open_id, user_id, union_id]
+                  default: open_id
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      user_list:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/User'
+
+  # ==================== 部门查询 ====================
+  /contact/v3/departments/{department_id}:
+    get:
+      summary: 查询部门信息
+      operationId: getDepartment
+      tags:
+        - Department
+      parameters:
+        - name: department_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      department:
+                        $ref: '#/components/schemas/Department'
+
+  /contact/v3/departments/{department_id}/children:
+    get:
+      summary: 获取子部门列表
+      operationId: getChildDepartments
+      tags:
+        - Department
+      parameters:
+        - name: department_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+        - name: page_token
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Department'
+                      has_more:
+                        type: boolean
+                      page_token:
+                        type: string
+
+  /contact/v3/users:
+    get:
+      summary: 获取部门用户列表
+      operationId: getDepartmentUsers
+      tags:
+        - Department
+      parameters:
+        - name: department_id
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+        - name: page_token
+          in: query
+          schema:
+            type: string
+        - name: user_id_type
+          in: query
+          schema:
+            type: string
+            enum: [open_id, user_id, union_id]
+            default: open_id
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/User'
+                      has_more:
+                        type: boolean
+                      page_token:
+                        type: string
+
+  # ==================== 群组查询 ====================
+  /im/v1/chats/{chat_id}:
+    get:
+      summary: 查询群组信息
+      operationId: getChat
+      tags:
+        - Chat
+      parameters:
+        - name: chat_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      chat:
+                        $ref: '#/components/schemas/ChatGroup'
+
+  /im/v1/chats:
+    get:
+      summary: 查询群组列表
+      operationId: listChats
+      tags:
+        - Chat
+      parameters:
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: page_token
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ChatGroup'
+                      has_more:
+                        type: boolean
+                      page_token:
+                        type: string
+
+  /im/v1/chats/{chat_id}/members:
+    get:
+      summary: 获取群成员列表
+      operationId: getChatMembers
+      tags:
+        - Chat
+      parameters:
+        - name: chat_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: page_token
+          in: query
+          schema:
+            type: string
+        - name: member_id_type
+          in: query
+          schema:
+            type: string
+            enum: [open_id, user_id, union_id]
+            default: open_id
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            member_id:
+                              type: string
+                            name:
+                              type: string
+                            tenant_key:
+                              type: string
+                      has_more:
+                        type: boolean
+                      page_token:
+                        type: string
+
+  # ==================== 缓存管理 (内部 API) ====================
+  /internal/cache/users/{union_id}:
+    get:
+      summary: 获取用户缓存
+      operationId: getUserCache
+      tags:
+        - Cache
+      parameters:
+        - name: union_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app_id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserCache'
+        '404':
+          description: 缓存未命中
+
+    put:
+      summary: 更新用户缓存
+      operationId: updateUserCache
+      tags:
+        - Cache
+      parameters:
+        - name: union_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCache'
+      responses:
+        '200':
+          description: 成功
+        '409':
+          description: 版本冲突
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: 清除用户缓存
+      operationId: deleteUserCache
+      tags:
+        - Cache
+      parameters:
+        - name: union_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app_id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+
+  /internal/cache/users:
+    delete:
+      summary: 批量清除用户缓存
+      operationId: batchDeleteUserCache
+      tags:
+        - Cache
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - union_ids
+                - app_id
+              properties:
+                union_ids:
+                  type: array
+                  items:
+                    type: string
+                  maxItems: 1000
+                app_id:
+                  type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted_count:
+                    type: integer
