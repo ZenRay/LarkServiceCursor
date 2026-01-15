@@ -17,10 +17,6 @@ from lark_service.messaging.media_uploader import MediaUploader
 from lark_service.messaging.models import (
     BatchSendResponse,
     BatchSendResult,
-    FileAsset,
-    ImageAsset,
-    Message,
-    MessageType,
 )
 from lark_service.utils.logger import get_logger
 

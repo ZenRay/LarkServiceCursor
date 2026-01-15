@@ -48,7 +48,7 @@ git push -u origin 002-messaging-service
 /speckit.checklist  # 运行检查清单验证
 ```
 
-**分支命名规范**: `NNN-<short-description>` (如 `001-lark-service-core`)  
+**分支命名规范**: `NNN-<short-description>` (如 `001-lark-service-core`)
 **详细说明**: 参考 [Git 工作流文档](docs/git-workflow.md)
 
 ### 集成方式
@@ -155,18 +155,54 @@ python -m lark_service.cli app add \
 **4. 开始使用**
 
 ```python
-from lark_service import LarkServiceClient
+from lark_service.core.credential_pool import CredentialPool
+from lark_service.messaging.client import MessagingClient
+from lark_service.cardkit.builder import CardBuilder
 
-# 初始化客户端
-client = LarkServiceClient(app_id="cli_your_app_id")
+# 初始化 Token 管理池
+credential_pool = CredentialPool()
 
-# 发送消息 (Token 自动管理)
-response = client.messaging.send_text(
+# 创建消息客户端
+messaging_client = MessagingClient(credential_pool)
+
+# 1. 发送文本消息
+response = messaging_client.send_text_message(
+    app_id="cli_a1b2c3d4e5f6g7h8",
     receiver_id="ou_xxxxxxxx",
     content="Hello from Lark Service! 🚀"
 )
+print(f"消息发送成功! Message ID: {response['message_id']}")
 
-print(f"消息发送成功! Message ID: {response.data['message_id']}")
+# 2. 发送图片消息 (自动上传)
+response = messaging_client.send_image_message(
+    app_id="cli_a1b2c3d4e5f6g7h8",
+    receiver_id="ou_xxxxxxxx",
+    image_path="/path/to/image.jpg"
+)
+
+# 3. 发送交互式卡片
+builder = CardBuilder()
+card = builder.build_notification_card(
+    title="系统通知",
+    content="您有一条新消息",
+    level="info",
+    action_text="查看详情",
+    action_url="https://example.com"
+)
+response = messaging_client.send_card_message(
+    app_id="cli_a1b2c3d4e5f6g7h8",
+    receiver_id="ou_xxxxxxxx",
+    card_content=card
+)
+
+# 4. 批量发送消息
+response = messaging_client.send_batch_messages(
+    app_id="cli_a1b2c3d4e5f6g7h8",
+    receiver_ids=["ou_user1", "ou_user2", "ou_user3"],
+    msg_type="text",
+    content={"text": "群发消息"}
+)
+print(f"批量发送完成: {response.success}/{response.total} 成功")
 ```
 
 ## 📚 模块功能
@@ -179,14 +215,28 @@ print(f"消息发送成功! Message ID: {response.data['message_id']}")
 - ✅ 并发安全 (线程锁 + 进程锁)
 - ✅ 多应用隔离 (按 `app_id` 隔离)
 
-### 💬 Messaging 模块
+### 💬 Messaging 模块 (Phase 3 ✅)
 
-- ✅ 发送文本消息、富文本消息
-- ✅ 发送图片消息 (JPEG、PNG、GIF、WEBP,限制 10MB)
-- ✅ 发送文件消息 (视频、音频、文档,限制 30MB)
-- ✅ 发送交互式卡片 (支持回调处理)
-- ✅ 批量发送消息
-- ✅ 消息生命周期管理 (撤回、更新)
+#### 消息发送
+- ✅ **文本消息** - 发送纯文本消息
+- ✅ **富文本消息** - 支持格式化 (粗体、斜体、链接、@提及、删除线)
+- ✅ **图片消息** - 支持 7 种格式 (JPG, PNG, GIF, BMP, TIFF, WebP, SVG),限制 10MB
+- ✅ **文件消息** - 支持视频、音频、文档,限制 30MB
+  - 视频: MP4, AVI, MOV, WMV
+  - 音频: MP3, WAV, AAC, OGG
+  - 文档: PDF, DOCX, XLS, PPTX, TXT
+- ✅ **交互式卡片** - 支持审批卡片、通知卡片、表单卡片
+- ✅ **批量发送** - 一次发送到最多 200 个接收者
+
+#### 消息生命周期
+- ✅ **消息撤回** - 撤回已发送的消息
+- ✅ **消息编辑** - 编辑文本消息内容
+- ✅ **消息回复** - 回复指定消息
+
+#### 媒体处理
+- ✅ **自动上传** - 图片和文件自动上传到飞书
+- ✅ **文件验证** - 自动验证文件大小和类型
+- ✅ **重试机制** - 上传失败自动重试 (最多 3 次)
 
 ### 📄 CloudDoc 模块
 
