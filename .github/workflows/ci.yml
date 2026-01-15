@@ -9,6 +9,10 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  security-events: write  # 允许上传 SARIF 结果到 GitHub Security
+
 jobs:
   test:
     runs-on: ubuntu-latest
