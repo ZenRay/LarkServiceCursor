@@ -32,17 +32,32 @@
 
 ## 步骤 1: 安装
 
-### 方式 1: 使用 pip 安装 (推荐)
+### 方式 1: 使用 uv 安装 (推荐,更快)
+
+```bash
+# 安装 uv (如果还没有)
+pip install uv
+
+# 使用 uv 安装 lark-service
+uv pip install lark-service
+```
+
+### 方式 2: 使用 pip 安装
 
 ```bash
 pip install lark-service
 ```
 
-### 方式 2: 从源码安装
+### 方式 3: 从源码安装
 
 ```bash
 git clone https://github.com/your-org/lark-service.git
 cd lark-service
+
+# 使用 uv 安装 (推荐)
+uv pip install -e .
+
+# 或使用 pip
 pip install -e .
 ```
 
@@ -54,14 +69,14 @@ pip install -e .
 
 ```bash
 # 在项目根目录
-docker-compose up -d postgres rabbitmq
+docker compose up -d postgres rabbitmq
 ```
 
 等待服务启动完成(约 10 秒):
 
 ```bash
 # 检查服务状态
-docker-compose ps
+docker compose ps
 ```
 
 输出应该显示:

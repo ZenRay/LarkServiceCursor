@@ -22,13 +22,16 @@
 ### 安装
 
 ```bash
-# 使用 pip 安装
+# 使用 uv 安装 (推荐)
+uv pip install lark-service
+
+# 或使用 pip 安装
 pip install lark-service
 
 # 或从源码安装
 git clone https://github.com/your-org/lark-service.git
 cd lark-service
-pip install -e .
+uv pip install -e .
 ```
 
 ### 5 分钟上手
@@ -39,7 +42,7 @@ pip install -e .
 
 ```bash
 # 启动 PostgreSQL 和 RabbitMQ
-docker-compose up -d postgres rabbitmq
+docker compose up -d postgres rabbitmq
 ```
 
 **2. 配置环境变量**
@@ -157,16 +160,18 @@ print(f"消息发送成功! Message ID: {response.data['message_id']}")
 git clone https://github.com/your-org/lark-service.git
 cd lark-service
 
-# 创建虚拟环境
-python3.12 -m venv venv
-source venv/bin/activate  # Linux/Mac
-# venv\Scripts\activate  # Windows
+# 创建 Conda 环境 (推荐)
+conda create -n lark-service python=3.12
+conda activate lark-service
 
-# 安装依赖
-pip install -r requirements.txt
+# 安装 uv (快速包管理器)
+pip install uv
+
+# 使用 uv 安装依赖
+uv pip install -r requirements.txt
 
 # 启动依赖服务
-docker-compose up -d
+docker compose up -d
 ```
 
 ### 代码质量

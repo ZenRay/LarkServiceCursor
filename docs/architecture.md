@@ -33,7 +33,7 @@ Lark Service 是一个 Python 库项目,封装飞书 OpenAPI,为内部系统提�
 │                      调用方应用                                   │
 │         (Django / Flask / FastAPI / Airflow / Celery)            │
 └───────────────────────────┬─────────────────────────────────────┘
-                            │ pip install lark-service
+                            │ uv pip install lark-service
                             │ import lark_service
                             ▼
 ┌─────────────────────────────────────────────────────────────────┐
@@ -384,16 +384,31 @@ logger.info("api_call_end", extra={"request_id": request_id})
 ### 8.1 本地开发
 
 ```bash
-docker-compose up -d  # 启动 PostgreSQL + RabbitMQ
-pip install -e .      # 安装开发模式
-pytest tests/         # 运行测试
+# 创建 Conda 环境
+conda create -n lark-service python=3.12
+conda activate lark-service
+
+# 安装 uv
+pip install uv
+
+# 启动依赖服务
+docker compose up -d  # 启动 PostgreSQL + RabbitMQ
+
+# 安装开发模式
+uv pip install -e .
+
+# 运行测试
+pytest tests/
 ```
 
 ### 8.2 生产部署
 
 **作为 Python 库**:
 ```bash
-# 在应用中安装
+# 在应用中安装 (使用 uv 更快)
+uv pip install lark-service
+
+# 或使用 pip
 pip install lark-service
 
 # 配置环境变量

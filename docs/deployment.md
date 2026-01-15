@@ -103,13 +103,13 @@ git clone https://github.com/your-org/lark-service.git
 cd lark-service
 
 # 启动所有依赖服务
-docker-compose up -d postgres rabbitmq
+docker compose up -d postgres rabbitmq
 
 # 查看服务状态
-docker-compose ps
+docker compose ps
 
 # 查看日志
-docker-compose logs -f postgres
+docker compose logs -f postgres
 ```
 
 ## 3. 在不同应用中使用
@@ -118,6 +118,10 @@ docker-compose logs -f postgres
 
 **安装**:
 ```bash
+# 使用 uv (推荐)
+uv pip install lark-service
+
+# 或使用 pip
 pip install lark-service
 ```
 
@@ -160,6 +164,10 @@ def send_notification(request):
 
 **安装**:
 ```bash
+# 使用 uv (推荐)
+uv pip install lark-service
+
+# 或使用 pip
 pip install lark-service
 ```
 
@@ -202,6 +210,10 @@ def send_message():
 
 **安装** (在 Airflow 环境中):
 ```bash
+# 使用 uv (推荐)
+uv pip install lark-service
+
+# 或使用 pip
 pip install lark-service
 ```
 
@@ -251,6 +263,10 @@ with DAG(
 
 **安装**:
 ```bash
+# 使用 uv (推荐)
+uv pip install lark-service
+
+# 或使用 pip
 pip install lark-service
 ```
 
@@ -582,8 +598,8 @@ python your_app.py
 
 ```bash
 # Docker Compose 日志
-docker-compose logs -f postgres
-docker-compose logs -f rabbitmq
+docker compose logs -f postgres
+docker compose logs -f rabbitmq
 
 # 应用日志
 tail -f /var/log/lark-service/app.log
