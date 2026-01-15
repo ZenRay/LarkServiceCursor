@@ -51,7 +51,7 @@ def app_manager(test_config: Config) -> ApplicationManager:
     manager.add_application(
         app_id="cli_lifecycletest1234",
         app_name="Lifecycle Test App",
-        app_secret="test_secret_lifecycle",
+        app_secret="test_secret_lifecycle123",
     )
     yield manager
     manager.close()
@@ -75,6 +75,13 @@ def credential_pool(
     tmp_path: Path,
 ) -> CredentialPool:
     """Create CredentialPool for tests."""
+    # Clear all tokens before each test
+    from sqlalchemy import text
+
+    with token_storage.engine.connect() as conn:
+        conn.execute(text("DELETE FROM tokens"))
+        conn.commit()
+
     pool = CredentialPool(
         config=test_config,
         app_manager=app_manager,
@@ -97,37 +104,35 @@ class TestTokenLifecycle:
         app_id = "cli_lifecycletest1234"
         token_type = "app_access_token"
 
-        # Mock SDK client
-        with patch.object(credential_pool, "_get_sdk_client") as mock_sdk:
-            mock_client = MagicMock()
-            mock_sdk.return_value = mock_client
+        # Mock token fetch method
+        call_count = [0]
 
-            call_count = [0]
+        def mock_fetch_token(app_id_param: str):
+            call_count[0] += 1
+            token_value = f"generated_token_v{call_count[0]}"
+            expires_at = datetime.now() + timedelta(seconds=10)
+            return token_value, expires_at
 
-            def mock_token_response(*args, **kwargs):
-                call_count[0] += 1
-                response = MagicMock()
-                response.success.return_value = True
-                response.data.app_access_token = f"token_v{call_count[0]}"
-                response.data.expire = 10  # 10 seconds for testing
-                return response
-
-            mock_client.auth.v3.app_access_token.internal.side_effect = mock_token_response
+        with patch.object(
+            credential_pool,
+            "_fetch_app_access_token",
+            side_effect=mock_fetch_token,
+        ):
 
             # Step 1: Acquire token (first time)
             token1 = credential_pool.get_token(app_id, token_type)
-            assert token1 == "token_v1"
+            assert token1 == "generated_token_v1"
             assert call_count[0] == 1
 
             # Verify token is stored
             stored = token_storage.get_token(app_id, token_type)
             assert stored is not None
-            assert stored.token_value == "token_v1"
+            assert stored.token_value == "generated_token_v1"
             assert not stored.is_expired()
 
             # Step 2: Use cached token (no API call)
             token2 = credential_pool.get_token(app_id, token_type)
-            assert token2 == "token_v1"
+            assert token2 == "generated_token_v1"
             assert call_count[0] == 1  # No new API call
 
             # Step 3: Wait for token to cross refresh threshold (50% of 10s = 5s)
@@ -135,23 +140,23 @@ class TestTokenLifecycle:
 
             # Step 4: Get token should trigger proactive refresh
             token3 = credential_pool.get_token(app_id, token_type)
-            assert token3 == "token_v2"
+            assert token3 == "generated_token_v2"
             assert call_count[0] == 2  # New API call
 
             # Verify new token is stored
             stored = token_storage.get_token(app_id, token_type)
             assert stored is not None
-            assert stored.token_value == "token_v2"
+            assert stored.token_value == "generated_token_v2"
 
             # Step 5: Wait for token to expire completely
             time.sleep(11)
 
             # Step 6: Get token should trigger re-acquisition
             token4 = credential_pool.get_token(app_id, token_type)
-            assert token4 == "token_v3"
+            assert token4 == "generated_token_v3"
             assert call_count[0] == 3  # Another API call
 
-    def test_concurrent_token_access(
+    def test_concurrent_generated_token_access(
         self,
         credential_pool: CredentialPool,
         token_storage: TokenStorageService,
@@ -163,18 +168,17 @@ class TestTokenLifecycle:
         token_type = "app_access_token"
         tokens = []
 
-        # Mock SDK client
-        with patch.object(credential_pool, "_get_sdk_client") as mock_sdk:
-            mock_client = MagicMock()
-            mock_sdk.return_value = mock_client
+        # Mock token fetch method
+        def mock_fetch_token(app_id_param: str):
+            token_value = "concurrent_generated_token"
+            expires_at = datetime.now() + timedelta(seconds=7200)
+            return token_value, expires_at
 
-            # Mock token response
-            mock_response = MagicMock()
-            mock_response.success.return_value = True
-            mock_response.data.app_access_token = "concurrent_token"
-            mock_response.data.expire = 7200
-
-            mock_client.auth.v3.app_access_token.internal.return_value = mock_response
+        with patch.object(
+            credential_pool,
+            "_fetch_app_access_token",
+            side_effect=mock_fetch_token,
+        ):
 
             def get_token_thread():
                 token = credential_pool.get_token(app_id, token_type)
@@ -189,10 +193,10 @@ class TestTokenLifecycle:
 
             # All threads should get the same token
             assert len(tokens) == 5
-            assert all(t == "concurrent_token" for t in tokens)
+            assert all(t == "concurrent_generated_token" for t in tokens)
 
             # Should only make one API call (lock prevents duplicates)
-            assert mock_client.auth.v3.app_access_token.internal.call_count == 1
+            assert credential_pool._fetch_app_access_token.call_count == 1
 
     def test_token_refresh_on_near_expiry(
         self,
@@ -213,23 +217,21 @@ class TestTokenLifecycle:
             expires_at=near_expiry,
         )
 
-        # Mock SDK client
-        with patch.object(credential_pool, "_get_sdk_client") as mock_sdk:
-            mock_client = MagicMock()
-            mock_sdk.return_value = mock_client
+        # Mock token fetch method
+        def mock_fetch_token(app_id_param: str):
+            token_value = "refreshed_token"
+            expires_at = datetime.now() + timedelta(seconds=7200)
+            return token_value, expires_at
 
-            # Mock new token response
-            mock_response = MagicMock()
-            mock_response.success.return_value = True
-            mock_response.data.app_access_token = "refreshed_token"
-            mock_response.data.expire = 7200
-
-            mock_client.auth.v3.app_access_token.internal.return_value = mock_response
-
+        with patch.object(
+            credential_pool,
+            "_fetch_app_access_token",
+            side_effect=mock_fetch_token,
+        ):
             # Get token should trigger refresh
             token = credential_pool.get_token(app_id, token_type)
             assert token == "refreshed_token"
-            assert mock_client.auth.v3.app_access_token.internal.call_count == 1
+            assert credential_pool._fetch_app_access_token.call_count == 1
 
     def test_expired_token_re_acquisition(
         self,
@@ -254,28 +256,26 @@ class TestTokenLifecycle:
         assert stored is not None
         assert stored.is_expired()
 
-        # Mock SDK client
-        with patch.object(credential_pool, "_get_sdk_client") as mock_sdk:
-            mock_client = MagicMock()
-            mock_sdk.return_value = mock_client
+        # Mock token fetch method
+        def mock_fetch_token(app_id_param: str):
+            token_value = "generated_new_token"
+            expires_at = datetime.now() + timedelta(seconds=7200)
+            return token_value, expires_at
 
-            # Mock new token response
-            mock_response = MagicMock()
-            mock_response.success.return_value = True
-            mock_response.data.app_access_token = "new_token"
-            mock_response.data.expire = 7200
-
-            mock_client.auth.v3.app_access_token.internal.return_value = mock_response
-
+        with patch.object(
+            credential_pool,
+            "_fetch_app_access_token",
+            side_effect=mock_fetch_token,
+        ):
             # Get token should re-acquire
             token = credential_pool.get_token(app_id, token_type)
-            assert token == "new_token"
-            assert mock_client.auth.v3.app_access_token.internal.call_count == 1
+            assert token == "generated_new_token"
+            assert credential_pool._fetch_app_access_token.call_count == 1
 
         # Verify new token is stored
         stored = token_storage.get_token(app_id, token_type)
         assert stored is not None
-        assert stored.token_value == "new_token"
+        assert stored.token_value == "generated_new_token"
         assert not stored.is_expired()
 
     def test_token_types_independence(
@@ -286,32 +286,32 @@ class TestTokenLifecycle:
         """Test that different token types are managed independently."""
         app_id = "cli_lifecycletest1234"
 
-        # Mock SDK client
-        with patch.object(credential_pool, "_get_sdk_client") as mock_sdk:
-            mock_client = MagicMock()
-            mock_sdk.return_value = mock_client
+        # Mock token fetch methods
+        def mock_fetch_generated_app_token(app_id_param: str):
+            token_value = "generated_app_token"
+            expires_at = datetime.now() + timedelta(seconds=7200)
+            return token_value, expires_at
 
-            # Mock app_access_token response
-            app_response = MagicMock()
-            app_response.success.return_value = True
-            app_response.data.app_access_token = "app_token"
-            app_response.data.expire = 7200
+        def mock_fetch_generated_tenant_token(app_id_param: str):
+            token_value = "generated_tenant_token"
+            expires_at = datetime.now() + timedelta(seconds=7200)
+            return token_value, expires_at
 
-            # Mock tenant_access_token response
-            tenant_response = MagicMock()
-            tenant_response.success.return_value = True
-            tenant_response.data.tenant_access_token = "tenant_token"
-            tenant_response.data.expire = 7200
-
-            mock_client.auth.v3.app_access_token.internal.return_value = app_response
-            mock_client.auth.v3.tenant_access_token.internal.return_value = tenant_response
-
+        with patch.object(
+            credential_pool,
+            "_fetch_app_access_token",
+            side_effect=mock_fetch_generated_app_token,
+        ), patch.object(
+            credential_pool,
+            "_fetch_tenant_access_token",
+            side_effect=mock_fetch_generated_tenant_token,
+        ):
             # Get both types of tokens
-            app_token = credential_pool.get_token(app_id, "app_access_token")
-            tenant_token = credential_pool.get_token(app_id, "tenant_access_token")
+            generated_app_token = credential_pool.get_token(app_id, "app_access_token")
+            generated_tenant_token = credential_pool.get_token(app_id, "tenant_access_token")
 
-            assert app_token == "app_token"
-            assert tenant_token == "tenant_token"
+            assert generated_app_token == "generated_app_token"
+            assert generated_tenant_token == "generated_tenant_token"
 
         # Verify both tokens are stored separately
         stored_app = token_storage.get_token(app_id, "app_access_token")
@@ -330,34 +330,31 @@ class TestTokenLifecycle:
         app_id = "cli_lifecycletest1234"
         token_type = "app_access_token"
 
-        # Mock SDK client
-        with patch.object(credential_pool, "_get_sdk_client") as mock_sdk:
-            mock_client = MagicMock()
-            mock_sdk.return_value = mock_client
+        # Mock token fetch method
+        call_count = [0]
 
-            call_count = [0]
+        def mock_fetch_token(app_id_param: str):
+            call_count[0] += 1
+            token_value = f"manual_generated_token_v{call_count[0]}"
+            expires_at = datetime.now() + timedelta(seconds=7200)
+            return token_value, expires_at
 
-            def mock_token_response(*args, **kwargs):
-                call_count[0] += 1
-                response = MagicMock()
-                response.success.return_value = True
-                response.data.app_access_token = f"manual_token_v{call_count[0]}"
-                response.data.expire = 7200
-                return response
-
-            mock_client.auth.v3.app_access_token.internal.side_effect = mock_token_response
-
+        with patch.object(
+            credential_pool,
+            "_fetch_app_access_token",
+            side_effect=mock_fetch_token,
+        ):
             # Initial acquisition
             token1 = credential_pool.get_token(app_id, token_type)
-            assert token1 == "manual_token_v1"
+            assert token1 == "manual_generated_token_v1"
             assert call_count[0] == 1
 
             # Manual refresh
             token2 = credential_pool.refresh_token(app_id, token_type)
-            assert token2 == "manual_token_v2"
+            assert token2 == "manual_generated_token_v2"
             assert call_count[0] == 2
 
             # Verify new token is stored
             stored = token_storage.get_token(app_id, token_type)
             assert stored is not None
-            assert stored.token_value == "manual_token_v2"
+            assert stored.token_value == "manual_generated_token_v2"
