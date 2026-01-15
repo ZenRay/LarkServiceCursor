@@ -40,12 +40,12 @@ class ContextFilter(logging.Filter):
         Returns:
             Always True to allow all records
         """
-        record.request_id = self.request_id or "N/A"  # type: ignore[attr-defined]
-        record.app_id = self.app_id or "N/A"  # type: ignore[attr-defined]
+        record.request_id = self.request_id or "N/A"
+        record.app_id = self.app_id or "N/A"
         return True
 
 
-class CustomJsonFormatter(jsonlogger.JsonFormatter):
+class CustomJsonFormatter(jsonlogger.JsonFormatter):  # type: ignore
     """Custom JSON formatter with additional fields.
     
     Adds timestamp, level, and context information to JSON logs.
@@ -119,7 +119,7 @@ def setup_logger(
     
     if json_format:
         # JSON format for production
-        formatter = CustomJsonFormatter(
+        formatter: logging.Formatter = CustomJsonFormatter(
             "%(timestamp)s %(level)s %(logger)s %(message)s"
         )
     else:

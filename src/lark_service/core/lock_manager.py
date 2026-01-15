@@ -113,7 +113,8 @@ class TokenRefreshLock:
 
         # Acquire thread lock
         try:
-            thread_acquired = thread_lock.acquire(blocking=blocking, timeout=timeout if blocking else None)
+            if blocking:
+                thread_acquired = thread_lock.acquire(blocking=True, timeout=timeout or -1)
             if not thread_acquired:
                 raise LockAcquisitionError(
                     f"Failed to acquire thread lock for app_id: {app_id}",

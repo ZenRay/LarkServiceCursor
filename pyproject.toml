@@ -117,8 +117,15 @@ strict_equality = true
 module = [
     "lark_oapi.*",
     "pika.*",
+    "pythonjsonlogger.*",
 ]
 ignore_missing_imports = true
+
+# Relax strict checking for utility modules with third-party dependencies
+[[tool.mypy.overrides]]
+module = "lark_service.utils.logger"
+disallow_untyped_calls = false
+disallow_untyped_defs = false
 
 # Pytest 配置
 [tool.pytest.ini_options]

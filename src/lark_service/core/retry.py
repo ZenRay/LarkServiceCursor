@@ -77,7 +77,7 @@ class RetryStrategy:
             4.0
         """
         delay = self.base_delay * (2 ** attempt)
-        return min(delay, self.max_delay)
+        return float(min(delay, self.max_delay))
 
     def execute(
         self,
