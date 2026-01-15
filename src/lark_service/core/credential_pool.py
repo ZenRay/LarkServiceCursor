@@ -281,7 +281,7 @@ class CredentialPool:
                         },
                     )
                     # Refresh in background (or synchronously if needed)
-                    return self.refresh_token(app_id, token_type)
+                    return self._refresh_token_internal(app_id, token_type, force=False)
                 else:
                     logger.debug(
                         "Using cached token",
@@ -294,14 +294,14 @@ class CredentialPool:
                     return cached_token.token_value
 
         # Token not cached or expired, fetch new one
-        return self.refresh_token(app_id, token_type)
+        return self._refresh_token_internal(app_id, token_type, force=force_refresh)
 
     def refresh_token(
         self,
         app_id: str,
         token_type: str = "app_access_token",
     ) -> str:
-        """Refresh token from Feishu API.
+        """Force refresh token from Feishu API (always fetches new token).
 
         Args:
             app_id: Application ID
@@ -318,18 +318,37 @@ class CredentialPool:
             >>> pool = CredentialPool(config, app_manager, token_storage)
             >>> token = pool.refresh_token("cli_abc123", "app_access_token")
         """
+        return self._refresh_token_internal(app_id, token_type, force=True)
+
+    def _refresh_token_internal(
+        self,
+        app_id: str,
+        token_type: str = "app_access_token",
+        force: bool = False,
+    ) -> str:
+        """Internal method to refresh token with optional force flag.
+
+        Args:
+            app_id: Application ID
+            token_type: Token type
+            force: If True, always fetch new token; if False, use double-check locking
+
+        Returns:
+            Token value
+        """
         validate_app_id(app_id)
 
         # Use lock to prevent concurrent refresh
         with RefreshLockContext(self.lock_manager, app_id, timeout=30.0):
-            # Double-check cache after acquiring lock
-            cached_token = self.token_storage.get_token(app_id, token_type)
-            if cached_token and not cached_token.is_expired():
-                logger.debug(
-                    "Token was refreshed by another process",
-                    extra={"app_id": app_id, "token_type": token_type},
-                )
-                return cached_token.token_value
+            # Double-check cache after acquiring lock (unless force=True)
+            if not force:
+                cached_token = self.token_storage.get_token(app_id, token_type)
+                if cached_token and not cached_token.is_expired():
+                    logger.debug(
+                        "Token was refreshed by another process",
+                        extra={"app_id": app_id, "token_type": token_type},
+                    )
+                    return cached_token.token_value
 
             # Fetch new token with retry
             def fetch_token() -> tuple[str, datetime]:
