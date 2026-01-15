@@ -112,9 +112,228 @@ docker compose ps
 docker compose logs -f postgres
 ```
 
-## 3. 在不同应用中使用
+## 3. 集成方式选择
 
-### 3.1 Django 应用
+Lark Service 支持两种集成方式,**推荐使用子项目集成方式**以便于开发调试和定制。
+
+### 3.1 子项目集成 (推荐) ⭐
+
+**适用场景**:
+- 需要频繁调试和修改 Lark Service 代码
+- 深度定制功能
+- 单体应用架构
+- 开发阶段
+
+**集成步骤**:
+
+```bash
+# 1. 在你的项目中添加 lark-service 作为 Git 子模块
+cd your-project
+git submodule add https://github.com/your-org/lark-service.git libs/lark-service
+
+# 2. 初始化子模块
+git submodule update --init --recursive
+
+# 3. 安装依赖
+cd libs/lark-service
+uv pip install -r requirements.txt
+cd ../..
+
+# 4. 运行数据库迁移
+cd libs/lark-service
+alembic upgrade head
+cd ../..
+```
+
+**项目结构**:
+
+```
+your-project/
+├── libs/
+│   └── lark-service/              # Git 子模块
+│       ├── src/
+│       │   └── lark_service/
+│       ├── migrations/
+│       ├── requirements.txt
+│       └── pyproject.toml
+├── your_app/
+│   ├── __init__.py
+│   ├── main.py
+│   └── config.py
+├── .gitmodules
+├── requirements.txt
+└── docker-compose.yml
+```
+
+**在代码中使用**:
+
+```python
+# your_app/main.py
+import sys
+from pathlib import Path
+
+# 添加子项目到 Python 路径
+project_root = Path(__file__).parent.parent
+lark_service_path = project_root / "libs" / "lark-service" / "src"
+sys.path.insert(0, str(lark_service_path))
+
+# 正常导入使用
+from lark_service import LarkServiceClient
+
+client = LarkServiceClient(app_id="cli_your_app_id")
+```
+
+**优势**:
+- ✅ 源码完全可见,便于学习和调试
+- ✅ 修改即生效,无需重新安装
+- ✅ Git 子模块锁定版本,团队环境一致
+- ✅ 可以自由定制和扩展
+
+**注意事项**:
+
+1. **依赖管理**: 需要在主项目的 `requirements.txt` 或 `pyproject.toml` 中包含 lark-service 的依赖:
+
+```toml
+# your-project/pyproject.toml
+[project]
+dependencies = [
+    # lark-service 的依赖
+    "lark-oapi>=1.2.0",
+    "pydantic>=2.0.0,<3.0.0",
+    "SQLAlchemy>=2.0.0,<3.0.0",
+    "psycopg2-binary>=2.9.0",
+    "pika>=1.3.0",
+    "cryptography>=41.0.0",
+    "python-dotenv>=1.0.0",
+    "filelock>=3.12.0",
+    "click>=8.1.0",
+    "rich>=13.0.0",
+    "alembic>=1.12.0",
+    # 你的项目依赖
+    "django>=4.2.0",
+]
+```
+
+2. **数据库配置**: 子项目的 SQLite 配置数据库和 PostgreSQL 需要正确配置路径:
+
+```python
+# your_app/config.py
+from pathlib import Path
+import os
+
+# 子项目根目录
+LARK_SERVICE_ROOT = Path(__file__).parent.parent / "libs" / "lark-service"
+
+# SQLite 配置数据库路径
+LARK_CONFIG_DB = LARK_SERVICE_ROOT / "data" / "lark_config.db"
+
+# PostgreSQL 配置 (共享)
+POSTGRES_HOST = os.getenv('POSTGRES_HOST', 'localhost')
+POSTGRES_PORT = os.getenv('POSTGRES_PORT', '5432')
+POSTGRES_DB = os.getenv('POSTGRES_DB', 'lark_service')
+```
+
+3. **CI/CD 配置**: 需要配置子模块递归拉取:
+
+```yaml
+# .github/workflows/deploy.yml
+- name: Checkout code with submodules
+  uses: actions/checkout@v4
+  with:
+    submodules: recursive
+```
+
+4. **Docker 部署**: Dockerfile 需要复制子模块:
+
+```dockerfile
+# Dockerfile
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# 复制整个项目 (包含子模块)
+COPY . .
+
+# 安装依赖
+RUN pip install uv && \
+    uv pip install -r requirements.txt && \
+    cd libs/lark-service && \
+    uv pip install -r requirements.txt
+
+CMD ["python", "-m", "your_app.main"]
+```
+
+---
+
+### 3.2 PyPI 包安装 (备选)
+
+**适用场景**:
+- 生产环境部署
+- 多项目复用
+- 快速集成
+- 标准化管理
+
+**安装**:
+
+```bash
+# 使用 uv (推荐,速度快 10-100x)
+uv pip install lark-service
+
+# 或使用 pip
+pip install lark-service
+
+# 锁定版本
+uv pip install lark-service==1.2.0
+```
+
+**在代码中使用**:
+
+```python
+# 直接导入,无需配置路径
+from lark_service import LarkServiceClient
+
+client = LarkServiceClient(app_id="cli_your_app_id")
+```
+
+**优势**:
+- ✅ 标准化,符合 Python 生态最佳实践
+- ✅ 依赖自动安装
+- ✅ 更新简单: `uv pip install --upgrade lark-service`
+- ✅ 完全隔离在虚拟环境
+
+**依赖管理**:
+
+```toml
+# pyproject.toml
+[project]
+dependencies = [
+    "lark-service>=1.0.0,<2.0.0",
+    "django>=4.2.0",
+]
+```
+
+---
+
+### 3.3 集成方式对比
+
+| 维度 | 子项目集成 (推荐) | PyPI 包安装 |
+|------|------------------|-------------|
+| **代码可见性** | ✅ 源码完全可见 | ❌ 安装在 site-packages |
+| **实时调试** | ✅ 修改即生效 | ❌ 需要重新安装 |
+| **定制能力** | ✅ 可以自由修改 | ❌ 修改需要 fork |
+| **依赖管理** | ⚠️ 需要手动管理 | ✅ 自动安装 |
+| **更新方式** | `git submodule update` | `uv pip install --upgrade` |
+| **适用场景** | 开发调试、深度定制 | 生产部署、快速集成 |
+
+> 💡 **推荐策略**: 开发阶段使用**子项目集成**,生产部署可选 **PyPI 安装**。详细对比见 [research.md § 8](../specs/001-lark-service-core/research.md#8-服务集成方式技术调研)
+
+---
+
+## 4. 在不同应用中使用
+
+以下示例以 **PyPI 安装方式** 为例,如果使用子项目集成,请参考 3.1 节配置 Python 路径。
+
+### 4.1 Django 应用
 
 **安装**:
 ```bash
@@ -160,7 +379,7 @@ def send_notification(request):
     return JsonResponse({"message_id": response.data['message_id']})
 ```
 
-### 3.2 Flask 应用
+### 4.2 Flask 应用
 
 **安装**:
 ```bash
@@ -206,7 +425,7 @@ def send_message():
     return jsonify({"message_id": response.data['message_id']})
 ```
 
-### 3.3 Apache Airflow
+### 4.3 Apache Airflow
 
 **安装** (在 Airflow 环境中):
 ```bash
@@ -259,7 +478,7 @@ with DAG(
     )
 ```
 
-### 3.4 FastAPI 应用
+### 4.4 FastAPI 应用
 
 **安装**:
 ```bash
@@ -289,9 +508,9 @@ async def send_notification(user_id: str, message: str):
     return {"message_id": response.data['message_id']}
 ```
 
-## 4. 环境变量配置
+## 5. 环境变量配置
 
-### 4.1 必需环境变量
+### 5.1 必需环境变量
 
 ```bash
 # PostgreSQL 配置
@@ -314,7 +533,7 @@ LARK_CONFIG_ENCRYPTION_KEY=your_32_byte_base64_key
 LOG_LEVEL=INFO
 ```
 
-### 4.2 生成加密密钥
+### 5.2 生成加密密钥
 
 ```bash
 # 生成 32 字节的 base64 编码密钥
@@ -323,7 +542,7 @@ openssl rand -base64 32
 # 输出示例: 3yX9kL2mP5nQ8rT1uV4wZ6aB7cD0eF1g==
 ```
 
-### 4.3 不同环境的配置管理
+### 5.3 不同环境的配置管理
 
 #### 开发环境
 
@@ -365,7 +584,7 @@ stringData:
   LARK_CONFIG_ENCRYPTION_KEY: your_production_key
 ```
 
-## 5. 初始化应用配置
+## 6. 初始化应用配置
 
 ### 5.1 使用 CLI 添加应用
 
@@ -407,7 +626,7 @@ app_manager.create_application(
 print("应用配置已添加!")
 ```
 
-## 6. 数据库迁移
+## 7. 数据库迁移
 
 ### 6.1 初始化 Alembic
 
@@ -442,7 +661,7 @@ alembic revision --autogenerate -m "add new table"
 alembic revision -m "manual migration"
 ```
 
-## 7. 健康检查
+## 8. 健康检查
 
 ### 7.1 数据库连接检查
 
@@ -475,7 +694,7 @@ def check_rabbitmq_health():
         return {"status": "unhealthy", "error": str(e)}
 ```
 
-## 8. 监控和日志
+## 9. 监控和日志
 
 ### 8.1 日志配置
 
@@ -509,7 +728,7 @@ setup_logger(
 - New Relic
 - CloudWatch (AWS)
 
-## 9. 安全最佳实践
+## 10. 安全最佳实践
 
 ### 9.1 密钥管理
 

@@ -19,10 +19,52 @@
 
 ## 📋 快速开始
 
-### 安装
+### 集成方式
+
+本服务支持两种集成方式,**推荐使用子项目集成方式**以便于开发调试和定制:
+
+#### 方式 1: 子项目集成 (推荐) ⭐
+
+适用于需要频繁调试、深度定制或单体应用的场景。
 
 ```bash
-# 使用 uv 安装 (推荐)
+# 1. 添加为 Git 子模块
+cd your-project
+git submodule add https://github.com/your-org/lark-service.git libs/lark-service
+
+# 2. 初始化子模块
+git submodule update --init --recursive
+
+# 3. 安装依赖
+cd libs/lark-service
+uv pip install -r requirements.txt
+```
+
+**使用方式**:
+
+```python
+import sys
+from pathlib import Path
+
+# 添加子项目到 Python 路径
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root / "libs" / "lark-service" / "src"))
+
+from lark_service import LarkServiceClient
+```
+
+**优势**:
+- ✅ 源码完全可见,便于学习和调试
+- ✅ 修改即生效,无需重新安装
+- ✅ Git 子模块锁定版本,团队环境一致
+- ✅ 可以自由定制和扩展
+
+#### 方式 2: PyPI 包安装 (备选)
+
+适用于生产环境部署、多项目复用或快速集成的场景。
+
+```bash
+# 使用 uv 安装 (推荐,速度快 10-100x)
 uv pip install lark-service
 
 # 或使用 pip 安装
@@ -33,6 +75,20 @@ git clone https://github.com/your-org/lark-service.git
 cd lark-service
 uv pip install -e .
 ```
+
+**使用方式**:
+
+```python
+# 直接导入,无需配置路径
+from lark_service import LarkServiceClient
+```
+
+**优势**:
+- ✅ 标准化,符合 Python 生态最佳实践
+- ✅ 依赖自动安装
+- ✅ 更新简单: `uv pip install --upgrade lark-service`
+
+> 💡 **选择建议**: 开发阶段使用**子项目集成**,生产部署可选 **PyPI 安装**。详细对比见 [research.md § 8](specs/001-lark-service-core/research.md#8-服务集成方式技术调研)
 
 ### 5 分钟上手
 

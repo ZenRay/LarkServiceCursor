@@ -862,4 +862,641 @@ async def invoke_ai_capability(capability_id: str, input_params: dict, timeout: 
 - [ ] 编写 Docker健康检查脚本
 - [ ] 准备单元测试和集成测试环境
 
+---
+
+## 8. 服务集成方式技术调研
+
+### 8.1 集成方式概述
+
+本服务设计为**可复用的 Lark API 封装组件**,支持多种集成方式以适应不同的项目需求和开发场景。
+
+#### 设计目标
+
+| 目标 | 说明 |
+|------|------|
+| **灵活性** | 支持 PyPI 包安装和子项目集成两种方式 |
+| **可调试性** | 子项目方式便于实时调试和定制 |
+| **标准化** | PyPI 方式符合 Python 生态最佳实践 |
+| **主推方案** | 以 Git Submodule 子项目集成为主,PyPI 安装为辅 |
+
+---
+
+### 8.2 方式对比:子项目集成 vs PyPI 安装
+
+#### 对比表
+
+| 维度 | 子项目集成 (Git Submodule) ⭐ 推荐 | PyPI 包安装 |
+|------|----------------------------------|-------------|
+| **安装方式** | `git submodule add <repo> libs/lark-service` | `uv pip install lark-service` |
+| **代码可见性** | ✅ 源码完全可见,可直接查看和修改 | ❌ 安装在 site-packages,不易查看 |
+| **实时调试** | ✅ 修改即生效,无需重新安装 | ❌ 需要 `pip install -e .` 或重新安装 |
+| **版本控制** | ✅ Git 子模块锁定特定 commit | ✅ requirements.txt 锁定版本号 |
+| **更新方式** | `git submodule update --remote` | `uv pip install --upgrade lark-service` |
+| **依赖管理** | ⚠️ 需要手动安装子项目依赖 | ✅ 自动安装所有依赖 |
+| **隔离性** | ⚠️ 代码在项目内,可能产生耦合 | ✅ 完全隔离在虚拟环境 |
+| **定制能力** | ✅ 可以自由修改和扩展 | ❌ 修改需要 fork 或 patch |
+| **团队协作** | ⚠️ 需要团队成员初始化子模块 | ✅ requirements.txt 一键安装 |
+| **CI/CD** | ⚠️ 需要配置子模块拉取 | ✅ 标准 pip 安装流程 |
+| **适用场景** | 开发调试、深度定制、单体应用 | 生产部署、多项目复用、快速集成 |
+
+#### 推荐策略
+
+```
+开发阶段 (主推) ──→ Git Submodule 子项目集成
+                   ├─ 实时调试
+                   ├─ 快速迭代
+                   └─ 深度定制
+
+生产部署 (备选) ──→ PyPI 包安装
+                   ├─ 稳定版本
+                   ├─ 快速部署
+                   └─ 标准化管理
+```
+
+---
+
+### 8.3 子项目集成技术方案 (主推方案) ⭐
+
+#### 8.3.1 Git Submodule 集成
+
+**项目结构**:
+
+```
+your-project/
+├── libs/
+│   └── lark-service/              # Git 子模块
+│       ├── src/
+│       │   └── lark_service/
+│       │       ├── __init__.py
+│       │       ├── core/
+│       │       ├── modules/
+│       │       └── ...
+│       ├── migrations/            # Alembic 迁移脚本
+│       ├── requirements.txt
+│       ├── pyproject.toml
+│       └── README.md
+├── your_app/
+│   ├── __init__.py
+│   ├── main.py
+│   └── config.py
+├── .gitmodules                    # 子模块配置
+├── requirements.txt               # 主项目依赖
+└── pyproject.toml
+```
+
+**集成步骤**:
+
+```bash
+# 1. 添加子模块
+cd your-project
+git submodule add https://github.com/your-org/lark-service.git libs/lark-service
+
+# 2. 初始化子模块 (团队成员克隆项目后执行)
+git submodule update --init --recursive
+
+# 3. 安装子项目依赖
+cd libs/lark-service
+uv pip install -r requirements.txt
+
+# 4. 配置 Python 路径 (可选,或在代码中动态添加)
+export PYTHONPATH="${PYTHONPATH}:$(pwd)/libs/lark-service/src"
+```
+
+**代码使用**:
+
+```python
+# your_app/main.py
+import sys
+from pathlib import Path
+
+# 方式 1: 动态添加路径 (推荐)
+project_root = Path(__file__).parent.parent
+lark_service_path = project_root / "libs" / "lark-service" / "src"
+sys.path.insert(0, str(lark_service_path))
+
+# 方式 2: 使用 PYTHONPATH 环境变量 (见上面步骤 4)
+
+from lark_service import LarkServiceClient
+from lark_service.modules.messaging import MessagingModule
+
+# 正常使用
+client = LarkServiceClient()
+messaging = MessagingModule(client)
+messaging.send_text_message(chat_id="oc_xxx", text="Hello")
+```
+
+**依赖管理**:
+
+```toml
+# your-project/pyproject.toml
+[project]
+name = "your-project"
+dependencies = [
+    # 包含 lark-service 的依赖
+    "lark-oapi>=1.2.0",
+    "pydantic>=2.0.0,<3.0.0",
+    "SQLAlchemy>=2.0.0,<3.0.0",
+    "psycopg2-binary>=2.9.0",
+    "pika>=1.3.0",
+    "cryptography>=41.0.0",
+    "python-dotenv>=1.0.0",
+    "filelock>=3.12.0",
+    "click>=8.1.0",
+    "rich>=13.0.0",
+    "alembic>=1.12.0",
+    # 你的项目依赖
+    "fastapi>=0.104.0",
+    "uvicorn>=0.24.0",
+]
+```
+
+**版本更新**:
+
+```bash
+# 更新子模块到最新版本
+cd your-project
+git submodule update --remote libs/lark-service
+
+# 锁定到特定版本
+cd libs/lark-service
+git checkout v1.2.0
+cd ../..
+git add libs/lark-service
+git commit -m "chore: 锁定 lark-service 到 v1.2.0"
+```
+
+**优势**:
+
+1. **实时调试**: 修改 `libs/lark-service` 代码立即生效
+2. **版本控制**: Git 子模块锁定特定 commit,确保团队一致
+3. **源码可见**: 便于学习、调试和定制
+4. **独立更新**: 可以选择性更新子模块版本
+
+**注意事项**:
+
+1. **依赖冲突**: 确保 lark-service 的依赖版本与主项目兼容
+2. **数据库迁移**: 需要手动运行 Alembic 迁移
+   ```bash
+   cd libs/lark-service
+   alembic upgrade head
+   ```
+3. **配置文件**: 子项目的 `.env` 和 SQLite 数据库路径需要配置
+   ```python
+   # your_app/config.py
+   from pathlib import Path
+   
+   LARK_SERVICE_ROOT = Path(__file__).parent.parent / "libs" / "lark-service"
+   LARK_CONFIG_DB = LARK_SERVICE_ROOT / "data" / "lark_config.db"
+   ```
+
+---
+
+#### 8.3.2 直接复制代码 (不推荐)
+
+**适用场景**: 深度定制且不需要跟随上游更新
+
+**项目结构**:
+
+```
+your-project/
+├── your_app/
+│   ├── lark_service/              # 直接复制
+│   │   ├── __init__.py
+│   │   ├── core/
+│   │   ├── modules/
+│   │   └── ...
+│   ├── main.py
+│   └── config.py
+└── requirements.txt
+```
+
+**优点**:
+- ✅ 完全自主,可以任意修改
+- ✅ 无外部依赖,不需要 Git 子模块
+
+**缺点**:
+- ❌ 更新困难,需要手动同步上游代码
+- ❌ 版本混乱,难以追踪变更
+- ❌ 多项目复制导致代码冗余
+
+**建议**: 仅在以下情况使用
+- 需要大量修改核心逻辑
+- 不需要跟随上游更新
+- 作为项目的永久组成部分
+
+---
+
+### 8.4 PyPI 包安装方案 (备选方案)
+
+#### 8.4.1 标准安装
+
+```bash
+# 使用 uv (推荐,速度快 10-100x)
+uv pip install lark-service
+
+# 或使用 pip
+pip install lark-service
+
+# 安装特定版本
+uv pip install lark-service==1.2.0
+
+# 安装开发版本
+uv pip install lark-service[dev]
+```
+
+#### 8.4.2 依赖管理
+
+```toml
+# pyproject.toml
+[project]
+dependencies = [
+    "lark-service>=1.0.0,<2.0.0",
+]
+
+# 或 requirements.txt
+lark-service>=1.0.0,<2.0.0
+```
+
+#### 8.4.3 代码使用
+
+```python
+# 直接导入,无需配置路径
+from lark_service import LarkServiceClient
+from lark_service.modules.messaging import MessagingModule
+
+client = LarkServiceClient()
+messaging = MessagingModule(client)
+```
+
+#### 8.4.4 优势
+
+1. **标准化**: 符合 Python 生态最佳实践
+2. **依赖自动**: pip 自动安装所有依赖
+3. **隔离性好**: 安装在虚拟环境,不污染项目
+4. **更新简单**: `uv pip install --upgrade lark-service`
+
+#### 8.4.5 适用场景
+
+- 生产环境部署
+- 多个项目复用同一版本
+- 快速集成,不需要定制
+- 团队协作,标准化管理
+
+---
+
+### 8.5 集成方式选择决策树
+
+```
+是否需要频繁调试或修改 lark-service 代码?
+├─ 是 ──→ 使用 Git Submodule 子项目集成 ⭐
+│         ├─ 开发阶段
+│         ├─ 深度定制
+│         └─ 单体应用
+│
+└─ 否 ──→ 是否需要多项目复用?
+          ├─ 是 ──→ 使用 PyPI 包安装
+          │         ├─ 生产环境
+          │         ├─ 微服务架构
+          │         └─ 快速集成
+          │
+          └─ 否 ──→ 是否需要完全自主控制?
+                    ├─ 是 ──→ 直接复制代码 (不推荐)
+                    └─ 否 ──→ 使用 Git Submodule ⭐
+```
+
+---
+
+### 8.6 CI/CD 配置
+
+#### 8.6.1 子项目集成的 CI/CD
+
+**GitHub Actions 示例**:
+
+```yaml
+# .github/workflows/test.yml
+name: Test
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive  # 关键: 拉取子模块
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Install uv
+        run: pip install uv
+      
+      - name: Install dependencies
+        run: |
+          uv pip install -r requirements.txt
+          cd libs/lark-service
+          uv pip install -r requirements.txt
+      
+      - name: Run tests
+        run: pytest tests/
+```
+
+**GitLab CI 示例**:
+
+```yaml
+# .gitlab-ci.yml
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive  # 关键: 拉取子模块
+
+test:
+  image: python:3.12-slim
+  before_script:
+    - pip install uv
+    - uv pip install -r requirements.txt
+    - cd libs/lark-service && uv pip install -r requirements.txt && cd ../..
+  script:
+    - pytest tests/
+```
+
+#### 8.6.2 PyPI 安装的 CI/CD
+
+```yaml
+# .github/workflows/test.yml
+name: Test
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Install dependencies
+        run: |
+          pip install uv
+          uv pip install -r requirements.txt  # 包含 lark-service
+      
+      - name: Run tests
+        run: pytest tests/
+```
+
+---
+
+### 8.7 Docker 部署配置
+
+#### 8.7.1 子项目集成的 Dockerfile
+
+```dockerfile
+# Dockerfile
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# 安装系统依赖
+RUN apt-get update && apt-get install -y \
+    git \
+    gcc \
+    postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
+
+# 复制项目文件 (包含子模块)
+COPY . .
+
+# 安装 Python 依赖
+RUN pip install uv && \
+    uv pip install -r requirements.txt && \
+    cd libs/lark-service && \
+    uv pip install -r requirements.txt
+
+# 运行数据库迁移
+RUN cd libs/lark-service && alembic upgrade head
+
+# 创建非 root 用户
+RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+USER appuser
+
+EXPOSE 8000
+
+CMD ["python", "-m", "your_app.main"]
+```
+
+**构建时拉取子模块**:
+
+```bash
+# 方式 1: 构建前更新子模块
+git submodule update --init --recursive
+docker build -t your-app .
+
+# 方式 2: 使用 BuildKit 的 Git 支持
+docker buildx build --ssh default -t your-app .
+```
+
+#### 8.7.2 PyPI 安装的 Dockerfile
+
+```dockerfile
+# Dockerfile
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# 安装系统依赖
+RUN apt-get update && apt-get install -y \
+    gcc \
+    postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
+
+# 复制依赖文件
+COPY requirements.txt .
+
+# 安装 Python 依赖 (包含 lark-service)
+RUN pip install uv && \
+    uv pip install --no-cache-dir -r requirements.txt
+
+# 复制应用代码
+COPY . .
+
+# 创建非 root 用户
+RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+USER appuser
+
+EXPOSE 8000
+
+CMD ["python", "-m", "your_app.main"]
+```
+
+---
+
+### 8.8 最佳实践建议
+
+#### 8.8.1 开发阶段 (推荐 Git Submodule)
+
+**工作流程**:
+
+```bash
+# 1. 克隆项目
+git clone https://github.com/your-org/your-project.git
+cd your-project
+
+# 2. 初始化子模块
+git submodule update --init --recursive
+
+# 3. 创建 Conda 环境
+conda create -n your-project python=3.12
+conda activate your-project
+
+# 4. 安装依赖
+pip install uv
+uv pip install -r requirements.txt
+cd libs/lark-service
+uv pip install -r requirements.txt
+cd ../..
+
+# 5. 配置环境变量
+cp .env.example .env
+# 编辑 .env 文件
+
+# 6. 启动依赖服务
+docker compose up -d postgres rabbitmq
+
+# 7. 运行数据库迁移
+cd libs/lark-service
+alembic upgrade head
+cd ../..
+
+# 8. 开发调试
+python -m your_app.main
+```
+
+**调试 lark-service 代码**:
+
+```python
+# 直接修改 libs/lark-service/src/lark_service/xxx.py
+# 修改后立即生效,无需重新安装
+```
+
+#### 8.8.2 生产部署 (可选 PyPI)
+
+**如果发布了稳定版本到 PyPI**:
+
+```bash
+# 1. 使用 requirements.txt 锁定版本
+lark-service==1.2.0
+
+# 2. 部署时直接安装
+uv pip install -r requirements.txt
+
+# 3. 无需管理子模块
+```
+
+#### 8.8.3 版本管理策略
+
+**子项目方式**:
+
+```bash
+# 开发分支使用最新代码
+git submodule update --remote libs/lark-service
+
+# 发布分支锁定特定版本
+cd libs/lark-service
+git checkout v1.2.0
+cd ../..
+git add libs/lark-service
+git commit -m "chore: 锁定 lark-service 到 v1.2.0"
+```
+
+**PyPI 方式**:
+
+```toml
+# 开发环境使用最新版本
+lark-service>=1.0.0
+
+# 生产环境锁定版本
+lark-service==1.2.0
+```
+
+---
+
+### 8.9 常见问题与解决方案
+
+#### Q1: 子模块更新后代码不生效?
+
+**原因**: Python 缓存了旧的 `.pyc` 文件
+
+**解决**:
+```bash
+# 清理 Python 缓存
+find libs/lark-service -type d -name __pycache__ -exec rm -rf {} +
+find libs/lark-service -type f -name "*.pyc" -delete
+
+# 重启应用
+python -m your_app.main
+```
+
+#### Q2: 依赖版本冲突?
+
+**原因**: lark-service 的依赖与主项目冲突
+
+**解决**:
+```toml
+# 在主项目 pyproject.toml 中统一管理版本
+[project]
+dependencies = [
+    "pydantic>=2.0.0,<3.0.0",  # 统一版本范围
+    "SQLAlchemy>=2.0.0,<3.0.0",
+]
+```
+
+#### Q3: 团队成员忘记初始化子模块?
+
+**解决**: 添加初始化脚本
+
+```bash
+# scripts/setup.sh
+#!/bin/bash
+set -e
+
+echo "初始化 Git 子模块..."
+git submodule update --init --recursive
+
+echo "安装依赖..."
+pip install uv
+uv pip install -r requirements.txt
+cd libs/lark-service
+uv pip install -r requirements.txt
+cd ../..
+
+echo "✅ 环境设置完成!"
+```
+
+#### Q4: CI/CD 构建失败?
+
+**原因**: 未配置子模块拉取
+
+**解决**: 见 8.6 节 CI/CD 配置
+
+---
+
+### 8.10 技术决策总结
+
+| 决策项 | 选择 | 理由 |
+|--------|------|------|
+| **主推集成方式** | Git Submodule 子项目集成 | 便于开发调试、深度定制、实时迭代 |
+| **备选方式** | PyPI 包安装 | 生产环境标准化部署 |
+| **版本控制** | Git 子模块锁定 commit | 确保团队环境一致 |
+| **依赖管理** | 主项目统一管理 | 避免版本冲突 |
+| **数据库迁移** | 手动运行 Alembic | 子项目方式需要显式执行 |
+| **CI/CD 策略** | 配置子模块递归拉取 | 确保构建成功 |
+
+---
+
 **Phase 0 完成,可进入 Phase 1 详细设计。**

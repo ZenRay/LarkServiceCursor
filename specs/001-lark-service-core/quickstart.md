@@ -30,36 +30,121 @@
 
 ---
 
-## 步骤 1: 安装
+## 步骤 1: 选择集成方式
 
-### 方式 1: 使用 uv 安装 (推荐,更快)
+本服务支持两种集成方式,**推荐使用子项目集成方式**以便于开发调试和定制。
+
+### 方式 1: 子项目集成 (推荐) ⭐
+
+适用于需要频繁调试、深度定制或单体应用的场景。
 
 ```bash
-# 安装 uv (如果还没有)
+# 1. 在你的项目中添加 lark-service 作为 Git 子模块
+cd your-project
+git submodule add https://github.com/your-org/lark-service.git libs/lark-service
+
+# 2. 初始化子模块 (团队成员克隆项目后也需要执行)
+git submodule update --init --recursive
+
+# 3. 创建 Conda 环境 (推荐)
+conda create -n your-project python=3.12
+conda activate your-project
+
+# 4. 安装 uv (快速包管理器)
 pip install uv
 
-# 使用 uv 安装 lark-service
+# 5. 安装主项目依赖
+uv pip install -r requirements.txt
+
+# 6. 安装 lark-service 依赖
+cd libs/lark-service
+uv pip install -r requirements.txt
+cd ../..
+```
+
+**在代码中使用**:
+
+```python
+# your_app/main.py
+import sys
+from pathlib import Path
+
+# 添加子项目到 Python 路径
+project_root = Path(__file__).parent.parent
+lark_service_path = project_root / "libs" / "lark-service" / "src"
+sys.path.insert(0, str(lark_service_path))
+
+# 正常导入使用
+from lark_service import LarkServiceClient
+```
+
+**优势**:
+- ✅ **源码可见**: 便于学习、调试和定制
+- ✅ **实时生效**: 修改代码无需重新安装
+- ✅ **版本锁定**: Git 子模块确保团队环境一致
+- ✅ **灵活定制**: 可以自由扩展功能
+
+**项目结构**:
+```
+your-project/
+├── libs/
+│   └── lark-service/          # Git 子模块
+│       ├── src/
+│       │   └── lark_service/
+│       ├── migrations/
+│       ├── requirements.txt
+│       └── pyproject.toml
+├── your_app/
+│   ├── __init__.py
+│   └── main.py
+├── .gitmodules                # 子模块配置
+├── requirements.txt
+└── .env
+```
+
+---
+
+### 方式 2: PyPI 包安装 (备选)
+
+适用于生产环境部署、多项目复用或快速集成的场景。
+
+```bash
+# 使用 uv 安装 (推荐,速度快 10-100x)
+pip install uv
 uv pip install lark-service
-```
 
-### 方式 2: 使用 pip 安装
-
-```bash
+# 或使用 pip 安装
 pip install lark-service
-```
 
-### 方式 3: 从源码安装
-
-```bash
+# 或从源码安装
 git clone https://github.com/your-org/lark-service.git
 cd lark-service
-
-# 使用 uv 安装 (推荐)
 uv pip install -e .
-
-# 或使用 pip
-pip install -e .
 ```
+
+**在代码中使用**:
+
+```python
+# 直接导入,无需配置路径
+from lark_service import LarkServiceClient
+```
+
+**优势**:
+- ✅ **标准化**: 符合 Python 生态最佳实践
+- ✅ **依赖自动**: pip 自动安装所有依赖
+- ✅ **更新简单**: `uv pip install --upgrade lark-service`
+
+---
+
+> 💡 **选择建议**: 
+> - **开发阶段**: 使用**方式 1 (子项目集成)** - 便于调试和定制
+> - **生产部署**: 可选**方式 2 (PyPI 安装)** - 标准化管理
+> 
+> 详细对比请参考: [research.md § 8 服务集成方式技术调研](research.md#8-服务集成方式技术调研)
+
+---
+
+**后续步骤说明**: 本指南后续内容以**子项目集成方式**为例。如果你选择 PyPI 安装,请跳过路径配置相关步骤。
 
 ---
 
@@ -68,7 +153,11 @@ pip install -e .
 使用 Docker Compose 启动 PostgreSQL 和 RabbitMQ:
 
 ```bash
-# 在项目根目录
+# 如果使用子项目集成方式,在主项目根目录执行
+docker compose up -d postgres rabbitmq
+
+# 如果使用 PyPI 安装方式,在 lark-service 目录执行
+cd lark-service  # (仅 PyPI 方式)
 docker compose up -d postgres rabbitmq
 ```
 
