@@ -473,26 +473,39 @@ components:
 
     ImageAsset:
       type: object
+      required:
+        - image_key
+        - file_size
       properties:
         image_key:
           type: string
+          pattern: '^img_v2_[a-zA-Z0-9_-]+$'
+          description: Image key (valid for 30 days)
           example: img_v2_xxxxx
         image_type:
           type: string
           example: message
         file_size:
           type: integer
-          description: Size in bytes
+          description: File size in bytes
           example: 1048576
         upload_time:
           type: string
           format: date-time
+          description: Upload timestamp (ISO 8601)
+          example: '2026-01-15T10:30:00Z'
 
     FileAsset:
       type: object
+      required:
+        - file_key
+        - file_name
+        - file_size
       properties:
         file_key:
           type: string
+          pattern: '^file_v2_[a-zA-Z0-9_-]+$'
+          description: File key (valid for 30 days)
           example: file_v2_xxxxx
         file_name:
           type: string
@@ -502,10 +515,13 @@ components:
           example: application/pdf
         file_size:
           type: integer
-          example: 5242880
+          description: File size in bytes
+          example: 2097152
         upload_time:
           type: string
           format: date-time
+          description: Upload timestamp (ISO 8601)
+          example: '2026-01-15T10:30:00Z'
 
     CallbackEvent:
       type: object
@@ -530,3 +546,52 @@ components:
         timestamp:
           type: string
           format: date-time
+
+  # ==================== Examples ====================
+  examples:
+    TextMessageExample:
+      summary: Text message request example
+      value:
+        app_id: cli_a1b2c3d4e5f6g7h8
+        receiver_id: ou_a1b2c3d4e5f6g7h8
+        content: 您有新的工单待处理
+
+    ErrorResponseExample:
+      summary: Error response example
+      value:
+        code: 40001
+        message: Invalid app_id format
+        request_id: req_a1b2c3d4e5f6g7h8
+        error:
+          type: InvalidParameter
+          details: app_id must match pattern cli_[a-z0-9]{16}
+
+    CardMessageExample:
+      summary: Interactive card message example
+      value:
+        app_id: cli_a1b2c3d4e5f6g7h8
+        receiver_id: ou_a1b2c3d4e5f6g7h8
+        card:
+          header:
+            title:
+              tag: plain_text
+              content: 审批申请
+          elements:
+            - tag: div
+              text:
+                tag: markdown
+                content: "**申请人**: 张三\n**申请事项**: 请假申请\n**时间**: 2026-01-15"
+            - tag: action
+              actions:
+                - tag: button
+                  text:
+                    tag: plain_text
+                    content: 同意
+                  value: approve
+                  type: primary
+                - tag: button
+                  text:
+                    tag: plain_text
+                    content: 拒绝
+                  value: reject
+                  type: danger

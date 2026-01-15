@@ -54,6 +54,10 @@
 3. **Given** 回调处理函数需要更新卡片状态, **When** 处理函数返回更新指令, **Then** 组件自动更新原卡片消息,用户看到状态变化(如"审批中"→"已通过")
 4. **Given** 需要向多个用户批量发送相同消息, **When** 调用批量发送接口并传入用户列表, **Then** 所有用户都收到消息,且有明确的成功/失败状态反馈
 
+**验证方式**:
+- **消息成功送达验证**: 通过 API 返回的 `message_id` 和飞书客户端接收确认来验证,组件记录发送日志包含 message_id、receiver_id、发送时间戳
+- **卡片交互回调验证**: 端到端测试流程包括:发送卡片 → 模拟用户点击 → 验证回调请求到达 → 验证签名通过 → 验证消息队列接收事件 → 验证回调处理函数执行 → 验证卡片状态更新
+
 ---
 
 ### User Story 3 - 云文档服务封装 (Priority: P3)
@@ -206,6 +210,8 @@
 - **FR-016**: 组件 MUST 实现智能重试机制,针对网络超时、限流、Token 失效等错误自动重试,最大重试次数为 3 次
 - **FR-017**: 组件 MUST 使用指数退避策略进行重试,初始延迟 1 秒,每次重试延迟翻倍(1s, 2s, 4s)
 - **FR-018**: 组件 MUST 识别飞书 API 限流错误码,在遇到限流时延迟更长时间再重试(如 30 秒)
+  - **FR-018.1**: 限流错误(HTTP 429)MUST 检查响应头 `Retry-After`,如果存在则按其值延迟,否则默认延迟 30 秒
+  - **FR-018.2**: 限流错误响应 MUST 包含 error.details 字段,说明限流原因和建议的重试时间
 - **FR-019**: 组件 MUST 为每个 API 请求生成唯一的请求 ID,用于日志追踪和问题排查
 
 #### 响应标准化
@@ -213,6 +219,11 @@
 - **FR-020**: 组件暴露的所有接口 MUST 返回标准化响应结构,包含业务状态码、请求 ID、数据负载和错误信息
 - **FR-021**: 组件 MUST 将飞书原始错误码映射为语义化的内部错误类型(如 `TokenExpired`、`RateLimited`、`InvalidParameter`)
 - **FR-022**: 组件 MUST 在错误响应中包含足够的上下文信息,帮助调用方快速定位问题(如哪个参数错误、建议的修复方式)
+  - **FR-022.1**: 参数验证错误 MUST 返回 HTTP 400,错误响应包含:具体参数名、错误原因、正确格式示例
+  - **FR-022.2**: content 为空字符串时 MUST 返回错误码 40002,错误消息 "Message content cannot be empty"
+  - **FR-022.3**: receiver_id 不存在时 MUST 返回错误码 40003,错误消息 "Receiver not found: {receiver_id}"
+  - **FR-022.4**: 用户无权限接收消息时 MUST 返回错误码 40301,错误消息 "Permission denied: user cannot receive messages"
+  - **FR-022.5**: 使用无效 image_key/file_key 时 MUST 返回错误码 40004,错误消息 "Invalid media key: {key} (expired or not found)"
 
 #### 消息服务(Messaging 模块) - 基于飞书消息 API (IM v1)
 
@@ -221,6 +232,8 @@
 **基础消息**:
 - **FR-023**: Messaging 模块 MUST 使用飞书消息 API 支持发送纯文本消息(`msg_type: text`)到指定用户或群组
 - **FR-024**: Messaging 模块 MUST 使用飞书消息 API 支持发送富文本消息(`msg_type: post`),包含加粗、斜体、链接、@提及等格式
+  - **FR-024.1**: 富文本格式规范 MUST 支持以下元素:加粗(`**text**`)、斜体(`*text*`)、删除线(`~~text~~`)、链接(`[text](url)`)、@提及用户(`<at user_id="xxx">`)、@所有人(`<at user_id="all">`)
+  - **FR-024.2**: 富文本 MUST 支持多语言内容,使用 `zh_cn`、`en_us` 等语言标识
 - **FR-025**: Messaging 模块 MUST 使用飞书消息 API 支持发送交互式卡片消息(`msg_type: interactive`),卡片内容由 CardKit 模块构建
 - **FR-026**: Messaging 模块 MUST 支持批量发送消息,并返回每个接收者的发送结果
   - **FR-026.1**: 批量发送 MUST 采用"继续策略",即使部分接收者失败也继续发送其余消息,不回滚已成功的发送
@@ -235,12 +248,16 @@
 - **FR-028**: Messaging 模块 MUST 使用飞书消息 API 支持上传图片(JPEG、PNG、WEBP、GIF、TIFF、BMP、ICO),图片大小限制 10MB
   - **FR-028.1**: 文件类型验证 MUST 通过文件扩展名和 MIME type 双重检查,优先检查 MIME type
   - **FR-028.2**: image_key 有效期为 30 天,组件 SHOULD 记录上传时间,过期的 image_key 重新上传
+  - **FR-028.3**: 图片上传失败时 MUST 自动重试,遵循通用重试策略(FR-016/FR-017):最大 3 次,指数退避 1s/2s/4s
 - **FR-029**: Messaging 模块 MUST 使用飞书消息 API 支持发送图片消息(`msg_type: image`),接收 image_key 或本地图片路径
 - **FR-030**: Messaging 模块 MUST 提供便捷方法 `send_image_message()` 自动处理图片上传和发送流程
 
 **文件消息**:
 - **FR-031**: Messaging 模块 MUST 使用飞书消息 API 支持上传文件(视频、音频、常见文件类型),文件大小限制 30MB,禁止上传空文件
   - **FR-031.1**: file_key 有效期为 30 天,组件 SHOULD 记录上传时间,过期的 file_key 重新上传
+  - **FR-031.2**: 视频文件 MUST 支持格式:MP4、AVI、MOV、WMV,大小限制 30MB
+  - **FR-031.3**: 音频文件 MUST 支持格式:MP3、WAV、AAC、OGG,大小限制 30MB
+  - **FR-031.4**: 文档文件 MUST 支持格式:PDF、DOC、DOCX、XLS、XLSX、PPT、PPTX、TXT,大小限制 30MB
 - **FR-032**: Messaging 模块 MUST 使用飞书消息 API 支持发送文件消息(`msg_type: file`),接收 file_key 或本地文件路径
 - **FR-033**: Messaging 模块 MUST 提供便捷方法 `send_file_message()` 自动处理文件上传和发送流程
 
@@ -259,12 +276,19 @@
 - **FR-039**: CardKit 模块 MUST 验证飞书回调请求签名,使用 Encrypt Key 防止伪造请求和重放攻击
 - **FR-040**: CardKit 模块 MUST 处理 URL 验证回调(`url_verification`),在首次配置回调地址时响应 challenge
 - **FR-041**: CardKit 模块 MUST 将验证通过的回调事件异步路由到 RabbitMQ 消息队列,解耦回调处理
+  - **FR-041.1**: 回调处理超时限制为 5 秒,超时返回 HTTP 200 但记录 WARNING 日志
+  - **FR-041.2**: 回调处理函数抛出异常时 MUST 捕获异常,返回 HTTP 200 避免飞书重试,记录 ERROR 日志包含完整堆栈信息
+  - **FR-041.3**: 消息队列发送失败时 MUST 重试 3 次(间隔 1s、2s、4s),最终失败则同步处理回调并记录 ERROR 日志
 - **FR-042**: CardKit 模块 MUST 支持注册回调处理函数,根据 action.value 或 card_id 路由到对应的业务处理逻辑
 
 **卡片更新**:
 - **FR-043**: CardKit 模块 MUST 支持主动更新已发送的卡片内容,通过消息 API 的 `PATCH /im/v1/messages/{message_id}` 接口
 - **FR-044**: CardKit 模块 MUST 支持在回调响应中返回新的卡片 JSON,飞书自动更新原卡片(如"待审批"→"已通过")
 - **FR-045**: CardKit 模块 MUST 提供构建回调响应的辅助方法 `build_update_response()`,简化卡片更新逻辑
+
+**MVP 范围说明**:
+- **FR-045.1**: Phase 3 MVP 包含基础卡片功能:header、div、action、markdown 组件,审批和通知卡片模板
+- **FR-045.2**: 高级功能延后到后续版本:form 表单输入组件、表单卡片模板、多步骤卡片、卡片分享、卡片搜索
 
 #### 云文档服务(CloudDoc 模块)
 
@@ -330,6 +354,9 @@
 - **FR-081**: 组件 MUST 采用模块化设计,各功能域模块(Messaging、CloudDoc、Contact、aPaaS)严禁循环依赖
 - **FR-082**: 组件 MUST 提供清晰的模块接口,允许内部服务按需导入所需模块,而不是强制导入全部功能
 - **FR-083**: 组件 MUST 支持外部服务扩展,预留接口供外部系统注册自定义的飞书 API 调用逻辑
+- **FR-083.1**: 组件依赖飞书 OpenAPI 版本为 v1 (IM API v1, CardKit API v1),如飞书 API 升级到 v2,组件需评估兼容性
+- **FR-083.2**: 组件假设飞书 API 可用性 SLA ≥ 99.9%,网络延迟 P95 ≤ 500ms (国内环境)
+- **FR-083.3**: 组件明确不支持的功能边界:视频消息(msg_type: video)、音视频通话、语音消息、群管理(创建/解散群组)、机器人管理
 
 #### 性能与超时策略
 
@@ -369,6 +396,9 @@
 - **FR-097**: App Secret 在 SQLite 中 MUST 使用 Fernet 对称加密存储,加密密钥来自环境变量
 - **FR-098**: 加密密钥 MUST 支持轮换机制,提供 CLI 命令重新加密所有 App Secret:`lark-service-cli config rotate-key --new-key <new_key>`
 - **FR-099**: 所有密钥类信息(App Secret、Token、密码)MUST 在日志中脱敏显示(仅显示前4位+`****`或完全隐藏)
+  - **FR-099.1**: app_access_token、tenant_access_token、user_access_token 在日志中 MUST 仅显示前 8 位 + `****`
+  - **FR-099.2**: App Secret 在日志中 MUST 完全隐藏,显示为 `[REDACTED]`
+  - **FR-099.3**: 用户敏感信息(手机号、邮箱、身份证号)在日志中 MUST 脱敏:手机号显示前 3 位+`****`+后 4 位,邮箱显示前 2 位+`***`+@后内容
 - **FR-100**: Token 在 PostgreSQL 中 MUST 加密存储(使用 pg_crypto 扩展),防止数据库泄露导致 Token 泄露
 
 **依赖安全**:
