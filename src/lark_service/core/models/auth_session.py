@@ -6,10 +6,14 @@ authentication sessions with 10-minute timeout.
 
 from datetime import datetime, timedelta
 
-from sqlalchemy import Column, DateTime, Index, Integer, String, func
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Index, String, func
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
-Base = declarative_base()
+
+class Base(DeclarativeBase):
+    """Base class for PostgreSQL database models."""
+
+    pass
 
 
 class UserAuthSession(Base):
@@ -49,37 +53,23 @@ class UserAuthSession(Base):
 
     __tablename__ = "user_auth_sessions"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    session_id = Column(String(64), nullable=False, unique=True)
-    app_id = Column(String(64), nullable=False)
-    state = Column(String(128), nullable=False)
-    auth_method = Column(String(32), nullable=False)  # oauth/card_callback/message_link
-    redirect_uri = Column(String(512), nullable=True)
-    open_id = Column(String(64), nullable=True)
-    user_access_token = Column(String(512), nullable=True)
-    token_expires_at = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, default=func.now())
-    expires_at = Column(DateTime, nullable=False)
-    completed_at = Column(DateTime, nullable=True)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    session_id: Mapped[str] = mapped_column(String(64), unique=True)
+    app_id: Mapped[str] = mapped_column(String(64))
+    state: Mapped[str] = mapped_column(String(128))
+    auth_method: Mapped[str] = mapped_column(String(32))
+    redirect_uri: Mapped[str | None] = mapped_column(String(512), default=None)
+    open_id: Mapped[str | None] = mapped_column(String(64), default=None)
+    user_access_token: Mapped[str | None] = mapped_column(String(512), default=None)
+    token_expires_at: Mapped[datetime | None] = mapped_column(default=None)
+    created_at: Mapped[datetime] = mapped_column(default=func.now())
+    expires_at: Mapped[datetime] = mapped_column()
+    completed_at: Mapped[datetime | None] = mapped_column(default=None)
 
     __table_args__ = (
         Index("idx_auth_session_state", "state"),
         Index("idx_auth_session_expires", "expires_at"),
     )
-
-    def __init__(self, **kwargs: object) -> None:
-        """Initialize UserAuthSession with automatic expires_at calculation.
-
-        If expires_at is not provided, it will be set to 10 minutes from now.
-        """
-        super().__init__(**kwargs)
-        if self.expires_at is None:
-            if self.created_at is not None:
-                self.expires_at = self.created_at + timedelta(minutes=10)
-            else:
-                now = datetime.now()
-                self.created_at = now
-                self.expires_at = now + timedelta(minutes=10)
 
     def is_expired(self, now: datetime | None = None) -> bool:
         """Check if session has expired.

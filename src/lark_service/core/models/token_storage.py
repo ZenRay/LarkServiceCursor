@@ -6,10 +6,14 @@ with encryption and expiration management.
 
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, Index, Integer, String, Text, UniqueConstraint, func
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Index, String, Text, UniqueConstraint, func
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
-Base = declarative_base()
+
+class Base(DeclarativeBase):
+    """Base class for PostgreSQL database models."""
+
+    pass
 
 
 class TokenStorage(Base):
@@ -44,13 +48,15 @@ class TokenStorage(Base):
 
     __tablename__ = "tokens"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    app_id = Column(String(64), nullable=False)
-    token_type = Column(String(32), nullable=False)
-    token_value = Column(Text, nullable=False)  # Encrypted
-    expires_at = Column(DateTime, nullable=False)
-    created_at = Column(DateTime, default=func.now())
-    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    app_id: Mapped[str] = mapped_column(String(64))
+    token_type: Mapped[str] = mapped_column(String(32))
+    token_value: Mapped[str] = mapped_column(Text)  # Encrypted
+    expires_at: Mapped[datetime] = mapped_column()
+    created_at: Mapped[datetime] = mapped_column(default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        default=func.now(), onupdate=func.now()
+    )
 
     __table_args__ = (
         UniqueConstraint("app_id", "token_type", name="uq_app_token_type"),

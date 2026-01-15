@@ -6,10 +6,14 @@ from Lark Contact API with 24-hour TTL and app_id isolation.
 
 from datetime import datetime, timedelta
 
-from sqlalchemy import Column, DateTime, Index, Integer, String, UniqueConstraint, func
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Index, String, UniqueConstraint, func
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
-Base = declarative_base()
+
+class Base(DeclarativeBase):
+    """Base class for PostgreSQL database models."""
+
+    pass
 
 
 class UserCache(Base):
@@ -48,18 +52,18 @@ class UserCache(Base):
 
     __tablename__ = "user_cache"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    app_id = Column(String(64), nullable=False)
-    open_id = Column(String(64), nullable=False)
-    user_id = Column(String(64), nullable=True)
-    union_id = Column(String(64), nullable=True)
-    email = Column(String(128), nullable=True)
-    mobile = Column(String(32), nullable=True)
-    name = Column(String(128), nullable=True)
-    department_ids = Column(String(512), nullable=True)  # JSON array as string
-    employee_no = Column(String(64), nullable=True)
-    cached_at = Column(DateTime, default=func.now())
-    expires_at = Column(DateTime, nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    app_id: Mapped[str] = mapped_column(String(64))
+    open_id: Mapped[str] = mapped_column(String(64))
+    user_id: Mapped[str | None] = mapped_column(String(64), default=None)
+    union_id: Mapped[str | None] = mapped_column(String(64), default=None)
+    email: Mapped[str | None] = mapped_column(String(128), default=None)
+    mobile: Mapped[str | None] = mapped_column(String(32), default=None)
+    name: Mapped[str | None] = mapped_column(String(128), default=None)
+    department_ids: Mapped[str | None] = mapped_column(String(512), default=None)
+    employee_no: Mapped[str | None] = mapped_column(String(64), default=None)
+    cached_at: Mapped[datetime] = mapped_column(default=func.now())
+    expires_at: Mapped[datetime] = mapped_column()
 
     __table_args__ = (
         UniqueConstraint("app_id", "open_id", name="uq_app_open_id"),
@@ -67,20 +71,6 @@ class UserCache(Base):
         Index("idx_user_cache_user_id", "user_id"),
         Index("idx_user_cache_union_id", "union_id"),
     )
-
-    def __init__(self, **kwargs: object) -> None:
-        """Initialize UserCache with automatic expires_at calculation.
-
-        If expires_at is not provided, it will be set to 24 hours from now.
-        """
-        super().__init__(**kwargs)
-        if self.expires_at is None:
-            if self.cached_at is not None:
-                self.expires_at = self.cached_at + timedelta(hours=24)
-            else:
-                now = datetime.now()
-                self.cached_at = now
-                self.expires_at = now + timedelta(hours=24)
 
     def is_expired(self, now: datetime | None = None) -> bool:
         """Check if cache entry has expired.

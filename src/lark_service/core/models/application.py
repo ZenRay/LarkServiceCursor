@@ -5,11 +5,17 @@ in SQLite database with encrypted app_secret.
 """
 
 
-from cryptography.fernet import Fernet
-from sqlalchemy import Column, DateTime, String, Text, func
-from sqlalchemy.ext.declarative import declarative_base
+from datetime import datetime
 
-ConfigBase = declarative_base()
+from cryptography.fernet import Fernet
+from sqlalchemy import String, Text, func
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+
+
+class ConfigBase(DeclarativeBase):
+    """Base class for SQLite config database models."""
+
+    pass
 
 
 class Application(ConfigBase):
@@ -44,15 +50,17 @@ class Application(ConfigBase):
 
     __tablename__ = "applications"
 
-    app_id = Column(String(64), primary_key=True)
-    app_name = Column(String(128), nullable=False, unique=True)
-    app_secret = Column(Text, nullable=False)  # Encrypted with Fernet
-    description = Column(Text, nullable=True)
-    status = Column(String(16), nullable=False, default="active")
-    permissions = Column(Text, nullable=True)  # JSON array as string
-    created_at = Column(DateTime, default=func.now())
-    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
-    created_by = Column(String(64), nullable=True)
+    app_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    app_name: Mapped[str] = mapped_column(String(128), unique=True)
+    app_secret: Mapped[str] = mapped_column(Text)  # Encrypted with Fernet
+    description: Mapped[str | None] = mapped_column(Text, default=None)
+    status: Mapped[str] = mapped_column(String(16), default="active")
+    permissions: Mapped[str | None] = mapped_column(Text, default=None)  # JSON array
+    created_at: Mapped[datetime] = mapped_column(default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        default=func.now(), onupdate=func.now()
+    )
+    created_by: Mapped[str | None] = mapped_column(String(64), default=None)
 
     def is_active(self) -> bool:
         """Check if application is in active status.
