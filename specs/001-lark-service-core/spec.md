@@ -292,38 +292,77 @@
 
 #### 云文档服务(CloudDoc 模块)
 
+**文档 URL 解析与访问** ⭐:
+- **FR-045**: CloudDoc 模块 MUST 提供统一的文档 URL 解析工具(DocumentUrlResolver),自动识别知识库(Wiki)和云空间(Drive)文档
+- **FR-045.1**: DocumentUrlResolver MUST 支持通过正则表达式直接提取云空间文档的 doc_token(文档、表格、多维表格、文件)
+- **FR-045.2**: DocumentUrlResolver MUST 支持调用 Wiki API 获取知识库文档的 obj_token(实际可用的文档 token)
+- **FR-045.3**: DocumentUrlResolver MUST 自动处理知识库快捷方式(shortcut),递归获取原始节点的 obj_token
+- **FR-045.4**: DocumentUrlResolver MUST 返回统一的 DocumentInfo 对象,包含 doc_type、doc_token、source_type 等信息
+- **FR-045.5**: CloudDoc 模块 MUST 提供统一的文档访问客户端(UnifiedDocClient),支持通过 URL 直接访问文档,无需手动判断文档来源
+
 **Doc 文档**:
 - **FR-046**: CloudDoc 模块 MUST 支持创建新的 Doc 云文档
 - **FR-047**: CloudDoc 模块 MUST 支持向 Doc 文档追加内容块(文本、标题、图片、表格等)
+- **FR-047.1**: CloudDoc 模块 MUST 定义明确的 ContentBlock 数据结构,支持 7 种内容类型(paragraph、heading、image、table、code、list、divider)
+- **FR-047.2**: CloudDoc 模块 MUST 限制单次追加最大 100 个 block,单个 block 最大 100 KB
 - **FR-048**: CloudDoc 模块 MUST 支持读取 Doc 文档的完整内容结构
 - **FR-049**: CloudDoc 模块 MUST 支持更新 Doc 文档中指定内容块的内容
 - **FR-050**: CloudDoc 模块 MUST 支持文档权限管理,包含授予/撤销用户权限(可阅读、可编辑、可评论、可管理)和权限查询
+- **FR-050.1**: CloudDoc 模块 MUST 定义 4 种权限类型(read、write、comment、manage),权限层级为 manage > write > comment > read
 
 **文档素材管理**:
 - **FR-051**: CloudDoc 模块 MUST 支持上传素材文件到指定云文档(图片、视频、文件等)
+- **FR-051.1**: CloudDoc 模块 MUST 限制图片上传最大 10 MB,支持 6 种格式(jpg、jpeg、png、gif、bmp、webp),最大尺寸 4096×4096
+- **FR-051.2**: CloudDoc 模块 MUST 限制文件上传最大 30 MB,支持 9 种格式(pdf、doc、docx、xls、xlsx、ppt、pptx、zip、rar、7z)
 - **FR-052**: CloudDoc 模块 MUST 支持下载云文档中的素材文件到本地
 - **FR-053**: CloudDoc 模块 MUST 返回上传后的 file_token 供文档内容块引用
 
-**多维表格(Base)**:
+**多维表格(Bitable)**:
 - **FR-054**: CloudDoc 模块 MUST 支持在多维表格中创建新记录
 - **FR-055**: CloudDoc 模块 MUST 支持根据条件查询多维表格记录
+- **FR-055.1**: CloudDoc 模块 MUST 定义 QueryFilter 数据结构,支持 10 种过滤操作符(is、is_not、contains、not_contains、gt、lt、gte、lte、is_empty、is_not_empty)
+- **FR-055.2**: CloudDoc 模块 MUST 支持 and/or 逻辑连接符,最多 20 个过滤条件
+- **FR-055.3**: CloudDoc 模块 MUST 支持分页查询,单次最多返回 500 条记录
 - **FR-056**: CloudDoc 模块 MUST 支持更新多维表格中的现有记录
 - **FR-057**: CloudDoc 模块 MUST 支持删除多维表格中的记录
 - **FR-058**: CloudDoc 模块 MUST 支持批量操作多维表格记录(批量创建、更新、删除)
+- **FR-058.1**: CloudDoc 模块 MUST 限制批量创建/更新/删除最大 500 条记录
 
 **Sheet 电子表格**:
 - **FR-059**: CloudDoc 模块 MUST 支持读取 Sheet 指定范围的单元格数据
+- **FR-059.1**: CloudDoc 模块 MUST 支持 4 种范围格式(单元格范围 A1:B10、整列 A:C、整行 3:5、单个单元格 A1)
+- **FR-059.2**: CloudDoc 模块 MUST 限制单次读取最大 100,000 个单元格
 - **FR-060**: CloudDoc 模块 MUST 支持更新 Sheet 指定范围的单元格数据
+- **FR-060.1**: CloudDoc 模块 MUST 限制单次更新最大 10,000 个单元格
 - **FR-061**: CloudDoc 模块 MUST 支持 Sheet 的格式化操作,包含设置单元格样式(字体、颜色、对齐方式)、合并/拆分单元格、设置列宽行高、冻结窗格
+- **FR-061.1**: CloudDoc 模块 MUST 限制单次合并最大 1,000 个单元格,冻结窗格最大 100 行/100 列
+
+**知识库(Wiki)集成** ⭐:
+- **FR-061.2**: CloudDoc 模块 MUST 支持获取知识库节点信息,返回 obj_token(实际的文档 token)
+- **FR-061.3**: CloudDoc 模块 MUST 支持获取知识库节点列表,支持分页(最大 50 条/页)
+- **FR-061.4**: CloudDoc 模块 MUST 支持获取知识空间列表,返回用户有权限访问的空间
+- **FR-061.5**: CloudDoc 模块 MUST 缓存 node_token → obj_token 的映射,TTL 为 1 小时,减少 Wiki API 调用
 
 #### 通讯录服务(Contact 模块)
 
 **用户查询与缓存**:
 - **FR-062**: Contact 模块 MUST 支持根据邮箱、手机号查询用户的 open_id、user_id、union_id 三种标识
+- **FR-062.1**: Contact 模块 MUST 明确 3 种用户 ID 的作用域和使用场景:open_id(应用内)、user_id(租户内)、union_id(跨租户)
+- **FR-062.2**: Contact 模块 MUST 使用 union_id 作为缓存主键,确保跨应用的用户唯一性
 - **FR-063**: Contact 模块 MUST 支持获取用户的详细信息(姓名、头像、部门、职位、员工工号等)
 - **FR-064**: Contact 模块 MUST 将查询到的用户信息存储到 PostgreSQL 数据库,按 app_id 隔离存储(不同应用的 open_id 不同)
+- **FR-064.1**: Contact 模块 MUST 使用缓存 key 格式 `user:{app_id}:{union_id}`,确保应用级隔离
 - **FR-065**: Contact 模块 MUST 实现用户信息缓存机制,TTL 为 24 小时,缓存命中时直接返回数据库数据
+- **FR-065.1**: Contact 模块 MUST 在缓存命中时响应时间 < 100 ms,缓存未命中时 < 2 秒
+- **FR-065.2**: Contact 模块 MUST 实现缓存命中率目标 > 80%
 - **FR-066**: Contact 模块 MUST 在缓存过期或未命中时,自动从飞书 API 刷新数据并更新数据库
+- **FR-066.1**: Contact 模块 MUST 在 API 调用失败时,如果有过期缓存则返回过期缓存,避免服务不可用
+- **FR-066.2**: Contact 模块 MUST 支持主动失效缓存(用户信息更新时)和强制失效(管理员操作)
+- **FR-066.3**: Contact 模块 MUST 实现 LRU 容量淘汰策略,最大缓存 100,000 条记录
+
+**批量操作**:
+- **FR-066.4**: Contact 模块 MUST 支持批量查询用户,最大 200 个用户/次
+- **FR-066.5**: Contact 模块 MUST 支持批量更新缓存,最大 1,000 条记录/次
 
 **群组查询**:
 - **FR-067**: Contact 模块 MUST 支持根据群组名称查询 chat_id
@@ -331,6 +370,7 @@
 
 **组织架构查询**:
 - **FR-069**: Contact 模块 MUST 支持获取部门的成员列表,并批量更新数据库缓存
+- **FR-069.1**: Contact 模块 MUST 限制单个部门最大 1,000 个用户
 - **FR-070**: Contact 模块 MUST 支持查询组织架构树(部门层级关系)
 
 #### aPaaS 平台服务(aPaaS 模块)
@@ -370,6 +410,16 @@
 - **FR-084.2**: 批量发送 200 条消息的总耗时 SHOULD ≤ 30 秒(含并发控制)
 - **FR-084.3**: 10MB 图片上传的 P95 响应时间 SHOULD ≤ 15 秒
 - **FR-084.4**: Token 获取和刷新的 P95 响应时间 SHOULD ≤ 1 秒
+- **FR-084.5**: CloudDoc 文档创建的 P95 响应时间 SHOULD ≤ 2 秒
+- **FR-084.6**: CloudDoc 内容读取的 P95 响应时间 SHOULD ≤ 1 秒
+- **FR-084.7**: CloudDoc 内容追加的 P95 响应时间 SHOULD ≤ 3 秒
+- **FR-084.8**: Bitable 查询的 P95 响应时间 SHOULD ≤ 2 秒
+- **FR-084.9**: Sheet 读取的 P95 响应时间 SHOULD ≤ 2 秒
+- **FR-084.10**: Sheet 更新的 P95 响应时间 SHOULD ≤ 3 秒
+- **FR-084.11**: Contact 缓存命中的响应时间 SHOULD ≤ 100 ms
+- **FR-084.12**: Contact 缓存未命中的响应时间 SHOULD ≤ 2 秒
+- **FR-084.13**: 云空间文档 URL 解析(正则表达式)SHOULD ≤ 1 ms
+- **FR-084.14**: 知识库文档 URL 解析(含 API 调用)SHOULD ≤ 500 ms
 
 **并发控制** *(建议性)*:
 - **FR-085.1**: 批量消息发送 SHOULD 控制并发请求数为 5-10,避免触发飞书限流
@@ -428,9 +478,16 @@
 - **Message**: 消息对象,表示要发送的飞书消息,包含接收者 ID、消息类型(文本/富文本/图片/文件/卡片)、消息内容、发送时间等属性
 - **ImageAsset**: 图片资源对象,表示上传的图片,包含 image_key、图片类型、大小、上传时间等属性
 - **FileAsset**: 文件资源对象,表示上传的文件,包含 file_key、文件名、文件类型、大小、上传时间等属性
+- **DocumentInfo**: 文档信息对象,表示解析后的文档信息,包含 doc_type、doc_token(实际可用的 token)、source_type(wiki/drive)、space_id、node_token、title、owner 等属性
+- **DocumentUrlResolver**: 文档 URL 解析器,统一处理知识库和云空间文档的 URL 解析和 token 获取,支持正则表达式提取和 API 调用两种方式
+- **WikiNode**: 知识库节点对象,表示知识库中的节点,包含 space_id、node_token、obj_token(实际的文档 token)、obj_type、node_type(origin/shortcut)、origin_node_token、has_child、title、creator、owner 等属性
+- **WikiSpace**: 知识空间对象,表示知识库空间,包含 space_id、name、description、space_type(team/personal)、visibility(public/private)等属性
 - **Document**: Doc 文档对象,表示飞书 Doc 云文档,包含文档 ID、标题、内容块列表、权限信息、创建时间等属性
+- **ContentBlock**: 文档内容块对象,表示文档中的一个内容单元,包含 block_id、type(paragraph/heading/image/table/code/list/divider)、content、attributes(style/level/language/color)等属性
 - **MediaAsset**: 文档素材对象,表示云文档中的素材文件,包含 file_token、素材类型、父文档 ID、大小、上传时间等属性
 - **BaseRecord**: 多维表格记录对象,表示多维表格中的一行数据,包含记录 ID、表格 ID、字段值映射、创建时间、更新时间等属性
+- **QueryFilter**: 查询过滤器对象,表示多维表格查询条件,包含 conjunction(and/or)、conditions(过滤条件列表,最多 20 个)等属性
+- **FilterCondition**: 过滤条件对象,表示单个过滤条件,包含 field_name、operator(is/is_not/contains/gt/lt等 10 种)、value 等属性
 - **SheetRange**: Sheet 电子表格范围对象,表示 Sheet 中的数据范围,包含 Sheet ID、起始行列、结束行列、单元格数据等属性
 - **User**: 用户对象,表示飞书用户,包含 open_id、user_id、union_id、姓名、邮箱、手机号、部门 ID、职位、头像 URL、员工工号等属性
 - **UserCache**: 用户缓存对象(PostgreSQL 存储),包含 app_id、open_id、user_id、union_id、用户详细信息、cached_at、expires_at 等字段,支持按 app_id 隔离
@@ -478,6 +535,11 @@
 - **SC-013**: aPaaS 数据空间表格操作支持每秒 50 次并发查询,响应时间 95 分位数小于 2 秒
 - **SC-014**: 依赖安全扫描在 CI 中阻止存在高危漏洞(CVSS ≥ 7.0)的代码合并,实现零高危漏洞部署
 - **SC-015**: Docker 镜像安全扫描在 CI 中阻止存在严重漏洞的镜像构建,镜像安全评分 ≥ B 级
+- **SC-016**: CloudDoc 模块支持每秒 50 次并发文档操作,响应时间 95 分位数小于 3 秒
+- **SC-017**: DocumentUrlResolver 能正确识别和解析 100% 的标准飞书文档 URL(6 种格式)
+- **SC-018**: 知识库 node_token 缓存命中率达到 90% 以上,减少 Wiki API 调用次数
+- **SC-019**: Contact 模块在 API 调用失败时,80% 以上的请求能返回过期缓存,避免服务不可用
+- **SC-020**: CloudDoc 和 Contact 模块的 API 契约覆盖率达到 100%,所有端点都有明确的请求/响应定义
 
 ## Clarifications
 
@@ -492,6 +554,19 @@
 - Q: 凭证池故障恢复策略 → A: 启动时仅验证配置,Token 懒加载。user_access_token 需要用户首次认证,支持飞书卡片或消息链接等多种认证方式
 - Q: Contact 模块用户信息缓存方案 → A: 至少包括 open_id、user_id、union_id 三种标识,群查询需要 chat_id。user_access_token 与 app_id、user 相关联,不同应用相同用户有不同 user_access_token,因此用户信息按 app_id 隔离存储到 PostgreSQL,TTL 为 24 小时
 - Q: aPaaS 数据空间操作定义 → A: 飞书 aPaaS 独立的数据存储服务(参考 https://open.feishu.cn/document/uAjLw4CM/ukTMukTMukTM/apaas-v1/workspace-table/list),包括查询表格列表、读取记录(query)、更新记录(update)、删除记录(delete),需要 user_access_token 权限
+
+### Session 2026-01-15 (Phase 4 补充)
+
+- Q: 知识库文档访问方式 → A: 云文档可以存放在两个位置:1) 云空间(Drive) - 直接使用 doc_token;2) 知识库(Wiki) - 需要先通过 node_token 调用 Wiki API 获取 obj_token(实际的文档 token)。参考: https://open.feishu.cn/document/server-docs/docs/wiki-v2/space-node/get_node
+- Q: 文档 URL 解析工具设计 → A: 提供统一的 DocumentUrlResolver 工具类,采用双路径处理策略:1) 优先尝试云空间解析(正则表达式,< 1ms);2) 失败后尝试知识库解析(API 调用,100-500ms)。支持 6 种 URL 格式(docx、doc、sheets、base、file、wiki),返回统一的 DocumentInfo 对象
+- Q: 知识库快捷方式处理 → A: DocumentUrlResolver 自动递归获取快捷方式(shortcut)指向的原始节点的 obj_token,无需调用方手动处理
+- Q: 知识库 node_token 缓存策略 → A: 缓存 node_token → obj_token 的映射,TTL 为 1 小时(知识库结构变化较少),使用 LRU 缓存或 Redis,缓存 key 格式为 `wiki_node:{space_id}:{node_token}`
+- Q: CloudDoc 内容块类型定义 → A: 支持 7 种内容类型(paragraph、heading、image、table、code、list、divider),每种类型有明确的 content 类型和 attributes。限制:单次追加最大 100 个 block,单个 block 最大 100 KB
+- Q: Bitable 过滤器语法 → A: 定义 QueryFilter 数据结构,支持 10 种操作符(is、is_not、contains、not_contains、gt、lt、gte、lte、is_empty、is_not_empty),支持 and/or 逻辑连接,最多 20 个条件,单次查询最多返回 500 条记录
+- Q: Sheet 范围格式规范 → A: 支持 4 种范围格式(单元格范围 A1:B10、整列 A:C、整行 3:5、单个单元格 A1)。限制:单次读取最大 100,000 个单元格,单次更新最大 10,000 个单元格,单次合并最大 1,000 个单元格
+- Q: 媒体上传限制 → A: 图片最大 10 MB,支持 6 种格式(jpg、jpeg、png、gif、bmp、webp),最大尺寸 4096×4096。文件最大 30 MB,支持 9 种格式(pdf、doc、docx、xls、xlsx、ppt、pptx、zip、rar、7z)
+- Q: Contact 用户 ID 类型使用策略 → A: 明确 3 种 ID 的作用域:open_id(应用内,用于消息发送)、user_id(租户内,用于组织架构)、union_id(跨租户,用于缓存主键)。缓存 key 格式为 `user:{app_id}:{union_id}`,确保应用级隔离
+- Q: Contact 缓存失效策略 → A: 支持 4 种失效方式:1) TTL 过期(24 小时);2) 主动失效(用户信息更新时);3) 强制失效(管理员操作);4) 容量淘汰(LRU,最大 100,000 条)。API 调用失败时,如果有过期缓存则返回过期缓存,避免服务不可用
 
 ## Assumptions
 
