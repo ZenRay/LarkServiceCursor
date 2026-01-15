@@ -143,7 +143,7 @@ class TestRefreshLockContext:
         lock_manager = TokenRefreshLock(tmp_path / "locks")
         app_id = "cli_context_test"
 
-        with RefreshLockContext(lock_manager, app_id):
+        with RefreshLockContext(lock_manager, app_id):  # noqa: SIM117
             # Locks should be acquired
             # Try to acquire again (should fail)
             with pytest.raises(LockAcquisitionError):
@@ -178,9 +178,8 @@ class TestRefreshLockContext:
         thread_lock1, file_lock1 = lock_manager.acquire(app_id)
 
         # Try to acquire with context manager and short timeout
-        with pytest.raises(LockAcquisitionError):
-            with RefreshLockContext(lock_manager, app_id, timeout=0.5):
-                pass
+        with pytest.raises(LockAcquisitionError), RefreshLockContext(lock_manager, app_id, timeout=0.5):
+            pass
 
         # Release original lock
         lock_manager.release(app_id, thread_lock1, file_lock1)
@@ -191,13 +190,12 @@ class TestRefreshLockContext:
         app_id1 = "cli_nested1"
         app_id2 = "cli_nested2"
 
-        with RefreshLockContext(lock_manager, app_id1):
-            with RefreshLockContext(lock_manager, app_id2):
-                # Both locks should be held
-                with pytest.raises(LockAcquisitionError):
-                    lock_manager.acquire(app_id1, timeout=0.5)
-                with pytest.raises(LockAcquisitionError):
-                    lock_manager.acquire(app_id2, timeout=0.5)
+        with RefreshLockContext(lock_manager, app_id1), RefreshLockContext(lock_manager, app_id2):
+            # Both locks should be held
+            with pytest.raises(LockAcquisitionError):
+                lock_manager.acquire(app_id1, timeout=0.5)
+            with pytest.raises(LockAcquisitionError):
+                lock_manager.acquire(app_id2, timeout=0.5)
 
         # Both locks should be released
         thread_lock1, file_lock1 = lock_manager.acquire(app_id1, timeout=1.0)

@@ -255,10 +255,7 @@ class TestCredentialPoolIntegration:
 
         def mock_fetch_app(app_id_param: str):
             call_count[0] += 1
-            if call_count[0] == 1:
-                token_value = "token_for_app1"
-            else:
-                token_value = "token_for_app2"
+            token_value = "token_for_app1" if call_count[0] == 1 else "token_for_app2"
             expires_at = datetime.now() + timedelta(seconds=7200)
             return token_value, expires_at
 
