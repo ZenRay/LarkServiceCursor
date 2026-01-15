@@ -178,7 +178,10 @@ class TestRefreshLockContext:
         thread_lock1, file_lock1 = lock_manager.acquire(app_id)
 
         # Try to acquire with context manager and short timeout
-        with pytest.raises(LockAcquisitionError), RefreshLockContext(lock_manager, app_id, timeout=0.5):
+        with (
+            pytest.raises(LockAcquisitionError),
+            RefreshLockContext(lock_manager, app_id, timeout=0.5),
+        ):
             pass
 
         # Release original lock
