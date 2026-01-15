@@ -76,76 +76,579 @@ def get_wiki_document_content(space_id: str, node_token: str) -> dict:
     # ... 其他类型
 ```
 
-#### 0.3 知识库链接格式识别
+#### 0.3 通用文档 URL 解析和 Token 获取工具 ⭐
+
+这是一个核心工具类,统一处理所有文档 URL 的解析和 token 获取逻辑。
+
+##### 0.3.1 完整的 DocumentUrlResolver 工具类
 
 ```python
-class WikiLinkParser:
-    """知识库链接解析器"""
+from typing import Literal
+from dataclasses import dataclass
+import re
+from lark_oapi.api.wiki.v2 import SpaceNodeService
+
+
+@dataclass
+class DocumentInfo:
+    """文档信息"""
+    doc_type: Literal["docx", "sheet", "bitable", "doc", "mindnote", "file"]
+    doc_token: str  # 实际可用的文档 token
+    source_type: Literal["wiki", "drive"]  # 来源类型
+
+    # 知识库特有字段
+    space_id: str | None = None
+    node_token: str | None = None
+
+    # 元数据
+    title: str | None = None
+    owner: str | None = None
+
+
+class DocumentUrlResolver:
+    """文档 URL 解析和 Token 获取工具
+
+    统一处理知识库和云空间文档的 URL 解析和 token 获取:
+    - 云空间文档: 通过正则表达式直接提取 doc_token
+    - 知识库文档: 先解析 URL,再调用 API 获取 obj_token
+    """
+
+    # ==================== URL 格式定义 ====================
 
     # 知识库链接格式
+    # 示例: https://example.feishu.cn/wiki/7123456789/wikcnAbCdEfGhIjKlMnOpQr
     WIKI_LINK_PATTERN = r'https://[^/]+/wiki/([^/]+)/([^/?]+)'
 
-    # 云空间链接格式
-    DRIVE_LINK_PATTERN = r'https://[^/]+/(docx|sheets|base)/([^/?]+)'
+    # 云空间文档链接格式
+    # 示例: https://example.feishu.cn/docx/doxcnAbCdEfGhIjKlMnOpQr
+    DRIVE_DOC_PATTERN = r'https://[^/]+/(docx|doc)/([^/?]+)'
 
-    @staticmethod
-    def parse_link(url: str) -> dict:
-        """解析飞书文档链接
+    # 云空间表格链接格式
+    # 示例: https://example.feishu.cn/sheets/shtcnAbCdEfGhIjKlMnOpQr
+    DRIVE_SHEET_PATTERN = r'https://[^/]+/sheets?/([^/?]+)'
+
+    # 云空间多维表格链接格式
+    # 示例: https://example.feishu.cn/base/bascnAbCdEfGhIjKlMnOpQr
+    DRIVE_BITABLE_PATTERN = r'https://[^/]+/base/([^/?]+)'
+
+    # 云空间文件链接格式
+    # 示例: https://example.feishu.cn/file/boxcnAbCdEfGhIjKlMnOpQr
+    DRIVE_FILE_PATTERN = r'https://[^/]+/file/([^/?]+)'
+
+    def __init__(self, wiki_service: SpaceNodeService):
+        """初始化
+
+        Args:
+            wiki_service: 知识库节点服务 (用于获取知识库文档的 obj_token)
+        """
+        self.wiki_service = wiki_service
+
+    # ==================== 主要接口 ====================
+
+    def resolve_url(self, url: str) -> DocumentInfo:
+        """解析文档 URL 并获取可用的 doc_token
+
+        这是主要的入口方法,自动识别文档类型并获取 token。
+
+        Args:
+            url: 飞书文档 URL
 
         Returns:
-            {
-                "type": "wiki" | "drive",
-                "space_id": str,  # 仅 wiki
-                "node_token": str,  # 仅 wiki
-                "doc_token": str   # 仅 drive
-            }
+            DocumentInfo: 包含 doc_token 和文档元信息
+
+        Raises:
+            ValueError: URL 格式无法识别
+            ApiError: 知识库 API 调用失败
+
+        Examples:
+            # 云空间文档 (直接提取 token)
+            >>> info = resolver.resolve_url("https://example.feishu.cn/docx/doxcn123")
+            >>> info.doc_token  # "doxcn123"
+            >>> info.source_type  # "drive"
+
+            # 知识库文档 (需要调用 API)
+            >>> info = resolver.resolve_url("https://example.feishu.cn/wiki/7123/wikcn456")
+            >>> info.doc_token  # "doxcn789" (从 API 获取的 obj_token)
+            >>> info.source_type  # "wiki"
         """
-        import re
+        # 1. 尝试解析为云空间文档 (优先,因为不需要 API 调用)
+        drive_info = self._try_parse_drive_url(url)
+        if drive_info:
+            return drive_info
 
-        # 尝试匹配知识库链接
-        wiki_match = re.match(WikiLinkParser.WIKI_LINK_PATTERN, url)
-        if wiki_match:
-            return {
-                "type": "wiki",
-                "space_id": wiki_match.group(1),
-                "node_token": wiki_match.group(2)
-            }
+        # 2. 尝试解析为知识库文档 (需要 API 调用)
+        wiki_info = self._try_parse_wiki_url(url)
+        if wiki_info:
+            return wiki_info
 
-        # 尝试匹配云空间链接
-        drive_match = re.match(WikiLinkParser.DRIVE_LINK_PATTERN, url)
-        if drive_match:
-            return {
-                "type": "drive",
-                "doc_type": drive_match.group(1),  # docx, sheets, base
-                "doc_token": drive_match.group(2)
-            }
+        # 3. 无法识别
+        raise ValueError(
+            f"无法识别的飞书文档链接: {url}\n"
+            f"支持的格式:\n"
+            f"  - 知识库: https://xxx.feishu.cn/wiki/{{space_id}}/{{node_token}}\n"
+            f"  - 文档: https://xxx.feishu.cn/docx/{{doc_token}}\n"
+            f"  - 表格: https://xxx.feishu.cn/sheets/{{sheet_token}}\n"
+            f"  - 多维表格: https://xxx.feishu.cn/base/{{base_token}}\n"
+            f"  - 文件: https://xxx.feishu.cn/file/{{file_token}}"
+        )
 
-        raise ValueError(f"无法识别的飞书文档链接: {url}")
+    def get_doc_token(self, url: str) -> str:
+        """快捷方法: 仅获取 doc_token
+
+        Args:
+            url: 飞书文档 URL
+
+        Returns:
+            doc_token: 可用的文档 token
+
+        Examples:
+            >>> token = resolver.get_doc_token("https://example.feishu.cn/docx/doxcn123")
+            >>> token  # "doxcn123"
+        """
+        return self.resolve_url(url).doc_token
+
+    # ==================== 云空间文档解析 (正则表达式) ====================
+
+    def _try_parse_drive_url(self, url: str) -> DocumentInfo | None:
+        """尝试解析云空间文档 URL (通过正则表达式)
+
+        云空间文档的 token 可以直接从 URL 中提取,无需 API 调用。
+
+        Returns:
+            DocumentInfo 或 None (如果不是云空间链接)
+        """
+        # 1. 尝试匹配文档 (docx/doc)
+        match = re.match(self.DRIVE_DOC_PATTERN, url)
+        if match:
+            doc_type = "docx" if match.group(1) == "docx" else "doc"
+            return DocumentInfo(
+                doc_type=doc_type,
+                doc_token=match.group(2),
+                source_type="drive"
+            )
+
+        # 2. 尝试匹配表格 (sheets)
+        match = re.match(self.DRIVE_SHEET_PATTERN, url)
+        if match:
+            return DocumentInfo(
+                doc_type="sheet",
+                doc_token=match.group(1),
+                source_type="drive"
+            )
+
+        # 3. 尝试匹配多维表格 (base)
+        match = re.match(self.DRIVE_BITABLE_PATTERN, url)
+        if match:
+            return DocumentInfo(
+                doc_type="bitable",
+                doc_token=match.group(1),
+                source_type="drive"
+            )
+
+        # 4. 尝试匹配文件 (file)
+        match = re.match(self.DRIVE_FILE_PATTERN, url)
+        if match:
+            return DocumentInfo(
+                doc_type="file",
+                doc_token=match.group(1),
+                source_type="drive"
+            )
+
+        # 不是云空间链接
+        return None
+
+    # ==================== 知识库文档解析 (API 调用) ====================
+
+    def _try_parse_wiki_url(self, url: str) -> DocumentInfo | None:
+        """尝试解析知识库文档 URL (需要调用 API)
+
+        知识库文档需要:
+        1. 从 URL 提取 space_id 和 node_token
+        2. 调用 Wiki API 获取 obj_token (实际的文档 token)
+
+        Returns:
+            DocumentInfo 或 None (如果不是知识库链接)
+        """
+        # 1. 尝试匹配知识库链接
+        match = re.match(self.WIKI_LINK_PATTERN, url)
+        if not match:
+            return None
+
+        space_id = match.group(1)
+        node_token = match.group(2)
+
+        # 2. 调用 API 获取节点信息
+        node_info = self._get_wiki_node_info(space_id, node_token)
+
+        # 3. 构造 DocumentInfo
+        return DocumentInfo(
+            doc_type=self._normalize_obj_type(node_info["obj_type"]),
+            doc_token=node_info["obj_token"],  # ⭐ 这是实际可用的 token
+            source_type="wiki",
+            space_id=space_id,
+            node_token=node_token,
+            title=node_info.get("title"),
+            owner=node_info.get("owner")
+        )
+
+    def _get_wiki_node_info(self, space_id: str, node_token: str) -> dict:
+        """调用 Wiki API 获取节点信息
+
+        Args:
+            space_id: 知识空间 ID
+            node_token: 节点 token
+
+        Returns:
+            节点信息字典,包含:
+            - obj_token: 实际的文档 token ⭐
+            - obj_type: 文档类型
+            - title: 标题
+            - owner: 所有者
+
+        Raises:
+            ApiError: API 调用失败
+        """
+        response = self.wiki_service.get(
+            space_id=space_id,
+            node_token=node_token
+        )
+
+        if not response.success():
+            raise ValueError(
+                f"获取知识库节点信息失败: {response.msg} "
+                f"(space_id={space_id}, node_token={node_token})"
+            )
+
+        node = response.data.node
+
+        # 处理快捷方式: 递归获取原始节点
+        if node.node_type == "shortcut" and node.origin_node_token:
+            return self._get_wiki_node_info(space_id, node.origin_node_token)
+
+        return {
+            "obj_token": node.obj_token,
+            "obj_type": node.obj_type,
+            "title": node.title,
+            "owner": node.owner,
+            "creator": node.creator,
+            "obj_create_time": node.obj_create_time,
+            "obj_edit_time": node.obj_edit_time
+        }
+
+    @staticmethod
+    def _normalize_obj_type(obj_type: str) -> str:
+        """标准化文档类型
+
+        知识库 API 返回的 obj_type 可能与云空间不完全一致,需要标准化。
+        """
+        type_mapping = {
+            "doc": "doc",
+            "docx": "docx",
+            "sheet": "sheet",
+            "bitable": "bitable",
+            "mindnote": "mindnote",
+            "file": "file"
+        }
+        return type_mapping.get(obj_type, obj_type)
+
+
+# ==================== 使用示例 ====================
+
+# 初始化
+from lark_oapi import Client
+
+client = Client.builder().app_id("xxx").app_secret("yyy").build()
+wiki_service = client.wiki.v2.space_node
+
+resolver = DocumentUrlResolver(wiki_service)
+
+# 场景 1: 云空间文档 (直接提取 token)
+url1 = "https://example.feishu.cn/docx/doxcnAbCdEfGhIjKlMnOpQr"
+info1 = resolver.resolve_url(url1)
+print(f"文档类型: {info1.doc_type}")  # "docx"
+print(f"文档 token: {info1.doc_token}")  # "doxcnAbCdEfGhIjKlMnOpQr"
+print(f"来源: {info1.source_type}")  # "drive"
+
+# 场景 2: 知识库文档 (需要 API 调用)
+url2 = "https://example.feishu.cn/wiki/7123456789/wikcnAbCdEfGhIjKlMnOpQr"
+info2 = resolver.resolve_url(url2)
+print(f"文档类型: {info2.doc_type}")  # "docx" (从 API 获取)
+print(f"文档 token: {info2.doc_token}")  # "doxcnXXXXXX" (obj_token)
+print(f"来源: {info2.source_type}")  # "wiki"
+print(f"知识空间 ID: {info2.space_id}")  # "7123456789"
+print(f"节点 token: {info2.node_token}")  # "wikcnAbCdEfGhIjKlMnOpQr"
+
+# 场景 3: 快捷方法 - 仅获取 token
+token = resolver.get_doc_token(url1)  # 直接返回 "doxcnAbCdEfGhIjKlMnOpQr"
+
+# 场景 4: 批量处理
+urls = [
+    "https://example.feishu.cn/docx/doxcn123",
+    "https://example.feishu.cn/sheets/shtcn456",
+    "https://example.feishu.cn/wiki/7123/wikcn789"
+]
+
+for url in urls:
+    try:
+        info = resolver.resolve_url(url)
+        print(f"{url} -> {info.doc_token} ({info.source_type})")
+    except ValueError as e:
+        print(f"解析失败: {e}")
 ```
 
-#### 0.4 统一的文档访问接口
+##### 0.3.2 核心设计说明
+
+**1. 双路径处理策略**
+
+```
+URL 输入
+    │
+    ├─> 尝试云空间解析 (正则表达式) ─> 成功 ─> 返回 DocumentInfo
+    │                                  │
+    │                                  └─> 失败
+    │                                       │
+    └─> 尝试知识库解析 (API 调用) ─────> 成功 ─> 返回 DocumentInfo
+                                           │
+                                           └─> 失败 ─> 抛出异常
+```
+
+**2. 为什么优先尝试云空间解析?**
+
+- 云空间解析只需要正则表达式,速度快,无 API 调用开销
+- 知识库解析需要 API 调用,有网络延迟和配额消耗
+- 大部分场景下,用户使用云空间文档更频繁
+
+**3. 快捷方式的递归处理**
+
+知识库支持快捷方式 (shortcut),需要递归获取原始节点:
 
 ```python
+if node.node_type == "shortcut":
+    # 递归获取原始节点的 obj_token
+    return self._get_wiki_node_info(space_id, node.origin_node_token)
+```
+
+**4. 统一的返回格式**
+
+无论是云空间还是知识库,都返回统一的 `DocumentInfo` 对象:
+
+```python
+@dataclass
+class DocumentInfo:
+    doc_type: str      # 文档类型
+    doc_token: str     # ⭐ 实际可用的 token
+    source_type: str   # "wiki" 或 "drive"
+    # ... 其他元数据
+```
+
+##### 0.3.3 支持的 URL 格式总结
+
+| 文档类型 | URL 格式 | Token 提取方式 | 示例 |
+|---------|---------|--------------|------|
+| **云空间文档** | `https://xxx.feishu.cn/docx/{token}` | 正则表达式 | `docx/doxcn123` |
+| **云空间旧文档** | `https://xxx.feishu.cn/doc/{token}` | 正则表达式 | `doc/doccn123` |
+| **云空间表格** | `https://xxx.feishu.cn/sheets/{token}` | 正则表达式 | `sheets/shtcn123` |
+| **云空间多维表格** | `https://xxx.feishu.cn/base/{token}` | 正则表达式 | `base/bascn123` |
+| **云空间文件** | `https://xxx.feishu.cn/file/{token}` | 正则表达式 | `file/boxcn123` |
+| **知识库文档** | `https://xxx.feishu.cn/wiki/{space_id}/{node_token}` | API 调用 | `wiki/7123/wikcn456` |
+
+##### 0.3.4 错误处理
+
+```python
+# 1. URL 格式无法识别
+try:
+    info = resolver.resolve_url("https://invalid.url")
+except ValueError as e:
+    print(f"URL 格式错误: {e}")
+
+# 2. 知识库 API 调用失败
+try:
+    info = resolver.resolve_url("https://example.feishu.cn/wiki/7123/wikcn456")
+except ValueError as e:
+    print(f"获取知识库节点失败: {e}")
+
+# 3. 权限不足
+# 知识库 API 会返回 403,需要在 _get_wiki_node_info 中处理
+```
+
+##### 0.3.5 性能优化建议
+
+**1. 缓存 node_token → obj_token 映射**
+
+```python
+from functools import lru_cache
+
+class CachedDocumentUrlResolver(DocumentUrlResolver):
+    """带缓存的文档 URL 解析器"""
+
+    @lru_cache(maxsize=1000)
+    def _get_wiki_node_info(self, space_id: str, node_token: str) -> dict:
+        """缓存知识库节点信息 (避免重复 API 调用)"""
+        return super()._get_wiki_node_info(space_id, node_token)
+```
+
+**2. 批量解析优化**
+
+如果需要批量解析知识库 URL,可以先分组,再批量调用 API:
+
+```python
+def resolve_urls_batch(self, urls: list[str]) -> list[DocumentInfo]:
+    """批量解析 URL"""
+    # 1. 分离云空间和知识库 URL
+    drive_urls = []
+    wiki_urls = []
+
+    for url in urls:
+        if self._try_parse_drive_url(url):
+            drive_urls.append(url)
+        else:
+            wiki_urls.append(url)
+
+    # 2. 云空间 URL 直接解析 (无 API 调用)
+    results = [self._try_parse_drive_url(url) for url in drive_urls]
+
+    # 3. 知识库 URL 批量调用 API (如果 SDK 支持)
+    # TODO: 实现批量 Wiki API 调用
+
+    return results
+```
+
+#### 0.4 统一的文档访问客户端
+
+基于 `DocumentUrlResolver` 实现统一的文档访问接口。
+
+```python
+from lark_service.clouddoc.utils import DocumentUrlResolver
+
+
 class UnifiedDocClient:
-    """统一的文档访问客户端"""
+    """统一的文档访问客户端
+
+    使用 DocumentUrlResolver 自动处理知识库和云空间文档的差异。
+    """
+
+    def __init__(
+        self,
+        credential_pool: CredentialPool,
+        retry_strategy: RetryStrategy
+    ):
+        self.credential_pool = credential_pool
+        self.retry_strategy = retry_strategy
+
+        # 初始化 URL 解析器
+        client = self._get_lark_client()
+        self.url_resolver = DocumentUrlResolver(client.wiki.v2.space_node)
+
+        # 初始化各类型文档客户端
+        self.doc_client = DocClient(credential_pool, retry_strategy)
+        self.sheet_client = SheetClient(credential_pool, retry_strategy)
+        self.bitable_client = BitableClient(credential_pool, retry_strategy)
 
     def get_document_by_url(self, url: str) -> Document:
-        """通过 URL 获取文档 (自动识别知识库/云空间)"""
-        link_info = WikiLinkParser.parse_link(url)
+        """通过 URL 获取文档 (自动识别知识库/云空间)
 
-        if link_info["type"] == "wiki":
-            # 知识库文档: 先获取 obj_token
-            node_info = self.get_wiki_node_info(
-                space_id=link_info["space_id"],
-                node_token=link_info["node_token"]
-            )
-            doc_token = node_info["obj_token"]
+        Args:
+            url: 飞书文档 URL (支持知识库和云空间)
+
+        Returns:
+            Document: 文档对象
+
+        Examples:
+            # 云空间文档
+            >>> doc = client.get_document_by_url("https://example.feishu.cn/docx/doxcn123")
+
+            # 知识库文档 (自动调用 API 获取 obj_token)
+            >>> doc = client.get_document_by_url("https://example.feishu.cn/wiki/7123/wikcn456")
+        """
+        # 1. 解析 URL 并获取 doc_token
+        doc_info = self.url_resolver.resolve_url(url)
+
+        # 2. 根据文档类型调用对应的客户端
+        if doc_info.doc_type in ["doc", "docx"]:
+            return self.doc_client.get_document(doc_info.doc_token)
+        elif doc_info.doc_type == "sheet":
+            return self.sheet_client.get_sheet(doc_info.doc_token)
+        elif doc_info.doc_type == "bitable":
+            return self.bitable_client.get_bitable(doc_info.doc_token)
         else:
-            # 云空间文档: 直接使用 doc_token
-            doc_token = link_info["doc_token"]
+            raise ValueError(f"不支持的文档类型: {doc_info.doc_type}")
 
-        # 使用 doc_token 获取文档内容
-        return self.get_document_content(doc_token)
+    def get_document_content_by_url(self, url: str) -> str:
+        """快捷方法: 获取文档纯文本内容
+
+        Args:
+            url: 飞书文档 URL
+
+        Returns:
+            文档纯文本内容
+        """
+        doc_info = self.url_resolver.resolve_url(url)
+
+        if doc_info.doc_type in ["doc", "docx"]:
+            return self.doc_client.get_content(doc_info.doc_token)
+        else:
+            raise ValueError(f"不支持的文档类型: {doc_info.doc_type}")
+
+    def append_content_by_url(
+        self,
+        url: str,
+        content: list[ContentBlock]
+    ) -> None:
+        """通过 URL 追加文档内容
+
+        Args:
+            url: 飞书文档 URL
+            content: 要追加的内容块列表
+        """
+        doc_info = self.url_resolver.resolve_url(url)
+
+        if doc_info.doc_type in ["doc", "docx"]:
+            self.doc_client.append_content(doc_info.doc_token, content)
+        else:
+            raise ValueError(f"不支持的文档类型: {doc_info.doc_type}")
+
+    def _get_lark_client(self):
+        """获取飞书客户端"""
+        from lark_oapi import Client
+        credential = self.credential_pool.get_credential()
+        return Client.builder() \
+            .app_id(credential.app_id) \
+            .app_secret(credential.app_secret) \
+            .build()
+
+
+# ==================== 使用示例 ====================
+
+# 初始化
+client = UnifiedDocClient(credential_pool, retry_strategy)
+
+# 场景 1: 通过 URL 获取文档 (自动识别知识库/云空间)
+url = "https://example.feishu.cn/wiki/7123456789/wikcnAbCdEfGhIjKlMnOpQr"
+document = client.get_document_by_url(url)
+print(f"文档标题: {document.title}")
+
+# 场景 2: 通过 URL 获取纯文本内容
+content = client.get_document_content_by_url(url)
+print(content)
+
+# 场景 3: 通过 URL 追加内容
+client.append_content_by_url(url, [
+    ContentBlock(type="paragraph", content="新增的段落内容")
+])
+
+# 场景 4: 批量处理不同来源的文档
+urls = [
+    "https://example.feishu.cn/docx/doxcn123",  # 云空间
+    "https://example.feishu.cn/wiki/7123/wikcn456",  # 知识库
+    "https://example.feishu.cn/sheets/shtcn789"  # 表格
+]
+
+for url in urls:
+    try:
+        doc = client.get_document_by_url(url)
+        print(f"成功获取文档: {doc.title}")
+    except Exception as e:
+        print(f"获取失败: {e}")
 ```
 
 #### 0.5 知识库相关数据模型
@@ -220,46 +723,316 @@ paths:
                         $ref: '#/components/schemas/WikiNode'
 ```
 
-#### 0.7 使用场景示例
+#### 0.7 完整使用场景示例
+
+##### 场景 1: 解析各种类型的文档 URL
 
 ```python
-# 场景 1: 用户提供知识库链接
-wiki_url = "https://example.feishu.cn/wiki/space123/node456"
+from lark_service.clouddoc.utils import DocumentUrlResolver
 
-# 自动识别并获取文档
-client = UnifiedDocClient(credential_pool, retry_strategy)
-document = client.get_document_by_url(wiki_url)
+# 初始化解析器
+resolver = DocumentUrlResolver(wiki_service)
 
-# 场景 2: 已知 space_id 和 node_token
-space_id = "7123456789"
-node_token = "wikcnAbCdEfGhIjKlMnOpQr"
+# 1. 云空间新版文档
+url1 = "https://example.feishu.cn/docx/doxcnAbCdEfGhIjKlMnOpQr"
+info1 = resolver.resolve_url(url1)
+# DocumentInfo(doc_type="docx", doc_token="doxcnAbCdEfGhIjKlMnOpQr", source_type="drive")
 
-# 获取节点信息
-node_info = client.get_wiki_node_info(space_id, node_token)
-print(f"文档类型: {node_info['obj_type']}")
-print(f"文档 token: {node_info['obj_token']}")
+# 2. 云空间表格
+url2 = "https://example.feishu.cn/sheets/shtcnAbCdEfGhIjKlMnOpQr"
+info2 = resolver.resolve_url(url2)
+# DocumentInfo(doc_type="sheet", doc_token="shtcnAbCdEfGhIjKlMnOpQr", source_type="drive")
 
-# 获取文档内容
-document = client.get_document_content(node_info["obj_token"])
+# 3. 云空间多维表格
+url3 = "https://example.feishu.cn/base/bascnAbCdEfGhIjKlMnOpQr"
+info3 = resolver.resolve_url(url3)
+# DocumentInfo(doc_type="bitable", doc_token="bascnAbCdEfGhIjKlMnOpQr", source_type="drive")
+
+# 4. 知识库文档 (需要 API 调用)
+url4 = "https://example.feishu.cn/wiki/7123456789/wikcnAbCdEfGhIjKlMnOpQr"
+info4 = resolver.resolve_url(url4)
+# DocumentInfo(
+#     doc_type="docx",  # 从 API 获取
+#     doc_token="doxcnXXXXXX",  # obj_token
+#     source_type="wiki",
+#     space_id="7123456789",
+#     node_token="wikcnAbCdEfGhIjKlMnOpQr"
+# )
 ```
 
-#### 0.8 注意事项
+##### 场景 2: 使用统一客户端访问文档
 
-1. **权限要求**:
-   - 访问知识库文档需要 `wiki:wiki:readonly` 权限
-   - 访问云空间文档需要 `drive:drive:readonly` 权限
+```python
+from lark_service.clouddoc import UnifiedDocClient
 
-2. **token 格式差异**:
-   - 知识库 `node_token`: 可能包含 `-` 和 `_`
-   - 云空间 `doc_token`: 通常是纯字母数字
+# 初始化客户端
+client = UnifiedDocClient(credential_pool, retry_strategy)
 
-3. **快捷方式处理**:
-   - 知识库支持快捷方式 (shortcut)
-   - 需要通过 `origin_node_token` 获取实际文档
+# 用户提供任意文档链接,自动识别并获取内容
+url = "https://example.feishu.cn/wiki/7123456789/wikcnAbCdEfGhIjKlMnOpQr"
 
-4. **缓存策略**:
-   - 建议缓存 `node_token` → `obj_token` 的映射
-   - TTL: 1 小时 (知识库结构变化较少)
+# 方式 1: 获取完整文档对象
+document = client.get_document_by_url(url)
+print(f"文档标题: {document.title}")
+print(f"文档所有者: {document.owner_id}")
+
+# 方式 2: 仅获取纯文本内容
+content = client.get_document_content_by_url(url)
+print(content)
+
+# 方式 3: 追加内容
+client.append_content_by_url(url, [
+    ContentBlock(type="paragraph", content="这是新增的段落")
+])
+```
+
+##### 场景 3: 批量处理混合来源的文档
+
+```python
+# 用户提供的文档列表 (混合知识库和云空间)
+document_urls = [
+    "https://example.feishu.cn/docx/doxcn123",  # 云空间文档
+    "https://example.feishu.cn/wiki/7123/wikcn456",  # 知识库文档
+    "https://example.feishu.cn/sheets/shtcn789",  # 云空间表格
+    "https://example.feishu.cn/base/bascn012"  # 云空间多维表格
+]
+
+# 批量解析
+for url in document_urls:
+    try:
+        info = resolver.resolve_url(url)
+        print(f"✓ {url}")
+        print(f"  类型: {info.doc_type}")
+        print(f"  Token: {info.doc_token}")
+        print(f"  来源: {info.source_type}")
+    except ValueError as e:
+        print(f"✗ {url}: {e}")
+```
+
+##### 场景 4: 快捷方法 - 仅获取 token
+
+```python
+# 如果只需要 token,不需要其他元信息
+url = "https://example.feishu.cn/wiki/7123/wikcn456"
+doc_token = resolver.get_doc_token(url)
+# 直接返回 "doxcnXXXXXX" (实际可用的 token)
+
+# 然后使用 token 调用其他 API
+doc_client.get_document(doc_token)
+```
+
+##### 场景 5: 处理知识库快捷方式
+
+```python
+# 知识库支持快捷方式 (shortcut)
+# DocumentUrlResolver 会自动递归获取原始节点的 obj_token
+
+shortcut_url = "https://example.feishu.cn/wiki/7123/wikcn_shortcut"
+info = resolver.resolve_url(shortcut_url)
+
+# info.doc_token 是原始文档的 obj_token (自动递归获取)
+# info.node_token 是快捷方式的 node_token
+```
+
+##### 场景 6: 错误处理
+
+```python
+# 1. URL 格式无法识别
+try:
+    resolver.resolve_url("https://invalid.url/document")
+except ValueError as e:
+    print(f"URL 格式错误: {e}")
+    # 错误消息会列出支持的格式
+
+# 2. 知识库节点不存在
+try:
+    resolver.resolve_url("https://example.feishu.cn/wiki/7123/wikcn_notfound")
+except ValueError as e:
+    print(f"节点不存在: {e}")
+
+# 3. 权限不足
+try:
+    resolver.resolve_url("https://example.feishu.cn/wiki/7123/wikcn_noperm")
+except ValueError as e:
+    print(f"权限不足: {e}")
+```
+
+#### 0.8 重要注意事项
+
+##### 1. 权限要求
+
+| 操作 | 所需权限 | 说明 |
+|------|---------|------|
+| 访问知识库文档 | `wiki:wiki:readonly` | 获取节点信息和文档内容 |
+| 访问云空间文档 | `drive:drive:readonly` | 读取文档内容 |
+| 编辑云空间文档 | `drive:drive:readwrite` | 修改文档内容 |
+
+**关键点**:
+- 知识库和云空间需要**不同的权限**
+- `DocumentUrlResolver` 会自动调用 Wiki API,需要确保应用有 `wiki:wiki:readonly` 权限
+- 如果只访问云空间文档,可以不申请 Wiki 权限
+
+##### 2. Token 格式差异
+
+```python
+# 知识库 node_token (可能包含 - 和 _)
+"wikcnAbCdEfGhIjKlMnOpQr"
+"wikcn_AbCdEfGhIjKlMnOpQr"  # 可能有下划线
+"wikcn-AbCdEfGhIjKlMnOpQr"  # 可能有连字符
+
+# 云空间 doc_token (通常是纯字母数字)
+"doxcnAbCdEfGhIjKlMnOpQr"  # 文档
+"shtcnAbCdEfGhIjKlMnOpQr"  # 表格
+"bascnAbCdEfGhIjKlMnOpQr"  # 多维表格
+"boxcnAbCdEfGhIjKlMnOpQr"  # 文件
+
+# 知识库 obj_token (从 API 获取,格式与云空间一致)
+"doxcnXXXXXXXXXXXXXXXX"  # 实际的文档 token
+```
+
+##### 3. 快捷方式处理
+
+知识库支持快捷方式 (shortcut),`DocumentUrlResolver` 会**自动递归**获取原始文档:
+
+```python
+# 快捷方式 URL
+url = "https://example.feishu.cn/wiki/7123/wikcn_shortcut"
+
+# 自动递归获取原始节点
+info = resolver.resolve_url(url)
+# info.doc_token 是原始文档的 obj_token (不是快捷方式的 node_token)
+```
+
+**实现逻辑**:
+```python
+if node.node_type == "shortcut":
+    # 递归获取原始节点
+    return self._get_wiki_node_info(space_id, node.origin_node_token)
+```
+
+##### 4. 缓存策略建议
+
+**4.1 缓存什么?**
+
+```python
+# 缓存 node_token → obj_token 的映射
+cache_key = f"wiki_node:{space_id}:{node_token}"
+cache_value = {
+    "obj_token": "doxcnXXXXXX",
+    "obj_type": "docx",
+    "title": "文档标题"
+}
+```
+
+**4.2 缓存时长**
+
+- **TTL: 1 小时** (知识库结构变化较少)
+- 如果文档被删除或移动,缓存会自然过期
+
+**4.3 缓存实现**
+
+```python
+from functools import lru_cache
+
+class CachedDocumentUrlResolver(DocumentUrlResolver):
+    """带缓存的文档 URL 解析器"""
+
+    @lru_cache(maxsize=1000)
+    def _get_wiki_node_info(self, space_id: str, node_token: str) -> dict:
+        """缓存知识库节点信息"""
+        return super()._get_wiki_node_info(space_id, node_token)
+```
+
+##### 5. 性能考虑
+
+| 操作 | 耗时 | 说明 |
+|------|------|------|
+| 云空间 URL 解析 | < 1 ms | 正则表达式,无网络请求 |
+| 知识库 URL 解析 | 100-500 ms | 需要调用 Wiki API |
+| 缓存命中 | < 1 ms | 无 API 调用 |
+
+**优化建议**:
+1. 优先尝试云空间解析 (速度快)
+2. 使用缓存减少 Wiki API 调用
+3. 批量处理时,先分组再处理
+
+##### 6. 错误处理
+
+```python
+# 1. URL 格式无法识别
+try:
+    resolver.resolve_url(url)
+except ValueError as e:
+    # e.message 会列出支持的格式
+    logger.error(f"URL 格式错误: {e}")
+
+# 2. 知识库 API 调用失败
+try:
+    resolver.resolve_url(wiki_url)
+except ValueError as e:
+    # 可能原因: 节点不存在、权限不足、网络超时
+    logger.error(f"获取知识库节点失败: {e}")
+```
+
+##### 7. 测试建议
+
+```python
+# 测试用例应覆盖:
+test_cases = [
+    # 云空间文档
+    ("https://example.feishu.cn/docx/doxcn123", "doxcn123", "drive"),
+    ("https://example.feishu.cn/sheets/shtcn456", "shtcn456", "drive"),
+    ("https://example.feishu.cn/base/bascn789", "bascn789", "drive"),
+
+    # 知识库文档
+    ("https://example.feishu.cn/wiki/7123/wikcn456", "doxcnXXX", "wiki"),
+
+    # 错误格式
+    ("https://invalid.url", None, "error"),
+]
+
+for url, expected_token, expected_source in test_cases:
+    try:
+        info = resolver.resolve_url(url)
+        assert info.doc_token == expected_token
+        assert info.source_type == expected_source
+    except ValueError:
+        assert expected_source == "error"
+```
+
+##### 8. 最佳实践
+
+1. **统一使用 `UnifiedDocClient`**:
+   ```python
+   # ✓ 推荐: 使用统一客户端
+   client = UnifiedDocClient(...)
+   doc = client.get_document_by_url(url)
+
+   # ✗ 不推荐: 手动判断和处理
+   if "wiki" in url:
+       # 手动处理知识库...
+   else:
+       # 手动处理云空间...
+   ```
+
+2. **提前验证 URL 格式**:
+   ```python
+   # 在接收用户输入时就验证
+   try:
+       info = resolver.resolve_url(user_input_url)
+   except ValueError as e:
+       return {"error": "URL 格式不正确", "details": str(e)}
+   ```
+
+3. **记录来源类型**:
+   ```python
+   # 记录文档来源,便于后续分析
+   logger.info("文档访问", extra={
+       "url": url,
+       "source_type": info.source_type,  # "wiki" or "drive"
+       "doc_type": info.doc_type
+   })
+   ```
 
 **参考文档**: [获取知识空间节点信息 - 飞书开放平台](https://open.feishu.cn/document/server-docs/docs/wiki-v2/space-node/get_node?appId=cli_a8c8dc731cb9900e)
 
