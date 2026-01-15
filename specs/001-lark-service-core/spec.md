@@ -1,8 +1,8 @@
 # Feature Specification: Lark Service 核心组件
 
-**Feature Branch**: `001-lark-service-core`  
-**Created**: 2026-01-14  
-**Status**: Draft  
+**Feature Branch**: `001-lark-service-core`
+**Created**: 2026-01-14
+**Status**: Draft
 **Input**: 为内部系统开发一个 Lark Service 企业自建应用核心组件，旨在通过封装飞书 OpenAPI 提供高度复用且透明的接入能力
 
 ## User Scenarios & Testing *(mandatory)*
@@ -214,130 +214,178 @@
 - **FR-021**: 组件 MUST 将飞书原始错误码映射为语义化的内部错误类型(如 `TokenExpired`、`RateLimited`、`InvalidParameter`)
 - **FR-022**: 组件 MUST 在错误响应中包含足够的上下文信息,帮助调用方快速定位问题(如哪个参数错误、建议的修复方式)
 
-#### 消息服务(Messaging 模块)
+#### 消息服务(Messaging 模块) - 基于飞书消息 API (IM v1)
+
+**重要说明**: Messaging 模块基于飞书**消息 API (IM v1)** 实现,官方文档: https://open.feishu.cn/document/server-docs/im-v1/introduction
 
 **基础消息**:
-- **FR-023**: Messaging 模块 MUST 支持发送纯文本消息到指定用户或群组
-- **FR-024**: Messaging 模块 MUST 支持发送富文本消息,包含加粗、斜体、链接、@提及等格式
-- **FR-025**: Messaging 模块 MUST 支持发送交互式卡片消息,并提供卡片构建的辅助方法
-- **FR-025a**: Messaging 模块 MUST 提供交互式卡片回调处理机制,统一接收飞书回调并通过消息队列(如 RabbitMQ)异步路由到注册的处理函数
-- **FR-025b**: Messaging 模块 MUST 验证飞书回调签名,防止伪造请求和重放攻击
+- **FR-023**: Messaging 模块 MUST 使用飞书消息 API 支持发送纯文本消息(`msg_type: text`)到指定用户或群组
+- **FR-024**: Messaging 模块 MUST 使用飞书消息 API 支持发送富文本消息(`msg_type: post`),包含加粗、斜体、链接、@提及等格式
+- **FR-025**: Messaging 模块 MUST 使用飞书消息 API 支持发送交互式卡片消息(`msg_type: interactive`),卡片内容由 CardKit 模块构建
 - **FR-026**: Messaging 模块 MUST 支持批量发送消息,并返回每个接收者的发送结果
-- **FR-027**: Messaging 模块 MUST 支持消息撤回、编辑、回复等消息生命周期管理操作
+  - **FR-026.1**: 批量发送 MUST 采用"继续策略",即使部分接收者失败也继续发送其余消息,不回滚已成功的发送
+  - **FR-026.2**: 批量响应 MUST 返回结构化结果,包含 total(总数)、success(成功数)、failed(失败数)和 results 数组
+  - **FR-026.3**: results 数组中每个元素 MUST 包含 receiver_id、status(success/failed)、message_id(成功时)、error(失败时包含错误码和错误消息)
+- **FR-027**: Messaging 模块 MUST 使用飞书消息 API 支持消息撤回(`DELETE /im/v1/messages/{message_id}`)、编辑(`PATCH`仅文本消息)、回复等消息生命周期管理操作
+  - **FR-027.1**: 消息撤回时间限制为发送后 24 小时内,超时返回明确错误
+  - **FR-027.2**: 消息编辑仅支持文本消息(`msg_type: text`),时间限制为发送后 24 小时内
+  - **FR-027.3**: 消息回复嵌套层级限制为 3 层,超过限制返回参数错误
 
 **图片消息**:
-- **FR-028**: Messaging 模块 MUST 支持上传图片(JPEG、PNG、WEBP、GIF、TIFF、BMP、ICO),图片大小限制 10MB
-- **FR-029**: Messaging 模块 MUST 支持发送图片消息,接收 image_key 或本地图片路径
+- **FR-028**: Messaging 模块 MUST 使用飞书消息 API 支持上传图片(JPEG、PNG、WEBP、GIF、TIFF、BMP、ICO),图片大小限制 10MB
+  - **FR-028.1**: 文件类型验证 MUST 通过文件扩展名和 MIME type 双重检查,优先检查 MIME type
+  - **FR-028.2**: image_key 有效期为 30 天,组件 SHOULD 记录上传时间,过期的 image_key 重新上传
+- **FR-029**: Messaging 模块 MUST 使用飞书消息 API 支持发送图片消息(`msg_type: image`),接收 image_key 或本地图片路径
 - **FR-030**: Messaging 模块 MUST 提供便捷方法 `send_image_message()` 自动处理图片上传和发送流程
 
 **文件消息**:
-- **FR-031**: Messaging 模块 MUST 支持上传文件(视频、音频、常见文件类型),文件大小限制 30MB,禁止上传空文件
-- **FR-032**: Messaging 模块 MUST 支持发送文件消息,接收 file_key 或本地文件路径
+- **FR-031**: Messaging 模块 MUST 使用飞书消息 API 支持上传文件(视频、音频、常见文件类型),文件大小限制 30MB,禁止上传空文件
+  - **FR-031.1**: file_key 有效期为 30 天,组件 SHOULD 记录上传时间,过期的 file_key 重新上传
+- **FR-032**: Messaging 模块 MUST 使用飞书消息 API 支持发送文件消息(`msg_type: file`),接收 file_key 或本地文件路径
 - **FR-033**: Messaging 模块 MUST 提供便捷方法 `send_file_message()` 自动处理文件上传和发送流程
+
+#### 卡片服务(CardKit 模块) - 基于飞书卡片 API (CardKit v1)
+
+**重要说明**: CardKit 模块基于飞书**卡片 API (CardKit v1)** 实现,官方文档: https://open.feishu.cn/document/cardkit-v1/feishu-card-resource-overview
+
+**卡片构建**:
+- **FR-034**: CardKit 模块 MUST 提供卡片构建器(CardBuilder),支持通过编程方式构建飞书交互式卡片 JSON 结构
+- **FR-035**: CardKit 模块 MUST 提供常用卡片模板,包括审批卡片(approval)、通知卡片(notification)、表单卡片(form)
+- **FR-036**: CardKit 模块 MUST 支持卡片组件:header(标题)、div(文本块)、action(按钮)、form(表单输入)、hr(分割线)、image(图片)、markdown(富文本)
+- **FR-037**: CardKit 模块 MUST 验证构建的卡片 JSON 结构符合飞书卡片规范,在发送前进行 schema 验证
+
+**卡片交互回调**:
+- **FR-038**: CardKit 模块 MUST 提供回调处理器,统一接收飞书卡片交互回调(`card.action.trigger` 事件)
+- **FR-039**: CardKit 模块 MUST 验证飞书回调请求签名,使用 Encrypt Key 防止伪造请求和重放攻击
+- **FR-040**: CardKit 模块 MUST 处理 URL 验证回调(`url_verification`),在首次配置回调地址时响应 challenge
+- **FR-041**: CardKit 模块 MUST 将验证通过的回调事件异步路由到 RabbitMQ 消息队列,解耦回调处理
+- **FR-042**: CardKit 模块 MUST 支持注册回调处理函数,根据 action.value 或 card_id 路由到对应的业务处理逻辑
+
+**卡片更新**:
+- **FR-043**: CardKit 模块 MUST 支持主动更新已发送的卡片内容,通过消息 API 的 `PATCH /im/v1/messages/{message_id}` 接口
+- **FR-044**: CardKit 模块 MUST 支持在回调响应中返回新的卡片 JSON,飞书自动更新原卡片(如"待审批"→"已通过")
+- **FR-045**: CardKit 模块 MUST 提供构建回调响应的辅助方法 `build_update_response()`,简化卡片更新逻辑
 
 #### 云文档服务(CloudDoc 模块)
 
 **Doc 文档**:
-- **FR-034**: CloudDoc 模块 MUST 支持创建新的 Doc 云文档
-- **FR-035**: CloudDoc 模块 MUST 支持向 Doc 文档追加内容块(文本、标题、图片、表格等)
-- **FR-036**: CloudDoc 模块 MUST 支持读取 Doc 文档的完整内容结构
-- **FR-037**: CloudDoc 模块 MUST 支持更新 Doc 文档中指定内容块的内容
-- **FR-038**: CloudDoc 模块 MUST 支持文档权限管理,包含授予/撤销用户权限(可阅读、可编辑、可评论、可管理)和权限查询
+- **FR-046**: CloudDoc 模块 MUST 支持创建新的 Doc 云文档
+- **FR-047**: CloudDoc 模块 MUST 支持向 Doc 文档追加内容块(文本、标题、图片、表格等)
+- **FR-048**: CloudDoc 模块 MUST 支持读取 Doc 文档的完整内容结构
+- **FR-049**: CloudDoc 模块 MUST 支持更新 Doc 文档中指定内容块的内容
+- **FR-050**: CloudDoc 模块 MUST 支持文档权限管理,包含授予/撤销用户权限(可阅读、可编辑、可评论、可管理)和权限查询
 
 **文档素材管理**:
-- **FR-039**: CloudDoc 模块 MUST 支持上传素材文件到指定云文档(图片、视频、文件等)
-- **FR-040**: CloudDoc 模块 MUST 支持下载云文档中的素材文件到本地
-- **FR-041**: CloudDoc 模块 MUST 返回上传后的 file_token 供文档内容块引用
+- **FR-051**: CloudDoc 模块 MUST 支持上传素材文件到指定云文档(图片、视频、文件等)
+- **FR-052**: CloudDoc 模块 MUST 支持下载云文档中的素材文件到本地
+- **FR-053**: CloudDoc 模块 MUST 返回上传后的 file_token 供文档内容块引用
 
 **多维表格(Base)**:
-- **FR-042**: CloudDoc 模块 MUST 支持在多维表格中创建新记录
-- **FR-043**: CloudDoc 模块 MUST 支持根据条件查询多维表格记录
-- **FR-044**: CloudDoc 模块 MUST 支持更新多维表格中的现有记录
-- **FR-045**: CloudDoc 模块 MUST 支持删除多维表格中的记录
-- **FR-046**: CloudDoc 模块 MUST 支持批量操作多维表格记录(批量创建、更新、删除)
+- **FR-054**: CloudDoc 模块 MUST 支持在多维表格中创建新记录
+- **FR-055**: CloudDoc 模块 MUST 支持根据条件查询多维表格记录
+- **FR-056**: CloudDoc 模块 MUST 支持更新多维表格中的现有记录
+- **FR-057**: CloudDoc 模块 MUST 支持删除多维表格中的记录
+- **FR-058**: CloudDoc 模块 MUST 支持批量操作多维表格记录(批量创建、更新、删除)
 
 **Sheet 电子表格**:
-- **FR-047**: CloudDoc 模块 MUST 支持读取 Sheet 指定范围的单元格数据
-- **FR-048**: CloudDoc 模块 MUST 支持更新 Sheet 指定范围的单元格数据
-- **FR-049**: CloudDoc 模块 MUST 支持 Sheet 的格式化操作,包含设置单元格样式(字体、颜色、对齐方式)、合并/拆分单元格、设置列宽行高、冻结窗格
+- **FR-059**: CloudDoc 模块 MUST 支持读取 Sheet 指定范围的单元格数据
+- **FR-060**: CloudDoc 模块 MUST 支持更新 Sheet 指定范围的单元格数据
+- **FR-061**: CloudDoc 模块 MUST 支持 Sheet 的格式化操作,包含设置单元格样式(字体、颜色、对齐方式)、合并/拆分单元格、设置列宽行高、冻结窗格
 
 #### 通讯录服务(Contact 模块)
 
 **用户查询与缓存**:
-- **FR-050**: Contact 模块 MUST 支持根据邮箱、手机号查询用户的 open_id、user_id、union_id 三种标识
-- **FR-051**: Contact 模块 MUST 支持获取用户的详细信息(姓名、头像、部门、职位、员工工号等)
-- **FR-052**: Contact 模块 MUST 将查询到的用户信息存储到 PostgreSQL 数据库,按 app_id 隔离存储(不同应用的 open_id 不同)
-- **FR-053**: Contact 模块 MUST 实现用户信息缓存机制,TTL 为 24 小时,缓存命中时直接返回数据库数据
-- **FR-054**: Contact 模块 MUST 在缓存过期或未命中时,自动从飞书 API 刷新数据并更新数据库
+- **FR-062**: Contact 模块 MUST 支持根据邮箱、手机号查询用户的 open_id、user_id、union_id 三种标识
+- **FR-063**: Contact 模块 MUST 支持获取用户的详细信息(姓名、头像、部门、职位、员工工号等)
+- **FR-064**: Contact 模块 MUST 将查询到的用户信息存储到 PostgreSQL 数据库,按 app_id 隔离存储(不同应用的 open_id 不同)
+- **FR-065**: Contact 模块 MUST 实现用户信息缓存机制,TTL 为 24 小时,缓存命中时直接返回数据库数据
+- **FR-066**: Contact 模块 MUST 在缓存过期或未命中时,自动从飞书 API 刷新数据并更新数据库
 
 **群组查询**:
-- **FR-055**: Contact 模块 MUST 支持根据群组名称查询 chat_id
-- **FR-056**: Contact 模块 MUST 支持获取群组的详细信息(群名称、群主、成员数量等)
+- **FR-067**: Contact 模块 MUST 支持根据群组名称查询 chat_id
+- **FR-068**: Contact 模块 MUST 支持获取群组的详细信息(群名称、群主、成员数量等)
 
 **组织架构查询**:
-- **FR-057**: Contact 模块 MUST 支持获取部门的成员列表,并批量更新数据库缓存
-- **FR-058**: Contact 模块 MUST 支持查询组织架构树(部门层级关系)
+- **FR-069**: Contact 模块 MUST 支持获取部门的成员列表,并批量更新数据库缓存
+- **FR-070**: Contact 模块 MUST 支持查询组织架构树(部门层级关系)
 
 #### aPaaS 平台服务(aPaaS 模块)
 
 **数据空间表格操作**:
-- **FR-059**: aPaaS 模块 MUST 支持查询工作空间(Workspace)下的数据表列表,返回表格ID、名称、字段定义
-- **FR-060**: aPaaS 模块 MUST 支持根据条件查询数据空间表格的记录(支持过滤、排序、分页)
-- **FR-061**: aPaaS 模块 MUST 支持更新数据空间表格的记录,支持部分字段更新
-- **FR-062**: aPaaS 模块 MUST 支持删除数据空间表格的记录
-- **FR-063**: aPaaS 模块 MUST 使用 user_access_token 进行数据空间操作,并验证权限有效性
-- **FR-064**: aPaaS 模块 MUST 处理并发写冲突,返回明确的冲突错误和重试建议
+- **FR-071**: aPaaS 模块 MUST 支持查询工作空间(Workspace)下的数据表列表,返回表格ID、名称、字段定义
+- **FR-072**: aPaaS 模块 MUST 支持根据条件查询数据空间表格的记录(支持过滤、排序、分页)
+- **FR-073**: aPaaS 模块 MUST 支持更新数据空间表格的记录,支持部分字段更新
+- **FR-074**: aPaaS 模块 MUST 支持删除数据空间表格的记录
+- **FR-075**: aPaaS 模块 MUST 使用 user_access_token 进行数据空间操作,并验证权限有效性
+- **FR-076**: aPaaS 模块 MUST 处理并发写冲突,返回明确的冲突错误和重试建议
 
 **AI 能力与工作流**:
-- **FR-065**: aPaaS 模块 MUST 支持调用飞书 AI 能力(如文本分析、智能问答等),需要 user_access_token
-- **FR-066**: aPaaS 模块 MUST 支持触发飞书自动化工作流,传入参数并返回执行ID
-- **FR-067**: aPaaS 模块 MUST 支持查询自动化工作流的执行状态和结果
-- **FR-068**: aPaaS 模块 MUST 设置 AI 调用的超时时间(默认 30 秒),超时后返回明确错误
+- **FR-077**: aPaaS 模块 MUST 支持调用飞书 AI 能力(如文本分析、智能问答等),需要 user_access_token
+- **FR-078**: aPaaS 模块 MUST 支持触发飞书自动化工作流,传入参数并返回执行ID
+- **FR-079**: aPaaS 模块 MUST 支持查询自动化工作流的执行状态和结果
+- **FR-080**: aPaaS 模块 MUST 设置 AI 调用的超时时间(默认 30 秒),超时后返回明确错误
 
 #### 架构与可扩展性
 
-- **FR-069**: 组件 MUST 采用模块化设计,各功能域模块(Messaging、CloudDoc、Contact、aPaaS)严禁循环依赖
-- **FR-070**: 组件 MUST 提供清晰的模块接口,允许内部服务按需导入所需模块,而不是强制导入全部功能
-- **FR-071**: 组件 MUST 支持外部服务扩展,预留接口供外部系统注册自定义的飞书 API 调用逻辑
+- **FR-081**: 组件 MUST 采用模块化设计,各功能域模块(Messaging、CloudDoc、Contact、aPaaS)严禁循环依赖
+- **FR-082**: 组件 MUST 提供清晰的模块接口,允许内部服务按需导入所需模块,而不是强制导入全部功能
+- **FR-083**: 组件 MUST 支持外部服务扩展,预留接口供外部系统注册自定义的飞书 API 调用逻辑
+
+#### 性能与超时策略
+
+**API 调用超时**:
+- **FR-084**: 组件 MUST 为所有飞书 API 调用设置默认超时时间为 30 秒,避免无限等待
+- **FR-085**: 媒体上传 API 的超时时间 MUST 根据文件大小动态调整:基础 30 秒 + (文件大小MB × 2秒),最大 120 秒
+- **FR-086**: 组件 MUST 在超时时返回明确的 `RequestTimeoutError`,包含已耗时和超时阈值
+
+**性能目标** *(建议性)*:
+- **FR-084.1**: 单条消息发送(不含媒体上传)的 P95 响应时间 SHOULD ≤ 2 秒
+- **FR-084.2**: 批量发送 200 条消息的总耗时 SHOULD ≤ 30 秒(含并发控制)
+- **FR-084.3**: 10MB 图片上传的 P95 响应时间 SHOULD ≤ 15 秒
+- **FR-084.4**: Token 获取和刷新的 P95 响应时间 SHOULD ≤ 1 秒
+
+**并发控制** *(建议性)*:
+- **FR-085.1**: 批量消息发送 SHOULD 控制并发请求数为 5-10,避免触发飞书限流
+- **FR-085.2**: 媒体上传 SHOULD 控制并发上传数为 3,避免占用过多网络带宽
 
 #### 可观测性
 
-- **FR-072**: 组件 MUST 记录完整的请求链路日志,包含请求 ID、API 端点、请求参数(敏感信息脱敏)、响应状态码、耗时
-- **FR-073**: 组件 MUST 记录所有 Token 刷新事件,包含 Token 类型、刷新时间、刷新原因、结果
-- **FR-074**: 组件 MUST 记录所有重试事件,包含重试次数、重试原因、重试间隔、最终结果
-- **FR-075**: 组件 MUST 支持配置日志级别(DEBUG、INFO、WARNING、ERROR),默认为 INFO
-- **FR-076**: 组件 MUST 在关键操作失败时记录 ERROR 级别日志,包含足够的错误上下文用于问题排查
+- **FR-087**: 组件 MUST 记录完整的请求链路日志,包含请求 ID、API 端点、请求参数(敏感信息脱敏)、响应状态码、耗时
+- **FR-088**: 组件 MUST 记录所有 Token 刷新事件,包含 Token 类型、刷新时间、刷新原因、结果
+- **FR-089**: 组件 MUST 记录所有重试事件,包含重试次数、重试原因、重试间隔、最终结果
+- **FR-090**: 组件 MUST 支持配置日志级别(DEBUG、INFO、WARNING、ERROR),默认为 INFO
+- **FR-091**: 组件 MUST 在关键操作失败时记录 ERROR 级别日志,包含足够的错误上下文用于问题排查
 
 #### 安全需求 (Security Requirements)
 
 **配置安全**:
-- **FR-077**: 所有敏感配置(App Secret、加密密钥、数据库密码)MUST 仅通过环境变量注入,严禁硬编码在代码或配置文件中
-- **FR-078**: 加密密钥(LARK_CONFIG_ENCRYPTION_KEY)MUST 符合 Fernet 规范(32字节 URL-safe base64编码),最小强度为 256 bit
-- **FR-079**: SQLite 应用配置文件 MUST 设置文件权限为 0600(仅所有者读写),禁止其他用户访问
-- **FR-080**: 配置文件存储路径 MUST 在部署文档中明确指定,默认为 `./config/applications.db`(相对于项目根目录)
-- **FR-081**: 组件 MUST 将配置按敏感度分类:`public`(日志级别)、`internal`(数据库连接)、`secret`(密钥/密码),不同类别采用不同的访问控制策略
+- **FR-092**: 所有敏感配置(App Secret、加密密钥、数据库密码)MUST 仅通过环境变量注入,严禁硬编码在代码或配置文件中
+- **FR-093**: 加密密钥(LARK_CONFIG_ENCRYPTION_KEY)MUST 符合 Fernet 规范(32字节 URL-safe base64编码),最小强度为 256 bit
+- **FR-094**: SQLite 应用配置文件 MUST 设置文件权限为 0600(仅所有者读写),禁止其他用户访问
+- **FR-095**: 配置文件存储路径 MUST 在部署文档中明确指定,默认为 `./config/applications.db`(相对于项目根目录)
+- **FR-096**: 组件 MUST 将配置按敏感度分类:`public`(日志级别)、`internal`(数据库连接)、`secret`(密钥/密码),不同类别采用不同的访问控制策略
 
 **密钥管理**:
-- **FR-082**: App Secret 在 SQLite 中 MUST 使用 Fernet 对称加密存储,加密密钥来自环境变量
-- **FR-083**: 加密密钥 MUST 支持轮换机制,提供 CLI 命令重新加密所有 App Secret:`lark-service-cli config rotate-key --new-key <new_key>`
-- **FR-084**: 所有密钥类信息(App Secret、Token、密码)MUST 在日志中脱敏显示(仅显示前4位+`****`或完全隐藏)
-- **FR-085**: Token 在 PostgreSQL 中 MUST 加密存储(使用 pg_crypto 扩展),防止数据库泄露导致 Token 泄露
+- **FR-097**: App Secret 在 SQLite 中 MUST 使用 Fernet 对称加密存储,加密密钥来自环境变量
+- **FR-098**: 加密密钥 MUST 支持轮换机制,提供 CLI 命令重新加密所有 App Secret:`lark-service-cli config rotate-key --new-key <new_key>`
+- **FR-099**: 所有密钥类信息(App Secret、Token、密码)MUST 在日志中脱敏显示(仅显示前4位+`****`或完全隐藏)
+- **FR-100**: Token 在 PostgreSQL 中 MUST 加密存储(使用 pg_crypto 扩展),防止数据库泄露导致 Token 泄露
 
 **依赖安全**:
-- **FR-086**: 项目 MUST 使用 `safety` 工具扫描 Python 依赖的已知安全漏洞,CI 流程中集成安全检查
-- **FR-087**: 项目 MUST 每月至少检查一次依赖更新,及时修复高危和严重漏洞(CVSS ≥ 7.0)
-- **FR-088**: requirements.txt MUST 锁定依赖版本(使用 `==` 而非 `>=`),避免意外引入不兼容或有漏洞的版本
+- **FR-101**: 项目 MUST 使用 `safety` 工具扫描 Python 依赖的已知安全漏洞,CI 流程中集成安全检查
+- **FR-102**: 项目 MUST 每月至少检查一次依赖更新,及时修复高危和严重漏洞(CVSS ≥ 7.0)
+- **FR-103**: requirements.txt MUST 锁定依赖版本(使用 `==` 而非 `>=`),避免意外引入不兼容或有漏洞的版本
 
 **容器安全**:
-- **FR-089**: Docker 基础镜像 MUST 使用官方镜像(如 `python:3.12-slim`),并定期更新到最新补丁版本
-- **FR-090**: Docker 镜像 MUST 在 CI 流程中使用 `trivy` 或 `grype` 进行安全扫描,阻止存在高危漏洞的镜像部署
-- **FR-091**: 容器运行 MUST 使用非 root 用户(UID ≥ 1000),在 Dockerfile 中显式指定 `USER` 指令
-- **FR-092**: 容器 MUST 仅暴露必需的端口,禁止使用 `EXPOSE 0.0.0.0:*` 形式暴露所有端口
+- **FR-104**: Docker 基础镜像 MUST 使用官方镜像(如 `python:3.12-slim`),并定期更新到最新补丁版本
+- **FR-105**: Docker 镜像 MUST 在 CI 流程中使用 `trivy` 或 `grype` 进行安全扫描,阻止存在高危漏洞的镜像部署
+- **FR-106**: 容器运行 MUST 使用非 root 用户(UID ≥ 1000),在 Dockerfile 中显式指定 `USER` 指令
+- **FR-107**: 容器 MUST 仅暴露必需的端口,禁止使用 `EXPOSE 0.0.0.0:*` 形式暴露所有端口
 
 **环境隔离**:
-- **FR-093**: 本地开发环境与生产环境 MUST 使用不同的加密密钥和数据库凭证,通过 `.env.development` 和 `.env.production` 区分
-- **FR-094**: 生产环境的 `.env` 文件 MUST 在部署后设置文件权限为 0600,禁止提交到版本控制系统
-- **FR-095**: 多租户场景(不同 app_id)的 Token 和配置 MUST 完全隔离,禁止跨应用访问
+- **FR-108**: 本地开发环境与生产环境 MUST 使用不同的加密密钥和数据库凭证,通过 `.env.development` 和 `.env.production` 区分
+- **FR-109**: 生产环境的 `.env` 文件 MUST 在部署后设置文件权限为 0600,禁止提交到版本控制系统
+- **FR-110**: 多租户场景(不同 app_id)的 Token 和配置 MUST 完全隔离,禁止跨应用访问
 
 ### Key Entities
 
@@ -367,19 +415,19 @@
 #### 代码质量与文档
 
 **Docstring 标准**:
-- **FR-096**: 所有公共 API(模块、类、函数)MUST 包含 Docstring,覆盖率要求 100%
-- **FR-097**: Docstring MUST 采用 Google 风格,包含以下必需部分:
+- **FR-111**: 所有公共 API(模块、类、函数)MUST 包含 Docstring,覆盖率要求 100%
+- **FR-112**: Docstring MUST 采用 Google 风格,包含以下必需部分:
   - 功能简述(单行)
   - 详细说明(可选)
   - Args: 参数列表(参数名、类型、说明)
   - Returns: 返回值(类型、说明)
   - Raises: 可能抛出的异常(异常类、触发条件)
   - Example: 使用示例(可选,推荐用于复杂 API)
-- **FR-098**: 私有方法(以 `_` 开头)和内部工具函数 SHOULD 包含 Docstring,至少说明用途和参数
+- **FR-113**: 私有方法(以 `_` 开头)和内部工具函数 SHOULD 包含 Docstring,至少说明用途和参数
 
 **类型注解**:
-- **FR-099**: 所有公共 API MUST 包含完整的类型注解(参数和返回值),mypy strict 模式覆盖率要求 ≥ 99%
-- **FR-100**: 复杂类型(如 Union、Optional、Dict)MUST 使用类型别名(TypeAlias)提高可读性
+- **FR-114**: 所有公共 API MUST 包含完整的类型注解(参数和返回值),mypy strict 模式覆盖率要求 ≥ 99%
+- **FR-115**: 复杂类型(如 Union、Optional、Dict)MUST 使用类型别名(TypeAlias)提高可读性
 
 ## Success Criteria *(mandatory)*
 

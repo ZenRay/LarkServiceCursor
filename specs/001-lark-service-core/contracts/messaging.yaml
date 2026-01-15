@@ -4,6 +4,14 @@ info:
   description: |
     Messaging module API contract for Lark Service core component.
     Provides interfaces for sending text, rich text, images, files, and interactive cards.
+
+    **Important**: This module wraps TWO Lark Open APIs:
+    - **Messaging API (IM v1)**: For sending messages to users/groups
+      - Official Doc: https://open.feishu.cn/document/server-docs/im-v1/introduction
+    - **CardKit API (CardKit v1)**: For building interactive cards and handling callbacks
+      - Official Doc: https://open.feishu.cn/document/cardkit-v1/feishu-card-resource-overview
+
+    Message sending uses IM API, card building and callbacks use CardKit API.
   version: 1.0.0
   contact:
     name: Lark Service Team
@@ -16,11 +24,13 @@ servers:
 
 tags:
   - name: messaging
-    description: Message sending operations
+    description: Message sending operations (uses IM v1 API)
   - name: media
-    description: Image and file upload operations
+    description: Image and file upload operations (uses IM v1 API)
+  - name: card
+    description: Interactive card operations (uses CardKit v1 API)
   - name: callback
-    description: Interactive card callback handling
+    description: Card callback handling (uses CardKit v1 API)
 
 paths:
   /messaging/text:
@@ -117,8 +127,12 @@ paths:
     post:
       tags:
         - messaging
-      summary: Send interactive card
+        - card
+      summary: Send interactive card (IM API sends, CardKit API builds)
       operationId: sendInteractiveCard
+      description: |
+        Send an interactive card message using IM v1 API (msg_type: interactive).
+        Card content JSON is built by CardKit module.
       requestBody:
         required: true
         content:
@@ -236,9 +250,13 @@ paths:
     post:
       tags:
         - callback
-      summary: Handle card callback (internal endpoint)
+        - card
+      summary: Handle card callback (CardKit API, internal endpoint)
       operationId: handleCardCallback
-      description: Receives callbacks from Lark server when users interact with cards
+      description: |
+        Receives callbacks from Lark CardKit API when users interact with cards.
+        This endpoint is called by Lark servers, not by internal clients.
+        Implements signature verification and routes events to RabbitMQ.
       requestBody:
         required: true
         content:
@@ -253,7 +271,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  code: 
+                  code:
                     type: integer
                     example: 0
 

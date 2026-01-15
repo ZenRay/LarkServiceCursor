@@ -1,6 +1,6 @@
 # Tasks: Lark Service 核心组件
 
-**Input**: Design documents from `/specs/001-lark-service-core/`  
+**Input**: Design documents from `/specs/001-lark-service-core/`
 **Prerequisites**: plan.md, spec.md, data-model.md, research.md, contracts/
 
 **Organization**: Tasks organized by阶段 and user story (US1-US5) to enable independent implementation and testing.
@@ -64,7 +64,7 @@
   - **错误数**: 0 errors (阻塞)
   - **警告数**: ≤ 5 warnings (非阻塞)
   - **排除路径**: `migrations/`, `__pycache__/`, `.pytest_cache/`, `htmlcov/`
-  
+
 - [ ] `mypy src/` 类型检查
   - **错误上限**: 0 errors (阻塞)
   - **覆盖率**: ≥ 99% (计算范围: src/lark_service/, 不包含 tests/)
@@ -73,11 +73,11 @@
 #### 4. 环境启动 (CHK050)
 - [ ] `docker compose up -d` 启动成功
   - **服务就绪时间**: PostgreSQL ≤ 10秒, RabbitMQ ≤ 15秒
-  - **健康检查**: 
+  - **健康检查**:
     ```bash
     # PostgreSQL
     docker compose exec -T postgres pg_isready -U lark
-    
+
     # RabbitMQ
     curl -f http://localhost:15672/api/health/checks/alarms
     ```
@@ -170,45 +170,81 @@
 
 **独立测试**: 发送测试消息到指定用户,验证消息成功送达且格式正确
 
-**预计时间**: ~2-3天
+**预计时间**: ~3-4天
 
 **依赖**: US1 (Token 管理) 必须完成
 
+**重要说明**: Phase 3 涉及飞书两个独立的 API 服务:
+- **消息 API (IM v1)**: 用于发送各类消息到用户/群组
+  - 官方文档: https://open.feishu.cn/document/server-docs/im-v1/introduction
+- **卡片 API (CardKit v1)**: 用于构建交互式卡片和处理回调
+  - 官方文档: https://open.feishu.cn/document/cardkit-v1/feishu-card-resource-overview
+
 ### Pydantic 模型
 
-- [ ] T039 [P] [US2] 创建 Message 模型 src/lark_service/messaging/models.py (Message, MessageType enum, ImageAsset, FileAsset, CallbackEvent)
+- [ ] T039 [P] [US2] 创建 Message 模型 src/lark_service/messaging/models.py (Message, MessageType enum, ImageAsset, FileAsset)
+- [ ] T039.1 [P] [US2] 创建 Card 模型 src/lark_service/cardkit/models.py (CardConfig, CardElement, CallbackEvent)
 
-### 媒体上传
+### 媒体上传 (IM API)
 
-- [ ] T040 [P] [US2] 实现媒体上传器 src/lark_service/messaging/media_uploader.py (upload_image, upload_file 包含大小验证, 返回 image_key/file_key)
+- [ ] T040 [P] [US2] [IM-API] 实现媒体上传器 src/lark_service/messaging/media_uploader.py (upload_image, upload_file 包含大小验证, 返回 image_key/file_key)
 
-### 消息客户端
+### 消息客户端 (IM API)
 
-- [ ] T041 [US2] 实现消息客户端 src/lark_service/messaging/client.py (send_text_message, send_rich_text_message, send_image_message, send_file_message 自动上传)
-- [ ] T042 [US2] 实现批量发送 messaging/client.py (send_batch_messages 包含每个接收者的状态跟踪)
-- [ ] T043 [US2] 实现消息生命周期管理 messaging/client.py (recall_message 消息撤回, edit_message 消息编辑, reply_message 消息回复)
+- [ ] T041 [US2] [IM-API] 实现消息客户端 src/lark_service/messaging/client.py
+  - send_text_message() - 发送文本消息
+  - send_rich_text_message() - 发送富文本消息
+  - send_image_message() - 发送图片消息 (自动上传)
+  - send_file_message() - 发送文件消息 (自动上传)
+  - send_card_message() - 发送卡片消息 (接收 CardKit 构建的 JSON)
+- [ ] T042 [US2] [IM-API] 实现批量发送 messaging/client.py (send_batch_messages 包含每个接收者的状态跟踪)
+- [ ] T043 [US2] [IM-API] 实现消息生命周期管理 messaging/lifecycle.py
+  - recall_message() - 消息撤回
+  - edit_message() - 消息编辑 (仅文本消息)
+  - reply_message() - 消息回复
 
-### 交互式卡片
+### 交互式卡片 (CardKit API)
 
-- [ ] T044 [P] [US2] 实现卡片构建器 src/lark_service/messaging/card_builder.py (CardBuilder 常用卡片模板辅助工具, 按钮动作)
-- [ ] T045 [US2] 实现卡片发送 messaging/client.py (send_interactive_card 包含回调 URL 注册)
-- [ ] T046 [US2] 实现回调处理器 src/lark_service/messaging/callback_handler.py (RabbitMQ 集成、签名验证、事件路由到注册的处理函数)
+- [ ] T044 [P] [US2] [CardKit-API] 实现卡片构建器 src/lark_service/cardkit/builder.py
+  - CardBuilder 类 - 卡片构建基础类
+  - build_approval_card() - 审批卡片模板
+  - build_notification_card() - 通知卡片模板
+  - build_form_card() - 表单卡片模板
+- [ ] T045 [US2] [CardKit-API] 实现卡片回调处理器 src/lark_service/cardkit/callback_handler.py
+  - verify_signature() - 验证飞书回调签名
+  - handle_url_verification() - 处理 URL 验证回调
+  - route_callback() - 将回调事件路由到 RabbitMQ
+  - register_handler() - 注册回调处理函数
+- [ ] T046 [US2] [CardKit-API] 实现卡片更新器 src/lark_service/cardkit/updater.py
+  - update_card_content() - 主动更新卡片内容
+  - build_update_response() - 构建回调响应更新卡片
 
 ### TDD 测试
 
-- [ ] T047 [P] [US2] 消息 API 契约测试 tests/contract/test_messaging_contract.py (验证符合 contracts/messaging.yaml)
-- [ ] T048 [P] [US2] 媒体上传器单元测试 tests/unit/messaging/test_media_uploader.py (文件大小限制、类型验证、mock lark-oapi 调用)
-- [ ] T049 [P] [US2] 卡片构建器单元测试 tests/unit/messaging/test_card_builder.py (卡片结构验证)
-- [ ] T050 [US2] 消息集成测试 tests/integration/test_messaging_e2e.py (发送文本 → 验证送达, 发送卡片 → 触发回调 → 验证处理函数调用)
+- [ ] T047 [P] [US2] [IM-API] 消息 API 契约测试 tests/contract/test_messaging_contract.py (验证符合 contracts/messaging.yaml)
+- [ ] T048 [P] [US2] [IM-API] 媒体上传器单元测试 tests/unit/messaging/test_media_uploader.py (文件大小限制、类型验证、mock lark-oapi 调用)
+- [ ] T049 [P] [US2] [CardKit-API] 卡片构建器单元测试 tests/unit/cardkit/test_card_builder.py (卡片结构验证、模板生成)
+- [ ] T049.1 [P] [US2] [CardKit-API] 卡片回调处理器单元测试 tests/unit/cardkit/test_callback_handler.py (签名验证、事件路由)
+- [ ] T050 [US2] 消息+卡片集成测试 tests/integration/test_messaging_e2e.py
+  - 发送文本消息 → 验证送达
+  - 发送图片/文件消息 → 验证上传和送达
+  - 发送卡片 → 触发回调 → 验证处理函数调用
 
 ### 阶段检查点
 
 - [ ] **构建验证**: `docker build -t lark-service:latest .` 成功
-- [ ] **代码质量**: `ruff check src/lark_service/messaging/` 无错误, `mypy src/lark_service/messaging/` 通过
-- [ ] **单元测试**: `pytest tests/unit/messaging/ -v` 全部通过
+- [ ] **代码质量**:
+  - `ruff check src/lark_service/messaging/ src/lark_service/cardkit/` 无错误
+  - `mypy src/lark_service/messaging/ src/lark_service/cardkit/` 通过
+- [ ] **单元测试**:
+  - `pytest tests/unit/messaging/ -v` 全部通过
+  - `pytest tests/unit/cardkit/ -v` 全部通过
 - [ ] **契约测试**: `pytest tests/contract/test_messaging_contract.py -v` 通过
-- [ ] **功能验证**: 手工发送文本、图片、文件消息到测试账号,验证送达;发送交互式卡片,点击按钮验证回调处理
-- [ ] **文档更新**: 更新 docs/api_reference.md 补充 Messaging 模块 API 文档
+- [ ] **功能验证**:
+  - 手工发送文本、图片、文件消息到测试账号,验证送达
+  - 使用 CardBuilder 构建卡片并发送,验证格式正确
+  - 点击卡片按钮,验证回调处理和卡片更新
+- [ ] **文档更新**: 更新 docs/api_reference.md 补充 Messaging 和 CardKit 模块 API 文档
 
 ---
 
@@ -216,7 +252,7 @@
 
 **目标**: 实现云文档操作(Doc/Sheet/多维表格/素材上传下载) + 通讯录查询(用户/部门/缓存)
 
-**独立测试**: 
+**独立测试**:
 - US3: 创建测试文档、写入内容、读取验证;CRUD 多维表格记录
 - US4: 通过邮箱查询用户,验证返回三种ID;验证缓存命中和自动刷新
 
@@ -276,7 +312,7 @@
 - [ ] **代码质量**: `ruff check src/lark_service/clouddoc/ src/lark_service/contact/` 无错误, `mypy` 通过
 - [ ] **单元测试**: `pytest tests/unit/clouddoc/ tests/unit/contact/ -v` 全部通过
 - [ ] **契约测试**: `pytest tests/contract/test_clouddoc_contract.py tests/contract/test_contact_contract.py -v` 通过
-- [ ] **功能验证**: 
+- [ ] **功能验证**:
   - CloudDoc: 创建测试文档,插入内容,读取验证一致性;CRUD 多维表格记录
   - Contact: 通过邮箱查询用户,验证返回完整ID;再次查询验证缓存命中(无API调用)
 - [ ] **文档更新**: 更新 docs/api_reference.md 补充 CloudDoc 和 Contact 模块文档
@@ -359,7 +395,7 @@
 - [ ] **代码质量**: `ruff check .` 零错误, `mypy src/` 覆盖率≥99%, `ruff format .` 代码格式化
 - [ ] **CI验证**: GitHub Actions所有workflow通过(lint、type-check、test、build)
 - [ ] **测试覆盖**: `pytest --cov=src/lark_service --cov-report=html` 覆盖率≥90%,关键业务逻辑≥95%
-- [ ] **功能验证**: 
+- [ ] **功能验证**:
   - ✅ 按quickstart.md完成5分钟快速开始,成功发送首条消息
   - ✅ 验证Token自动刷新(等待Token即将过期,触发主动刷新,下次调用使用新Token)
   - ✅ 验证服务重启后Token从数据库恢复
@@ -582,7 +618,7 @@ Phase 1 → Phase 2 → Phase 3 → Phase 4 (并行US3+US4) → Phase 5 → Phas
 - **总任务数**: 82 个
 - **总阶段数**: 6 个 (符合≤6个阶段要求)
 - **用户故事**: 5 个 (US1-P1, US2-P2, US3-P3, US4-P3, US5-P4)
-- **并行机会**: 
+- **并行机会**:
   - Setup 阶段: 9 个并行任务
   - US1 阶段: 15 个并行任务
   - US3 + US4: 完全并行 (可节省 3-4天)
