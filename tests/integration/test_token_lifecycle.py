@@ -6,7 +6,7 @@ Tests the complete lifecycle: acquire → use → refresh → expire → re-acqu
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 from cryptography.fernet import Fernet
@@ -118,7 +118,6 @@ class TestTokenLifecycle:
             "_fetch_app_access_token",
             side_effect=mock_fetch_token,
         ):
-
             # Step 1: Acquire token (first time)
             token1 = credential_pool.get_token(app_id, token_type)
             assert token1 == "generated_token_v1"
@@ -297,14 +296,17 @@ class TestTokenLifecycle:
             expires_at = datetime.now() + timedelta(seconds=7200)
             return token_value, expires_at
 
-        with patch.object(
-            credential_pool,
-            "_fetch_app_access_token",
-            side_effect=mock_fetch_generated_app_token,
-        ), patch.object(
-            credential_pool,
-            "_fetch_tenant_access_token",
-            side_effect=mock_fetch_generated_tenant_token,
+        with (
+            patch.object(
+                credential_pool,
+                "_fetch_app_access_token",
+                side_effect=mock_fetch_generated_app_token,
+            ),
+            patch.object(
+                credential_pool,
+                "_fetch_tenant_access_token",
+                side_effect=mock_fetch_generated_tenant_token,
+            ),
         ):
             # Get both types of tokens
             generated_app_token = credential_pool.get_token(app_id, "app_access_token")

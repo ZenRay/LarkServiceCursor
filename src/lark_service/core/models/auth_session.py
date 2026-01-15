@@ -4,7 +4,7 @@ This module defines the UserAuthSession model for managing OAuth2
 authentication sessions with 10-minute timeout.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from sqlalchemy import Index, String, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column

@@ -116,7 +116,9 @@ class StandardResponse(BaseModel, Generic[T]):
         if code == 0:
             raise ValueError("Error code must be non-zero")
 
-        return cls(code=code, message=message, request_id=request_id, data=None, error_detail=error_detail)
+        return cls(
+            code=code, message=message, request_id=request_id, data=None, error_detail=error_detail
+        )
 
     def is_success(self) -> bool:
         """Check if response indicates success.

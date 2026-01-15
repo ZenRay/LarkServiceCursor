@@ -209,6 +209,7 @@ class TestRetryDecorator:
 
     def test_decorator_with_parameters(self) -> None:
         """Test decorator with function parameters."""
+
         @retry_on_error(max_retries=1, base_delay=0.05)
         def add(a: int, b: int) -> int:
             return a + b
@@ -218,6 +219,7 @@ class TestRetryDecorator:
 
     def test_decorator_preserves_exceptions(self) -> None:
         """Test that decorator preserves exceptions."""
+
         @retry_on_error(max_retries=1, base_delay=0.05)
         def always_fails() -> str:
             raise APIError("Persistent error", status_code=500)

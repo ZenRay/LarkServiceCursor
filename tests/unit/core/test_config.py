@@ -82,10 +82,15 @@ class TestConfig:
     def test_load_from_env_missing_required_var(self, tmp_path: Path) -> None:
         """Test error when required variable is missing."""
         # Clear all environment variables first
-        for key in ["POSTGRES_HOST", "POSTGRES_DB", "POSTGRES_USER", 
-                    "POSTGRES_PASSWORD", "LARK_CONFIG_ENCRYPTION_KEY"]:
+        for key in [
+            "POSTGRES_HOST",
+            "POSTGRES_DB",
+            "POSTGRES_USER",
+            "POSTGRES_PASSWORD",
+            "LARK_CONFIG_ENCRYPTION_KEY",
+        ]:
             os.environ.pop(key, None)
-        
+
         # Set only some variables
         os.environ["POSTGRES_HOST"] = "localhost"
         os.environ["POSTGRES_DB"] = "test_db"
@@ -94,7 +99,7 @@ class TestConfig:
         # Create an empty .env file to prevent loading from project root
         empty_env = tmp_path / "empty.env"
         empty_env.write_text("")
-        
+
         with pytest.raises(ValueError, match="Missing required environment variables"):
             Config.load_from_env(env_file=empty_env)
 

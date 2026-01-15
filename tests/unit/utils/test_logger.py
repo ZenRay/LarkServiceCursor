@@ -6,8 +6,6 @@ Tests structured logging with context support.
 import logging
 from pathlib import Path
 
-import pytest
-
 from lark_service.utils.logger import (
     LoggerContextManager,
     clear_request_context,
@@ -67,7 +65,7 @@ class TestRequestContext:
             if hasattr(filter_obj, "request_id"):
                 assert filter_obj.request_id == "req-123"
                 assert filter_obj.app_id == "cli_abc"
-        
+
         # Clean up
         clear_request_context()
 

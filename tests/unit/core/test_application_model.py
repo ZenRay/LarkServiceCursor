@@ -3,7 +3,6 @@
 Tests encryption/decryption, status validation, and model behavior.
 """
 
-
 import pytest
 from cryptography.fernet import Fernet, InvalidToken
 

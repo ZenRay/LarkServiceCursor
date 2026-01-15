@@ -126,9 +126,7 @@ class RateLimitError(APIError):
         retry_after: Seconds to wait before retrying
     """
 
-    def __init__(
-        self, message: str, retry_after: int | None = None, **kwargs: Any
-    ) -> None:
+    def __init__(self, message: str, retry_after: int | None = None, **kwargs: Any) -> None:
         """Initialize RateLimitError.
 
         Parameters

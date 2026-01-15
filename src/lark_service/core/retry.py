@@ -76,7 +76,7 @@ class RetryStrategy:
             >>> strategy.calculate_delay(2)  # 4s
             4.0
         """
-        delay = self.base_delay * (2 ** attempt)
+        delay = self.base_delay * (2**attempt)
         return float(min(delay, self.max_delay))
 
     def execute(
@@ -241,6 +241,7 @@ def retry_on_error(
         ...     # Make API call
         ...     return "success"
     """
+
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
         def wrapper(*args: Any, **kwargs: Any) -> T:
             strategy = RetryStrategy(
@@ -250,5 +251,7 @@ def retry_on_error(
                 rate_limit_delay=rate_limit_delay,
             )
             return strategy.execute(func, *args, **kwargs)
+
         return wrapper
+
     return decorator

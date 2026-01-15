@@ -54,9 +54,7 @@ class TokenStorage(Base):
     token_value: Mapped[str] = mapped_column(Text)  # Encrypted
     expires_at: Mapped[datetime] = mapped_column()
     created_at: Mapped[datetime] = mapped_column(default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(
-        default=func.now(), onupdate=func.now()
-    )
+    updated_at: Mapped[datetime] = mapped_column(default=func.now(), onupdate=func.now())
 
     __table_args__ = (
         UniqueConstraint("app_id", "token_type", name="uq_app_token_type"),

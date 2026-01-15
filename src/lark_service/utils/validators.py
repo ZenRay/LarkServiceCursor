@@ -73,16 +73,14 @@ def validate_app_secret(app_secret: str) -> str:
     # Minimum length check
     if len(app_secret) < 16:
         raise ValidationError(
-            f"app_secret too short: {len(app_secret)} characters. "
-            "Minimum 16 characters required.",
+            f"app_secret too short: {len(app_secret)} characters. Minimum 16 characters required.",
             details={"length": len(app_secret), "min_length": 16},
         )
 
     # Maximum length check
     if len(app_secret) > 128:
         raise ValidationError(
-            f"app_secret too long: {len(app_secret)} characters. "
-            "Maximum 128 characters allowed.",
+            f"app_secret too long: {len(app_secret)} characters. Maximum 128 characters allowed.",
             details={"length": len(app_secret), "max_length": 128},
         )
 
@@ -236,16 +234,14 @@ def validate_token(token: str, token_type: str = "access_token") -> str:
     # Minimum length check
     if len(token) < 10:
         raise ValidationError(
-            f"{token_type} too short: {len(token)} characters. "
-            "Minimum 10 characters required.",
+            f"{token_type} too short: {len(token)} characters. Minimum 10 characters required.",
             details={"token_type": token_type, "length": len(token)},
         )
 
     # Maximum length check
     if len(token) > 1024:
         raise ValidationError(
-            f"{token_type} too long: {len(token)} characters. "
-            "Maximum 1024 characters allowed.",
+            f"{token_type} too long: {len(token)} characters. Maximum 1024 characters allowed.",
             details={"token_type": token_type, "length": len(token)},
         )
 
@@ -442,8 +438,7 @@ def validate_enum(value: str, allowed_values: list[str], name: str = "value") ->
     """
     if value not in allowed_values:
         raise ValidationError(
-            f"Invalid {name} value: {value}. "
-            f"Allowed values: {', '.join(allowed_values)}",
+            f"Invalid {name} value: {value}. Allowed values: {', '.join(allowed_values)}",
             details={"name": name, "value": value, "allowed": allowed_values},
         )
 

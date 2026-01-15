@@ -2,7 +2,6 @@
 
 import json
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 import pytest
 from click.testing import CliRunner
@@ -222,9 +221,7 @@ class TestAppUpdate:
 class TestAppDelete:
     """Tests for app delete command."""
 
-    def test_delete_with_confirmation(
-        self, cli_runner, mock_env, temp_db, encryption_key
-    ):
+    def test_delete_with_confirmation(self, cli_runner, mock_env, temp_db, encryption_key):
         """Test deleting app with confirmation."""
         # Add test app
         manager = ApplicationManager(temp_db, encryption_key)

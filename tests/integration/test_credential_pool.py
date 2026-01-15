@@ -30,11 +30,14 @@ def mock_token_fetch(credential_pool, token_value="mock_token", expires_in=7200)
         expires_at = datetime.now() + timedelta(seconds=expires_in)
         return token_value, expires_at
 
-    with patch.object(
-        credential_pool, "_fetch_app_access_token", side_effect=mock_fetch_app
-    ) as mock_app, patch.object(
-        credential_pool, "_fetch_tenant_access_token", side_effect=mock_fetch_tenant
-    ) as mock_tenant:
+    with (
+        patch.object(
+            credential_pool, "_fetch_app_access_token", side_effect=mock_fetch_app
+        ) as mock_app,
+        patch.object(
+            credential_pool, "_fetch_tenant_access_token", side_effect=mock_fetch_tenant
+        ) as mock_tenant,
+    ):
         yield mock_app, mock_tenant
 
 
@@ -259,9 +262,7 @@ class TestCredentialPoolIntegration:
             expires_at = datetime.now() + timedelta(seconds=7200)
             return token_value, expires_at
 
-        with patch.object(
-            credential_pool, "_fetch_app_access_token", side_effect=mock_fetch_app
-        ):
+        with patch.object(credential_pool, "_fetch_app_access_token", side_effect=mock_fetch_app):
             # Get tokens for both apps
             token1 = credential_pool.get_token("cli_app1test123456789", "app_access_token")
             token2 = credential_pool.get_token("cli_app2test123456789", "app_access_token")

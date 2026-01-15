@@ -138,9 +138,7 @@ def add_default_application_from_env(
         session.close()
 
 
-def setup_config_database(
-    db_path: Path | None = None, add_default_app: bool = True
-) -> None:
+def setup_config_database(db_path: Path | None = None, add_default_app: bool = True) -> None:
     """Complete setup of configuration database.
 
     Initializes the database and optionally adds default application from

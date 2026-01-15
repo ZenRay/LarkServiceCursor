@@ -48,9 +48,7 @@ class TestProjectStructure:
     def test_docker_files(self, project_root: Path) -> None:
         """测试 Docker 相关文件"""
         assert (project_root / "Dockerfile").exists(), "Dockerfile 应该存在"
-        assert (
-            project_root / "docker-compose.yml"
-        ).exists(), "docker-compose.yml 应该存在"
+        assert (project_root / "docker-compose.yml").exists(), "docker-compose.yml 应该存在"
 
     def test_migration_files(self, project_root: Path) -> None:
         """测试数据库迁移文件"""
@@ -68,9 +66,9 @@ class TestProjectStructure:
         assert docs_dir.exists(), "docs 目录应该存在"
         assert (docs_dir / "architecture.md").exists(), "architecture.md 应该存在"
         assert (docs_dir / "deployment.md").exists(), "deployment.md 应该存在"
-        assert (
-            docs_dir / "development-environment.md"
-        ).exists(), "development-environment.md 应该存在"
+        assert (docs_dir / "development-environment.md").exists(), (
+            "development-environment.md 应该存在"
+        )
 
 
 class TestPyprojectConfig:

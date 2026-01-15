@@ -107,11 +107,13 @@ class CredentialPool:
         app_secret = self.app_manager.get_decrypted_secret(app_id)
 
         # Create SDK client
-        client = lark.Client.builder() \
-            .app_id(app_id) \
-            .app_secret(app_secret) \
-            .log_level(lark.LogLevel.ERROR) \
+        client = (
+            lark.Client.builder()
+            .app_id(app_id)
+            .app_secret(app_secret)
+            .log_level(lark.LogLevel.ERROR)
             .build()
+        )
 
         self.sdk_clients[app_id] = client
 
@@ -137,10 +139,12 @@ class CredentialPool:
         client = self._get_sdk_client(app_id)
 
         try:
-            request = InternalAppAccessTokenRequest.builder() \
-                .app_id(app_id) \
-                .app_secret(self.app_manager.get_decrypted_secret(app_id)) \
+            request = (
+                InternalAppAccessTokenRequest.builder()
+                .app_id(app_id)
+                .app_secret(self.app_manager.get_decrypted_secret(app_id))
                 .build()
+            )
 
             response = client.auth.v3.app_access_token.internal(request)
 
@@ -193,10 +197,12 @@ class CredentialPool:
         client = self._get_sdk_client(app_id)
 
         try:
-            request = InternalTenantAccessTokenRequest.builder() \
-                .app_id(app_id) \
-                .app_secret(self.app_manager.get_decrypted_secret(app_id)) \
+            request = (
+                InternalTenantAccessTokenRequest.builder()
+                .app_id(app_id)
+                .app_secret(self.app_manager.get_decrypted_secret(app_id))
                 .build()
+            )
 
             response = client.auth.v3.tenant_access_token.internal(request)
 

@@ -134,10 +134,14 @@ class TokenStorageService:
         session = self._get_session()
         try:
             # Check if token exists
-            existing = session.query(TokenStorage).filter_by(
-                app_id=app_id,
-                token_type=token_type,
-            ).first()
+            existing = (
+                session.query(TokenStorage)
+                .filter_by(
+                    app_id=app_id,
+                    token_type=token_type,
+                )
+                .first()
+            )
 
             if existing:
                 # Update existing token
@@ -213,10 +217,14 @@ class TokenStorageService:
 
         session = self._get_session()
         try:
-            token = session.query(TokenStorage).filter_by(
-                app_id=app_id,
-                token_type=token_type,
-            ).first()
+            token = (
+                session.query(TokenStorage)
+                .filter_by(
+                    app_id=app_id,
+                    token_type=token_type,
+                )
+                .first()
+            )
 
             if token:
                 # Detach from session
@@ -261,10 +269,14 @@ class TokenStorageService:
 
         session = self._get_session()
         try:
-            token = session.query(TokenStorage).filter_by(
-                app_id=app_id,
-                token_type=token_type,
-            ).first()
+            token = (
+                session.query(TokenStorage)
+                .filter_by(
+                    app_id=app_id,
+                    token_type=token_type,
+                )
+                .first()
+            )
 
             if not token:
                 return False
@@ -283,10 +295,7 @@ class TokenStorageService:
             session.rollback()
             raise StorageError(
                 f"Failed to delete token: {e}",
-                details={
-                    "app_id": app_id,
-                    "token_type": token_type,
-                    "error": str(e)},
+                details={"app_id": app_id, "token_type": token_type, "error": str(e)},
             ) from e
         finally:
             session.close()
@@ -363,9 +372,9 @@ class TokenStorageService:
         try:
             cutoff_time = datetime.now() - timedelta(days=older_than_days)
 
-            deleted_count = session.query(TokenStorage).filter(
-                TokenStorage.expires_at < cutoff_time
-            ).delete()
+            deleted_count = (
+                session.query(TokenStorage).filter(TokenStorage.expires_at < cutoff_time).delete()
+            )
 
             session.commit()
 
@@ -410,14 +419,13 @@ class TokenStorageService:
         """
         session = self._get_session()
         try:
-            tokens = session.query(TokenStorage).filter(
-                TokenStorage.expires_at > datetime.now()
-            ).all()
+            tokens = (
+                session.query(TokenStorage).filter(TokenStorage.expires_at > datetime.now()).all()
+            )
 
             # Filter by threshold
             tokens_needing_refresh = [
-                token for token in tokens
-                if token.should_refresh(threshold=threshold)
+                token for token in tokens if token.should_refresh(threshold=threshold)
             ]
 
             # Detach from session

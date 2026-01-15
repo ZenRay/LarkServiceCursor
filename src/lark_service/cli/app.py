@@ -6,7 +6,6 @@ Provides commands to manage Feishu application configurations.
 import json
 import os
 import sys
-from pathlib import Path
 
 import click
 from dotenv import load_dotenv
@@ -35,9 +34,7 @@ def get_app_manager() -> ApplicationManager:
         # Get encryption key from environment
         encryption_key_str = os.getenv("LARK_CONFIG_ENCRYPTION_KEY")
         if not encryption_key_str:
-            raise click.ClickException(
-                "LARK_CONFIG_ENCRYPTION_KEY environment variable not set"
-            )
+            raise click.ClickException("LARK_CONFIG_ENCRYPTION_KEY environment variable not set")
 
         encryption_key = encryption_key_str.encode()
 
@@ -92,7 +89,7 @@ def add(
             created_by=created_by,
         )
 
-        console.print(f"[green]✓[/green] Application added successfully!")
+        console.print("[green]✓[/green] Application added successfully!")
         console.print(f"  App ID: {app.app_id}")
         console.print(f"  App Name: {app.app_name}")
         console.print(f"  Status: {app.status}")
@@ -105,7 +102,9 @@ def add(
 
 
 @app.command()
-@click.option("--status", type=click.Choice(["active", "inactive", "deleted"]), help="Filter by status")
+@click.option(
+    "--status", type=click.Choice(["active", "inactive", "deleted"]), help="Filter by status"
+)
 @click.option("--json", "output_json", is_flag=True, help="Output as JSON")
 def list(status: str | None, output_json: bool) -> None:
     """List all application configurations.
@@ -150,7 +149,9 @@ def list(status: str | None, output_json: bool) -> None:
 
             for app in apps:
                 status_emoji = "✓" if app.status == "active" else "✗"
-                created_at_str = app.created_at.strftime("%Y-%m-%d %H:%M") if app.created_at else "N/A"
+                created_at_str = (
+                    app.created_at.strftime("%Y-%m-%d %H:%M") if app.created_at else "N/A"
+                )
 
                 table.add_row(
                     app.app_id,
@@ -210,15 +211,19 @@ def show(app_id: str, output_json: bool) -> None:
             console.print(json.dumps(app_data, indent=2, ensure_ascii=False))
         else:
             # Rich formatted output
-            console.print(f"\n[bold cyan]Application Details[/bold cyan]")
+            console.print("\n[bold cyan]Application Details[/bold cyan]")
             console.print(f"  App ID:       {app.app_id}")
             console.print(f"  App Name:     {app.app_name}")
             console.print(f"  App Secret:   {masked_secret}")
             console.print(f"  Status:       {app.status}")
             console.print(f"  Description:  {app.description or 'N/A'}")
             console.print(f"  Permissions:  {app.permissions or 'N/A'}")
-            console.print(f"  Created At:   {app.created_at.strftime('%Y-%m-%d %H:%M:%S') if app.created_at else 'N/A'}")
-            console.print(f"  Updated At:   {app.updated_at.strftime('%Y-%m-%d %H:%M:%S') if app.updated_at else 'N/A'}")
+            console.print(
+                f"  Created At:   {app.created_at.strftime('%Y-%m-%d %H:%M:%S') if app.created_at else 'N/A'}"
+            )
+            console.print(
+                f"  Updated At:   {app.updated_at.strftime('%Y-%m-%d %H:%M:%S') if app.updated_at else 'N/A'}"
+            )
             console.print(f"  Created By:   {app.created_by or 'N/A'}\n")
 
     except (ValidationError, StorageError) as e:
@@ -255,7 +260,9 @@ def update(
     try:
         # Check if any update is provided
         if not any([app_name, app_secret, description, status, permissions]):
-            console.print("[yellow]No updates provided. Use --help to see available options.[/yellow]")
+            console.print(
+                "[yellow]No updates provided. Use --help to see available options.[/yellow]"
+            )
             sys.exit(0)
 
         app = manager.update_application(
@@ -267,7 +274,7 @@ def update(
             permissions=permissions,
         )
 
-        console.print(f"[green]✓[/green] Application updated successfully!")
+        console.print("[green]✓[/green] Application updated successfully!")
         console.print(f"  App ID: {app.app_id}")
         console.print(f"  App Name: {app.app_name}")
         console.print(f"  Status: {app.status}")
@@ -341,7 +348,7 @@ def enable(app_id: str) -> None:
     try:
         app = manager.update_application(app_id=app_id, status="active")
 
-        console.print(f"[green]✓[/green] Application enabled successfully!")
+        console.print("[green]✓[/green] Application enabled successfully!")
         console.print(f"  App ID: {app.app_id}")
         console.print(f"  Status: {app.status}")
 
@@ -365,7 +372,7 @@ def disable(app_id: str) -> None:
     try:
         app = manager.update_application(app_id=app_id, status="inactive")
 
-        console.print(f"[green]✓[/green] Application disabled successfully!")
+        console.print("[green]✓[/green] Application disabled successfully!")
         console.print(f"  App ID: {app.app_id}")
         console.print(f"  Status: {app.status}")
 

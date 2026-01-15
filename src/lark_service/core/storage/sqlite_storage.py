@@ -306,10 +306,11 @@ class ApplicationManager:
             # Update fields
             if app_name is not None:
                 # Check name uniqueness
-                existing = session.query(Application).filter(
-                    Application.app_name == app_name,
-                    Application.app_id != app_id
-                ).first()
+                existing = (
+                    session.query(Application)
+                    .filter(Application.app_name == app_name, Application.app_id != app_id)
+                    .first()
+                )
                 if existing:
                     raise StorageError(
                         f"Application name '{app_name}' already exists",

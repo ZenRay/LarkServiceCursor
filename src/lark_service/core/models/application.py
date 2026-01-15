@@ -4,7 +4,6 @@ This module defines the Application model for storing Lark app configurations
 in SQLite database with encrypted app_secret.
 """
 
-
 from datetime import datetime
 
 from cryptography.fernet import Fernet
@@ -57,9 +56,7 @@ class Application(ConfigBase):
     status: Mapped[str] = mapped_column(String(16), default="active")
     permissions: Mapped[str | None] = mapped_column(Text, default=None)  # JSON array
     created_at: Mapped[datetime] = mapped_column(default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(
-        default=func.now(), onupdate=func.now()
-    )
+    updated_at: Mapped[datetime] = mapped_column(default=func.now(), onupdate=func.now())
     created_by: Mapped[str | None] = mapped_column(String(64), default=None)
 
     def is_active(self) -> bool:
