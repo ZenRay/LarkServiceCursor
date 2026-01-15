@@ -4,8 +4,7 @@ This module defines the TokenStorage model for persisting access tokens
 with encryption and expiration management.
 """
 
-from datetime import datetime, timedelta
-from typing import Optional
+from datetime import datetime
 
 from sqlalchemy import Column, DateTime, Index, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.ext.declarative import declarative_base
@@ -58,7 +57,7 @@ class TokenStorage(Base):
         Index("idx_tokens_expires", "expires_at"),
     )
 
-    def is_expired(self, now: Optional[datetime] = None) -> bool:
+    def is_expired(self, now: datetime | None = None) -> bool:
         """Check if token has expired.
 
         Parameters
@@ -73,7 +72,7 @@ class TokenStorage(Base):
             now = datetime.now()
         return self.expires_at <= now
 
-    def should_refresh(self, threshold: float = 0.1, now: Optional[datetime] = None) -> bool:
+    def should_refresh(self, threshold: float = 0.1, now: datetime | None = None) -> bool:
         """Check if token should be refreshed based on remaining lifetime.
 
         Parameters
@@ -105,7 +104,7 @@ class TokenStorage(Base):
         # Refresh if remaining time is less than threshold percentage
         return remaining_time < (total_lifetime * threshold)
 
-    def get_remaining_seconds(self, now: Optional[datetime] = None) -> float:
+    def get_remaining_seconds(self, now: datetime | None = None) -> float:
         """Get remaining seconds until expiration.
 
         Parameters

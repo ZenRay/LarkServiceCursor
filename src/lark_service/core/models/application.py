@@ -4,8 +4,6 @@ This module defines the Application model for storing Lark app configurations
 in SQLite database with encrypted app_secret.
 """
 
-from datetime import datetime
-from typing import Optional
 
 from cryptography.fernet import Fernet
 from sqlalchemy import Column, DateTime, String, Text, func

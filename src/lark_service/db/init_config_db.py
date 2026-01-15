@@ -6,11 +6,9 @@ application configuration storage.
 
 import os
 from pathlib import Path
-from typing import Optional
 
-from cryptography.fernet import Fernet
 from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import sessionmaker
 
 from lark_service.core.models.application import Application, ConfigBase
 
@@ -38,7 +36,7 @@ def get_config_db_path() -> Path:
     return db_path
 
 
-def init_config_database(db_path: Optional[Path] = None) -> None:
+def init_config_database(db_path: Path | None = None) -> None:
     """Initialize the SQLite configuration database.
 
     Creates the database file and all required tables if they don't exist.
@@ -63,8 +61,8 @@ def init_config_database(db_path: Optional[Path] = None) -> None:
 
 
 def add_default_application_from_env(
-    db_path: Optional[Path] = None, encryption_key: Optional[bytes] = None
-) -> Optional[Application]:
+    db_path: Path | None = None, encryption_key: bytes | None = None
+) -> Application | None:
     """Add default application from environment variables if configured.
 
     Reads LARK_APP_ID and LARK_APP_SECRET from environment and adds them
@@ -112,8 +110,8 @@ def add_default_application_from_env(
 
     # Create engine and session
     engine = create_engine(f"sqlite:///{db_path}", echo=False)
-    SessionLocal = sessionmaker(bind=engine)
-    session = SessionLocal()
+    session_local = sessionmaker(bind=engine)
+    session = session_local()
 
     try:
         # Check if application already exists
@@ -141,7 +139,7 @@ def add_default_application_from_env(
 
 
 def setup_config_database(
-    db_path: Optional[Path] = None, add_default_app: bool = True
+    db_path: Path | None = None, add_default_app: bool = True
 ) -> None:
     """Complete setup of configuration database.
 

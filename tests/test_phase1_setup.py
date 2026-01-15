@@ -3,7 +3,6 @@
 测试项目结构、配置文件和基础模块是否正确创建
 """
 
-import os
 from pathlib import Path
 
 import pytest
@@ -174,10 +173,12 @@ class TestImports:
     def test_import_business_modules(self) -> None:
         """测试导入业务模块"""
         try:
-            from lark_service import apaas  # noqa: F401
-            from lark_service import clouddoc  # noqa: F401
-            from lark_service import contact  # noqa: F401
-            from lark_service import messaging  # noqa: F401
+            from lark_service import (
+                apaas,  # noqa: F401
+                clouddoc,  # noqa: F401
+                contact,  # noqa: F401
+                messaging,  # noqa: F401
+            )
 
             assert True, "应该能够导入所有业务模块"
         except ImportError as e:
@@ -186,9 +187,11 @@ class TestImports:
     def test_import_utils(self) -> None:
         """测试导入工具模块"""
         try:
-            from lark_service import cli  # noqa: F401
-            from lark_service import db  # noqa: F401
-            from lark_service import utils  # noqa: F401
+            from lark_service import (
+                cli,  # noqa: F401
+                db,  # noqa: F401
+                utils,  # noqa: F401
+            )
 
             assert True, "应该能够导入工具模块"
         except ImportError as e:

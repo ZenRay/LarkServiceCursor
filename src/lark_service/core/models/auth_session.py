@@ -5,7 +5,6 @@ authentication sessions with 10-minute timeout.
 """
 
 from datetime import datetime, timedelta
-from typing import Optional
 
 from sqlalchemy import Column, DateTime, Index, Integer, String, func
 from sqlalchemy.ext.declarative import declarative_base
@@ -82,7 +81,7 @@ class UserAuthSession(Base):
                 self.created_at = now
                 self.expires_at = now + timedelta(minutes=10)
 
-    def is_expired(self, now: Optional[datetime] = None) -> bool:
+    def is_expired(self, now: datetime | None = None) -> bool:
         """Check if session has expired.
 
         Parameters
@@ -120,7 +119,7 @@ class UserAuthSession(Base):
         self.token_expires_at = token_expires_at
         self.completed_at = datetime.now()
 
-    def get_remaining_seconds(self, now: Optional[datetime] = None) -> float:
+    def get_remaining_seconds(self, now: datetime | None = None) -> float:
         """Get remaining seconds until session expiration.
 
         Parameters
