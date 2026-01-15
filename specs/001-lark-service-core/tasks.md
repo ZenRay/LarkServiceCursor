@@ -76,56 +76,56 @@
 
 ### CLI 命令行工具
 
-- [ ] T021.1 [P] [US1] 创建 CLI 入口模块 src/lark_service/cli/__init__.py (Click 命令组定义, main() 函数作为入口点)
-- [ ] T021.2 [US1] 实现 app add 命令 src/lark_service/cli/app.py (添加应用配置, 参数验证, 加密存储, 成功提示)
-- [ ] T021.3 [US1] 实现 app list 命令 src/lark_service/cli/app.py (列出所有应用, Rich 表格展示, 支持 --json 选项)
-- [ ] T021.4 [US1] 实现 app show 命令 src/lark_service/cli/app.py (显示应用详情, app_secret 脱敏显示为 secret_****, 支持 --json 选项)
-- [ ] T021.5 [US1] 实现 app update 命令 src/lark_service/cli/app.py (更新应用配置, 支持部分字段更新, 重新加密 app_secret)
-- [ ] T021.6 [US1] 实现 app delete 命令 src/lark_service/cli/app.py (删除应用配置, 交互式确认或 --force 选项, 级联删除 Token)
-- [ ] T021.7 [US1] 实现 app enable/disable 命令 src/lark_service/cli/app.py (启用/禁用应用, 更新 is_active 状态)
-- [ ] T021.8 [P] [US1] 添加 CLI 单元测试 tests/unit/cli/test_app_commands.py (命令参数验证, 输出格式, 错误处理, 退出码)
-- [ ] T021.9 [US1] 配置 setup.py 入口点 setup.py (console_scripts: lark-service-cli=lark_service.cli:main)
-
+- [x] T021.1 [P] [US1] 创建 CLI 入口模块 src/lark_service/cli/__init__.py (Click 命令组定义, main() 函数作为入口点) ✅
+- [x] T021.2 [US1] 实现 app add 命令 src/lark_service/cli/app.py (添加应用配置, 参数验证, 加密存储, 成功提示) ✅
+- [x] T021.3 [US1] 实现 app list 命令 src/lark_service/cli/app.py (列出所有应用, Rich 表格展示, 支持 --json 选项) ✅
+- [x] T021.4 [US1] 实现 app show 命令 src/lark_service/cli/app.py (显示应用详情, app_secret 脱敏显示为 secret_****, 支持 --json 选项) ✅
+- [x] T021.5 [US1] 实现 app update 命令 src/lark_service/cli/app.py (更新应用配置, 支持部分字段更新, 重新加密 app_secret) ✅
+- [x] T021.6 [US1] 实现 app delete 命令 src/lark_service/cli/app.py (删除应用配置, 交互式确认或 --force 选项, 级联删除 Token) ✅
+- [x] T021.7 [US1] 实现 app enable/disable 命令 src/lark_service/cli/app.py (启用/禁用应用, 更新 is_active 状态) ✅
+- [x] T021.8 [P] [US1] 添加 CLI 单元测试 tests/unit/cli/test_app_commands.py (命令参数验证, 输出格式, 错误处理, 退出码) ✅
+- [x] T021.9 [US1] 配置 setup.py 入口点 setup.py (console_scripts: lark-service-cli=lark_service.cli:main) ✅
+ ✅
 ### 核心基础设施
-
-- [ ] T022 [P] [US1] 实现配置加载器 src/lark_service/core/config.py (加载 .env, 验证必需变量, Config dataclass)
-- [ ] T023 [P] [US1] 实现自定义异常 src/lark_service/core/exceptions.py (TokenAcquisitionError, ConfigError, APIError 基类)
-- [ ] T024 [P] [US1] 实现 StandardResponse src/lark_service/core/response.py (Pydantic 模型,包含 code, message, request_id, data, error)
-- [ ] T025 [P] [US1] 实现日志设置 src/lark_service/utils/logger.py (结构化日志、日志级别、request_id 注入)
-- [ ] T026 [P] [US1] 实现参数校验器 src/lark_service/utils/validators.py (app_id 格式、邮箱格式、文件大小限制)
-
+ ✅
+- [x] T022 [P] [US1] 实现配置加载器 src/lark_service/core/config.py (加载 .env, 验证必需变量, Config dataclass) ✅
+- [x] T023 [P] [US1] 实现自定义异常 src/lark_service/core/exceptions.py (TokenAcquisitionError, ConfigError, APIError 基类) ✅
+- [x] T024 [P] [US1] 实现 StandardResponse src/lark_service/core/response.py (Pydantic 模型,包含 code, message, request_id, data, error) ✅
+- [x] T025 [P] [US1] 实现日志设置 src/lark_service/utils/logger.py (结构化日志、日志级别、request_id 注入) ✅
+- [x] T026 [P] [US1] 实现参数校验器 src/lark_service/utils/validators.py (app_id 格式、邮箱格式、文件大小限制) ✅
+ ✅
 ### 存储层服务
-
-- [ ] T027 [US1] 实现 SQLite 存储服务 src/lark_service/core/storage/sqlite_storage.py (ApplicationManager CRUD, 加密/解密)
-- [ ] T028 [US1] 实现 PostgreSQL 存储服务 src/lark_service/core/storage/postgres_storage.py (TokenStorageService 包含 get/set/delete, 连接池)
-
+ ✅
+- [x] T027 [US1] 实现 SQLite 存储服务 src/lark_service/core/storage/sqlite_storage.py (ApplicationManager CRUD, 加密/解密) ✅
+- [x] T028 [US1] 实现 PostgreSQL 存储服务 src/lark_service/core/storage/postgres_storage.py (TokenStorageService 包含 get/set/delete, 连接池) ✅
+ ✅
 ### 并发控制
-
-- [ ] T029 [US1] 实现锁管理器 src/lark_service/core/lock_manager.py (TokenRefreshLock 使用 threading.Lock + filelock 进程级锁, 超时 30s)
-
+ ✅
+- [x] T029 [US1] 实现锁管理器 src/lark_service/core/lock_manager.py (TokenRefreshLock 使用 threading.Lock + filelock 进程级锁, 超时 30s) ✅
+ ✅
 ### Token 凭证池核心
-
-- [ ] T030 [US1] 实现重试策略 src/lark_service/core/retry.py (指数退避 1s→2s→4s, 最多3次重试, 限流处理30s)
-- [ ] T031 [US1] 实现 CredentialPool src/lark_service/core/credential_pool.py (get_token, refresh_token, 懒加载, 多应用隔离)
-- [ ] T032 [US1] 集成 lark-oapi SDK 到 credential_pool.py (每个 app_id 的 SDK 客户端初始化, 通过 SDK 获取 token)
-
+ ✅
+- [x] T030 [US1] 实现重试策略 src/lark_service/core/retry.py (指数退避 1s→2s→4s, 最多3次重试, 限流处理30s) ✅
+- [x] T031 [US1] 实现 CredentialPool src/lark_service/core/credential_pool.py (get_token, refresh_token, 懒加载, 多应用隔离) ✅
+- [x] T032 [US1] 集成 lark-oapi SDK 到 credential_pool.py (每个 app_id 的 SDK 客户端初始化, 通过 SDK 获取 token) ✅
+ ✅
 ### TDD 测试 (先写失败测试)
-
-- [ ] T033 [P] [US1] Application 模型单元测试 tests/unit/core/test_application_model.py (加密/解密、状态验证)
-- [ ] T034 [P] [US1] TokenStorage 模型单元测试 tests/unit/core/test_token_storage_model.py (唯一约束、expires_at 验证)
-- [ ] T035 [P] [US1] 锁管理器单元测试 tests/unit/core/test_lock_manager.py (并发访问、超时行为)
-- [ ] T036 [P] [US1] 重试策略单元测试 tests/unit/core/test_retry.py (指数退避、最大重试次数、限流检测)
-- [ ] T037 [US1] Token 凭证池集成测试 tests/integration/test_credential_pool.py (懒加载、Token刷新、数据库持久化、多应用隔离)
-- [ ] T038 [US1] Token 生命周期集成测试 tests/integration/test_token_lifecycle.py (获取 → 使用 → 刷新 → 过期 → 重新获取)
-
+ ✅
+- [x] T033 [P] [US1] Application 模型单元测试 tests/unit/core/test_application_model.py (加密/解密、状态验证) ✅
+- [x] T034 [P] [US1] TokenStorage 模型单元测试 tests/unit/core/test_token_storage_model.py (唯一约束、expires_at 验证) ✅
+- [x] T035 [P] [US1] 锁管理器单元测试 tests/unit/core/test_lock_manager.py (并发访问、超时行为) ✅
+- [x] T036 [P] [US1] 重试策略单元测试 tests/unit/core/test_retry.py (指数退避、最大重试次数、限流检测) ✅
+- [x] T037 [US1] Token 凭证池集成测试 tests/integration/test_credential_pool.py (懒加载、Token刷新、数据库持久化、多应用隔离) ✅
+- [x] T038 [US1] Token 生命周期集成测试 tests/integration/test_token_lifecycle.py (获取 → 使用 → 刷新 → 过期 → 重新获取) ✅
+ ✅
 ### 阶段检查点
-
-- [ ] **构建验证**: `docker build -t lark-service:latest .` 成功
-- [ ] **代码质量**: `ruff check src/ tests/` 无错误, `mypy src/` 99%+ 覆盖率
-- [ ] **单元测试**: `pytest tests/unit/core/ -v` 全部通过
-- [ ] **集成测试**: `pytest tests/integration/test_credential_pool.py -v` 通过
-- [ ] **功能验证**: 手工测试 CredentialPool.get_token() 返回有效 Token,服务重启后从数据库恢复
-- [ ] **文档更新**: 更新 docs/architecture.md 补充 Token 管理架构图
+ ✅
+- [x] **构建验证**: `docker build -t lark-service:latest .` 成功 ✅
+- [x] **代码质量**: `ruff check src/ tests/` 无错误, `mypy src/` 99%+ 覆盖率 ✅
+- [x] **单元测试**: `pytest tests/unit/core/ -v` 全部通过 ✅
+- [x] **集成测试**: `pytest tests/integration/test_credential_pool.py -v` 通过 ✅
+- [x] **功能验证**: 手工测试 CredentialPool.get_token() 返回有效 Token,服务重启后从数据库恢复 ✅
+- [x] **文档更新**: 更新 docs/architecture.md 补充 Token 管理架构图 ✅
 
 ---
 
