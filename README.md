@@ -24,6 +24,33 @@
 
 ## 📋 快速开始
 
+### 开发者工作流 (Speckit)
+
+本项目使用 **Speckit** 进行功能开发和规范管理:
+
+```bash
+# 1. 创建新功能分支 (自动创建 spec 目录)
+/speckit.specify "Implement messaging service for group chats"
+# → 创建分支: 002-messaging-service
+# → 创建目录: specs/002-messaging-service/
+
+# 2. 生成实施计划和任务清单
+/speckit.plan      # 生成 plan.md
+/speckit.tasks     # 生成 tasks.md
+
+# 3. 开发功能 (正常 Git 工作流)
+git add .
+git commit -m "feat(messaging): 实现消息发送接口"
+git push -u origin 002-messaging-service
+
+# 4. 创建 PR 并验收
+# 在 GitHub 创建 PR: 002-messaging-service → main
+/speckit.checklist  # 运行检查清单验证
+```
+
+**分支命名规范**: `NNN-<short-description>` (如 `001-lark-service-core`)  
+**详细说明**: 参考 [Git 工作流文档](docs/git-workflow.md)
+
 ### 集成方式
 
 本服务支持两种集成方式,**推荐使用子项目集成方式**以便于开发调试和定制:

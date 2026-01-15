@@ -108,9 +108,12 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: 
+      - main
+      - '[0-9][0-9][0-9]-*'  # Speckit 功能分支 (如 001-lark-service-core)
   pull_request:
-    branches: [main, develop]
+    branches: 
+      - main
 
 jobs:
   test:
@@ -383,20 +386,72 @@ bandit -r src/ -f json -o bandit-report.json
 
 ## 🚢 部署流程
 
+### 分支触发策略
+
+| 分支类型 | 触发条件 | CI 行为 |
+|---------|---------|---------|
+| **main** | push / PR | 完整 CI + 构建 + 安全扫描 |
+| **NNN-*** | push / PR | 完整 CI + 构建 |
+| **release/*** | push | 完整 CI + 构建 + 部署预发布 |
+| **hotfix/*** | push | 完整 CI + 快速验证 |
+
+**分支模式匹配**:
+```yaml
+branches:
+  - main                    # 主分支
+  - '[0-9][0-9][0-9]-*'    # Speckit 功能分支 (001-*, 002-*, ...)
+  - 'release/**'            # 发布分支
+  - 'hotfix/**'             # 热修复分支
+```
+
 ### 开发环境部署
 
 ```bash
-# 自动部署 (develop 分支推送后)
-# → 构建镜像
+# 自动部署 (功能分支推送后)
+# → 触发条件: push to NNN-* 分支
+# → 构建镜像: lark-service:NNN-branch-name
 # → 推送到测试镜像仓库
 # → 部署到测试环境
 # → 运行冒烟测试
+```
+
+**部署工作流**:
+```yaml
+# .github/workflows/deploy-dev.yml
+name: Deploy to Dev
+
+on:
+  push:
+    branches:
+      - '[0-9][0-9][0-9]-*'  # 功能分支
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: 构建镜像
+        run: |
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          docker build -t lark-service:$BRANCH_NAME .
+      
+      - name: 推送到测试仓库
+        run: |
+          docker push test-registry/lark-service:$BRANCH_NAME
+      
+      - name: 部署到测试环境
+        run: |
+          kubectl set image deployment/lark-service \\
+            lark-service=test-registry/lark-service:$BRANCH_NAME \\
+            -n test
 ```
 
 ### 生产环境部署
 
 ```bash
 # 手动触发 (main 分支 + 标签)
+# → 触发条件: push tag v*
 # → 代码审查通过
 # → CI 全部通过
 # → 创建 Release
