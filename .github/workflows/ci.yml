@@ -16,6 +16,21 @@ jobs:
       matrix:
         python-version: ["3.12"]
 
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: lark_service
+          POSTGRES_USER: lark
+          POSTGRES_PASSWORD: lark_password_123
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
     steps:
       - uses: actions/checkout@v4
 
@@ -42,6 +57,13 @@ jobs:
           mypy src/ --strict
 
       - name: 运行测试
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          POSTGRES_DB: lark_service
+          POSTGRES_USER: lark
+          POSTGRES_PASSWORD: lark_password_123
+          LARK_CONFIG_ENCRYPTION_KEY: ${{ secrets.LARK_CONFIG_ENCRYPTION_KEY || 'dGVzdF9lbmNyeXB0aW9uX2tleV8zMl9ieXRlc19sb25nISE=' }}
         run: |
           pytest tests/ \
             --cov=src/lark_service \
