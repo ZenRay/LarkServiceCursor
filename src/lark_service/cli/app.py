@@ -4,14 +4,20 @@ Provides commands to manage Feishu application configurations.
 """
 
 import json
+import os
 import sys
+from pathlib import Path
 
 import click
+from dotenv import load_dotenv
 from rich.console import Console
 from rich.table import Table
 
 from lark_service.core.exceptions import StorageError, ValidationError
 from lark_service.core.storage.sqlite_storage import ApplicationManager
+
+# Load .env file at module import time
+load_dotenv()
 
 console = Console()
 
@@ -27,7 +33,6 @@ def get_app_manager() -> ApplicationManager:
     """
     try:
         # Get encryption key from environment
-        import os
         encryption_key_str = os.getenv("LARK_CONFIG_ENCRYPTION_KEY")
         if not encryption_key_str:
             raise click.ClickException(
@@ -87,7 +92,7 @@ def add(
             created_by=created_by,
         )
 
-        console.print("[green]✓[/green] Application added successfully!")
+        console.print(f"[green]✓[/green] Application added successfully!")
         console.print(f"  App ID: {app.app_id}")
         console.print(f"  App Name: {app.app_name}")
         console.print(f"  Status: {app.status}")
@@ -205,7 +210,7 @@ def show(app_id: str, output_json: bool) -> None:
             console.print(json.dumps(app_data, indent=2, ensure_ascii=False))
         else:
             # Rich formatted output
-            console.print("\n[bold cyan]Application Details[/bold cyan]")
+            console.print(f"\n[bold cyan]Application Details[/bold cyan]")
             console.print(f"  App ID:       {app.app_id}")
             console.print(f"  App Name:     {app.app_name}")
             console.print(f"  App Secret:   {masked_secret}")
@@ -262,7 +267,7 @@ def update(
             permissions=permissions,
         )
 
-        console.print("[green]✓[/green] Application updated successfully!")
+        console.print(f"[green]✓[/green] Application updated successfully!")
         console.print(f"  App ID: {app.app_id}")
         console.print(f"  App Name: {app.app_name}")
         console.print(f"  Status: {app.status}")
@@ -336,7 +341,7 @@ def enable(app_id: str) -> None:
     try:
         app = manager.update_application(app_id=app_id, status="active")
 
-        console.print("[green]✓[/green] Application enabled successfully!")
+        console.print(f"[green]✓[/green] Application enabled successfully!")
         console.print(f"  App ID: {app.app_id}")
         console.print(f"  Status: {app.status}")
 
@@ -360,7 +365,7 @@ def disable(app_id: str) -> None:
     try:
         app = manager.update_application(app_id=app_id, status="inactive")
 
-        console.print("[green]✓[/green] Application disabled successfully!")
+        console.print(f"[green]✓[/green] Application disabled successfully!")
         console.print(f"  App ID: {app.app_id}")
         console.print(f"  Status: {app.status}")
 
