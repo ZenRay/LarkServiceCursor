@@ -208,12 +208,17 @@ class TestTokenLifecycle:
 
         # Manually store a token that's near expiry
         # With 50% threshold, a 10-second token should refresh at 5 seconds remaining
-        near_expiry = datetime.now() + timedelta(seconds=4)
+        # Create a token with 10-second lifetime, but only 4 seconds remaining
+        now = datetime.now()
+        created_at = now - timedelta(seconds=6)  # Created 6 seconds ago
+        near_expiry = now + timedelta(seconds=4)  # Expires in 4 seconds
+        # Total lifetime: 10 seconds, remaining: 4 seconds < 5 seconds (50% threshold)
         token_storage.set_token(
             app_id=app_id,
             token_type=token_type,
             token_value="near_expiry_token",
             expires_at=near_expiry,
+            created_at=created_at,
         )
 
         # Mock token fetch method

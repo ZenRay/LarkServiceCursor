@@ -100,6 +100,7 @@ class TokenStorageService:
         token_type: str,
         token_value: str,
         expires_at: datetime,
+        created_at: datetime | None = None,
     ) -> TokenStorage:
         """Store or update token.
 
@@ -108,6 +109,7 @@ class TokenStorageService:
             token_type: Token type (e.g., 'app_access_token', 'tenant_access_token')
             token_value: Token value (encrypted)
             expires_at: Token expiration time
+            created_at: Token creation time (defaults to now if not provided)
 
         Returns:
             TokenStorage instance
@@ -131,6 +133,10 @@ class TokenStorageService:
         if not token_type or not token_type.strip():
             raise ValidationError("token_type cannot be empty")
 
+        # Use provided created_at or default to now
+        if created_at is None:
+            created_at = datetime.now()
+
         session = self._get_session()
         try:
             # Check if token exists
@@ -145,16 +151,20 @@ class TokenStorageService:
 
             if existing:
                 # Update existing token
+                # Note: We update created_at to reflect the new token's lifecycle
+                # This ensures should_refresh() calculates based on the new token's lifetime
                 existing.token_value = token_value
                 existing.expires_at = expires_at
-                existing.created_at = datetime.now()  # Update created_at for new token lifecycle
+                existing.created_at = created_at
                 token = existing
             else:
                 # Create new token
+                # Set created_at explicitly to ensure consistency with expires_at
                 token = TokenStorage(
                     app_id=app_id,
                     token_type=token_type,
                     token_value=token_value,
+                    created_at=created_at,
                     expires_at=expires_at,
                 )
                 session.add(token)
