@@ -12,7 +12,9 @@ repos:
     rev: v1.8.0
     hooks:
       - id: mypy
-        additional_dependencies: [types-all]
+        additional_dependencies:
+          - types-psycopg2
+          - types-pika
         args: [--strict, --ignore-missing-imports]
 
   # 基础检查
