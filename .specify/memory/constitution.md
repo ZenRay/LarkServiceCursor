@@ -2,44 +2,41 @@
 =============================================================================
 宪章同步影响报告
 =============================================================================
-版本变更: 1.0.0 → 1.1.0
-理由: MINOR 版本升级 - 新增原则和扩展现有原则
+版本变更: 1.1.0 → 1.2.0
+理由: MINOR 版本升级 - 新增 Git 提交规范原则
 
 修改的原则:
-- 扩展: II. 代码质量门禁 - 新增 Docstring 标准格式要求
-- 新增: X. 文件操作闭环 (非妥协)
+- 新增: XI. Git 提交规范 (非妥协)
 
-原则总数: 9 条 → 10 条
+原则总数: 10 条 → 11 条
 
 新增内容详情:
-1. **原则 II 扩展 - Docstring 标准**:
-   - 强制要求所有公共函数、类、模块包含 Docstring
-   - 定义标准格式: Args/Returns/Raises/Example
-   - 使用 `----------` 分隔线
-   - 英文编写,简洁明确
+1. **原则 XI - Git 提交规范**:
+   - 强制代码格式化 (git add 前执行 ruff format)
+   - 强制代码质量检查 (git commit 前执行 ruff/mypy/pytest)
+   - 强制 Conventional Commits 提交消息格式
+   - 强制明确 push 操作,禁止自动推送
+   - 提供自动化检查脚本和完整工作流示例
 
-2. **原则 X - 文件操作闭环**:
-   - 强制文件创建、检查、更新形成闭环
-   - 禁止过度新建文档,必须原地修改
-   - 确保单一事实来源 (Single Source of Truth)
-   - 适用于规范、计划、任务、代码、配置文件
-   - 明确例外情况 (版本归档、备份、临时文件)
-
-依赖模板更新状态:
-- ✅ .specify/templates/plan-template.md: 无需更新
-- ✅ .specify/templates/spec-template.md: 无需更新
-- ✅ .specify/templates/tasks-template.md: 无需更新
-- ✅ .cursor/commands/*.md: 无需更新 (原则 X 为通用行为准则,已内置于 AI 工作流)
+依赖工具更新状态:
+- ✅ .specify/scripts/bash/pre-commit-check.sh: 已创建
+- ⏳ .cursor/commands/speckit.implement.md: 待更新 (集成 Git 检查流程)
+- ⏳ CONTRIBUTING.md: 待创建 (开发者指南)
+- ⏳ docs/git-workflow.md: 待更新 (补充提交前检查章节)
 
 影响范围:
-- 所有新代码必须包含标准 Docstring
-- 所有文档操作必须遵循闭环原则
-- 代码审查需增加 Docstring 格式检查
+- 所有 Git 提交必须遵循三步检查: 格式化 → 质量检查 → 规范提交
+- Speckit 实现流程需集成自动检查
+- 所有开发者需安装并使用预提交检查脚本
+- Git push 必须明确指定远程和分支,禁止自动推送
 
 后续待办:
-- 无待办项,所有变更已完成
+1. 更新 speckit.implement.md 集成 Git 检查流程
+2. 创建 CONTRIBUTING.md 开发者指南
+3. 更新 docs/git-workflow.md 补充详细说明
+4. 更新 README.md 添加快速参考
 
-最后修订日期: 2026-01-14
+最后修订日期: 2026-01-15
 =============================================================================
 -->
 
@@ -238,6 +235,194 @@ def function_name(arg1: Type1, arg2: Type2) -> ReturnType:
 
 ---
 
+### XI. Git 提交规范 (非妥协)
+
+**强制要求**:
+
+#### 1. 代码格式化 (git add 前)
+- **git add 前**必须运行 `ruff format .`
+- 确保所有代码符合统一格式标准
+- 格式化必须在暂存之前完成
+- 避免提交包含格式不一致的代码
+
+#### 2. 代码质量检查 (git commit 前)
+**三项必检**:
+- `ruff check src/ tests/ --fix` - 代码风格检查并自动修复
+- `mypy src/` - 类型检查,必须 0 错误
+- `pytest tests/` - 测试运行,必须全部通过
+
+**检查顺序**:
+1. **Ruff 检查** → 自动修复代码风格问题
+2. **Mypy 检查** → 验证类型安全,确保 99%+ 覆盖率
+3. **Pytest 检查** → 确保功能正确,维持测试覆盖率 ≥ 80%
+
+**失败处理**:
+- 任何检查失败,必须修复后才能提交
+- 不允许使用 `--no-verify` 跳过检查
+- 不允许提交带有已知错误的代码
+- 检查失败时,必须查看具体错误并修复
+
+**自动化工具**:
+```bash
+# 使用预提交检查脚本 (推荐)
+./.specify/scripts/bash/pre-commit-check.sh
+
+# 或手动执行三项检查
+ruff format .
+ruff check src/ tests/ --fix
+mypy src/
+pytest tests/
+```
+
+#### 3. 提交消息规范 (Conventional Commits)
+**格式**: `<类型>(<范围>): <描述>`
+
+**类型** (必选):
+- `feat`: 新功能
+- `fix`: Bug 修复
+- `docs`: 文档更新
+- `style`: 代码格式化 (不影响功能)
+- `refactor`: 重构 (不修复 bug,不添加功能)
+- `test`: 测试相关
+- `chore`: 构建/工具相关
+- `perf`: 性能优化
+
+**范围** (可选但推荐):
+- 模块名称: `token`, `storage`, `config`, `cli`, `core`, `utils` 等
+- 功能域: `messaging`, `clouddoc`, `contact` 等
+
+**描述** (必选):
+- 清晰简洁 (≤ 50 字符为佳)
+- 使用祈使句 ("添加"而非"添加了")
+- 中文或英文保持一致
+- 首字母小写
+
+**正文** (可选):
+- 详细说明变更内容
+- 说明变更原因
+- 说明影响范围
+- 空行分隔标题和正文
+
+**脚注** (可选):
+- `Closes #123` - 关闭 Issue
+- `Fixes #456` - 修复 Issue
+- `Refs #789` - 相关 Issue
+- `BREAKING CHANGE:` - 破坏性变更 (必须说明)
+
+**示例**:
+```
+feat(token): 实现 Token 自动刷新机制
+
+- 添加刷新阈值配置 (默认 80%)
+- 实现双重检查锁防止重复刷新
+- 添加刷新失败重试机制 (最多 3 次)
+
+Closes #42
+```
+
+```
+fix(storage): 修复 PostgreSQL 连接池泄漏
+
+连接未正确释放导致池耗尽,现已修复:
+- 使用 context manager 确保连接释放
+- 添加连接超时检测
+- 增加连接池监控日志
+
+Fixes #127
+```
+
+```
+docs(readme): 更新安装说明
+
+添加 Docker 安装方式和常见问题解答
+```
+
+#### 4. Push 规范
+**强制要求**:
+- Push 必须**明确指令**执行,不允许自动推送
+- **必须指定远程**: 明确 `origin` 或其他远程名称
+- **必须指定分支**: 明确分支名称,不使用简写
+- **Agent/脚本禁止自动 push**: 必须由用户明确授权
+
+**正确示例**:
+```bash
+✅ git push origin feature/token-refresh
+✅ git push origin main --tags
+✅ git push origin develop
+```
+
+**错误示例**:
+```bash
+❌ git push                    # 缺少远程和分支
+❌ git push origin              # 缺少分支
+❌ 脚本自动执行 push            # 必须用户明确指令
+```
+
+**特殊情况**:
+- **首次推送**: 使用 `-u` 设置上游 `git push -u origin feature/xxx`
+- **强制推送**: 需充分理由,使用 `--force-with-lease` 而非 `--force`
+- **推送标签**: 明确指定 `--tags` 或具体标签名
+
+**理由**: 明确 push 操作避免:
+- 误推送未完成代码到主分支
+- 误推送敏感信息或配置
+- 团队成员之间的推送冲突
+- 自动化脚本的意外推送
+
+#### 5. 完整工作流示例
+
+**标准提交流程**:
+```bash
+# 1. 格式化代码 (git add 前)
+ruff format .
+
+# 2. 暂存更改
+git add src/ tests/ docs/
+
+# 3. 代码质量检查 (git commit 前)
+ruff check src/ tests/ --fix
+mypy src/
+pytest tests/ --cov=src
+
+# 4. 提交代码 (Conventional Commits)
+git commit -m "feat(token): 实现自动刷新机制"
+
+# 5. 推送代码 (需明确指令)
+git push origin feature/token-refresh
+```
+
+**使用自动化脚本**:
+```bash
+# 一键执行所有检查
+./.specify/scripts/bash/pre-commit-check.sh
+
+# 检查通过后提交
+git add .
+git commit -m "feat(token): 实现自动刷新"
+
+# 手动推送 (需明确指令)
+git push origin feature/token-refresh
+```
+
+**集成到 Speckit**:
+```bash
+# Speckit 实现命令会自动执行检查
+/speckit.implement
+
+# 完成后,Speckit 会提示:
+# ✅ 所有任务完成,代码已提交到本地
+# 需要推送吗? 请手动执行:
+# git push origin <branch-name>
+```
+
+**理由**: Git 提交规范确保:
+- **代码质量**: 格式化和检查在源头拦截问题
+- **提交一致**: 规范消息便于追踪和自动化 (生成 CHANGELOG)
+- **团队协作**: 统一流程降低协作成本
+- **安全可控**: 明确 push 避免误操作
+
+---
+
 ## 实施要求
 
 ### 强制检查点
@@ -256,6 +441,7 @@ def function_name(arg1: Type1, arg2: Type2) -> ReturnType:
    - [ ] 所有公共 API 包含标准 Docstring (原则 II)
    - [ ] 无硬编码凭据 (原则 VII)
    - [ ] 代码文件在原地迭代更新 (原则 X)
+   - [ ] Git 提交前完成三项检查 (原则 XI)
 
 3. **代码审查阶段**:
    - [ ] 环境配置正确隔离 (原则 VI)
@@ -263,10 +449,12 @@ def function_name(arg1: Type1, arg2: Type2) -> ReturnType:
    - [ ] Docstring 格式符合标准 (原则 II)
    - [ ] 中文文档完整 (原则 IX)
    - [ ] 无冗余或重复文件 (原则 X)
+   - [ ] 提交消息符合 Conventional Commits (原则 XI)
+   - [ ] 代码格式化和质量检查已通过 (原则 XI)
 
 ### 复杂性豁免流程
 
-如果某个设计需要违反非妥协原则 (III、VII、VIII、X),必须:
+如果某个设计需要违反非妥协原则 (III、VII、VIII、X、XI),必须:
 
 1. 在设计文档的 **Complexity Tracking** 章节中详细记录:
    - 违反的具体原则
@@ -318,4 +506,4 @@ def function_name(arg1: Type1, arg2: Type2) -> ReturnType:
 
 ---
 
-**版本**: 1.1.0 | **批准日期**: 2026-01-14 | **最后修订**: 2026-01-14
+**版本**: 1.2.0 | **批准日期**: 2026-01-15 | **最后修订**: 2026-01-15
