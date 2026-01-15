@@ -349,14 +349,20 @@ class CredentialPool:
             # Double-check cache after acquiring lock (unless force=True)
             if not force:
                 cached_token = self.token_storage.get_token(app_id, token_type)
-                if cached_token and not cached_token.is_expired():
-                    # Check if still needs refresh (another process may have refreshed it)
-                    if not cached_token.should_refresh(threshold=self.config.token_refresh_threshold):
-                        logger.debug(
-                            "Token was refreshed by another process",
-                            extra={"app_id": app_id, "token_type": token_type},
-                        )
-                        return cached_token.token_value
+                # Check if token exists, not expired, and doesn't need refresh
+                if (
+                    cached_token
+                    and not cached_token.is_expired()
+                    and not cached_token.should_refresh(
+                        threshold=self.config.token_refresh_threshold
+                    )
+                ):
+                    # Token was refreshed by another process
+                    logger.debug(
+                        "Token was refreshed by another process",
+                        extra={"app_id": app_id, "token_type": token_type},
+                    )
+                    return cached_token.token_value
 
             # Fetch new token with retry
             def fetch_token() -> tuple[str, datetime]:
