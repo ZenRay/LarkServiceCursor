@@ -15,8 +15,9 @@
 ### 环境要求
 
 - **Python**: 3.12 或更高版本
+- **SQLAlchemy**: 2.0+ (现代类型安全语法)
 - **Docker**: 20.10+ (用于本地开发环境)
-- **Docker Compose**: 1.29+ (用于编排 PostgreSQL 和 RabbitMQ)
+- **Docker Compose**: V2 (命令: `docker compose`)
 
 ### 飞书应用配置
 
