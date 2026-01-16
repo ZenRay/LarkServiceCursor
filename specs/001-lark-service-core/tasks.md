@@ -351,34 +351,43 @@
 
 ---
 
-## Phase 5: US5 aPaaS 平台集成 (Priority: P4)
+## Phase 5: US5 aPaaS 数据空间集成 (Priority: P4)
 
-**目标**: 实现 aPaaS 数据空间表格 CRUD 操作 + AI 能力调用 + 工作流触发
+**目标**: 实现 aPaaS 数据空间表格 CRUD 操作
+
+**能力范围**:
+- ✅ 包含: 数据空间表格(workspace-table)的 CRUD 操作、字段定义查询、分页查询、批量操作
+- ❌ 不包含: AI 能力调用、工作流触发(不在 aPaaS 数据平台范畴)
+- 参考: https://open.feishu.cn/document/uAjLw4CM/ukTMukTMukTM/apaas-v1/workspace-table/list
 
 **独立测试**: 查询工作空间表格列表,CRUD 记录,验证需要 user_access_token 权限
 
-**预计时间**: ~2-3天
+**预计时间**: ~2天
 
 **依赖**: US1 (Token 管理,特别是 user_access_token 认证流程) 必须完成
 
 ### Pydantic 模型
 
-- [ ] T066 [P] [US5] 创建 aPaaS 模型 src/lark_service/apaas/models.py (WorkspaceTable, TableRecord, FieldDefinition, Workflow, AICapability, WorkflowStatus enum)
+- [ ] T066 [P] [US5] 创建 aPaaS 模型 src/lark_service/apaas/models.py (WorkspaceTable, TableRecord, FieldDefinition, 字段类型枚举)
 
 ### 数据空间客户端
 
-- [ ] T067 [P] [US5] 实现工作空间表格客户端 src/lark_service/apaas/workspace/client.py (list_workspace_tables, query_table_records 包含过滤器/排序/分页, update_table_record 包含版本冲突检测, delete_table_record)
-
-### AI 和工作流客户端
-
-- [ ] T068 [P] [US5] 实现 AI 客户端 src/lark_service/apaas/ai/client.py (invoke_ai_capability 超时30s, 需要 user_access_token)
-- [ ] T069 [P] [US5] 实现工作流客户端 src/lark_service/apaas/workflow/client.py (trigger_workflow, get_workflow_status, 需要 user_access_token)
+- [ ] T067 [P] [US5] 实现工作空间表格客户端 src/lark_service/apaas/client.py
+  - list_workspace_tables(workspace_id) - 列出工作空间下的数据表
+  - list_fields(table_id) - 获取数据表的字段定义
+  - query_records(table_id, filter, page_token, page_size) - 查询记录,支持过滤和分页
+  - create_record(table_id, fields) - 创建记录
+  - update_record(table_id, record_id, fields) - 更新记录
+  - delete_record(table_id, record_id) - 删除记录
+  - batch_create_records(table_id, records) - 批量创建
+  - batch_update_records(table_id, records) - 批量更新
+  - 所有操作需要 user_access_token
 
 ### TDD 测试
 
-- [ ] T070 [P] [US5] aPaaS API 契约测试 tests/contract/test_apaas_contract.py (验证符合 contracts/apaas.yaml)
-- [ ] T071 [P] [US5] 工作空间客户端单元测试 tests/unit/apaas/workspace/test_client.py (查询过滤器构建、冲突检测)
-- [ ] T072 [US5] aPaaS 集成测试 tests/integration/test_apaas_e2e.py (需要 user_access_token, 列表表格 → 查询记录 → 更新 → 删除 → 验证, 调用 AI 超时测试)
+- [ ] T068 [P] [US5] aPaaS API 契约测试 tests/contract/test_apaas_contract.py (验证符合 contracts/apaas.yaml)
+- [ ] T069 [P] [US5] 工作空间客户端单元测试 tests/unit/apaas/test_client.py (查询过滤器构建、字段类型解析、分页处理)
+- [ ] T070 [US5] aPaaS 集成测试 tests/integration/test_apaas_e2e.py (需要 user_access_token, 列表表格 → 查询记录 → 创建 → 更新 → 删除 → 验证)
 
 ### 阶段检查点
 
@@ -386,7 +395,7 @@
 - [ ] **代码质量**: `ruff check src/lark_service/apaas/` 无错误, `mypy src/lark_service/apaas/` 通过
 - [ ] **单元测试**: `pytest tests/unit/apaas/ -v` 全部通过
 - [ ] **契约测试**: `pytest tests/contract/test_apaas_contract.py -v` 通过
-- [ ] **功能验证**: 使用有效 user_access_token 查询工作空间表格,CRUD 记录;调用 AI 能力验证返回结果;权限不足时返回明确错误
+- [ ] **功能验证**: 使用有效 user_access_token 查询工作空间表格,CRUD 记录;权限不足时返回明确错误
 - [ ] **文档更新**: 更新 docs/api_reference.md 补充 aPaaS 模块文档
 
 ---

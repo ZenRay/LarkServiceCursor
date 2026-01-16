@@ -112,11 +112,15 @@
 
 ---
 
-### User Story 5 - aPaaS 平台集成 (Priority: P4)
+### User Story 5 - aPaaS 数据空间集成 (Priority: P4)
 
-内部服务需要与飞书 aPaaS 平台集成,对 AI 平台的数据空间(Workspace)中的表格进行 CRUD 操作,实现外部数据对接数据空间的能力。此外还需要支持调用 AI 能力和触发自动化工作流。
+内部服务需要与飞书 aPaaS 平台集成,对数据空间(Workspace)中的表格进行 CRUD 操作,实现外部数据对接数据空间的能力。
 
-**Why this priority**: aPaaS 平台集成是高级功能,主要服务于需要 AI 能力、数据空间集成和自动化流程的场景,使用场景相对有限,适合作为后期扩展功能。
+**能力范围说明**:
+- ✅ **包含**: 数据空间表格(workspace-table)的 CRUD 操作、字段定义查询、分页查询、批量操作
+- ❌ **不包含**: AI 能力调用、工作流触发等流程相关功能(不在 aPaaS 数据平台范畴,参考: https://open.feishu.cn/document/uAjLw4CM/ukTMukTMukTM/apaas-v1/workspace-table/list)
+
+**Why this priority**: aPaaS 数据空间集成是高级功能,主要服务于需要数据空间集成的场景,使用场景相对有限,适合作为后期扩展功能。
 
 **Independent Test**: 可以通过查询工作空间下的数据表列表、对表格记录进行读写操作来独立验证集成是否正常工作。需要 user_access_token 权限。
 
@@ -124,15 +128,12 @@
 
 **数据空间表格操作**:
 1. **Given** 需要查询工作空间下的数据表列表, **When** 调用 `list_workspace_tables(workspace_id, user_access_token)`, **Then** 返回数据表列表及其元信息(表格ID、名称、字段定义)
-2. **Given** 需要读取数据空间表格的记录, **When** 调用 `query_table_records(table_id, query_conditions, user_access_token)`, **Then** 返回符合条件的记录列表
-3. **Given** 需要更新数据空间表格的记录, **When** 调用 `update_table_record(table_id, record_id, update_data, user_access_token)`, **Then** 记录被成功更新并返回最新数据
-4. **Given** 需要删除数据空间表格的记录, **When** 调用 `delete_table_record(table_id, record_id, user_access_token)`, **Then** 记录被成功删除并返回确认信息
-5. **Given** user_access_token 权限不足, **When** 尝试访问工作空间数据表, **Then** 返回明确的权限不足错误和所需权限说明
-
-**AI 能力和工作流**:
-1. **Given** 需要调用飞书 AI 能力进行文本分析, **When** 调用 `invoke_ai_capability(capability_id, input_data, user_access_token)`, **Then** 返回 AI 处理结果
-2. **Given** 需要触发飞书自动化流程, **When** 调用 `trigger_workflow(workflow_id, parameters, user_access_token)`, **Then** 工作流被触发,返回执行状态
-3. **Given** 需要查询自动化流程的执行状态, **When** 调用 `get_workflow_status(execution_id, user_access_token)`, **Then** 返回流程的当前执行状态和结果
+2. **Given** 需要读取数据空间表格的记录, **When** 调用 `query_table_records(table_id, query_conditions, user_access_token)`, **Then** 返回符合条件的记录列表,支持过滤和分页
+3. **Given** 需要创建数据空间表格的记录, **When** 调用 `create_table_record(table_id, record_data, user_access_token)`, **Then** 记录被成功创建并返回记录ID和数据
+4. **Given** 需要更新数据空间表格的记录, **When** 调用 `update_table_record(table_id, record_id, update_data, user_access_token)`, **Then** 记录被成功更新并返回最新数据
+5. **Given** 需要删除数据空间表格的记录, **When** 调用 `delete_table_record(table_id, record_id, user_access_token)`, **Then** 记录被成功删除并返回确认信息
+6. **Given** 需要批量操作记录, **When** 调用 `batch_create_records` 或 `batch_update_records`, **Then** 批量操作成功并返回操作结果
+7. **Given** user_access_token 权限不足, **When** 尝试访问工作空间数据表, **Then** 返回明确的权限不足错误和所需权限说明
 
 ---
 
@@ -373,21 +374,27 @@
 - **FR-069.1**: Contact 模块 MUST 限制单个部门最大 1,000 个用户
 - **FR-070**: Contact 模块 MUST 支持查询组织架构树(部门层级关系)
 
-#### aPaaS 平台服务(aPaaS 模块)
+#### aPaaS 数据空间服务(aPaaS 模块)
+
+**能力范围**: 仅包含数据空间表格(workspace-table)操作,参考飞书开放平台文档: https://open.feishu.cn/document/uAjLw4CM/ukTMukTMukTM/apaas-v1/workspace-table/list
 
 **数据空间表格操作**:
-- **FR-071**: aPaaS 模块 MUST 支持查询工作空间(Workspace)下的数据表列表,返回表格ID、名称、字段定义
-- **FR-072**: aPaaS 模块 MUST 支持根据条件查询数据空间表格的记录(支持过滤、排序、分页)
+- **FR-071**: aPaaS 模块 MUST 支持查询工作空间(Workspace)下的数据表列表,返回表格ID、名称、字段定义(list接口)
+- **FR-072**: aPaaS 模块 MUST 支持根据条件查询数据空间表格的记录,支持过滤、分页(page_token机制)
+- **FR-072-1**: aPaaS 模块 MUST 支持创建数据空间表格的记录,返回记录ID和完整数据
 - **FR-073**: aPaaS 模块 MUST 支持更新数据空间表格的记录,支持部分字段更新
 - **FR-074**: aPaaS 模块 MUST 支持删除数据空间表格的记录
+- **FR-074-1**: aPaaS 模块 MUST 支持批量创建、批量更新记录操作
 - **FR-075**: aPaaS 模块 MUST 使用 user_access_token 进行数据空间操作,并验证权限有效性
-- **FR-076**: aPaaS 模块 MUST 处理并发写冲突,返回明确的冲突错误和重试建议
+- **FR-076**: aPaaS 模块 SHOULD 处理并发写冲突(如果飞书API支持版本控制),返回明确的冲突错误
 
-**AI 能力与工作流**:
-- **FR-077**: aPaaS 模块 MUST 支持调用飞书 AI 能力(如文本分析、智能问答等),需要 user_access_token
-- **FR-078**: aPaaS 模块 MUST 支持触发飞书自动化工作流,传入参数并返回执行ID
-- **FR-079**: aPaaS 模块 MUST 支持查询自动化工作流的执行状态和结果
-- **FR-080**: aPaaS 模块 MUST 设置 AI 调用的超时时间(默认 30 秒),超时后返回明确错误
+**字段类型支持**:
+- **FR-077**: aPaaS 模块 MUST 支持常见字段类型:文本、数字、附件、超链接、人员、单选/多选、关联字段等
+- **FR-078**: aPaaS 模块 MUST 正确解析字段定义中的类型、选项、约束等元数据
+
+**数据格式规范**:
+- **FR-079**: aPaaS 模块 MUST 使用 ISO 8601 格式处理日期时间字段
+- **FR-080**: aPaaS 模块 MUST 使用 null 表示空值,遵循飞书API的数据格式规范
 
 #### 架构与可扩展性
 
@@ -493,10 +500,9 @@
 - **UserCache**: 用户缓存对象(PostgreSQL 存储),包含 app_id、open_id、user_id、union_id、用户详细信息、cached_at、expires_at 等字段,支持按 app_id 隔离
 - **ChatGroup**: 群组对象,表示飞书群聊,包含 chat_id、群名称、群主 ID、成员数量、创建时间等属性
 - **Department**: 部门对象,表示组织架构中的部门,包含部门 ID、部门名称、父部门 ID、成员列表等属性
-- **WorkspaceTable**: 数据空间表格对象,表示 aPaaS 工作空间中的数据表,包含 workspace_id、table_id、表格名称、字段定义列表、记录数量等属性
-- **TableRecord**: 数据空间表格记录对象,表示表格中的一行数据,包含 record_id、table_id、字段值映射(Dict)、版本号(用于并发控制)、created_at、updated_at 等属性
-- **Workflow**: aPaaS 工作流对象,表示自动化流程,包含工作流 ID、名称、触发参数、执行状态、执行结果等属性
-- **AICapability**: AI 能力对象,表示飞书 AI 服务,包含能力 ID、能力类型、输入参数、输出结果等属性
+- **WorkspaceTable**: 数据空间表格对象,表示 aPaaS 工作空间中的数据表,包含 workspace_id、table_id、表格名称、字段定义列表等属性
+- **TableRecord**: 数据空间表格记录对象,表示表格中的一行数据,包含 record_id、table_id、字段值映射(Dict[str, Any])、created_at、updated_at 等属性
+- **FieldDefinition**: 字段定义对象,表示数据表中的字段元数据,包含 field_id、field_name、field_type(文本/数字/附件/人员/单选/多选等)、is_required、options(选项列表)等属性
 - **ErrorMapping**: 错误映射对象,将飞书原始错误码映射为内部语义化错误,包含原始错误码、错误类型、错误描述、是否可重试等属性
 
 #### 代码质量与文档
