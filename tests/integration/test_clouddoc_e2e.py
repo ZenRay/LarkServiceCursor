@@ -167,214 +167,22 @@ class TestDocumentOperations:
                 doc_id="NonExistentDocToken123456789",
             )
 
-    @pytest.mark.skip(reason="Requires write permission - may modify test document")
-    def test_append_blocks_to_document(self, doc_client, test_config):
-        """Test append content blocks to document."""
-        # Create test blocks
-        blocks = [
-            ContentBlock(
-                block_type="text",
-                content="Integration test - text block",
-            ),
-            ContentBlock(
-                block_type="heading",
-                content="Integration Test Heading",
-                attributes={"level": 2},
-            ),
-        ]
-
-        # Append blocks
-        result = doc_client.append_blocks(
-            app_id=test_config["app_id"],
-            doc_id=test_config["doc_token"],
-            blocks=blocks,
-        )
-
-        assert result is True
-        print(f"✅ Appended {len(blocks)} blocks to document")
-
-
 class TestBitableOperations:
-    """Test Bitable operations."""
+    """Test Bitable operations - REMOVED old tests, see TestBitableCRUDOperations instead."""
 
-    @pytest.mark.skip(reason="Requires Bitable setup and write permission")
-    def test_bitable_crud_operations(self, doc_client, test_config):
-        """Test Bitable CRUD operations."""
-        from lark_service.clouddoc.bitable.client import BitableClient
-
-        bitable_client = BitableClient(doc_client.credential_pool)
-
-        # Create a test record
-        test_record = {
-            "Name": "Integration Test Record",
-            "Status": "Active",
-            "Count": 42,
-        }
-
-        # Create record
-        created = bitable_client.create_record(
-            app_id=test_config["app_id"],
-            app_token=test_config["bitable_token"],
-            table_id="tbl_test",  # Replace with actual table_id
-            fields=test_record,
-        )
-
-        assert created is not None
-        assert created.record_id
-        print(f"✅ Created record: {created.record_id}")
-
-        # Read record
-        record = bitable_client.get_record(
-            app_id=test_config["app_id"],
-            app_token=test_config["bitable_token"],
-            table_id="tbl_test",
-            record_id=created.record_id,
-        )
-
-        assert record is not None
-        assert record.fields["Name"] == "Integration Test Record"
-        print(f"✅ Read record: {record.fields}")
-
-        # Update record
-        updated = bitable_client.update_record(
-            app_id=test_config["app_id"],
-            app_token=test_config["bitable_token"],
-            table_id="tbl_test",
-            record_id=created.record_id,
-            fields={"Status": "Completed"},
-        )
-
-        assert updated is True
-        print("✅ Updated record")
-
-        # Delete record
-        deleted = bitable_client.delete_record(
-            app_id=test_config["app_id"],
-            app_token=test_config["bitable_token"],
-            table_id="tbl_test",
-            record_id=created.record_id,
-        )
-
-        assert deleted is True
-        print("✅ Deleted record")
-
-    @pytest.mark.skip(reason="Requires Bitable setup")
-    def test_bitable_query_with_filter(self, doc_client, test_config):
-        """Test Bitable query with filter conditions."""
-        from lark_service.clouddoc.bitable.client import BitableClient
-        from lark_service.clouddoc.models import QueryFilter
-
-        bitable_client = BitableClient(doc_client.credential_pool)
-
-        # Create filter
-        filter_obj = QueryFilter(
-            conditions=[
-                FilterCondition(
-                    field_name="Status",
-                    operator="eq",
-                    value="Active",
-                ),
-            ],
-            logic="and",
-        )
-
-        # Query records
-        records, has_more = bitable_client.query_records(
-            app_id=test_config["app_id"],
-            app_token=test_config["bitable_token"],
-            table_id="tbl_test",
-            filter=filter_obj,
-            page_size=10,
-        )
-
-        assert isinstance(records, list)
-        print(f"✅ Queried {len(records)} records with filter")
+    pass
 
 
 class TestDocumentPermissions:
-    """Test document permission management."""
+    """Test document permission management - REMOVED old test, see TestCloudDocPermissions instead."""
 
-    @pytest.mark.skip(reason="Requires permission management scope")
-    def test_grant_and_revoke_permission(self, doc_client, test_config):
-        """Test grant and revoke document permissions."""
-        test_user_id = "ou_test_user_1234567890abc"
-
-        # Grant read permission
-        granted = doc_client.grant_permission(
-            app_id=test_config["app_id"],
-            doc_id=test_config["doc_token"],
-            member_type="user",
-            member_id=test_user_id,
-            permission_type="read",
-        )
-
-        assert granted is True
-        print(f"✅ Granted read permission to {test_user_id}")
-
-        # List permissions
-        permissions = doc_client.list_permissions(
-            app_id=test_config["app_id"],
-            doc_id=test_config["doc_token"],
-        )
-
-        assert any(p.member_id == test_user_id for p in permissions)
-        print(f"✅ Listed {len(permissions)} permissions")
-
-        # Revoke permission
-        revoked = doc_client.revoke_permission(
-            app_id=test_config["app_id"],
-            doc_id=test_config["doc_token"],
-            member_type="user",
-            member_id=test_user_id,
-        )
-
-        assert revoked is True
-        print(f"✅ Revoked permission from {test_user_id}")
+    pass
 
 
 class TestSheetOperations:
-    """Test Sheet operations."""
+    """Test Sheet operations - REMOVED old test, see TestSheetReadOperations and TestSheetWriteOperations instead."""
 
-    @pytest.mark.skip(reason="Requires Sheet setup and write permission")
-    def test_sheet_read_write(self, doc_client, test_config):
-        """Test Sheet read and write operations."""
-        from lark_service.clouddoc.models import SheetRange
-        from lark_service.clouddoc.sheet.client import SheetClient
-
-        sheet_client = SheetClient(doc_client.credential_pool)
-
-        # Define range
-        range_obj = SheetRange(
-            sheet_id="sheet_test",
-            range_notation="A1:B2",
-        )
-
-        # Write data
-        data = [
-            ["Name", "Value"],
-            ["Test", "123"],
-        ]
-
-        written = sheet_client.write_range(
-            app_id=test_config["app_id"],
-            spreadsheet_token="shtcn_test",
-            range=range_obj,
-            values=data,
-        )
-
-        assert written is True
-        print("✅ Wrote data to sheet")
-
-        # Read data
-        read_data = sheet_client.read_range(
-            app_id=test_config["app_id"],
-            spreadsheet_token="shtcn_test",
-            range=range_obj,
-        )
-
-        assert len(read_data) == 2
-        assert read_data[0][0] == "Name"
-        print(f"✅ Read {len(read_data)} rows from sheet")
+    pass
 
 
 class TestDocumentWriteOperations:
