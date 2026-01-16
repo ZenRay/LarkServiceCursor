@@ -119,11 +119,8 @@ class SheetClient:
         logger.info(f"Getting sheet data: {sheet_id}!{range_str}")
 
         def _get() -> list[list[CellData]]:
-            # Get SDK client for token management
-            sdk_client = self.credential_pool._get_sdk_client(app_id)
-
             # Get tenant access token
-            token = sdk_client.token_manager.get_tenant_access_token()
+            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")
 
             # Build the range parameter: sheetId!A1:B10
             full_range = f"{sheet_id}!{range_str}"

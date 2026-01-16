@@ -388,7 +388,7 @@ class TestDocumentWriteOperations:
                 content="This is a test paragraph added by integration test.",
             ),
             ContentBlock(
-                block_type="heading_1",
+                block_type="heading",
                 content="Test Heading 1",
             ),
             ContentBlock(
@@ -435,9 +435,9 @@ class TestDocumentWriteOperations:
     def test_append_content_various_block_types(self, doc_client, test_config):
         """Test appending various block types."""
         blocks = [
-            ContentBlock(block_type="heading_1", content="Heading Level 1"),
-            ContentBlock(block_type="heading_2", content="Heading Level 2"),
-            ContentBlock(block_type="heading_3", content="Heading Level 3"),
+            ContentBlock(block_type="heading", content="Heading Level 1"),
+            ContentBlock(block_type="heading", content="Heading Level 2"),
+            ContentBlock(block_type="heading", content="Heading Level 3"),
             ContentBlock(block_type="paragraph", content="Regular paragraph text."),
             ContentBlock(block_type="divider", content=""),
             ContentBlock(block_type="paragraph", content="Text after divider."),

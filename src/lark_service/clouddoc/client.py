@@ -201,11 +201,8 @@ class DocClient:
         logger.info(f"Appending {len(blocks)} blocks to document {doc_id}")
 
         def _append() -> bool:
-            # Get SDK client for token management
-            sdk_client = self.credential_pool._get_sdk_client(app_id)
-
             # Get tenant access token
-            token = sdk_client.token_manager.get_tenant_access_token()
+            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")
 
             # Convert ContentBlock to Lark API format
             children: list[dict[str, Any]] = []
