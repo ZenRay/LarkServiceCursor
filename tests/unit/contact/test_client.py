@@ -153,6 +153,27 @@ class TestContactClientUserQueries:
     def mock_credential_pool(self):
         """Create mock credential pool."""
         pool = Mock(spec=CredentialPool)
+
+        # Mock SDK client
+        mock_sdk_client = Mock()
+
+        # Mock batch_get_id response (empty user list = not found)
+        mock_batch_response = Mock()
+        mock_batch_response.code = 0
+        mock_batch_response.data = Mock()
+        mock_batch_response.data.user_list = []
+
+        mock_sdk_client.contact.v3.user.batch_get_id.return_value = mock_batch_response
+
+        # Mock get user response (not found)
+        mock_get_response = Mock()
+        mock_get_response.code = 99991663  # User not found
+        mock_get_response.msg = "User not found"
+        mock_get_response.success.return_value = False  # Important: mark as failed
+
+        mock_sdk_client.contact.v3.user.get.return_value = mock_get_response
+
+        pool._get_sdk_client.return_value = mock_sdk_client
         return pool
 
     @pytest.fixture
@@ -184,8 +205,17 @@ class TestContactClientUserQueries:
                 user_id="nonexistent_id",
             )
 
-    def test_batch_get_users_success(self, client):
+    def test_batch_get_users_success(self, client, mock_credential_pool):
         """Test batch get users succeeds."""
+        # Mock batch_get_id response with empty results
+        mock_batch_response = Mock()
+        mock_batch_response.code = 0
+        mock_batch_response.data = Mock()
+        mock_batch_response.data.user_list = []
+
+        mock_sdk_client = mock_credential_pool._get_sdk_client.return_value
+        mock_sdk_client.contact.v3.user.batch_get_id.return_value = mock_batch_response
+
         queries = [
             BatchUserQuery(email="user1@example.com"),
             BatchUserQuery(mobile="+86-13800138000"),
@@ -220,6 +250,31 @@ class TestContactClientDepartmentQueries:
     def mock_credential_pool(self):
         """Create mock credential pool."""
         pool = Mock(spec=CredentialPool)
+
+        # Mock SDK client
+        mock_sdk_client = Mock()
+
+        # Mock get department response (not found)
+        mock_dept_response = Mock()
+        mock_dept_response.code = 230002  # Department not found (correct code)
+        mock_dept_response.msg = "Department not found"
+        mock_dept_response.success.return_value = False  # Mark as failed
+
+        mock_sdk_client.contact.v3.department.get.return_value = mock_dept_response
+
+        # Mock get department members response (empty list)
+        mock_members_response = Mock()
+        mock_members_response.code = 0
+        mock_members_response.success.return_value = True  # Mark as success
+        mock_members_response.data = Mock()
+        mock_members_response.data.items = []  # Empty list
+        mock_members_response.data.has_more = False
+        mock_members_response.data.page_token = None
+
+        # Use correct API: find_by_department, not children
+        mock_sdk_client.contact.v3.user.find_by_department.return_value = mock_members_response
+
+        pool._get_sdk_client.return_value = mock_sdk_client
         return pool
 
     @pytest.fixture
@@ -235,8 +290,20 @@ class TestContactClientDepartmentQueries:
                 department_id="od-nonexistent",
             )
 
-    def test_get_department_members_success(self, client):
+    def test_get_department_members_success(self, client, mock_credential_pool):
         """Test get department members succeeds."""
+        # Mock successful response with empty list
+        mock_response = Mock()
+        mock_response.code = 0
+        mock_response.success.return_value = True
+        mock_response.data = Mock()
+        mock_response.data.items = []
+        mock_response.data.has_more = False
+        mock_response.data.page_token = None
+
+        mock_sdk_client = mock_credential_pool._get_sdk_client.return_value
+        mock_sdk_client.contact.v3.user.find_by_department.return_value = mock_response
+
         members, next_token = client.get_department_members(
             app_id="cli_test",
             department_id="od-xxx",
@@ -246,8 +313,20 @@ class TestContactClientDepartmentQueries:
         assert isinstance(members, list)
         assert next_token is None
 
-    def test_get_department_members_pagination(self, client):
+    def test_get_department_members_pagination(self, client, mock_credential_pool):
         """Test get department members with pagination."""
+        # Mock first page response
+        mock_response1 = Mock()
+        mock_response1.code = 0
+        mock_response1.success.return_value = True
+        mock_response1.data = Mock()
+        mock_response1.data.items = []
+        mock_response1.data.has_more = False
+        mock_response1.data.page_token = None
+
+        mock_sdk_client = mock_credential_pool._get_sdk_client.return_value
+        mock_sdk_client.contact.v3.user.find_by_department.return_value = mock_response1
+
         # First page
         members, next_token = client.get_department_members(
             app_id="cli_test",
@@ -275,6 +354,29 @@ class TestContactClientChatQueries:
     def mock_credential_pool(self):
         """Create mock credential pool."""
         pool = Mock(spec=CredentialPool)
+
+        # Mock SDK client
+        mock_sdk_client = Mock()
+
+        # Mock get chat response (not found)
+        mock_chat_response = Mock()
+        mock_chat_response.code = 230008  # Chat not found (correct code)
+        mock_chat_response.msg = "Chat group not found"
+        mock_chat_response.success.return_value = False  # Mark as failed
+
+        mock_sdk_client.im.v1.chat.get.return_value = mock_chat_response
+
+        # Mock get chat members response (empty list)
+        mock_members_response = Mock()
+        mock_members_response.code = 0
+        mock_members_response.data = Mock()
+        mock_members_response.data.items = []
+        mock_members_response.data.has_more = False
+        mock_members_response.data.page_token = None
+
+        mock_sdk_client.im.v1.chat_members.get.return_value = mock_members_response
+
+        pool._get_sdk_client.return_value = mock_sdk_client
         return pool
 
     @pytest.fixture
@@ -290,8 +392,19 @@ class TestContactClientChatQueries:
                 chat_id="oc-nonexistent",
             )
 
-    def test_get_chat_members_success(self, client):
+    def test_get_chat_members_success(self, client, mock_credential_pool):
         """Test get chat members succeeds."""
+        # Mock successful response with empty list
+        mock_response = Mock()
+        mock_response.code = 0
+        mock_response.data = Mock()
+        mock_response.data.items = []
+        mock_response.data.has_more = False
+        mock_response.data.page_token = None
+
+        mock_sdk_client = mock_credential_pool._get_sdk_client.return_value
+        mock_sdk_client.im.v1.chat_members.get.return_value = mock_response
+
         members, next_token = client.get_chat_members(
             app_id="cli_test",
             chat_id="oc_xxx",
@@ -301,8 +414,19 @@ class TestContactClientChatQueries:
         assert isinstance(members, list)
         assert next_token is None
 
-    def test_get_chat_members_pagination(self, client):
+    def test_get_chat_members_pagination(self, client, mock_credential_pool):
         """Test get chat members with pagination."""
+        # Mock first page response
+        mock_response1 = Mock()
+        mock_response1.code = 0
+        mock_response1.data = Mock()
+        mock_response1.data.items = []
+        mock_response1.data.has_more = False
+        mock_response1.data.page_token = None
+
+        mock_sdk_client = mock_credential_pool._get_sdk_client.return_value
+        mock_sdk_client.im.v1.chat_members.get.return_value = mock_response1
+
         # First page
         members, next_token = client.get_chat_members(
             app_id="cli_test",
@@ -322,8 +446,19 @@ class TestContactClientChatQueries:
             )
             assert isinstance(members2, list)
 
-    def test_get_chat_members_max_page_size(self, client):
+    def test_get_chat_members_max_page_size(self, client, mock_credential_pool):
         """Test get chat members with maximum page size."""
+        # Mock successful response
+        mock_response = Mock()
+        mock_response.code = 0
+        mock_response.data = Mock()
+        mock_response.data.items = []
+        mock_response.data.has_more = False
+        mock_response.data.page_token = None
+
+        mock_sdk_client = mock_credential_pool._get_sdk_client.return_value
+        mock_sdk_client.im.v1.chat_members.get.return_value = mock_response
+
         members, _ = client.get_chat_members(
             app_id="cli_test",
             chat_id="oc_xxx",

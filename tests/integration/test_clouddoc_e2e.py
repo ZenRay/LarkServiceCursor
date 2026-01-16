@@ -167,6 +167,7 @@ class TestDocumentOperations:
                 doc_id="NonExistentDocToken123456789",
             )
 
+
 class TestBitableOperations:
     """Test Bitable operations - REMOVED old tests, see TestBitableCRUDOperations instead."""
 
@@ -738,11 +739,6 @@ class TestCloudDocPermissions:
         if not doc_token:
             pytest.skip("TEST_DOC_TOKEN not configured")
 
-        # 注意：list_permissions API 需要新格式的 doc token (doxcn 开头)
-        # 旧格式的 token 不支持此 API
-        if not doc_token.startswith(("doxcn", "shtcn", "bascn", "wikicn")):
-            pytest.skip("list_permissions requires new format doc token (doxcn/shtcn/bascn)")
-
         try:
             print("\n📋 测试列出文档权限...")
             permissions = doc_client.list_permissions(
@@ -755,9 +751,7 @@ class TestCloudDocPermissions:
 
             # 打印权限详情
             for i, perm in enumerate(permissions[:5], 1):  # 只显示前5个
-                print(
-                    f"   - 权限 {i}: {perm.member_type} ({perm.permission_type})"
-                )
+                print(f"   - 权限 {i}: {perm.member_type} ({perm.permission_type})")
 
             print("\n🎉 列出权限测试通过！")
 
