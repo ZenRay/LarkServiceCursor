@@ -139,17 +139,67 @@ class BitableClient:
         logger.info(f"Creating record in table {table_id}")
 
         def _create() -> BaseRecord:
-            # Note: Actual API call depends on SDK implementation
-            # This is a placeholder
-            logger.info(f"Creating record with fields: {fields}")
+            import requests  # type: ignore
 
-            # TODO: Implement actual API call when SDK supports it
-            return BaseRecord(
-                record_id="rec1234567890placeholder",
-                fields=fields,
+            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")
+
+            url = f"https://open.feishu.cn/open-apis/bitable/v1/apps/{app_token}/tables/{table_id}/records"
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json; charset=utf-8",
+            }
+
+            payload = {"fields": fields}
+            logger.debug(f"Creating record with payload: {payload}")
+
+            response = requests.post(url, headers=headers, json=payload, timeout=30)
+
+            if response.status_code != 200:
+                error_msg = f"Failed to create record: HTTP {response.status_code}"
+                try:
+                    error_data = response.json()
+                    error_msg = f"{error_msg} - {error_data.get('msg', 'Unknown error')}"
+                    error_code = error_data.get("code", 0)
+
+                    if error_code in [1254302, 403]:
+                        raise PermissionDeniedError(
+                            f"No permission to create record in table: {table_id}"
+                        )
+                    elif error_code in [1254000, 1254001, 400]:
+                        raise InvalidParameterError(error_msg)
+                except Exception as e:
+                    if isinstance(e, (PermissionDeniedError, InvalidParameterError)):
+                        raise
+                    logger.error(f"Failed to parse error response: {e}")
+
+                raise APIError(error_msg)
+
+            result = response.json()
+            if result.get("code") != 0:
+                error_msg = f"API returned error: {result.get('msg', 'Unknown error')}"
+                error_code = result.get("code", 0)
+
+                if error_code in [1254302, 403]:
+                    raise PermissionDeniedError(
+                        f"No permission to create record in table: {table_id}"
+                    )
+                elif error_code in [1254000, 1254001]:
+                    raise InvalidParameterError(error_msg)
+
+                raise APIError(error_msg)
+
+            data = result.get("data", {})
+            record_data = data.get("record", {})
+
+            record = BaseRecord(
+                record_id=record_data.get("record_id", ""),
+                fields=record_data.get("fields", {}),
                 create_time=None,
                 update_time=None,
             )
+
+            logger.info(f"Successfully created record {record.record_id} in table {table_id}")
+            return record
 
         return self.retry_strategy.execute(_create)
 
@@ -532,7 +582,7 @@ class BitableClient:
             url = f"https://open.feishu.cn/open-apis/bitable/v1/apps/{app_token}/tables/{table_id}/records/search"
             headers = {
                 "Authorization": f"Bearer {token}",
-                "Content-Type": "application/json; charset=utf-8"
+                "Content-Type": "application/json; charset=utf-8",
             }
 
             payload: dict[str, Any] = {
@@ -546,7 +596,7 @@ class BitableClient:
             if filter_info:
                 filter_dict: dict[str, Any] = {
                     "conjunction": filter_info.conjunction,
-                    "conditions": []
+                    "conditions": [],
                 }
 
                 for condition in filter_info.conditions:
@@ -571,7 +621,7 @@ class BitableClient:
                 try:
                     error_data = response.json()
                     error_msg = f"{error_msg} - {error_data.get('msg', 'Unknown error')}"
-                    error_code = error_data.get('code', 0)
+                    error_code = error_data.get("code", 0)
 
                     if error_code == 1770002:
                         raise NotFoundError(f"Table not found: {table_id}")
@@ -673,17 +723,67 @@ class BitableClient:
         logger.info(f"Updating record {record_id} in table {table_id}")
 
         def _update() -> BaseRecord:
-            # Note: Actual API call depends on SDK implementation
-            # This is a placeholder
-            logger.info(f"Updating fields: {fields}")
+            import requests  # type: ignore
 
-            # TODO: Implement actual API call when SDK supports it
-            return BaseRecord(
-                record_id=record_id,
-                fields=fields,
+            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")
+
+            url = f"https://open.feishu.cn/open-apis/bitable/v1/apps/{app_token}/tables/{table_id}/records/{record_id}"
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json; charset=utf-8",
+            }
+
+            payload = {"fields": fields}
+            logger.debug(f"Updating record {record_id} with payload: {payload}")
+
+            response = requests.put(url, headers=headers, json=payload, timeout=30)
+
+            if response.status_code != 200:
+                error_msg = f"Failed to update record: HTTP {response.status_code}"
+                try:
+                    error_data = response.json()
+                    error_msg = f"{error_msg} - {error_data.get('msg', 'Unknown error')}"
+                    error_code = error_data.get("code", 0)
+
+                    if error_code == 1770002:
+                        raise NotFoundError(f"Record not found: {record_id}")
+                    elif error_code in [1254302, 403]:
+                        raise PermissionDeniedError(f"No permission to update record: {record_id}")
+                    elif error_code in [1254000, 1254001, 400]:
+                        raise InvalidParameterError(error_msg)
+                except Exception as e:
+                    if isinstance(e, (NotFoundError, PermissionDeniedError, InvalidParameterError)):
+                        raise
+                    logger.error(f"Failed to parse error response: {e}")
+
+                raise APIError(error_msg)
+
+            result = response.json()
+            if result.get("code") != 0:
+                error_msg = f"API returned error: {result.get('msg', 'Unknown error')}"
+                error_code = result.get("code", 0)
+
+                if error_code == 1770002:
+                    raise NotFoundError(f"Record not found: {record_id}")
+                elif error_code in [1254302, 403]:
+                    raise PermissionDeniedError(f"No permission to update record: {record_id}")
+                elif error_code in [1254000, 1254001]:
+                    raise InvalidParameterError(error_msg)
+
+                raise APIError(error_msg)
+
+            data = result.get("data", {})
+            record_data = data.get("record", {})
+
+            record = BaseRecord(
+                record_id=record_data.get("record_id", record_id),
+                fields=record_data.get("fields", fields),
                 create_time=None,
                 update_time=None,
             )
+
+            logger.info(f"Successfully updated record {record_id} in table {table_id}")
+            return record
 
         return self.retry_strategy.execute(_update)
 
@@ -732,10 +832,51 @@ class BitableClient:
         logger.info(f"Deleting record {record_id} from table {table_id}")
 
         def _delete() -> bool:
-            # Note: Actual API call depends on SDK implementation
-            # This is a placeholder
+            import requests  # type: ignore
 
-            # TODO: Implement actual API call when SDK supports it
+            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")
+
+            url = f"https://open.feishu.cn/open-apis/bitable/v1/apps/{app_token}/tables/{table_id}/records/{record_id}"
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json; charset=utf-8",
+            }
+
+            logger.debug(f"Deleting record {record_id} from table {table_id}")
+
+            response = requests.delete(url, headers=headers, timeout=30)
+
+            if response.status_code != 200:
+                error_msg = f"Failed to delete record: HTTP {response.status_code}"
+                try:
+                    error_data = response.json()
+                    error_msg = f"{error_msg} - {error_data.get('msg', 'Unknown error')}"
+                    error_code = error_data.get("code", 0)
+
+                    if error_code == 1770002:
+                        raise NotFoundError(f"Record not found: {record_id}")
+                    elif error_code in [1254302, 403]:
+                        raise PermissionDeniedError(f"No permission to delete record: {record_id}")
+                except Exception as e:
+                    if isinstance(e, (NotFoundError, PermissionDeniedError)):
+                        raise
+                    logger.error(f"Failed to parse error response: {e}")
+
+                raise APIError(error_msg)
+
+            result = response.json()
+            if result.get("code") != 0:
+                error_msg = f"API returned error: {result.get('msg', 'Unknown error')}"
+                error_code = result.get("code", 0)
+
+                if error_code == 1770002:
+                    raise NotFoundError(f"Record not found: {record_id}")
+                elif error_code in [1254302, 403]:
+                    raise PermissionDeniedError(f"No permission to delete record: {record_id}")
+
+                raise APIError(error_msg)
+
+            logger.info(f"Successfully deleted record {record_id} from table {table_id}")
             return True
 
         return self.retry_strategy.execute(_delete)
@@ -797,19 +938,72 @@ class BitableClient:
         logger.info(f"Batch creating {len(records)} records in table {table_id}")
 
         def _batch_create() -> list[BaseRecord]:
-            # Note: Actual API call depends on SDK implementation
-            # This is a placeholder
+            import requests  # type: ignore
 
-            # TODO: Implement actual API call when SDK supports it
-            return [
+            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")
+
+            url = f"https://open.feishu.cn/open-apis/bitable/v1/apps/{app_token}/tables/{table_id}/records/batch_create"
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json; charset=utf-8",
+            }
+
+            payload = {"records": [{"fields": record} for record in records]}
+            logger.debug(f"Batch creating {len(records)} records")
+
+            response = requests.post(url, headers=headers, json=payload, timeout=30)
+
+            if response.status_code != 200:
+                error_msg = f"Failed to batch create records: HTTP {response.status_code}"
+                try:
+                    error_data = response.json()
+                    error_msg = f"{error_msg} - {error_data.get('msg', 'Unknown error')}"
+                    error_code = error_data.get("code", 0)
+
+                    if error_code in [1254302, 403]:
+                        raise PermissionDeniedError(
+                            f"No permission to create records in table: {table_id}"
+                        )
+                    elif error_code in [1254000, 1254001, 400]:
+                        raise InvalidParameterError(error_msg)
+                except Exception as e:
+                    if isinstance(e, (PermissionDeniedError, InvalidParameterError)):
+                        raise
+                    logger.error(f"Failed to parse error response: {e}")
+
+                raise APIError(error_msg)
+
+            result = response.json()
+            if result.get("code") != 0:
+                error_msg = f"API returned error: {result.get('msg', 'Unknown error')}"
+                error_code = result.get("code", 0)
+
+                if error_code in [1254302, 403]:
+                    raise PermissionDeniedError(
+                        f"No permission to create records in table: {table_id}"
+                    )
+                elif error_code in [1254000, 1254001]:
+                    raise InvalidParameterError(error_msg)
+
+                raise APIError(error_msg)
+
+            data = result.get("data", {})
+            records_data = data.get("records", [])
+
+            created_records = [
                 BaseRecord(
-                    record_id=f"rec1234567890placeholder{i}",
-                    fields=record,
+                    record_id=record_data.get("record_id", ""),
+                    fields=record_data.get("fields", {}),
                     create_time=None,
                     update_time=None,
                 )
-                for i, record in enumerate(records)
+                for record_data in records_data
             ]
+
+            logger.info(
+                f"Successfully batch created {len(created_records)} records in table {table_id}"
+            )
+            return created_records
 
         return self.retry_strategy.execute(_batch_create)
 
