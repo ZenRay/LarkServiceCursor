@@ -15,7 +15,11 @@ from lark_oapi.api.docx.v1 import (
 
 from lark_service.clouddoc.models import ContentBlock, Document, Permission
 from lark_service.core.credential_pool import CredentialPool
-from lark_service.core.exceptions import InvalidParameterError, NotFoundError, PermissionDeniedError
+from lark_service.core.exceptions import (
+    InvalidParameterError,
+    NotFoundError,
+    PermissionDeniedError,
+)
 from lark_service.core.retry import RetryStrategy
 from lark_service.utils.logger import get_logger
 
@@ -264,7 +268,7 @@ class DocClient:
 
             if not response.success():
                 error_msg = f"Failed to get document: {response.msg}"
-                logger.error(error_msg)
+                logger.error(error_msg, extra={"doc_id": doc_id, "code": response.code})
 
                 if response.code == 404:
                     raise NotFoundError(f"Document not found: {doc_id}")
@@ -272,18 +276,80 @@ class DocClient:
                     raise PermissionDeniedError(error_msg)
                 raise InvalidParameterError(error_msg)
 
+            if not response.data or not response.data.document:
+                raise NotFoundError(f"Document not found: {doc_id}")
+
             doc_data = response.data.document
+
+            # Parse timestamps if available
+            create_time = None
+            update_time = None
+            if hasattr(doc_data, "create_time") and doc_data.create_time:
+                try:
+                    from datetime import datetime
+                    # Lark API returns timestamps in seconds
+                    create_time = datetime.fromtimestamp(int(doc_data.create_time))
+                except (ValueError, TypeError):
+                    pass
+
+            if hasattr(doc_data, "update_time") and doc_data.update_time:
+                try:
+                    from datetime import datetime
+                    update_time = datetime.fromtimestamp(int(doc_data.update_time))
+                except (ValueError, TypeError):
+                    pass
+
+            logger.info(f"Successfully retrieved document: {doc_data.title} ({doc_id})")
+
             return Document(
                 doc_id=doc_data.document_id,
                 title=doc_data.title,
                 owner_id=getattr(doc_data, "owner_id", None),
-                create_time=None,
-                update_time=None,
-                # Note: Content blocks parsing depends on SDK implementation
-                content_blocks=None,  # TODO: Parse blocks when SDK supports it
+                create_time=create_time,
+                update_time=update_time,
+                # Note: Content blocks require separate API call (GetDocumentBlockChildren)
+                # For basic document info, we don't fetch blocks
+                content_blocks=None,
             )
 
         return self.retry_strategy.execute(_get)
+
+    def get_document(
+        self,
+        app_id: str,
+        doc_id: str,
+    ) -> Document:
+        """
+        Get document information (alias for get_document_content).
+
+        Parameters
+        ----------
+            app_id : str
+                Lark application ID
+            doc_id : str
+                Document ID
+
+        Returns
+        -------
+            Document
+                Document information
+
+        Raises
+        ------
+            NotFoundError
+                If document not found
+            PermissionDeniedError
+                If user has no permission
+
+        Examples
+        --------
+            >>> doc = client.get_document(
+            ...     app_id="cli_xxx",
+            ...     doc_id="doxcn123"
+            ... )
+            >>> print(doc.title)
+        """
+        return self.get_document_content(app_id, doc_id)
 
     def update_block(
         self,
