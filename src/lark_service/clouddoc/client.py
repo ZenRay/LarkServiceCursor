@@ -517,12 +517,73 @@ class DocClient:
         logger.info(f"Updating block {block_id} in document {doc_id}")
 
         def _update() -> bool:
-            # Note: Actual API call depends on SDK implementation
-            # The UpdateDocumentBlockRequest is not available in current SDK version
-            # This is a placeholder for future implementation
-            logger.info(f"Updating block {block_id} with content: {block.content}")
+            import requests  # type: ignore
 
-            # TODO: Implement actual API call when SDK supports it
+            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")
+
+            url = f"https://open.feishu.cn/open-apis/docx/v1/documents/{doc_id}/blocks/{block_id}"
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json; charset=utf-8",
+            }
+
+            # 构建更新内容
+            # 根据 block_type 构建不同的更新请求
+            elements = []
+
+            if block.content:
+                elements.append(
+                    {
+                        "text_run": {
+                            "content": block.content,
+                            "text_element_style": {},
+                        }
+                    }
+                )
+
+            payload = {"update_text_elements": {"elements": elements}}
+
+            logger.debug(f"Updating block {block_id} with {len(elements)} elements")
+
+            response = requests.patch(url, headers=headers, json=payload, timeout=30)
+
+            if response.status_code != 200:
+                error_msg = f"Failed to update block: HTTP {response.status_code}"
+                try:
+                    error_data = response.json()
+                    error_msg = f"{error_msg} - {error_data.get('msg', 'Unknown error')}"
+                    error_code = error_data.get("code", 0)
+
+                    if error_code == 99991668:
+                        raise NotFoundError(f"Block not found: {block_id}")
+                    elif error_code in [403, 1254302]:
+                        raise PermissionDeniedError(f"No permission to update block: {block_id}")
+                    elif error_code in [400, 1254001]:
+                        raise InvalidParameterError(error_msg)
+                except Exception as e:
+                    if isinstance(
+                        e, NotFoundError | PermissionDeniedError | InvalidParameterError
+                    ):
+                        raise
+                    logger.error(f"Failed to parse error response: {e}")
+
+                raise APIError(error_msg)
+
+            result = response.json()
+            if result.get("code") != 0:
+                error_msg = f"API returned error: {result.get('msg', 'Unknown error')}"
+                error_code = result.get("code", 0)
+
+                if error_code == 99991668:
+                    raise NotFoundError(f"Block not found: {block_id}")
+                elif error_code in [403, 1254302]:
+                    raise PermissionDeniedError(f"No permission to update block: {block_id}")
+                elif error_code in [400, 1254001]:
+                    raise InvalidParameterError(error_msg)
+
+                raise APIError(error_msg)
+
+            logger.info(f"Successfully updated block {block_id} in document {doc_id}")
             return True
 
         return self.retry_strategy.execute(_update)
@@ -802,7 +863,99 @@ class DocClient:
         logger.info(f"Listing permissions for document {doc_id}")
 
         def _list() -> list[Permission]:
-            # Note: Actual API call depends on SDK implementation
-            return []
+            import requests  # type: ignore
+
+            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")
+
+            url = f"https://open.feishu.cn/open-apis/drive/v1/permissions/{doc_id}/members"
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json; charset=utf-8",
+            }
+
+            # 根据 doc_id 的前缀判断类型
+            # doxcn - doc, shtcn - sheet, bascn - bitable
+            # 注意：某些旧格式的 token 可能不需要 type 参数
+            params = {}
+            if doc_id.startswith("doxcn"):
+                params["type"] = "doc"
+            elif doc_id.startswith("shtcn"):
+                params["type"] = "sheet"
+            elif doc_id.startswith("bascn"):
+                params["type"] = "bitable"
+            elif doc_id.startswith("wikicn"):
+                params["type"] = "wiki"
+            # 如果是旧格式 token，不添加 type 参数
+
+            logger.debug(f"Listing permissions for document {doc_id}")
+
+            response = requests.get(url, headers=headers, params=params, timeout=30)
+
+            if response.status_code != 200:
+                error_msg = f"Failed to list permissions: HTTP {response.status_code}"
+                try:
+                    error_data = response.json()
+                    error_msg = f"{error_msg} - {error_data.get('msg', 'Unknown error')}"
+                    error_code = error_data.get("code", 0)
+
+                    if error_code in [403, 1254302, 1063002]:
+                        raise PermissionDeniedError(
+                            f"No permission to list permissions for document: {doc_id}"
+                        )
+                    elif error_code in [404, 1063005]:
+                        raise NotFoundError(f"Document not found: {doc_id}")
+                    elif error_code in [400, 1063001]:
+                        raise InvalidParameterError(error_msg)
+                except Exception as e:
+                    if isinstance(
+                        e, PermissionDeniedError | NotFoundError | InvalidParameterError
+                    ):
+                        raise
+                    logger.error(f"Failed to parse error response: {e}")
+
+                raise APIError(error_msg)
+
+            result = response.json()
+            if result.get("code") != 0:
+                error_msg = f"API returned error: {result.get('msg', 'Unknown error')}"
+                error_code = result.get("code", 0)
+
+                if error_code in [403, 1254302, 1063002]:
+                    raise PermissionDeniedError(
+                        f"No permission to list permissions for document: {doc_id}"
+                    )
+                elif error_code in [404, 1063005]:
+                    raise NotFoundError(f"Document not found: {doc_id}")
+                elif error_code in [400, 1063001]:
+                    raise InvalidParameterError(error_msg)
+
+                raise APIError(error_msg)
+
+            data = result.get("data", {})
+            items = data.get("items", [])
+
+            permissions = []
+            for item in items:
+                # 映射权限类型
+                perm = item.get("perm", "view")
+                perm_map = {
+                    "view": "read",
+                    "edit": "write",
+                    "full_access": "manage",
+                    "manage": "manage",
+                }
+                permission_type = perm_map.get(perm, perm)
+
+                permissions.append(
+                    Permission(
+                        doc_id=doc_id,
+                        member_type=item.get("member_type", "user"),  # type: ignore
+                        member_id=item.get("member_id"),
+                        permission_type=permission_type,  # type: ignore
+                    )
+                )
+
+            logger.info(f"Successfully listed {len(permissions)} permissions for document {doc_id}")
+            return permissions
 
         return self.retry_strategy.execute(_list)

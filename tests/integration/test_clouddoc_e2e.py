@@ -921,6 +921,71 @@ class TestSheetWriteOperations:
             )
 
 
+class TestCloudDocPermissions:
+    """Test CloudDoc permission management with real API."""
+
+    def test_list_permissions(self, doc_client, test_config):
+        """Test listing document permissions."""
+        doc_token = test_config.get("doc_token")
+        if not doc_token:
+            pytest.skip("TEST_DOC_TOKEN not configured")
+
+        # 注意：list_permissions API 需要新格式的 doc token (doxcn 开头)
+        # 旧格式的 token 不支持此 API
+        if not doc_token.startswith(("doxcn", "shtcn", "bascn", "wikicn")):
+            pytest.skip("list_permissions requires new format doc token (doxcn/shtcn/bascn)")
+
+        try:
+            print("\n📋 测试列出文档权限...")
+            permissions = doc_client.list_permissions(
+                app_id=test_config["app_id"],
+                doc_id=doc_token,
+            )
+
+            assert isinstance(permissions, list)
+            print(f"   ✅ 获取到 {len(permissions)} 个权限")
+
+            # 打印权限详情
+            for i, perm in enumerate(permissions[:5], 1):  # 只显示前5个
+                print(
+                    f"   - 权限 {i}: {perm.member_type} ({perm.permission_type})"
+                )
+
+            print("\n🎉 列出权限测试通过！")
+
+        except PermissionDeniedError as e:
+            pytest.fail(
+                f"权限不足: {e}\n请确保:\n"
+                "1. 应用已添加 docx:document 权限\n"
+                "2. 应用已被添加为文档协作者"
+            )
+
+    def test_update_block(self, doc_client, test_config):
+        """Test updating document block."""
+        doc_token = test_config.get("doc_token")
+        if not doc_token:
+            pytest.skip("TEST_DOC_TOKEN not configured")
+
+        # 注意：这个测试需要知道一个有效的 block_id
+        # 由于我们没有简单的方法获取 block_id，这里先跳过
+        pytest.skip("需要有效的 block_id 才能测试")
+
+        # 如果有 block_id，可以这样测试：
+        # block = ContentBlock(
+        #     block_type="paragraph",
+        #     content="Updated content from integration test"
+        # )
+        #
+        # success = doc_client.update_block(
+        #     app_id=test_config["app_id"],
+        #     doc_id=doc_token,
+        #     block_id="block_xxx",
+        #     block=block
+        # )
+        #
+        # assert success is True
+
+
 class TestErrorHandling:
     """Test error handling in CloudDoc operations."""
 
