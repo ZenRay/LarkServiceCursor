@@ -129,6 +129,14 @@ def bitable_client(credential_pool):
     return BitableClient(credential_pool)
 
 
+@pytest.fixture
+def sheet_client(credential_pool):
+    """Create SheetClient for tests."""
+    from lark_service.clouddoc.sheet.client import SheetClient
+
+    return SheetClient(credential_pool)
+
+
 class TestDocumentOperations:
     """Test document read operations."""
 
@@ -577,6 +585,60 @@ class TestBitableQueryOperations:
                 app_token=test_config["bitable_token"],
                 table_id="tbl_nonexistent_table_id",
                 page_size=10,
+            )
+
+
+class TestSheetReadOperations:
+    """Test Sheet read operations with real API."""
+
+    def test_get_sheet_data_success(self, sheet_client, test_config):
+        """Test reading sheet data from specified range."""
+        # Get sheet token and ID from environment
+        sheet_token = os.getenv("TEST_SHEET_TOKEN")
+        sheet_id = os.getenv("TEST_SHEET_ID", "sheet1")
+
+        if not sheet_token:
+            pytest.skip("TEST_SHEET_TOKEN not configured")
+
+        # Read a small range
+        data = sheet_client.get_sheet_data(
+            app_id=test_config["app_id"],
+            spreadsheet_token=sheet_token,
+            sheet_id=sheet_id,
+            range_str="A1:C5",
+        )
+
+        # Verify results
+        assert isinstance(data, list)
+        print(f"✅ Retrieved {len(data)} rows from sheet")
+
+        if data and data[0]:
+            print(f"   First row has {len(data[0])} cells")
+            print(f"   First cell value: {data[0][0].value}")
+
+    def test_get_sheet_data_empty_range(self, sheet_client, test_config):
+        """Test reading empty range raises error."""
+        sheet_token = os.getenv("TEST_SHEET_TOKEN")
+
+        if not sheet_token:
+            pytest.skip("TEST_SHEET_TOKEN not configured")
+
+        with pytest.raises(InvalidParameterError, match="Range string cannot be empty"):
+            sheet_client.get_sheet_data(
+                app_id=test_config["app_id"],
+                spreadsheet_token=sheet_token,
+                sheet_id="sheet1",
+                range_str="",
+            )
+
+    def test_get_sheet_data_not_found(self, sheet_client, test_config):
+        """Test reading non-existent sheet raises error."""
+        with pytest.raises((NotFoundError, InvalidParameterError)):
+            sheet_client.get_sheet_data(
+                app_id=test_config["app_id"],
+                spreadsheet_token="shtcn_nonexistent",
+                sheet_id="sheet1",
+                range_str="A1:B2",
             )
 
 
