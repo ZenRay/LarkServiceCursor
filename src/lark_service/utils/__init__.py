@@ -3,6 +3,7 @@
 Provides:
 - Logging: Structured logging with context support
 - Validators: Input validation utilities
+- Masking: Sensitive data masking utilities
 """
 
 from lark_service.utils.logger import (
@@ -34,6 +35,13 @@ __all__ = [
     "set_request_context",
     "clear_request_context",
     "LoggerContextManager",
+    # Masking (imported lazily to avoid circular imports)
+    "mask_email",
+    "mask_mobile",
+    "mask_token",
+    "mask_user_id",
+    "mask_dict",
+    "mask_log_message",
     # Validators
     "validate_app_id",
     "validate_app_secret",
@@ -48,3 +56,19 @@ __all__ = [
     "validate_non_negative_float",
     "validate_enum",
 ]
+
+
+def __getattr__(name: str):
+    """Lazy import for masking functions to avoid circular imports."""
+    if name in [
+        "mask_email",
+        "mask_mobile",
+        "mask_token",
+        "mask_user_id",
+        "mask_dict",
+        "mask_log_message",
+    ]:
+        from lark_service.utils import masking
+
+        return getattr(masking, name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
