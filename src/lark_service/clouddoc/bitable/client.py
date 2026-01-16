@@ -221,12 +221,12 @@ class BitableClient:
                     value = condition.value
 
                     # Build filter expression based on operator
-                    # Lark uses formula-like syntax
+                    # Lark uses formula-like syntax (note: use = not ==, and strings need quotes)
                     if op == "eq":
                         if isinstance(value, str):
-                            filter_parts.append(f'CurrentValue.[{field}] == "{value}"')
+                            filter_parts.append(f'CurrentValue.[{field}] = "{value}"')
                         else:
-                            filter_parts.append(f"CurrentValue.[{field}] == {value}")
+                            filter_parts.append(f"CurrentValue.[{field}] = {value}")
                     elif op == "ne":
                         if isinstance(value, str):
                             filter_parts.append(f'CurrentValue.[{field}] != "{value}"')
@@ -241,13 +241,13 @@ class BitableClient:
                     elif op == "lte":
                         filter_parts.append(f"CurrentValue.[{field}] <= {value}")
                     elif op == "contains":
-                        filter_parts.append(f'SEARCH("{value}", CurrentValue.[{field}])')
+                        filter_parts.append(f'CurrentValue.[{field}].contains("{value}")')
                     elif op == "not_contains":
-                        filter_parts.append(f'NOT(SEARCH("{value}", CurrentValue.[{field}]))')
+                        filter_parts.append(f'NOT(CurrentValue.[{field}].contains("{value}"))')
                     elif op == "is_empty":
-                        filter_parts.append(f"ISBLANK(CurrentValue.[{field}])")
+                        filter_parts.append(f'CurrentValue.[{field}] = ""')
                     elif op == "is_not_empty":
-                        filter_parts.append(f"NOT(ISBLANK(CurrentValue.[{field}]))")
+                        filter_parts.append(f'NOT(CurrentValue.[{field}] = "")')
 
                 if filter_parts:
                     # Combine with AND
