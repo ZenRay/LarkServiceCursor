@@ -5,9 +5,18 @@ This module provides a high-level client for multi-dimensional table operations
 via Lark Base API, including CRUD operations with filters and pagination.
 """
 
+from typing import Any
+
+from lark_oapi.api.bitable.v1 import SearchAppTableRecordRequest, SearchAppTableRecordRequestBody
+
 from lark_service.clouddoc.models import BaseRecord, FieldDefinition, FilterCondition
 from lark_service.core.credential_pool import CredentialPool
-from lark_service.core.exceptions import InvalidParameterError
+from lark_service.core.exceptions import (
+    APIError,
+    InvalidParameterError,
+    NotFoundError,
+    PermissionDeniedError,
+)
 from lark_service.core.retry import RetryStrategy
 from lark_service.utils.logger import get_logger
 
@@ -184,15 +193,130 @@ class BitableClient:
         logger.info(f"Querying records from table {table_id}, page_size={page_size}")
 
         def _query() -> tuple[list[BaseRecord], str | None]:
-            # Note: Actual API call depends on SDK implementation
-            # This is a placeholder
+            # Get SDK client
+            sdk_client = self.credential_pool._get_sdk_client(app_id)
 
-            # Build filter expression
+            # Build request
+            req_builder = (
+                SearchAppTableRecordRequest.builder()
+                .app_token(app_token)
+                .table_id(table_id)
+                .page_size(page_size)
+            )
+
+            if page_token:
+                req_builder = req_builder.page_token(page_token)
+
+            # Build request body with filter
+            body_builder = SearchAppTableRecordRequestBody.builder()
+
+            # Build filter formula from conditions
             if filter_conditions:
                 logger.info(f"Applying {len(filter_conditions)} filter conditions")
+                filter_parts: list[str] = []
 
-            # TODO: Implement actual API call when SDK supports it
-            return [], None
+                for condition in filter_conditions:
+                    field = condition.field_name
+                    op = condition.operator
+                    value = condition.value
+
+                    # Build filter expression based on operator
+                    # Lark uses formula-like syntax
+                    if op == "eq":
+                        if isinstance(value, str):
+                            filter_parts.append(f'CurrentValue.[{field}] == "{value}"')
+                        else:
+                            filter_parts.append(f"CurrentValue.[{field}] == {value}")
+                    elif op == "ne":
+                        if isinstance(value, str):
+                            filter_parts.append(f'CurrentValue.[{field}] != "{value}"')
+                        else:
+                            filter_parts.append(f"CurrentValue.[{field}] != {value}")
+                    elif op == "gt":
+                        filter_parts.append(f"CurrentValue.[{field}] > {value}")
+                    elif op == "gte":
+                        filter_parts.append(f"CurrentValue.[{field}] >= {value}")
+                    elif op == "lt":
+                        filter_parts.append(f"CurrentValue.[{field}] < {value}")
+                    elif op == "lte":
+                        filter_parts.append(f"CurrentValue.[{field}] <= {value}")
+                    elif op == "contains":
+                        filter_parts.append(f'SEARCH("{value}", CurrentValue.[{field}])')
+                    elif op == "not_contains":
+                        filter_parts.append(f'NOT(SEARCH("{value}", CurrentValue.[{field}]))')
+                    elif op == "is_empty":
+                        filter_parts.append(f"ISBLANK(CurrentValue.[{field}])")
+                    elif op == "is_not_empty":
+                        filter_parts.append(f"NOT(ISBLANK(CurrentValue.[{field}]))")
+
+                if filter_parts:
+                    # Combine with AND
+                    filter_formula = " && ".join(filter_parts)
+                    body_builder = body_builder.filter(filter_formula)
+                    logger.debug(f"Filter formula: {filter_formula}")
+
+            req = req_builder.request_body(body_builder.build()).build()
+
+            # Call API
+            response = sdk_client.bitable.v1.app_table_record.search(req)
+
+            if not response.success():
+                error_msg = f"Failed to query records: {response.msg}"
+                logger.error(
+                    error_msg,
+                    extra={
+                        "app_token": app_token,
+                        "table_id": table_id,
+                        "code": response.code,
+                    },
+                )
+
+                # Map error codes
+                if response.code == 1770002:
+                    raise NotFoundError(f"Table not found: {table_id}")
+                elif response.code in [1770032, 403]:
+                    raise PermissionDeniedError(f"No permission to access table: {table_id}")
+                elif response.code in [1770001, 400]:
+                    raise InvalidParameterError(error_msg)
+
+                raise APIError(error_msg)
+
+            if not response.data:
+                return [], None
+
+            # Convert to BaseRecord objects
+            records: list[BaseRecord] = []
+            if response.data.items:
+                for item in response.data.items:
+                    # Extract record data
+                    record_id = item.record_id if hasattr(item, "record_id") else ""
+                    fields: dict[str, Any] = {}
+
+                    if hasattr(item, "fields") and item.fields:
+                        # Convert fields to dict
+                        fields = dict(item.fields) if isinstance(item.fields, dict) else {}
+
+                    records.append(
+                        BaseRecord(
+                            record_id=record_id,
+                            fields=fields,
+                            create_time=None,
+                            update_time=None,
+                        )
+                    )
+
+            next_page_token = (
+                response.data.page_token
+                if hasattr(response.data, "page_token") and response.data.page_token
+                else None
+            )
+
+            logger.info(
+                f"Successfully queried {len(records)} records from table {table_id}, "
+                f"has_more: {next_page_token is not None}"
+            )
+
+            return records, next_page_token
 
         return self.retry_strategy.execute(_query)
 
