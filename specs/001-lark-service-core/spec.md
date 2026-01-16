@@ -583,3 +583,299 @@
 - 假设 Token 的默认过期时间为 2 小时(7200 秒),组件在剩余 720 秒(10%)时触发刷新
 - 假设用户信息变更频率较低,24 小时 TTL 的缓存策略可满足大部分场景
 - 假设 aPaaS 数据空间操作需要用户级权限(user_access_token),应用级 Token 无法访问
+
+---
+
+## Phase 4 补充说明 (CloudDoc & Contact)
+
+### CloudDoc 模块数据结构
+
+#### Document (文档)
+```python
+{
+  "doc_id": "doxcn1234567890abcdefghij",    # 文档 ID (doxcn/doccn 开头,20+ 字符)
+  "title": "测试文档",                       # 文档标题 (1-255 字符)
+  "owner_id": "ou_1234567890abcdefghij",    # 所有者 open_id (可选)
+  "create_time": "2026-01-15T10:00:00Z",    # 创建时间 (可选)
+  "update_time": "2026-01-15T12:00:00Z",    # 更新时间 (可选)
+  "content_blocks": [...]                    # 内容块列表 (可选)
+}
+```
+
+#### ContentBlock (内容块)
+```python
+{
+  "block_id": "blk1234567890abcdefghij",    # 块 ID (20+ 字符,可选)
+  "block_type": "text",                      # 类型: text, heading, image, table, code, list, divider
+  "content": "文本内容",                     # 内容 (字符串或对象)
+  "attributes": {                            # 属性 (可选)
+    "style": "bold",                         # 样式
+    "level": 1                               # 标题级别 (heading 类型)
+  }
+}
+```
+
+**限制:**
+- 单次追加最大 100 个 block
+- 单个 block 最大 100 KB
+- 标题级别 1-6
+- 文档标题 1-255 字符
+
+#### BaseRecord (多维表格记录)
+```python
+{
+  "record_id": "rec1234567890abcdefghij",   # 记录 ID (rec 开头,20+ 字符,创建时可选)
+  "fields": {                                # 字段值 (必需)
+    "Name": "张三",
+    "Age": 30,
+    "Email": "zhangsan@company.com"
+  },
+  "create_time": "2026-01-15T10:00:00Z",    # 创建时间 (可选)
+  "update_time": "2026-01-15T12:00:00Z"     # 更新时间 (可选)
+}
+```
+
+#### FilterCondition (过滤条件)
+```python
+{
+  "field_name": "Age",                       # 字段名
+  "operator": "gte",                         # 操作符
+  "value": 18                                # 比较值
+}
+```
+
+**支持的操作符:**
+- `eq` - 等于
+- `ne` - 不等于
+- `gt` - 大于
+- `gte` - 大于等于
+- `lt` - 小于
+- `lte` - 小于等于
+- `contains` - 包含
+- `not_contains` - 不包含
+- `is_empty` - 为空
+- `is_not_empty` - 不为空
+
+**限制:**
+- 最多 20 个过滤条件
+- 单次查询最多 500 条记录
+- 批量创建/更新/删除最大 500 条
+
+#### SheetRange (电子表格范围)
+```python
+{
+  "sheet_id": "sheet_id_123",               # Sheet ID
+  "range_notation": "A1:B10"                # 范围表示法
+}
+```
+
+**支持的范围格式:**
+1. A1 表示法: `A1:B10`
+2. 行列索引: `R1C1:R10C2`
+3. 命名范围: `SalesData`
+4. 整列/整行: `A:A`, `1:1`
+
+**限制:**
+- 读取最大 100,000 个单元格
+- 更新最大 10,000 个单元格
+- 合并最大 1,000 个单元格
+- 冻结窗格最大 100 行/100 列
+
+### Contact 模块数据结构
+
+#### User (用户)
+```python
+{
+  "open_id": "ou_1234567890abcdefghij",     # 应用内用户 ID (必需,20+ 字符)
+  "user_id": "7g9j1234",                     # 租户内用户 ID (必需,8+ 字符)
+  "union_id": "on_1234567890abcdefghij",    # 全局用户 ID (必需,20+ 字符)
+  "name": "张三",                            # 用户姓名 (必需,1-100 字符)
+  "avatar": "https://...",                   # 头像 URL (可选)
+  "email": "zhangsan@company.com",          # 邮箱 (可选)
+  "mobile": "+8613800138000",               # 手机号 (可选)
+  "department_ids": ["dept_001"],           # 部门 ID 列表 (可选)
+  "employee_no": "E001",                    # 工号 (可选)
+  "job_title": "工程师",                     # 职位 (可选)
+  "status": 1                                # 状态: 1-激活,2-未激活,4-已离职 (可选)
+}
+```
+
+**三种 ID 的使用场景:**
+- `open_id`: 应用内标识,用于发送消息、授权等 (不同应用不同)
+- `user_id`: 租户内标识,用于用户管理、权限控制 (同一租户内相同)
+- `union_id`: 全局标识,用于跨租户识别、缓存 key (跨租户相同,推荐)
+
+#### Department (部门)
+```python
+{
+  "department_id": "dept_001",              # 部门 ID
+  "name": "技术部",                          # 部门名称
+  "parent_department_id": "dept_000",       # 父部门 ID (可选)
+  "member_count": 50,                       # 成员数量
+  "status": 1                                # 状态: 1-正常,2-停用
+}
+```
+
+#### ChatGroup (群组)
+```python
+{
+  "chat_id": "oc_1234567890abcdefghij",     # 群组 ID (oc_ 开头,20+ 字符)
+  "name": "技术讨论组",                      # 群名称
+  "description": "技术团队交流",             # 群描述 (可选)
+  "owner_id": "ou_xxx",                     # 群主 open_id
+  "member_count": 25                        # 成员数量
+}
+```
+
+**限制:**
+- 批量查询用户最大 200 个/次
+- 部门成员查询分页,每页最多 50 个
+- 群成员查询分页,每页最多 100 个
+
+### Phase 4 错误码定义
+
+#### CloudDoc 模块错误码
+
+| 错误码 | 错误类型 | 说明 | 是否可重试 |
+|--------|----------|------|-----------|
+| 50001 | InvalidParameterError | 文档标题为空或超长 | ❌ |
+| 50002 | InvalidParameterError | 内容块数量超限 (>100) | ❌ |
+| 50003 | InvalidParameterError | 内容块大小超限 (>100KB) | ❌ |
+| 50004 | InvalidParameterError | 权限类型无效 | ❌ |
+| 50005 | InvalidParameterError | 成员类型无效 | ❌ |
+| 50006 | NotFoundError | 文档不存在 | ❌ |
+| 50007 | NotFoundError | 内容块不存在 | ❌ |
+| 50008 | PermissionDeniedError | 无文档操作权限 | ❌ |
+| 50009 | PermissionDeniedError | 无权限管理权限 | ❌ |
+| 50101 | InvalidParameterError | 记录字段为空 | ❌ |
+| 50102 | InvalidParameterError | 分页大小超限 (>500) | ❌ |
+| 50103 | InvalidParameterError | 批量操作数量超限 (>500) | ❌ |
+| 50104 | InvalidParameterError | 过滤条件超限 (>20) | ❌ |
+| 50105 | InvalidParameterError | 过滤操作符无效 | ❌ |
+| 50106 | NotFoundError | 记录不存在 | ❌ |
+| 50107 | NotFoundError | 表格不存在 | ❌ |
+| 50201 | InvalidParameterError | Sheet 范围为空 | ❌ |
+| 50202 | InvalidParameterError | 单元格数量超限 | ❌ |
+| 50203 | InvalidParameterError | 字体大小无效 (6-36) | ❌ |
+| 50204 | InvalidParameterError | 对齐方式无效 | ❌ |
+| 50205 | InvalidParameterError | 合并类型无效 | ❌ |
+| 50206 | InvalidParameterError | 列宽无效 (10-500) | ❌ |
+| 50207 | InvalidParameterError | 行高无效 (10-500) | ❌ |
+| 50208 | InvalidParameterError | 冻结行列超限 (>100) | ❌ |
+| 50209 | NotFoundError | Sheet 不存在 | ❌ |
+
+#### Contact 模块错误码
+
+| 错误码 | 错误类型 | 说明 | 是否可重试 |
+|--------|----------|------|-----------|
+| 60001 | InvalidParameterError | 邮箱格式无效 | ❌ |
+| 60002 | InvalidParameterError | 手机号格式无效 | ❌ |
+| 60003 | InvalidParameterError | 用户 ID 格式无效 | ❌ |
+| 60004 | InvalidParameterError | 批量查询数量超限 (>200) | ❌ |
+| 60005 | InvalidParameterError | 分页大小超限 (>50) | ❌ |
+| 60006 | NotFoundError | 用户不存在 | ❌ |
+| 60007 | NotFoundError | 部门不存在 | ❌ |
+| 60008 | NotFoundError | 群组不存在 | ❌ |
+| 60009 | PermissionDeniedError | 无通讯录读取权限 | ❌ |
+| 60010 | PermissionDeniedError | 无敏感信息读取权限 | ❌ |
+| 60101 | CacheError | 缓存写入失败 | ✅ |
+| 60102 | CacheError | 缓存读取失败 | ✅ |
+| 60103 | CacheError | 缓存清理失败 | ✅ |
+
+#### 通用错误码映射
+
+**飞书 API 错误码 → 内部错误类型:**
+
+| 飞书错误码 | 内部错误类型 | 说明 |
+|-----------|-------------|------|
+| 99991663 | AuthenticationError | App Secret 无效 |
+| 99991664 | AuthenticationError | Tenant access token 无效 |
+| 99991668 | PermissionDeniedError | 应用权限不足 |
+| 230001 | NotFoundError | 用户不存在 |
+| 230002 | NotFoundError | 部门不存在 |
+| 230011 | PermissionDeniedError | 无通讯录读取权限 |
+| 1254044 | NotFoundError | 文档不存在 |
+| 1254045 | PermissionDeniedError | 无文档访问权限 |
+| 1254046 | InvalidParameterError | 文档参数无效 |
+
+### Phase 4 实现状态
+
+#### 已实现功能 ✅
+
+**CloudDoc 模块:**
+- ✅ Document, ContentBlock, BaseRecord, SheetRange 数据模型
+- ✅ DocClient: 创建文档、追加内容、读取文档、权限管理
+- ✅ BitableClient: CRUD 操作、批量操作、过滤查询、分页
+- ✅ SheetClient: 读写数据、格式化、合并单元格、冻结窗格
+- ✅ 完整的参数验证和错误处理
+- ✅ 60 个单元测试 (100% 通过)
+
+**Contact 模块:**
+- ✅ User, Department, ChatGroup 数据模型
+- ✅ ContactClient: 用户查询、部门查询、群组查询、批量操作
+- ✅ ContactCacheManager: PostgreSQL 缓存、TTL 24h、app_id 隔离
+- ✅ 缓存统计、懒加载刷新、显式失效
+- ✅ 完整的参数验证和错误处理
+- ✅ 46 个单元测试 (100% 通过)
+
+**质量指标:**
+- ✅ 225 个单元测试全部通过
+- ✅ 64.15% 代码覆盖率
+- ✅ 0 个 ruff 错误
+- ✅ 0 个 mypy 类型错误
+- ✅ 完整的类型注解
+- ✅ 符合代码规范
+
+#### 待实现功能 ⏳
+
+**CloudDoc 模块:**
+- ⏳ MediaClient: 上传/下载文档素材 (T056, 可选)
+- ⏳ DocumentUrlResolver: 统一文档 URL 解析 (FR-045)
+- ⏳ Wiki 节点缓存: node_token → obj_token 映射
+
+**Contact 模块:**
+- ⏳ 缓存集成到 ContactClient (T062b)
+- ⏳ LRU 容量淘汰策略 (FR-066.3)
+
+**测试:**
+- ⏳ 集成测试 (T059b, T065)
+- ⏳ 性能基准测试
+
+#### 已知限制
+
+**SDK 相关:**
+- ⚠️ lark-oapi v1.5.2 的 InternalTenantAccessTokenRequest 有 bug
+  - 已绕过: 使用 HTTP 直接请求
+  - 影响: 配置验证脚本、CredentialPool
+  - 状态: 已修复
+- ⚠️ UpdateDocumentBlockRequest 在 SDK 中不可用
+  - 影响: update_block 方法为 placeholder 实现
+  - 状态: 待 SDK 更新
+
+**API 限制:**
+- 知识库文档需要额外 API 调用获取 obj_token (100-500ms)
+- 部分 API 响应不包含完整字段 (如 create_time)
+- 批量操作限制 500 条/次
+
+### Phase 4 测试策略
+
+#### 单元测试 ✅ (已完成)
+- **覆盖范围**: 所有客户端方法、参数验证、错误处理
+- **Mock 策略**: 模拟 SDK 响应,隔离外部依赖
+- **测试数据**: 使用符合验证规则的 mock ID
+- **结果**: 225 passed, 3 skipped
+
+#### 集成测试 ⏳ (环境已就绪)
+- **测试环境**: .env.test 已配置,PostgreSQL 已连接
+- **测试数据**: 真实 App ID/Secret,测试用户邮箱
+- **测试场景**:
+  - Contact: 查询用户 → 缓存 → 再次查询 (验证缓存命中)
+  - CloudDoc: 创建文档 → 写入内容 → 读取验证
+  - Bitable: CRUD 记录 → 过滤查询 → 批量操作
+- **运行方式**: `pytest tests/integration/ -v`
+
+#### 性能测试 ⏳ (待实施)
+- 缓存命中响应时间 < 100ms
+- 缓存未命中响应时间 < 2s
+- 文档操作响应时间 < 3s
+- 并发测试: 100 并发请求

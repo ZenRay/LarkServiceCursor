@@ -24,18 +24,19 @@ components:
       properties:
         open_id:
           type: string
-          pattern: '^ou_[a-zA-Z0-9]{16}$'
-          description: 应用内用户标识
-          example: ou_abc123def456ghi7
+          pattern: '^ou_[a-zA-Z0-9]{20,}$'
+          description: 应用内用户标识 (ou_ 开头,后跟 20+ 字符)
+          example: ou_1234567890abcdefghij
         user_id:
           type: string
-          description: 租户内用户标识
+          pattern: '^[a-zA-Z0-9]{8,}$'
+          description: 租户内用户标识 (8+ 字符)
           example: '7g9j1234'
         union_id:
           type: string
-          pattern: '^on_[a-zA-Z0-9]{16}$'
-          description: 跨租户用户标识
-          example: on_xyz789abc123def4
+          pattern: '^on_[a-zA-Z0-9]{20,}$'
+          description: 跨租户用户标识 (on_ 开头,后跟 20+ 字符)
+          example: on_1234567890abcdefghij
         name:
           type: string
           minLength: 1
@@ -67,15 +68,23 @@ components:
             type: string
           description: 所属部门 ID 列表
           default: []
+        job_title:
+          type: string
+          description: 职位
+          nullable: true
+        employee_no:
+          type: string
+          description: 工号
+          nullable: true
         status:
           type: integer
-          enum: [1, 2, 4, 5]
+          enum: [1, 2, 4]
           description: |
             用户状态:
-            1 - 正常
-            2 - 停用
-            4 - 未激活
-            5 - 退出企业
+            1 - 激活
+            2 - 未激活
+            4 - 已离职
+          nullable: true
         employee_type:
           type: integer
           enum: [1, 2, 3, 4, 5]

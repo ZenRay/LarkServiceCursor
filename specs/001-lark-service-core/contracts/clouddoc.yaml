@@ -110,15 +110,12 @@ components:
       required:
         - doc_id
         - title
-        - owner_id
-        - created_at
-        - updated_at
       properties:
         doc_id:
           type: string
-          pattern: '^doc_[a-zA-Z0-9]{16}$'
-          description: 文档 ID
-          example: doc_abc123def456ghi7
+          pattern: '^(doxcn|doccn)[a-zA-Z0-9]{20,}$'
+          description: 文档 ID (doxcn 或 doccn 开头,后跟 20+ 字符)
+          example: doxcn1234567890abcdefghij
         title:
           type: string
           minLength: 1
@@ -131,16 +128,19 @@ components:
           nullable: true
         owner_id:
           type: string
-          pattern: '^ou_[a-zA-Z0-9]{16}$'
+          pattern: '^ou_[a-zA-Z0-9]{16,32}$'
           description: 文档所有者 open_id
-        created_at:
+          nullable: true
+        create_time:
           type: string
           format: date-time
           description: 创建时间
-        updated_at:
+          nullable: true
+        update_time:
           type: string
           format: date-time
           description: 更新时间
+          nullable: true
         url:
           type: string
           format: uri
@@ -158,8 +158,8 @@ components:
       properties:
         block_id:
           type: string
-          pattern: '^blk_[a-zA-Z0-9]{16}$'
-          description: Block ID (更新时需要)
+          pattern: '^[a-zA-Z0-9_-]{20,}$'
+          description: Block ID (更新时需要,20+ 字符)
         type:
           type: string
           enum: [paragraph, heading, image, table, code, list, divider]
@@ -189,14 +189,12 @@ components:
     BaseRecord:
       type: object
       required:
-        - record_id
         - fields
-        - created_time
-        - last_modified_time
       properties:
         record_id:
           type: string
-          pattern: '^rec_[a-zA-Z0-9]{16}$'
+          pattern: '^rec[a-zA-Z0-9]{20,}$'
+          nullable: true
           description: 记录 ID
         fields:
           type: object
