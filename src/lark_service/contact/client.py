@@ -10,8 +10,11 @@ from datetime import timedelta
 from lark_oapi.api.contact.v3 import (
     BatchGetIdUserRequest,
     BatchGetIdUserRequestBody,
+    FindByDepartmentUserRequest,
+    GetDepartmentRequest,
     GetUserRequest,
 )
+from lark_oapi.api.im.v1 import GetChatMembersRequest, GetChatRequest
 
 from lark_service.contact.cache import ContactCacheManager
 from lark_service.contact.models import (
@@ -48,11 +51,11 @@ def _convert_lark_user_status(lark_status: object | None) -> int | None:
         return None
 
     # Check status flags (using hasattr for dynamic attributes)
-    if hasattr(lark_status, "is_resigned") and getattr(lark_status, "is_resigned"):
+    if hasattr(lark_status, "is_resigned") and lark_status.is_resigned:
         return 4  # Resigned
-    if hasattr(lark_status, "is_frozen") and getattr(lark_status, "is_frozen"):
+    if hasattr(lark_status, "is_frozen") and lark_status.is_frozen:
         return 2  # Inactive/Frozen
-    if hasattr(lark_status, "is_activated") and getattr(lark_status, "is_activated"):
+    if hasattr(lark_status, "is_activated") and lark_status.is_activated:
         return 1  # Active
 
     # Default to active if no clear status
@@ -856,11 +859,63 @@ class ContactClient:
         logger.info(f"Getting department: {department_id}")
 
         def _get() -> Department:
-            # Note: Actual API call depends on SDK implementation
-            # This is a placeholder
+            # Get SDK client (handles token management internally)
+            client = self.credential_pool._get_sdk_client(app_id)
 
-            # TODO: Implement actual API call when SDK supports it
-            raise NotFoundError(f"Department not found: {department_id}")
+            # Build request
+            request = (
+                GetDepartmentRequest.builder()
+                .department_id(department_id)
+                .department_id_type("open_department_id")
+                .user_id_type("user_id")
+                .build()
+            )
+
+            # Make API call
+            response = client.contact.v3.department.get(request)
+
+            # Check response
+            if not response.success():
+                logger.error(
+                    f"Failed to get department: {response.code} - {response.msg}",
+                    extra={"code": response.code, "department_id": department_id},
+                )
+
+                # Map error codes
+                if response.code == 230002:  # Department not found
+                    raise NotFoundError(f"Department not found: {department_id}")
+                elif response.code in [99991668, 230011]:  # Permission denied
+                    from lark_service.core.exceptions import PermissionDeniedError
+
+                    raise PermissionDeniedError(
+                        f"No permission to access department: {department_id}"
+                    )
+                else:
+                    raise APIError(
+                        f"Failed to get department: {response.msg}",
+                        code=response.code,
+                    )
+
+            # Parse response
+            if not response.data or not response.data.department:
+                raise NotFoundError(f"Department not found: {department_id}")
+
+            lark_dept = response.data.department
+
+            # Convert to our Department model
+            department = Department(
+                department_id=lark_dept.open_department_id or lark_dept.department_id or "",
+                name=lark_dept.name or "",
+                parent_department_id=lark_dept.parent_department_id or None,
+                department_path=None,  # Not provided by API
+                leader_user_id=lark_dept.leader_user_id or None,
+                member_count=lark_dept.member_count or None,
+                status=1 if not hasattr(lark_dept, "status") or not lark_dept.status else 0,
+                order=lark_dept.order or None,
+            )
+
+            logger.info(f"Successfully retrieved department: {department.name}")
+            return department
 
         return self.retry_strategy.execute(_get)
 
@@ -916,11 +971,71 @@ class ContactClient:
         logger.info(f"Getting members of department {department_id}, page_size={page_size}")
 
         def _get_members() -> tuple[list[DepartmentUser], str | None]:
-            # Note: Actual API call depends on SDK implementation
-            # This is a placeholder
+            # Get SDK client (handles token management internally)
+            client = self.credential_pool._get_sdk_client(app_id)
 
-            # TODO: Implement actual API call when SDK supports it
-            return [], None
+            # Build request
+            request_builder = (
+                FindByDepartmentUserRequest.builder()
+                .department_id(department_id)
+                .department_id_type("open_department_id")
+                .user_id_type("user_id")
+                .page_size(page_size)
+            )
+
+            if page_token:
+                request_builder.page_token(page_token)
+
+            request = request_builder.build()
+
+            # Make API call
+            response = client.contact.v3.user.find_by_department(request)
+
+            # Check response
+            if not response.success():
+                logger.error(
+                    f"Failed to get department members: {response.code} - {response.msg}",
+                    extra={"code": response.code, "department_id": department_id},
+                )
+
+                # Map error codes
+                if response.code == 230002:  # Department not found
+                    raise NotFoundError(f"Department not found: {department_id}")
+                elif response.code in [99991668, 230011]:  # Permission denied
+                    from lark_service.core.exceptions import PermissionDeniedError
+
+                    raise PermissionDeniedError(
+                        f"No permission to access department members: {department_id}"
+                    )
+                else:
+                    raise APIError(
+                        f"Failed to get department members: {response.msg}",
+                        code=response.code,
+                    )
+
+            # Parse response
+            members: list[DepartmentUser] = []
+            next_page_token: str | None = None
+
+            if response.data:
+                if response.data.items:
+                    for lark_user in response.data.items:
+                        member = DepartmentUser(
+                            department_id=department_id,
+                            user_id=lark_user.user_id or "",
+                            is_leader=False,  # Not provided by find_by_department API
+                            order=None,
+                        )
+                        members.append(member)
+
+                next_page_token = response.data.page_token or None
+
+            logger.info(
+                f"Retrieved {len(members)} department members"
+                + (f", has_more: {bool(next_page_token)}" if next_page_token else "")
+            )
+
+            return members, next_page_token
 
         return self.retry_strategy.execute(_get_members)
 
@@ -965,11 +1080,57 @@ class ContactClient:
         logger.info(f"Getting chat group: {chat_id}")
 
         def _get() -> ChatGroup:
-            # Note: Actual API call depends on SDK implementation
-            # This is a placeholder
+            # Get SDK client (handles token management internally)
+            client = self.credential_pool._get_sdk_client(app_id)
 
-            # TODO: Implement actual API call when SDK supports it
-            raise NotFoundError(f"Chat group not found: {chat_id}")
+            # Build request
+            request = GetChatRequest.builder().chat_id(chat_id).build()
+
+            # Make API call
+            response = client.im.v1.chat.get(request)
+
+            # Check response
+            if not response.success():
+                logger.error(
+                    f"Failed to get chat group: {response.code} - {response.msg}",
+                    extra={"code": response.code, "chat_id": chat_id},
+                )
+
+                # Map error codes
+                if response.code == 230008:  # Chat not found
+                    raise NotFoundError(f"Chat group not found: {chat_id}")
+                elif response.code in [99991668]:  # Permission denied
+                    from lark_service.core.exceptions import PermissionDeniedError
+
+                    raise PermissionDeniedError(f"No permission to access chat: {chat_id}")
+                else:
+                    raise APIError(
+                        f"Failed to get chat group: {response.msg}",
+                        code=response.code,
+                    )
+
+            # Parse response
+            if not response.data:
+                raise NotFoundError(f"Chat group not found: {chat_id}")
+
+            lark_chat = response.data
+
+            # Convert to our ChatGroup model
+            chat_group = ChatGroup(
+                chat_id=lark_chat.chat_id or chat_id,
+                name=lark_chat.name or "",
+                description=lark_chat.description or None,
+                owner_id=lark_chat.owner_id or None,
+                member_count=None,  # Not provided by get chat API
+                chat_mode=lark_chat.chat_mode or None,
+                chat_type=lark_chat.chat_type or None,
+                avatar=lark_chat.avatar or None,
+                create_time=None,  # Not provided by get chat API
+                update_time=None,  # Not provided by get chat API
+            )
+
+            logger.info(f"Successfully retrieved chat group: {chat_group.name}")
+            return chat_group
 
         return self.retry_strategy.execute(_get)
 
@@ -1025,10 +1186,67 @@ class ContactClient:
         logger.info(f"Getting members of chat {chat_id}, page_size={page_size}")
 
         def _get_members() -> tuple[list[ChatMember], str | None]:
-            # Note: Actual API call depends on SDK implementation
-            # This is a placeholder
+            # Get SDK client (handles token management internally)
+            client = self.credential_pool._get_sdk_client(app_id)
 
-            # TODO: Implement actual API call when SDK supports it
-            return [], None
+            # Build request
+            request_builder = (
+                GetChatMembersRequest.builder()
+                .chat_id(chat_id)
+                .member_id_type("open_id")
+                .page_size(page_size)
+            )
+
+            if page_token:
+                request_builder.page_token(page_token)
+
+            request = request_builder.build()
+
+            # Make API call
+            response = client.im.v1.chat_members.get(request)
+
+            # Check response
+            if not response.success():
+                logger.error(
+                    f"Failed to get chat members: {response.code} - {response.msg}",
+                    extra={"code": response.code, "chat_id": chat_id},
+                )
+
+                # Map error codes
+                if response.code == 230008:  # Chat not found
+                    raise NotFoundError(f"Chat group not found: {chat_id}")
+                elif response.code in [99991668]:  # Permission denied
+                    from lark_service.core.exceptions import PermissionDeniedError
+
+                    raise PermissionDeniedError(f"No permission to access chat members: {chat_id}")
+                else:
+                    raise APIError(
+                        f"Failed to get chat members: {response.msg}",
+                        code=response.code,
+                    )
+
+            # Parse response
+            members: list[ChatMember] = []
+            next_page_token: str | None = None
+
+            if response.data:
+                if response.data.items:
+                    for lark_member in response.data.items:
+                        member = ChatMember(
+                            chat_id=chat_id,
+                            user_id=lark_member.member_id or "",
+                            member_role=None,  # Not provided by get_chat_members API
+                            join_time=None,  # Not provided by get_chat_members API
+                        )
+                        members.append(member)
+
+                next_page_token = response.data.page_token or None
+
+            logger.info(
+                f"Retrieved {len(members)} chat members"
+                + (f", has_more: {bool(next_page_token)}" if next_page_token else "")
+            )
+
+            return members, next_page_token
 
         return self.retry_strategy.execute(_get_members)
