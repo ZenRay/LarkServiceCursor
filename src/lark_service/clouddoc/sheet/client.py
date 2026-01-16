@@ -6,11 +6,15 @@ via Lark Sheets API, including reading, updating, formatting, and managing cells
 """
 
 
+import requests  # type: ignore
 
 from lark_service.clouddoc.models import CellData
 from lark_service.core.credential_pool import CredentialPool
 from lark_service.core.exceptions import (
+    APIError,
     InvalidParameterError,
+    NotFoundError,
+    PermissionDeniedError,
 )
 from lark_service.core.retry import RetryStrategy
 from lark_service.utils.logger import get_logger
@@ -115,11 +119,99 @@ class SheetClient:
         logger.info(f"Getting sheet data: {sheet_id}!{range_str}")
 
         def _get() -> list[list[CellData]]:
-            # Note: Actual API call depends on SDK implementation
-            # This is a placeholder
+            # Get SDK client for token management
+            sdk_client = self.credential_pool._get_sdk_client(app_id)
 
-            # TODO: Implement actual API call when SDK supports it
-            return []
+            # Get tenant access token
+            token = sdk_client.token_manager.get_tenant_access_token()
+
+            # Build the range parameter: sheetId!A1:B10
+            full_range = f"{sheet_id}!{range_str}"
+
+            # Make API request
+            # Using Sheets v2 API: GET /open-apis/sheets/v2/spreadsheets/{spreadsheetToken}/values/{range}
+            url = f"https://open.feishu.cn/open-apis/sheets/v2/spreadsheets/{spreadsheet_token}/values/{full_range}"
+
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json; charset=utf-8",
+            }
+
+            # Optional query parameters for formatting
+            params = {
+                "valueRenderOption": "ToString",  # Convert values to string
+                "dateTimeRenderOption": "FormattedString",  # Format dates as strings
+            }
+
+            response = requests.get(url, headers=headers, params=params, timeout=30)
+
+            if response.status_code != 200:
+                error_msg = f"Failed to get sheet data: HTTP {response.status_code}"
+                try:
+                    error_data = response.json()
+                    error_msg = f"{error_msg} - {error_data.get('msg', 'Unknown error')}"
+                    error_code = error_data.get("code", 0)
+
+                    # Map error codes
+                    if error_code in [404, 1770002]:
+                        raise NotFoundError(f"Sheet or range not found: {full_range}")
+                    elif error_code in [403, 1770032]:
+                        raise PermissionDeniedError(
+                            f"No permission to access sheet: {full_range}"
+                        )
+                    elif error_code in [400, 1770001]:
+                        raise InvalidParameterError(error_msg)
+                except Exception as e:
+                    if isinstance(
+                        e, (NotFoundError, PermissionDeniedError, InvalidParameterError)
+                    ):
+                        raise
+                    logger.error(f"Failed to parse error response: {e}")
+
+                raise APIError(error_msg)
+
+            result = response.json()
+            if result.get("code") != 0:
+                error_msg = f"API returned error: {result.get('msg', 'Unknown error')}"
+                raise APIError(error_msg)
+
+            # Parse response data
+            data = result.get("data", {})
+            value_range = data.get("valueRange", {})
+            values = value_range.get("values", [])
+
+            # Convert to CellData objects
+            cell_data_rows: list[list[CellData]] = []
+
+            for row in values:
+                cell_data_row: list[CellData] = []
+
+                if isinstance(row, list):
+                    for cell_value in row:
+                        # Create CellData object
+                        cell_data = CellData(
+                            value=str(cell_value) if cell_value is not None else "",
+                            formula=None,
+                            number_format=None,
+                            font_size=None,
+                            font_color=None,
+                            background_color=None,
+                            bold=None,
+                            italic=None,
+                            underline=None,
+                            align=None,
+                            vertical_align=None,
+                        )
+                        cell_data_row.append(cell_data)
+
+                cell_data_rows.append(cell_data_row)
+
+            logger.info(
+                f"Successfully retrieved {len(cell_data_rows)} rows "
+                f"from sheet {sheet_id}!{range_str}"
+            )
+
+            return cell_data_rows
 
         return self.retry_strategy.execute(_get)
 
