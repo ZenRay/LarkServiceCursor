@@ -7,7 +7,14 @@ import time
 from collections.abc import Callable
 from typing import Any, TypeVar
 
-from lark_service.core.exceptions import APIError, RateLimitError
+from lark_service.core.exceptions import (
+    APIError,
+    InvalidParameterError,
+    NotFoundError,
+    PermissionDeniedError,
+    RateLimitError,
+    ValidationError,
+)
 from lark_service.utils.logger import get_logger
 
 logger = get_logger()
@@ -144,10 +151,22 @@ class RetryStrategy:
                     )
                     raise
 
+            except (ValidationError, InvalidParameterError, NotFoundError, PermissionDeniedError) as e:
+                # These errors are not retryable - they indicate client-side issues
+                logger.error(
+                    "Non-retryable error (client error)",
+                    extra={
+                        "error_type": type(e).__name__,
+                        "function": func.__name__,
+                        "error": str(e),
+                    },
+                )
+                raise
+
             except APIError as e:
                 last_exception = e
 
-                # Don't retry on certain errors
+                # Don't retry on certain HTTP status codes
                 if e.status_code and e.status_code in [400, 401, 403, 404]:
                     logger.error(
                         "Non-retryable API error",
