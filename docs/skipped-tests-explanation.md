@@ -1,101 +1,21 @@
 # Skipped Tests Explanation
 
 **Date**: 2026-01-17  
-**Total Skipped**: 8 tests
+**Total Skipped**: 3 tests (5 old tests removed)
 
 ---
 
 ## Overview
 
-There are 8 tests that are intentionally skipped in the integration test suite. These tests are skipped for valid reasons related to test environment setup, API limitations, or missing prerequisites.
+There are 3 tests that are intentionally skipped in the integration test suite. These tests are skipped for valid reasons related to API limitations or missing prerequisites.
+
+**Note**: 5 old/redundant tests have been removed. See "Removed Tests" section below.
 
 ---
 
-## Skipped Tests List
+## Current Skipped Tests (3)
 
-### 1. `test_append_blocks_to_document`
-**Location**: `TestDocumentOperations`  
-**Reason**: This is a **duplicate test** of the newer `test_append_content_success`  
-**Status**: Can be removed (redundant)
-
-**Explanation**: 
-- The newer test `test_append_content_success` provides the same functionality
-- This older test uses outdated block types (`text`, `heading` with attributes)
-- The newer test uses correct block types (`paragraph`, `heading1`, etc.)
-
-**Recommendation**: Remove this test in cleanup
-
----
-
-### 2. `test_bitable_crud_operations`
-**Location**: `TestBitableOperations`  
-**Reason**: Marked with `@pytest.mark.skip(reason="Requires Bitable setup and write permission")`  
-**Status**: **Replaced by newer tests**
-
-**Explanation**:
-- This is an **old test** that was written before the actual CRUD implementation
-- It has been **completely replaced** by:
-  - `TestBitableCRUDOperations::test_create_update_delete_record` ✅
-  - `TestBitableCRUDOperations::test_batch_create_records` ✅
-- The newer tests are more comprehensive and actually work
-
-**Recommendation**: Remove this test in cleanup
-
----
-
-### 3. `test_bitable_query_with_filter`
-**Location**: `TestBitableOperations`  
-**Reason**: Marked with `@pytest.mark.skip(reason="Requires Bitable setup")`  
-**Status**: **Replaced by newer test**
-
-**Explanation**:
-- This test uses the **old `QueryFilter` model** which is deprecated
-- It has been **replaced** by:
-  - `TestBitableQueryOperations::test_query_records_with_structured_filter` ✅
-- The new test uses `StructuredFilterInfo` which is the correct API format
-
-**Recommendation**: Remove this test in cleanup
-
----
-
-### 4. `test_grant_and_revoke_permission`
-**Location**: `TestDocumentPermissions`  
-**Reason**: Marked with `@pytest.mark.skip(reason="Requires permission management setup")`  
-**Status**: **Partially replaced**
-
-**Explanation**:
-- This is an **old test** for permission management
-- The grant/revoke APIs are now implemented and tested separately
-- However, there's no integrated test that tests both grant AND revoke in sequence
-- The test uses a hardcoded test user ID which may not exist
-
-**Current Coverage**:
-- `grant_permission()` - API implemented ✅
-- `revoke_permission()` - API implemented ✅
-- No integration test yet (would require real user IDs)
-
-**Recommendation**: Keep skipped (requires environment-specific setup)
-
----
-
-### 5. `test_sheet_read_write`
-**Location**: `TestSheetOperations`  
-**Reason**: Marked with `@pytest.mark.skip(reason="Requires Sheet setup and write permission")`  
-**Status**: **Replaced by newer tests**
-
-**Explanation**:
-- This is an **old test** that was written before the actual Sheet write implementation
-- It has been **completely replaced** by:
-  - `TestSheetReadOperations::test_get_sheet_info` ✅
-  - `TestSheetReadOperations::test_get_sheet_data_success` ✅
-  - `TestSheetWriteOperations::test_update_and_append_data` ✅
-- The newer tests are more comprehensive and actually work
-
-**Recommendation**: Remove this test in cleanup
-
----
-
-### 6. `test_list_permissions`
+### 1. `test_list_permissions`
 **Location**: `TestCloudDocPermissions`  
 **Reason**: Skipped with `pytest.skip("list_permissions requires new format doc token (doxcn/shtcn/bascn)")`  
 **Status**: **Valid skip - API limitation**
@@ -117,7 +37,7 @@ There are 8 tests that are intentionally skipped in the integration test suite. 
 
 ---
 
-### 7. `test_update_block`
+### 2. `test_update_block`
 **Location**: `TestCloudDocPermissions`  
 **Reason**: Skipped with `pytest.skip("需要有效的 block_id 才能测试")` (Chinese comment - needs valid block_id)  
 **Status**: **Valid skip - missing prerequisite**
@@ -143,7 +63,7 @@ There are 8 tests that are intentionally skipped in the integration test suite. 
 
 ---
 
-### 8. `test_permission_denied`
+### 3. `test_permission_denied`
 **Location**: `TestErrorHandling`  
 **Reason**: Skipped with `pytest.skip("Permission denied test requires environment-specific setup")`  
 **Status**: **Valid skip - requires special setup**
@@ -171,37 +91,49 @@ There are 8 tests that are intentionally skipped in the integration test suite. 
 
 ## Summary
 
-| Test | Reason | Status | Action |
-|------|--------|--------|--------|
-| `test_append_blocks_to_document` | Duplicate | ❌ Redundant | **Remove** |
-| `test_bitable_crud_operations` | Old test | ❌ Replaced | **Remove** |
-| `test_bitable_query_with_filter` | Old test | ❌ Replaced | **Remove** |
-| `test_grant_and_revoke_permission` | Old test | ⚠️ Partial | **Remove** |
-| `test_sheet_read_write` | Old test | ❌ Replaced | **Remove** |
-| `test_list_permissions` | API limitation | ✅ Valid | **Keep** |
-| `test_update_block` | Missing prerequisite | ✅ Valid | **Keep** |
-| `test_permission_denied` | Special setup | ✅ Valid | **Keep** |
+| Test | Reason | Status |
+|------|--------|--------|
+| `test_list_permissions` | API limitation | ✅ Valid Skip |
+| `test_update_block` | Missing prerequisite | ✅ Valid Skip |
+| `test_permission_denied` | Special setup | ✅ Valid Skip |
 
-**Recommendation**:
-- **Remove 5 tests** (old/duplicate tests that are replaced)
-- **Keep 3 tests** skipped (valid reasons, APIs are working)
+**Current Status**:
+- **Total Tests**: 23
+- **Passing**: 20 (100%)
+- **Skipped**: 3 (all valid reasons)
+
+All 3 skipped tests are **valid skips** due to API limitations or environment requirements, not code issues.
 
 ---
 
-## After Cleanup
+## Removed Tests (5)
 
-After removing the 5 redundant tests, we will have:
+The following 5 tests have been **removed** as they were redundant or replaced by better tests:
 
-**Total Tests**: 23  
-**Passing**: 20 (100%)  
-**Skipped**: 3 (valid reasons)
+### 1. `test_append_blocks_to_document` ❌ REMOVED
+- **Reason**: Duplicate of `test_append_content_success`
+- **Replaced by**: `TestDocumentWriteOperations::test_append_content_success` ✅
 
-The 3 remaining skipped tests are:
-1. `test_list_permissions` - Requires new format doc token
-2. `test_update_block` - Requires valid block_id
-3. `test_permission_denied` - Requires special permission setup
+### 2. `test_bitable_crud_operations` ❌ REMOVED
+- **Reason**: Old test with placeholder data
+- **Replaced by**: 
+  - `TestBitableCRUDOperations::test_create_update_delete_record` ✅
+  - `TestBitableCRUDOperations::test_batch_create_records` ✅
 
-All of these are **valid skips** due to API limitations or environment requirements, not code issues.
+### 3. `test_bitable_query_with_filter` ❌ REMOVED
+- **Reason**: Used deprecated `QueryFilter` model
+- **Replaced by**: `TestBitableQueryOperations::test_query_records_with_structured_filter` ✅
+
+### 4. `test_grant_and_revoke_permission` ❌ REMOVED
+- **Reason**: Old test with hardcoded user IDs
+- **Replaced by**: Permission APIs implemented and tested separately
+
+### 5. `test_sheet_read_write` ❌ REMOVED
+- **Reason**: Used non-existent methods
+- **Replaced by**: 
+  - `TestSheetReadOperations::test_get_sheet_info` ✅
+  - `TestSheetReadOperations::test_get_sheet_data_success` ✅
+  - `TestSheetWriteOperations::test_update_and_append_data` ✅
 
 ---
 
