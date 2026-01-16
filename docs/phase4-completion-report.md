@@ -681,9 +681,13 @@ $ pytest tests/integration/test_clouddoc_e2e.py::TestDocumentOperations -v
 
 ### 技术债务
 
-1. **Contact 部门/群组 API**: 方法存在但未实现真实 API 调用
+1. ~~**Contact 部门/群组 API**: 方法存在但未实现真实 API 调用~~ ✅ **已解决 (2026-01-15)**
+   - ✅ get_department() - 真实 API 实现
+   - ✅ get_department_members() - 真实 API 实现
+   - ✅ get_chat_group() - 真实 API 实现
+   - ✅ get_chat_members() - 真实 API 实现
 2. **CloudDoc 写操作**: append_blocks 等方法为 placeholder
-3. **Bitable/Sheet API**: 完整的 CRUD 操作未实现
+3. **Bitable/Sheet API**: 完整的 CRUD 操作未实现 (工作量大,可选)
 4. **性能基准测试**: 缓存命中率和响应时间测试未添加
 
 ### 已知限制
