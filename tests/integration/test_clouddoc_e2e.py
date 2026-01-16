@@ -635,6 +635,134 @@ class TestBitableQueryOperations:
             )
 
 
+class TestBitableCRUDOperations:
+    """Test Bitable CRUD operations with real API."""
+
+    def test_create_update_delete_record(self, bitable_client, test_config):
+        """Test complete CRUD workflow: create → update → delete."""
+        if not test_config.get("bitable_token"):
+            pytest.skip("TEST_BITABLE_APP_TOKEN not configured")
+
+        table_id = os.getenv("TEST_BITABLE_TABLE_ID", "tblEnSV2PfThFqBa")
+        created_record_id = None
+
+        try:
+            # 1. 创建记录
+            print("\n1️⃣ 测试创建记录...")
+            record = bitable_client.create_record(
+                app_id=test_config["app_id"],
+                app_token=test_config["bitable_token"],
+                table_id=table_id,
+                fields={"文本": "测试记录 - CRUD Test"},
+            )
+
+            created_record_id = record.record_id
+            assert record.record_id.startswith("rec")
+            assert record.fields.get("文本") == "测试记录 - CRUD Test"
+            print(f"   ✅ 创建成功: {record.record_id}")
+
+            # 2. 更新记录
+            print("\n2️⃣ 测试更新记录...")
+            updated = bitable_client.update_record(
+                app_id=test_config["app_id"],
+                app_token=test_config["bitable_token"],
+                table_id=table_id,
+                record_id=created_record_id,
+                fields={"文本": "测试记录 - 已更新"},
+            )
+
+            assert updated.record_id == created_record_id
+            assert updated.fields.get("文本") == "测试记录 - 已更新"
+            print(f"   ✅ 更新成功: {updated.record_id}")
+
+            # 3. 删除记录
+            print("\n3️⃣ 测试删除记录...")
+            success = bitable_client.delete_record(
+                app_id=test_config["app_id"],
+                app_token=test_config["bitable_token"],
+                table_id=table_id,
+                record_id=created_record_id,
+            )
+
+            assert success is True
+            print(f"   ✅ 删除成功: {created_record_id}")
+            created_record_id = None  # 已删除
+            print("\n🎉 CRUD 工作流测试通过！")
+
+        except PermissionDeniedError as e:
+            pytest.fail(
+                f"权限不足: {e}\n请确保:\n"
+                "1. 应用已添加 bitable:app 权限\n"
+                "2. 应用已被添加为多维表格的协作者\n"
+                "3. 应用具有'可编辑'权限"
+            )
+
+        finally:
+            if created_record_id:
+                try:
+                    bitable_client.delete_record(
+                        app_id=test_config["app_id"],
+                        app_token=test_config["bitable_token"],
+                        table_id=table_id,
+                        record_id=created_record_id,
+                    )
+                    print(f"\n🧹 清理测试数据: {created_record_id}")
+                except Exception:
+                    pass
+
+    def test_batch_create_records(self, bitable_client, test_config):
+        """Test batch creating multiple records."""
+        if not test_config.get("bitable_token"):
+            pytest.skip("TEST_BITABLE_APP_TOKEN not configured")
+
+        table_id = os.getenv("TEST_BITABLE_TABLE_ID", "tblEnSV2PfThFqBa")
+        created_record_ids = []
+
+        try:
+            print("\n📦 测试批量创建记录...")
+            records = bitable_client.batch_create_records(
+                app_id=test_config["app_id"],
+                app_token=test_config["bitable_token"],
+                table_id=table_id,
+                records=[
+                    {"文本": "批量记录 1"},
+                    {"文本": "批量记录 2"},
+                    {"文本": "批量记录 3"},
+                ],
+            )
+
+            assert len(records) == 3
+            for i, record in enumerate(records, 1):
+                assert record.record_id.startswith("rec")
+                assert record.fields.get("文本") == f"批量记录 {i}"
+                created_record_ids.append(record.record_id)
+                print(f"   - 记录 {i}: {record.record_id}")
+
+            print(f"   ✅ 批量创建成功: {len(records)} 条记录")
+
+        except PermissionDeniedError as e:
+            pytest.fail(
+                f"权限不足: {e}\n请确保:\n"
+                "1. 应用已添加 bitable:app 权限\n"
+                "2. 应用已被添加为多维表格的协作者\n"
+                "3. 应用具有'可编辑'权限"
+            )
+
+        finally:
+            for record_id in created_record_ids:
+                try:
+                    bitable_client.delete_record(
+                        app_id=test_config["app_id"],
+                        app_token=test_config["bitable_token"],
+                        table_id=table_id,
+                        record_id=record_id,
+                    )
+                except Exception:
+                    pass
+            if created_record_ids:
+                print(f"\n🧹 清理了 {len(created_record_ids)} 条测试数据")
+
+
 class TestSheetReadOperations:
     """Test Sheet read operations with real API."""
 
