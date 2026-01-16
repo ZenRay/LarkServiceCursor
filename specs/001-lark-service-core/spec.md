@@ -837,11 +837,23 @@
 - ✅ 100% 类型注解覆盖
 - ✅ 符合代码规范
 
-#### 待实现功能 ⏳
+#### 新增实现 ✨
 
 **CloudDoc 模块:**
-- ⏳ append_content() 真实 API 实现 (当前 placeholder)
-- ⏳ Bitable/Sheet 真实 API 实现 (当前 placeholder)
+- ✅ append_content() 真实 API 实现 **[新增]**
+  - 支持多种块类型: paragraph, heading (1-3), divider
+  - 直接 HTTP 调用 Feishu API
+  - 完整错误处理和重试策略
+- ✅ Bitable.query_records() 真实 API 实现 **[新增]**
+  - 支持 10 种过滤操作符 (eq, ne, gt, gte, lt, lte, contains, not_contains, is_empty, is_not_empty)
+  - 分页支持 (page_size: 1-500)
+  - 过滤条件转换为 Lark 公式语法
+- ✅ Sheet.get_sheet_data() 真实 API 实现 **[新增]**
+  - 支持范围读取 (sheetId!A1:B10)
+  - 值渲染选项 (ToString, FormattedString)
+  - 返回 CellData 对象 (2D 数组)
+
+**待实现功能:**
 - ⏳ MediaClient: 上传/下载文档素材 (T056, 可选)
 - ⏳ DocumentUrlResolver: 统一文档 URL 解析 (FR-045)
 
