@@ -848,10 +848,11 @@
   - 支持 10 种过滤操作符 (eq, ne, gt, gte, lt, lte, contains, not_contains, is_empty, is_not_empty)
   - 分页支持 (page_size: 1-500)
   - 过滤条件转换为 Lark 公式语法
-- ✅ Sheet.get_sheet_data() 真实 API 实现 **[新增]**
+- ✅ Sheet.get_sheet_data() 真实 API 实现 **[新增]** **[重新实现]**
   - 支持范围读取 (sheetId!A1:B10)
   - 值渲染选项 (ToString, FormattedString)
   - 返回 CellData 对象 (2D 数组)
+  - 完整的 CellData 模型（包含所有格式化字段）
 
 **待实现功能:**
 - ⏳ MediaClient: 上传/下载文档素材 (T056, 可选)
