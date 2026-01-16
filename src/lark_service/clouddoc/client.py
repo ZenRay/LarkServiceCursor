@@ -7,6 +7,7 @@ including creating documents, appending content, getting content, and updating b
 
 from typing import Any
 
+import requests  # type: ignore
 from lark_oapi.api.docx.v1 import (
     CreateDocumentRequest,
     CreateDocumentRequestBody,
@@ -16,6 +17,7 @@ from lark_oapi.api.docx.v1 import (
 from lark_service.clouddoc.models import ContentBlock, Document, Permission
 from lark_service.core.credential_pool import CredentialPool
 from lark_service.core.exceptions import (
+    APIError,
     InvalidParameterError,
     NotFoundError,
     PermissionDeniedError,
@@ -199,25 +201,142 @@ class DocClient:
         logger.info(f"Appending {len(blocks)} blocks to document {doc_id}")
 
         def _append() -> bool:
-            self.credential_pool._get_sdk_client(app_id)
+            # Get SDK client for token management
+            sdk_client = self.credential_pool._get_sdk_client(app_id)
 
-            # Convert ContentBlock to API format
-            block_data: list[dict[str, Any]] = []
+            # Get tenant access token
+            token = sdk_client.token_manager.get_tenant_access_token()
+
+            # Convert ContentBlock to Lark API format
+            children: list[dict[str, Any]] = []
+
+            # Block type mapping: string -> integer
+            block_type_map = {
+                "paragraph": 2,  # Text paragraph
+                "heading": 3,    # Heading (need to specify level)
+                "heading_1": 3,
+                "heading_2": 4,
+                "heading_3": 5,
+                "list": 6,       # Bullet list
+                "ordered_list": 7,  # Ordered list
+                "code": 8,       # Code block
+                "divider": 11,   # Divider line
+                "image": 27,     # Image
+                "table": 31,     # Table
+            }
+
             for block in blocks:
-                block_dict: dict[str, Any] = {
-                    "block_type": block.block_type,
-                    "content": block.content,
-                }
-                if block.attributes:
-                    block_dict["attributes"] = block.attributes
-                block_data.append(block_dict)
+                block_type_int = block_type_map.get(block.block_type, 2)  # Default to paragraph
 
-            # Note: Actual API call depends on Lark SDK implementation
-            # This is a simplified version
-            logger.info(f"Appending blocks: {block_data}")
+                # Build block structure based on type
+                if block.block_type in ["paragraph", "text"]:
+                    # Text block
+                    block_dict: dict[str, Any] = {
+                        "block_type": block_type_int,
+                        "text": {
+                            "elements": [
+                                {
+                                    "text_run": {
+                                        "content": str(block.content) if block.content else "",
+                                        "text_element_style": {}
+                                    }
+                                }
+                            ],
+                            "style": {}
+                        }
+                    }
+                elif block.block_type.startswith("heading"):
+                    # Heading block
+                    level = 1
+                    if block.block_type == "heading_2":
+                        level = 2
+                    elif block.block_type == "heading_3":
+                        level = 3
 
-            # TODO: Implement actual API call when SDK supports it
-            # For now, return success
+                    block_dict = {
+                        "block_type": block_type_int,
+                        f"heading{level}": {
+                            "elements": [
+                                {
+                                    "text_run": {
+                                        "content": str(block.content) if block.content else "",
+                                        "text_element_style": {}
+                                    }
+                                }
+                            ],
+                            "style": {}
+                        }
+                    }
+                elif block.block_type == "divider":
+                    # Divider block
+                    block_dict = {
+                        "block_type": block_type_int,
+                    }
+                else:
+                    # Default to text
+                    block_dict = {
+                        "block_type": 2,
+                        "text": {
+                            "elements": [
+                                {
+                                    "text_run": {
+                                        "content": str(block.content) if block.content else "",
+                                        "text_element_style": {}
+                                    }
+                                }
+                            ],
+                            "style": {}
+                        }
+                    }
+
+                children.append(block_dict)
+
+            # Make API request
+            # First, get the document to find the root block_id
+            # For simplicity, we'll use the document_id as the parent block
+            # In practice, you might need to query the document structure first
+
+            url = f"https://open.feishu.cn/open-apis/docx/v1/documents/{doc_id}/blocks/{doc_id}/children"
+
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json; charset=utf-8"
+            }
+
+            payload = {
+                "index": -1,  # Append to end
+                "children": children
+            }
+
+            response = requests.post(url, headers=headers, json=payload, timeout=30)
+
+            if response.status_code != 200:
+                error_msg = f"Failed to append blocks: HTTP {response.status_code}"
+                try:
+                    error_data = response.json()
+                    error_msg = f"{error_msg} - {error_data.get('msg', 'Unknown error')}"
+                    error_code = error_data.get('code', 0)
+
+                    # Map error codes
+                    if error_code == 1770002:
+                        raise NotFoundError(f"Document or block not found: {doc_id}")
+                    elif error_code in [1770032, 403]:
+                        raise PermissionDeniedError(f"No permission to edit document: {doc_id}")
+                    elif error_code in [1770001, 1770007, 1770005, 1770028]:
+                        raise InvalidParameterError(error_msg)
+                except Exception as e:
+                    if isinstance(e, (NotFoundError, PermissionDeniedError, InvalidParameterError)):
+                        raise
+                    logger.error(f"Failed to parse error response: {e}")
+
+                raise APIError(error_msg)
+
+            result = response.json()
+            if result.get("code") != 0:
+                error_msg = f"API returned error: {result.get('msg', 'Unknown error')}"
+                raise APIError(error_msg)
+
+            logger.info(f"Successfully appended {len(blocks)} blocks to document {doc_id}")
             return True
 
         return self.retry_strategy.execute(_append)
