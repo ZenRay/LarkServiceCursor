@@ -7,7 +7,8 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 import lark_oapi as lark
-from lark_oapi.api.auth.v3 import InternalAppAccessTokenRequest, InternalTenantAccessTokenRequest
+import requests
+from lark_oapi.api.auth.v3 import InternalAppAccessTokenRequest
 
 from lark_service.core.config import Config
 from lark_service.core.exceptions import (
@@ -185,6 +186,9 @@ class CredentialPool:
     def _fetch_tenant_access_token(self, app_id: str) -> tuple[str, datetime]:
         """Fetch tenant_access_token from Feishu API.
 
+        Note: Uses direct HTTP request instead of SDK due to bug in lark-oapi v1.5.2
+        InternalTenantAccessTokenRequest. See: https://open.feishu.cn/document/server-docs/authentication-management/access-token/tenant_access_token_internal
+
         Args:
             app_id: Application ID
 
@@ -194,30 +198,33 @@ class CredentialPool:
         Raises:
             TokenAcquisitionError: If token acquisition fails
         """
-        client = self._get_sdk_client(app_id)
-
         try:
-            request = (
-                InternalTenantAccessTokenRequest.builder()
-                .app_id(app_id)
-                .app_secret(self.app_manager.get_decrypted_secret(app_id))
-                .build()
-            )
+            # Get app secret
+            app_secret = self.app_manager.get_decrypted_secret(app_id)
 
-            response = client.auth.v3.tenant_access_token.internal(request)
+            # Use direct HTTP request to avoid SDK bug
+            # Reference: https://open.feishu.cn/document/server-docs/authentication-management/access-token/tenant_access_token_internal
+            url = "https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal"
+            payload = {"app_id": app_id, "app_secret": app_secret}
 
-            if not response.success():
+            response = requests.post(url, json=payload, timeout=10)
+            result = response.json()
+
+            # Check response
+            if result.get("code") != 0:
+                error_code = result.get("code")
+                error_msg = result.get("msg", "Unknown error")
                 raise TokenAcquisitionError(
-                    f"Failed to get tenant_access_token: {response.msg}",
+                    f"Failed to get tenant_access_token: {error_msg}",
                     details={
                         "app_id": app_id,
-                        "code": response.code,
-                        "msg": response.msg,
+                        "code": error_code,
+                        "msg": error_msg,
                     },
                 )
 
-            token_value = response.data.tenant_access_token
-            expires_in = response.data.expire  # seconds
+            token_value = result["tenant_access_token"]
+            expires_in = result["expire"]  # seconds
 
             expires_at = datetime.now() + timedelta(seconds=expires_in)
 
@@ -234,6 +241,16 @@ class CredentialPool:
 
         except TokenAcquisitionError:
             raise
+        except requests.RequestException as e:
+            raise TokenAcquisitionError(
+                f"Failed to fetch tenant_access_token: Network error - {e}",
+                details={"app_id": app_id, "error": str(e)},
+            ) from e
+        except KeyError as e:
+            raise TokenAcquisitionError(
+                f"Failed to fetch tenant_access_token: Invalid response format - missing {e}",
+                details={"app_id": app_id, "error": str(e)},
+            ) from e
         except Exception as e:
             raise TokenAcquisitionError(
                 f"Failed to fetch tenant_access_token: {e}",
