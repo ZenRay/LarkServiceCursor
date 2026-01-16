@@ -381,20 +381,51 @@
 **数据空间表格操作**:
 - **FR-071**: aPaaS 模块 MUST 支持查询工作空间(Workspace)下的数据表列表,返回表格ID、名称、字段定义(list接口)
 - **FR-072**: aPaaS 模块 MUST 支持根据条件查询数据空间表格的记录,支持过滤、分页(page_token机制)
-- **FR-072-1**: aPaaS 模块 MUST 支持创建数据空间表格的记录,返回记录ID和完整数据
-- **FR-073**: aPaaS 模块 MUST 支持更新数据空间表格的记录,支持部分字段更新
-- **FR-074**: aPaaS 模块 MUST 支持删除数据空间表格的记录
-- **FR-074-1**: aPaaS 模块 MUST 支持批量创建、批量更新记录操作
-- **FR-075**: aPaaS 模块 MUST 使用 user_access_token 进行数据空间操作,并验证权限有效性
-- **FR-076**: aPaaS 模块 SHOULD 处理并发写冲突(如果飞书API支持版本控制),返回明确的冲突错误
+  - **FR-072-1**: 支持条件行过滤(filter参数),使用表达式字符串格式,如`CurrentValue.[字段名] = "值"`
+  - **FR-072-2**: 过滤表达式支持比较操作符:等于(=)、不等于(!=)、大于(>)、大于等于(>=)、小于(<)、小于等于(<=)、包含(contains)
+  - **FR-072-3**: 过滤表达式支持逻辑组合:AND(&&)、OR(||),支持多条件嵌套
+  - **FR-072-4**: 字段引用格式为`CurrentValue.[字段名]`,如`CurrentValue.[订单号].contains("abc")`
+  - **FR-072-5**: filter参数作为URL参数时需要进行URL编码
+  - **FR-072-6**: 分页参数page_size默认值20,最大值500,使用page_token机制进行游标分页
+  - **FR-072-7**: 当filter匹配零条记录时,返回空列表而非错误
+- **FR-073**: aPaaS 模块 MUST 支持创建数据空间表格的记录,返回记录ID和完整数据
+- **FR-074**: aPaaS 模块 MUST 支持更新数据空间表格的记录,支持部分字段更新
+  - **FR-074-1**: 支持基于filter条件批量更新记录(records_patch),参考: https://open.feishu.cn/document/uAjLw4CM/ukTMukTMukTM/apaas-v1/workspace-table/records_patch
+  - **FR-074-2**: 批量更新最多500条记录,支持部分成功,返回每条记录的成功/失败状态
+  - **FR-074-3**: 当filter表达式语法不合法时,返回400错误,code="INVALID_FILTER_EXPRESSION"
+- **FR-075**: aPaaS 模块 MUST 支持删除数据空间表格的记录
+  - **FR-075-1**: 支持基于filter条件批量删除记录(records_delete),参考: https://open.feishu.cn/document/uAjLw4CM/ukTMukTMukTM/apaas-v1/workspace-table/records_delete
+  - **FR-075-2**: 批量删除最多500条记录,返回删除的记录数量
+  - **FR-075-3**: 当filter匹配零条记录时,返回删除数量为0而非错误
+- **FR-076**: aPaaS 模块 MUST 支持批量创建记录操作,最多500条
+- **FR-077**: aPaaS 模块 MUST 使用 user_access_token 进行数据空间操作,并验证权限有效性
+  - **FR-077-1**: user_access_token通过HTTP Header传递:`Authorization: Bearer <token>`
+  - **FR-077-2**: token获取失败返回401,code="UNAUTHORIZED"
+  - **FR-077-3**: token过期自动刷新(依赖US1的Token管理)
+  - **FR-077-4**: 权限不足返回403,code="PERMISSION_DENIED",包含所需权限说明
+- **FR-078**: aPaaS 模块 SHOULD 处理并发写冲突(如果飞书API支持版本控制),返回明确的冲突错误
 
 **字段类型支持**:
-- **FR-077**: aPaaS 模块 MUST 支持常见字段类型:文本、数字、附件、超链接、人员、单选/多选、关联字段等
-- **FR-078**: aPaaS 模块 MUST 正确解析字段定义中的类型、选项、约束等元数据
+- **FR-079**: aPaaS 模块 MUST 支持常见字段类型:文本、数字、附件、超链接、人员、单选/多选、关联字段等(共13种)
+- **FR-080**: aPaaS 模块 MUST 正确解析字段定义中的类型、选项、约束等元数据
 
 **数据格式规范**:
-- **FR-079**: aPaaS 模块 MUST 使用 ISO 8601 格式处理日期时间字段
-- **FR-080**: aPaaS 模块 MUST 使用 null 表示空值,遵循飞书API的数据格式规范
+- **FR-081**: aPaaS 模块 MUST 使用 ISO 8601 格式处理日期时间字段
+- **FR-082**: aPaaS 模块 MUST 使用 null 表示空值,遵循飞书API的数据格式规范
+  - **FR-082-1**: 文本字段最大长度:65535字符
+  - **FR-082-2**: 数值字段精度:最多15位有效数字
+  - **FR-082-3**: 布尔字段表示:true/false (JSON boolean)
+  - **FR-082-4**: 数组字段格式:JSON数组,最多1000个元素
+  - **FR-082-5**: 特殊字符转义:遵循JSON标准转义规则
+
+**错误处理规范**:
+- **FR-083**: 数据表不存在:返回404,code="TABLE_NOT_FOUND"
+- **FR-084**: 记录不存在:返回404,code="RECORD_NOT_FOUND"
+- **FR-085**: 字段不存在:返回400,code="FIELD_NOT_FOUND"
+- **FR-086**: 字段类型不匹配:返回400,code="FIELD_TYPE_MISMATCH"
+- **FR-087**: 必填字段缺失:返回400,code="REQUIRED_FIELD_MISSING"
+- **FR-088**: 网络超时:返回408,code="REQUEST_TIMEOUT",可重试
+- **FR-089**: API限流:返回429,code="RATE_LIMIT_EXCEEDED",可重试
 
 #### 架构与可扩展性
 
