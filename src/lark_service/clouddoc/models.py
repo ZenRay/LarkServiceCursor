@@ -122,11 +122,11 @@ class Document(BaseModel):
 
     doc_id: str = Field(
         ...,
-        description="Document ID",
-        pattern=r"^(doxcn|doccn)[a-zA-Z0-9]{20,}$",
+        description="Document ID or Token",
+        pattern=r"^[a-zA-Z0-9_-]{20,}$",  # Support both doc_id and doc_token formats
     )
 
-    title: str = Field(..., description="Document title", max_length=255)
+    title: str = Field("", description="Document title (may be empty)", max_length=255)
 
     owner_id: str | None = Field(None, description="Owner ID (open_id)")
 
