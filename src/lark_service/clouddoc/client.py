@@ -5,6 +5,7 @@ This module provides a high-level client for document operations via Lark CloudD
 including creating documents, appending content, getting content, and updating blocks.
 """
 
+from typing import Any
 
 from lark_oapi.api.docx.v1 import (
     CreateDocumentRequest,
@@ -132,6 +133,9 @@ class DocClient:
                 doc_id=doc_data.document_id,
                 title=doc_data.title,
                 owner_id=getattr(doc_data, "owner_id", None),
+                create_time=None,
+                update_time=None,
+                content_blocks=None,
             )
 
         return self.retry_strategy.execute(_create)
@@ -194,9 +198,9 @@ class DocClient:
             self.credential_pool._get_sdk_client(app_id)
 
             # Convert ContentBlock to API format
-            block_data = []
+            block_data: list[dict[str, Any]] = []
             for block in blocks:
-                block_dict = {
+                block_dict: dict[str, Any] = {
                     "block_type": block.block_type,
                     "content": block.content,
                 }
@@ -273,6 +277,8 @@ class DocClient:
                 doc_id=doc_data.document_id,
                 title=doc_data.title,
                 owner_id=getattr(doc_data, "owner_id", None),
+                create_time=None,
+                update_time=None,
                 # Note: Content blocks parsing depends on SDK implementation
                 content_blocks=None,  # TODO: Parse blocks when SDK supports it
             )

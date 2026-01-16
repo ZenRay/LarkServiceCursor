@@ -6,6 +6,7 @@ with PostgreSQL storage, 24-hour TTL, and app_id isolation.
 """
 
 from datetime import datetime, timedelta
+from typing import Any
 
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
@@ -61,14 +62,13 @@ class ContactCacheManager:
         # Create tables if not exist
         Base.metadata.create_all(self.engine)
 
-    def __enter__(self):
+    def __enter__(self) -> "ContactCacheManager":
         """Context manager entry."""
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: Any) -> None:
         """Context manager exit - close all connections."""
         self.close()
-        return False
 
     def close(self) -> None:
         """
@@ -400,7 +400,7 @@ class ContactCacheManager:
 
             return {"total": total, "active": active, "expired": expired}
 
-    def _to_user(self, cache_entry: UserCache) -> User:
+    def _to_user(self, cache_entry: UserCache) -> User | None:
         """
         Convert UserCache to User model.
 
@@ -411,18 +411,29 @@ class ContactCacheManager:
 
         Returns
         -------
-            User
-                User model
+            User | None
+                User model, or None if required fields are missing
         """
+        # Check required fields
+        if not cache_entry.user_id or not cache_entry.union_id or not cache_entry.name:
+            logger.warning(
+                f"Cache entry missing required fields: user_id={cache_entry.user_id}, "
+                f"union_id={cache_entry.union_id}, name={cache_entry.name}"
+            )
+            return None
+
         return User(
             open_id=cache_entry.open_id,
             user_id=cache_entry.user_id,
             union_id=cache_entry.union_id,
+            name=cache_entry.name,
+            avatar=None,
             email=cache_entry.email,
             mobile=cache_entry.mobile,
-            name=cache_entry.name,
             department_ids=(
                 cache_entry.department_ids.split(",") if cache_entry.department_ids else None
             ),
             employee_no=cache_entry.employee_no,
+            job_title=None,
+            status=None,
         )

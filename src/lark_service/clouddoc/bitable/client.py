@@ -63,7 +63,7 @@ class BitableClient:
         app_id: str,
         app_token: str,
         table_id: str,
-        fields: dict[str, str | int | float | bool | list],
+        fields: dict[str, str | int | float | bool | list[str]],
     ) -> BaseRecord:
         """
         Create a new record in Bitable.
@@ -116,6 +116,8 @@ class BitableClient:
             return BaseRecord(
                 record_id="rec_placeholder",
                 fields=fields,
+                create_time=None,
+                update_time=None,
             )
 
         return self.retry_strategy.execute(_create)
@@ -200,7 +202,7 @@ class BitableClient:
         app_token: str,
         table_id: str,
         record_id: str,
-        fields: dict[str, str | int | float | bool | list],
+        fields: dict[str, str | int | float | bool | list[str]],
     ) -> BaseRecord:
         """
         Update a record in Bitable.
@@ -256,6 +258,8 @@ class BitableClient:
             return BaseRecord(
                 record_id=record_id,
                 fields=fields,
+                create_time=None,
+                update_time=None,
             )
 
         return self.retry_strategy.execute(_update)
@@ -318,7 +322,7 @@ class BitableClient:
         app_id: str,
         app_token: str,
         table_id: str,
-        records: list[dict[str, str | int | float | bool | list]],
+        records: list[dict[str, str | int | float | bool | list[str]]],
     ) -> list[BaseRecord]:
         """
         Batch create records in Bitable.
@@ -378,6 +382,8 @@ class BitableClient:
                 BaseRecord(
                     record_id=f"rec_placeholder_{i}",
                     fields=record,
+                    create_time=None,
+                    update_time=None,
                 )
                 for i, record in enumerate(records)
             ]
@@ -389,7 +395,7 @@ class BitableClient:
         app_id: str,
         app_token: str,
         table_id: str,
-        records: list[tuple[str, dict[str, str | int | float | bool | list]]],
+        records: list[tuple[str, dict[str, str | int | float | bool | list[str]]]],
     ) -> list[BaseRecord]:
         """
         Batch update records in Bitable.
@@ -449,6 +455,8 @@ class BitableClient:
                 BaseRecord(
                     record_id=record_id,
                     fields=fields,
+                    create_time=None,
+                    update_time=None,
                 )
                 for record_id, fields in records
             ]
