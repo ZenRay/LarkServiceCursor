@@ -43,12 +43,74 @@ def test_config():
 
 
 @pytest.fixture(scope="module")
-def credential_pool(test_config):
+def credential_pool(test_config, tmp_path_factory):
     """Create credential pool for tests."""
-    return CredentialPool(
+    from pathlib import Path
+
+    from cryptography.fernet import Fernet
+
+    from lark_service.core.config import Config
+    from lark_service.core.storage.postgres_storage import TokenStorageService
+    from lark_service.core.storage.sqlite_storage import ApplicationManager
+
+    # Create temp directory for config DB
+    tmp_dir = tmp_path_factory.mktemp("integration_test")
+    config_db_path = tmp_dir / "test_config.db"
+
+    # Generate encryption key
+    encryption_key = Fernet.generate_key()
+
+    # Create config
+    config = Config(
+        postgres_host=os.getenv("POSTGRES_HOST", "localhost"),
+        postgres_port=int(os.getenv("POSTGRES_PORT", "5432")),
+        postgres_db=os.getenv("POSTGRES_DB", "lark_service"),
+        postgres_user=os.getenv("POSTGRES_USER", "lark"),
+        postgres_password=os.getenv("POSTGRES_PASSWORD", "lark_password_123"),
+        rabbitmq_host=os.getenv("RABBITMQ_HOST", "localhost"),
+        rabbitmq_port=int(os.getenv("RABBITMQ_PORT", "5672")),
+        rabbitmq_user=os.getenv("RABBITMQ_USER", "lark"),
+        rabbitmq_password=os.getenv("RABBITMQ_PASSWORD", "rabbitmq_password_123"),
+        config_encryption_key=encryption_key,
+        config_db_path=config_db_path,
+        log_level="INFO",
+        max_retries=3,
+        retry_backoff_base=1.0,
+        token_refresh_threshold=0.1,
+    )
+
+    # Create application manager and add test app
+    app_manager = ApplicationManager(config_db_path, encryption_key)
+    app_manager.add_application(
         app_id=test_config["app_id"],
+        app_name="Integration Test App",
         app_secret=test_config["app_secret"],
     )
+
+    # Create database URL
+    db_url = (
+        f"postgresql://{config.postgres_user}:{config.postgres_password}"
+        f"@{config.postgres_host}:{config.postgres_port}/{config.postgres_db}"
+    )
+
+    # Create token storage
+    token_storage = TokenStorageService(
+        postgres_url=db_url,
+    )
+
+    # Create credential pool
+    pool = CredentialPool(
+        config=config,
+        app_manager=app_manager,
+        token_storage=token_storage,
+    )
+
+    yield pool
+
+    # Cleanup
+    app_manager.close()
+    if config_db_path.exists():
+        config_db_path.unlink()
 
 
 @pytest.fixture
