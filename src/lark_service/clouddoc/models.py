@@ -224,16 +224,16 @@ class StructuredFilterCondition(BaseModel):
     field_name: str = Field(..., description="字段名称")
 
     operator: Literal[
-        "is",              # 等于
-        "isNot",           # 不等于
-        "contains",        # 包含
-        "doesNotContain",  # 不包含
-        "isEmpty",         # 为空
-        "isNotEmpty",      # 不为空
-        "isGreater",       # 大于
-        "isGreaterEqual",  # 大于等于
-        "isLess",          # 小于
-        "isLessEqual",     # 小于等于
+        "is",              # equals
+        "isNot",           # not equals
+        "contains",        # contains
+        "doesNotContain",  # does not contain
+        "isEmpty",         # is empty
+        "isNotEmpty",      # is not empty
+        "isGreater",       # greater than
+        "isGreaterEqual",  # greater than or equal
+        "isLess",          # less than
+        "isLessEqual",     # less than or equal
     ] = Field(..., description="操作符")
 
     value: list[Any] = Field(default_factory=list, description="值（必须是数组，isEmpty/isNotEmpty 可为空）")
@@ -272,7 +272,7 @@ class TableField(BaseModel):
     @classmethod
     def validate_type(cls, v: int) -> int:
         """Validate field type."""
-        # 常见的字段类型（如果类型未知，仍然接受）
+        # Common field types (accept unknown types as well)
         return v
 
 

@@ -52,7 +52,7 @@ class BitableClient:
         >>> print(record.record_id)
     """
 
-    # 字段类型映射
+    # Field type name mapping
     FIELD_TYPE_NAMES = {
         1: "文本",
         2: "数字",
@@ -262,7 +262,7 @@ class BitableClient:
                 ListAppTableFieldRequest.builder()
                 .app_token(app_token)
                 .table_id(table_id)
-                .page_size(100)  # 一次获取所有字段
+                .page_size(100)  # Fetch all fields at once
                 .build()
             )
 
@@ -297,7 +297,7 @@ class BitableClient:
                         "type_name": self.FIELD_TYPE_NAMES.get(item.type, f"Unknown({item.type})"),
                     }
 
-                    # 添加可选字段
+                    # Add optional fields
                     if hasattr(item, "description") and item.description:
                         field_info["description"] = item.description
                     if hasattr(item, "property") and item.property:
@@ -544,11 +544,11 @@ class BitableClient:
 
         Examples
         --------
-            >>> # 1. 获取字段信息（可选，用于验证字段是否存在）
+            >>> # 1. Get field info (optional, to verify field exists)
             >>> fields = client.get_table_fields(app_id, app_token, table_id)
-            >>> field_name = fields[0]["field_name"]  # "文本"
+            >>> field_name = fields[0]["field_name"]  # "Text"
             >>>
-            >>> # 2. 构造过滤条件（使用 field_name）
+            >>> # 2. Construct filter condition (using field_name)
             >>> filter_info = StructuredFilterInfo(
             ...     conjunction="and",
             ...     conditions=[
@@ -574,7 +574,7 @@ class BitableClient:
         logger.info(f"Querying records (structured) from table {table_id}, page_size={page_size}")
 
         def _query() -> tuple[list[BaseRecord], str | None]:
-            # 使用直接 HTTP 请求，因为 SDK 可能不支持新的过滤格式
+            # Use direct HTTP request as SDK may not support new filter format
             import requests  # type: ignore
 
             token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")
@@ -592,7 +592,7 @@ class BitableClient:
             if page_token:
                 payload["page_token"] = page_token
 
-            # 构造结构化过滤
+            # Construct structured filter
             if filter_info:
                 filter_dict: dict[str, Any] = {
                     "conjunction": filter_info.conjunction,

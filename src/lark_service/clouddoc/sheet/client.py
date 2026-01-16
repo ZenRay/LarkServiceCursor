@@ -160,7 +160,7 @@ class SheetClient:
                     "index": sheet.get("index"),
                 }
 
-                # 添加可选字段
+                # Add optional fields
                 if "grid_properties" in sheet:
                     props = sheet["grid_properties"]
                     sheet_info["row_count"] = props.get("row_count")

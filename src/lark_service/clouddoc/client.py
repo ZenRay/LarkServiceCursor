@@ -527,8 +527,8 @@ class DocClient:
                 "Content-Type": "application/json; charset=utf-8",
             }
 
-            # 构建更新内容
-            # 根据 block_type 构建不同的更新请求
+            # Build update content
+            # Construct different update requests based on block_type
             elements = []
 
             if block.content:
@@ -660,7 +660,7 @@ class DocClient:
                 "Content-Type": "application/json; charset=utf-8",
             }
 
-            # 映射权限类型到 API 格式
+            # Map permission types to API format
             perm_map = {
                 "read": "view",
                 "write": "edit",
@@ -778,7 +778,7 @@ class DocClient:
                 "Content-Type": "application/json; charset=utf-8",
             }
 
-            # 添加 type 参数
+            # Add type parameter
             params = {"type": "doc"}
 
             logger.debug(f"Revoking permission {permission_id} from document {doc_id}")
@@ -873,9 +873,9 @@ class DocClient:
                 "Content-Type": "application/json; charset=utf-8",
             }
 
-            # 根据 doc_id 的前缀判断类型
+            # Determine type based on doc_id prefix
             # doxcn - doc, shtcn - sheet, bascn - bitable
-            # 注意：某些旧格式的 token 可能不需要 type 参数
+            # Note: Some legacy format tokens may not require type parameter
             params = {}
             if doc_id.startswith("doxcn"):
                 params["type"] = "doc"
@@ -885,7 +885,7 @@ class DocClient:
                 params["type"] = "bitable"
             elif doc_id.startswith("wikicn"):
                 params["type"] = "wiki"
-            # 如果是旧格式 token，不添加 type 参数
+            # For legacy format tokens, don't add type parameter
 
             logger.debug(f"Listing permissions for document {doc_id}")
 
@@ -936,7 +936,7 @@ class DocClient:
 
             permissions = []
             for item in items:
-                # 映射权限类型
+                # Map permission types
                 perm = item.get("perm", "view")
                 perm_map = {
                     "view": "read",
