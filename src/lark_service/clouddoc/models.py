@@ -208,7 +208,7 @@ class BaseRecord(BaseModel):
     record_id: str | None = Field(
         None,
         description="Record ID (required for update, auto-generated for create)",
-        pattern=r"^rec[a-zA-Z0-9]{20,}$",
+        pattern=r"^rec[a-zA-Z0-9]+$",
     )
 
     fields: dict[str, Any] = Field(..., description="Field values (field_name -> value)")
