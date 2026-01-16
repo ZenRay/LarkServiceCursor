@@ -494,16 +494,16 @@ class BitableClient:
 
         Examples
         --------
-            >>> # 1. 获取字段信息
+            >>> # 1. 获取字段信息（可选，用于验证字段是否存在）
             >>> fields = client.get_table_fields(app_id, app_token, table_id)
-            >>> field_id = next(f["field_id"] for f in fields if f["field_name"] == "文本")
+            >>> field_name = fields[0]["field_name"]  # "文本"
             >>>
-            >>> # 2. 构造过滤条件
+            >>> # 2. 构造过滤条件（使用 field_name）
             >>> filter_info = StructuredFilterInfo(
             ...     conjunction="and",
             ...     conditions=[
             ...         StructuredFilterCondition(
-            ...             field_id=field_id,
+            ...             field_name=field_name,
             ...             operator="is",
             ...             value=["Active"]
             ...         )
@@ -551,7 +551,7 @@ class BitableClient:
 
                 for condition in filter_info.conditions:
                     cond_dict: dict[str, Any] = {
-                        "field_id": condition.field_id,
+                        "field_name": condition.field_name,
                         "operator": condition.operator,
                     }
 

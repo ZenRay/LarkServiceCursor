@@ -203,10 +203,10 @@ class QueryFilter(BaseModel):
 
 
 class StructuredFilterCondition(BaseModel):
-    """Bitable 结构化过滤条件（使用 field_id）.
+    """Bitable 结构化过滤条件.
 
     使用结构化 JSON 格式，支持 Feishu API 的原生过滤语法。
-    必须使用 field_id 而不是 field_name。
+    注意：实际使用 field_name 而不是 field_id！
 
     支持的操作符:
     - is: 等于
@@ -221,7 +221,7 @@ class StructuredFilterCondition(BaseModel):
     - isLessEqual: 小于等于
     """
 
-    field_id: str = Field(..., description="字段 ID (fldXXX)", pattern=r"^fld[a-zA-Z0-9]+$")
+    field_name: str = Field(..., description="字段名称")
 
     operator: Literal[
         "is",              # 等于

@@ -530,17 +530,17 @@ class TestBitableQueryOperations:
         if not text_field:
             pytest.skip("'文本' field not found in test table")
 
-        field_id = text_field["field_id"]
-        print(f"   Using field: {text_field['field_name']} ({field_id})")
+        field_name = text_field["field_name"]
+        print(f"   Using field: {field_name} ({text_field['field_id']})")
 
-        # 3. Create structured filter
+        # 3. Create structured filter (使用 field_name)
         from lark_service.clouddoc.models import StructuredFilterCondition, StructuredFilterInfo
 
         filter_info = StructuredFilterInfo(
             conjunction="and",
             conditions=[
                 StructuredFilterCondition(
-                    field_id=field_id,
+                    field_name=field_name,
                     operator="is",
                     value=["Active"]
                 )
@@ -639,6 +639,36 @@ class TestBitableQueryOperations:
 
 class TestSheetReadOperations:
     """Test Sheet read operations with real API."""
+
+    def test_get_sheet_info(self, sheet_client, test_config):
+        """Test getting sheet information."""
+        sheet_token = os.getenv("TEST_SHEET_TOKEN")
+        if not sheet_token:
+            pytest.skip("TEST_SHEET_TOKEN not configured")
+
+        sheets = sheet_client.get_sheet_info(
+            app_id=test_config["app_id"],
+            spreadsheet_token=sheet_token,
+        )
+
+        # Verify results
+        assert isinstance(sheets, list)
+        assert len(sheets) > 0
+
+        # Check sheet structure
+        first_sheet = sheets[0]
+        assert "sheet_id" in first_sheet
+        assert "title" in first_sheet
+        assert "index" in first_sheet
+
+        print(f"✅ Retrieved {len(sheets)} sheets from spreadsheet")
+        print(f"   First sheet: {first_sheet['title']} ({first_sheet['sheet_id']})")
+
+        # Print all sheets for reference
+        for sheet in sheets:
+            row_info = f", {sheet.get('row_count', 'N/A')} rows" if sheet.get('row_count') else ""
+            col_info = f" x {sheet.get('column_count', 'N/A')} cols" if sheet.get('column_count') else ""
+            print(f"   - {sheet['title']}: {sheet['sheet_id']} (index: {sheet['index']}{row_info}{col_info})")
 
     def test_get_sheet_data_success(self, sheet_client, test_config):
         """Test reading sheet data from specified range."""
