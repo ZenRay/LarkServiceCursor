@@ -117,7 +117,7 @@ def cache_manager(test_config):
     manager = ContactCacheManager(database_url=test_config["db_url"])
 
     # Clear test data before tests
-    with manager._get_session() as session:
+    with manager.session_factory() as session:
         from lark_service.core.models.user_cache import UserCache
 
         session.query(UserCache).filter(
@@ -128,7 +128,7 @@ def cache_manager(test_config):
     yield manager
 
     # Cleanup after tests
-    with manager._get_session() as session:
+    with manager.session_factory() as session:
         session.query(UserCache).filter(
             UserCache.app_id == test_config["app_id"]
         ).delete()
@@ -210,10 +210,17 @@ class TestContactWithCache:
         if not test_config["user_email"]:
             pytest.skip("TEST_USER_EMAIL not configured")
 
+        # First get user to have something to invalidate
+        # (We need open_id for invalidation)
+        temp_user = client_with_cache.get_user_by_email(
+            app_id=test_config["app_id"],
+            email=test_config["user_email"],
+        )
+        
         # Clear cache to ensure miss
-        cache_manager.invalidate_by_email(
+        cache_manager.invalidate_user(
             test_config["app_id"],
-            test_config["user_email"],
+            temp_user.open_id,
         )
 
         # First call - cache miss, API call
@@ -243,8 +250,9 @@ class TestContactWithCache:
 
         # Verify cache statistics
         stats = cache_manager.get_cache_stats(test_config["app_id"])
-        assert stats["total_users"] >= 1
-        print(f"✅ Cache stats: {stats}")
+        assert stats["total"] >= 1
+        assert stats["active"] >= 1
+        print(f"✅ Cache stats: total={stats['total']}, active={stats['active']}")
 
     def test_cache_by_different_identifiers(
         self, client_with_cache, cache_manager, test_config
@@ -253,11 +261,12 @@ class TestContactWithCache:
         if not test_config["user_email"]:
             pytest.skip("TEST_USER_EMAIL not configured")
 
-        # Clear cache
-        cache_manager.invalidate_by_email(
-            test_config["app_id"],
-            test_config["user_email"],
+        # Clear cache by querying first to get open_id
+        temp_user = client_with_cache.get_user_by_email(
+            app_id=test_config["app_id"],
+            email=test_config["user_email"],
         )
+        cache_manager.invalidate_user(test_config["app_id"], temp_user.open_id)
 
         # Query by email - cache miss
         user_by_email = client_with_cache.get_user_by_email(
@@ -302,13 +311,13 @@ class TestContactWithCache:
         )
         assert cached is not None
 
-        # Invalidate cache
-        count = cache_manager.invalidate_by_email(
+        # Invalidate cache (use open_id, not union_id)
+        success = cache_manager.invalidate_user(
             test_config["app_id"],
-            test_config["user_email"],
+            user.open_id,
         )
-        assert count >= 1
-        print(f"✅ Invalidated {count} cache entries")
+        assert success
+        print(f"✅ Cache invalidated successfully")
 
         # Verify cache is empty
         cached_after = cache_manager.get_user_by_email(
@@ -322,19 +331,19 @@ class TestContactWithCache:
         """Test cache is isolated by app_id."""
         from lark_service.contact.models import User
 
-        # Create test users for different apps
+        # Create test users for different apps (use valid ID formats)
         user1 = User(
-            open_id="ou_test1_1234567890abcdefghij",
-            user_id="test_user_1",
-            union_id="on_test_union_1234567890abc",
+            open_id="ou_1234567890abcdefghij",
+            user_id="12345678",
+            union_id="on_1234567890abcdefghij",
             name="Test User 1",
             email="test1@example.com",
         )
 
         user2 = User(
-            open_id="ou_test2_1234567890abcdefghij",  # Different open_id
-            user_id="test_user_1",  # Same user_id
-            union_id="on_test_union_1234567890abc",  # Same union_id
+            open_id="ou_abcdefghij1234567890",  # Different open_id
+            user_id="12345678",  # Same user_id
+            union_id="on_1234567890abcdefghij",  # Same union_id
             name="Test User 1",
             email="test1@example.com",
         )
@@ -348,18 +357,18 @@ class TestContactWithCache:
         # Verify app1 gets correct open_id
         cached1 = cache_manager.get_user_by_email("app1_test", "test1@example.com")
         assert cached1 is not None
-        assert cached1.open_id == "ou_test1_1234567890abcdefghij"
+        assert cached1.open_id == "ou_1234567890abcdefghij"
 
         # Verify app2 gets correct open_id
         cached2 = cache_manager.get_user_by_email("app2_test", "test1@example.com")
         assert cached2 is not None
-        assert cached2.open_id == "ou_test2_1234567890abcdefghij"
+        assert cached2.open_id == "ou_abcdefghij1234567890"
 
         print("✅ Cache app_id isolation verified")
 
         # Cleanup
-        cache_manager.invalidate_by_email("app1_test", "test1@example.com")
-        cache_manager.invalidate_by_email("app2_test", "test1@example.com")
+        cache_manager.invalidate_user("app1_test", user1.open_id)
+        cache_manager.invalidate_user("app2_test", user2.open_id)
 
 
 class TestContactBatchOperations:
@@ -375,11 +384,12 @@ class TestContactBatchOperations:
         """Test batch get users with cache optimization."""
         from lark_service.contact.models import BatchUserQuery
 
-        # Clear cache
-        cache_manager.invalidate_by_email(
-            test_config["app_id"],
-            test_config["user_email"],
+        # Clear cache (get user first to have open_id)
+        temp_user = client_with_cache.get_user_by_email(
+            app_id=test_config["app_id"],
+            email=test_config["user_email"],
         )
+        cache_manager.invalidate_user(test_config["app_id"], temp_user.open_id)
 
         # Create batch queries
         queries = [
