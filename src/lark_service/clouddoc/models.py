@@ -1,18 +1,18 @@
-"""CloudDoc 模块数据模型
+"""CloudDoc module data models.
 
-本模块定义云文档操作相关的 Pydantic 模型,包括:
-- Document: 文档信息
-- ContentBlock: 文档内容块
-- BaseRecord: 多维表格记录
-- SheetRange: 电子表格范围
-- MediaAsset: 媒体资产
-- FieldDefinition: 字段定义
-- DocumentInfo: 文档 URL 解析结果
-- WikiNode: 知识库节点
-- WikiSpace: 知识库空间
-- QueryFilter: 查询过滤器
+This module defines Pydantic models for cloud document operations:
+- Document: Document information
+- ContentBlock: Document content block
+- BaseRecord: Bitable record
+- SheetRange: Spreadsheet range
+- MediaAsset: Media asset (image/file)
+- FieldDefinition: Field definition
+- DocumentInfo: Document URL resolution result
+- WikiNode: Wiki knowledge base node
+- WikiSpace: Wiki knowledge base space
+- QueryFilter: Query filter
 
-参考文档:
+Reference:
 - docs/phase4-spec-enhancements.md
 - specs/001-lark-service-core/contracts/clouddoc.yaml
 """
@@ -22,54 +22,54 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field, field_validator
 
-# ==================== 文档相关模型 ====================
+# ==================== Document Models ====================
 
 
 class ContentBlock(BaseModel):
-    """文档内容块
+    """Document content block.
 
-    支持 7 种内容类型:
-    - paragraph: 段落 (content: str)
-    - heading: 标题 (content: str, level: 1-6)
-    - image: 图片 (content: str = file_token)
-    - table: 表格 (content: list[list[str]])
-    - code: 代码块 (content: str, language: str)
-    - list: 列表 (content: list[str], ordered: bool)
-    - divider: 分隔线 (content: None)
+    Supports 7 content types:
+    - paragraph: Paragraph (content: str)
+    - heading: Heading (content: str, level: 1-6)
+    - image: Image (content: str = file_token)
+    - table: Table (content: list[list[str]])
+    - code: Code block (content: str, language: str)
+    - list: List (content: list[str], ordered: bool)
+    - divider: Divider (content: None)
 
-    限制:
-    - 单个 block 最大 100 KB
-    - 单次追加最多 100 个 blocks
+    Limits:
+    - Max 100 KB per block
+    - Max 100 blocks per append
     """
 
     block_id: str | None = Field(
         None,
-        description="块 ID (更新时必填,创建时自动生成)",
+        description="Block ID (required for update, auto-generated for create)",
         pattern=r"^[a-zA-Z0-9_-]{20,}$",
     )
 
-    block_type: Literal[
-        "paragraph", "heading", "image", "table", "code", "list", "divider"
-    ] = Field(..., description="内容类型")
+    block_type: Literal["paragraph", "heading", "image", "table", "code", "list", "divider"] = (
+        Field(..., description="Content type")
+    )
 
     content: str | list[Any] | None = Field(
         ...,
-        description="内容 (类型取决于 block_type)",
+        description="Content (type depends on block_type)",
     )
 
     attributes: dict[str, Any] | None = Field(
         None,
-        description="块属性 (样式、对齐、颜色等)",
+        description="Block attributes (style, alignment, color, etc.)",
     )
 
     @field_validator("content")
     @classmethod
     def validate_content_size(cls, v: Any) -> Any:
-        """验证内容大小不超过 100 KB"""
+        """Validate content size does not exceed 100 KB."""
         if v is None:
             return v
 
-        # 估算大小 (简化版)
+        # Estimate size (simplified)
         import sys
 
         size = sys.getsizeof(v)
@@ -80,186 +80,188 @@ class ContentBlock(BaseModel):
 
 
 class BlockAttributes(BaseModel):
-    """内容块属性
+    """Content block attributes.
 
-    用于设置内容块的样式和格式。
+    Used to set content block styles and formats.
     """
 
-    # 文本样式
-    bold: bool | None = Field(None, description="粗体")
-    italic: bool | None = Field(None, description="斜体")
-    underline: bool | None = Field(None, description="下划线")
-    strikethrough: bool | None = Field(None, description="删除线")
+    # Text styles
+    bold: bool | None = Field(None, description="Bold")
+    italic: bool | None = Field(None, description="Italic")
+    underline: bool | None = Field(None, description="Underline")
+    strikethrough: bool | None = Field(None, description="Strikethrough")
 
-    # 颜色
-    text_color: str | None = Field(None, description="文本颜色 (hex)", pattern=r"^#[0-9A-Fa-f]{6}$")
+    # Colors
+    text_color: str | None = Field(
+        None, description="Text color (hex)", pattern=r"^#[0-9A-Fa-f]{6}$"
+    )
     background_color: str | None = Field(
-        None, description="背景颜色 (hex)", pattern=r"^#[0-9A-Fa-f]{6}$"
+        None, description="Background color (hex)", pattern=r"^#[0-9A-Fa-f]{6}$"
     )
 
-    # 对齐
+    # Alignment
     align: Literal["left", "center", "right", "justify"] | None = Field(
-        None, description="对齐方式"
+        None, description="Alignment"
     )
 
-    # 标题级别
-    heading_level: Literal[1, 2, 3, 4, 5, 6] | None = Field(None, description="标题级别 (1-6)")
+    # Heading level
+    heading_level: Literal[1, 2, 3, 4, 5, 6] | None = Field(None, description="Heading level (1-6)")
 
-    # 代码语言
-    code_language: str | None = Field(None, description="代码语言")
+    # Code language
+    code_language: str | None = Field(None, description="Code language")
 
-    # 列表类型
-    list_ordered: bool | None = Field(None, description="是否有序列表")
+    # List type
+    list_ordered: bool | None = Field(None, description="Is ordered list")
 
 
 class Document(BaseModel):
-    """文档信息
+    """Document information.
 
-    表示一个飞书文档 (Doc/Docx)。
+    Represents a Feishu document (Doc/Docx).
     """
 
     doc_id: str = Field(
         ...,
-        description="文档 ID",
+        description="Document ID",
         pattern=r"^(doxcn|doccn)[a-zA-Z0-9]{20,}$",
     )
 
-    title: str = Field(..., description="文档标题", max_length=255)
+    title: str = Field(..., description="Document title", max_length=255)
 
-    owner_id: str | None = Field(None, description="所有者 ID (open_id)")
+    owner_id: str | None = Field(None, description="Owner ID (open_id)")
 
-    create_time: datetime | None = Field(None, description="创建时间")
+    create_time: datetime | None = Field(None, description="Create time")
 
-    update_time: datetime | None = Field(None, description="更新时间")
+    update_time: datetime | None = Field(None, description="Update time")
 
     content_blocks: list[ContentBlock] | None = Field(
         None,
-        description="文档内容块列表",
-        max_length=100,  # 单次追加最多 100 个 blocks
+        description="Document content blocks",
+        max_length=100,  # Max 100 blocks per append
     )
 
 
-# ==================== 多维表格相关模型 ====================
+# ==================== Bitable Models ====================
 
 
 class FieldDefinition(BaseModel):
-    """多维表格字段定义"""
+    """Bitable field definition."""
 
-    field_id: str = Field(..., description="字段 ID")
+    field_id: str = Field(..., description="Field ID")
 
-    field_name: str = Field(..., description="字段名称", max_length=100)
+    field_name: str = Field(..., description="Field name", max_length=100)
 
     field_type: Literal[
         "text", "number", "date", "checkbox", "select", "multi_select", "user", "url", "attachment"
-    ] = Field(..., description="字段类型")
+    ] = Field(..., description="Field type")
 
-    is_required: bool = Field(False, description="是否必填")
+    is_required: bool = Field(False, description="Is required field")
 
-    options: list[str] | None = Field(None, description="选项列表 (select/multi_select 类型)")
+    options: list[str] | None = Field(None, description="Options (for select/multi_select)")
 
 
 class FilterCondition(BaseModel):
-    """查询过滤条件
+    """Query filter condition.
 
-    支持 10 种操作符:
-    - eq: 等于
-    - ne: 不等于
-    - gt: 大于
-    - gte: 大于等于
-    - lt: 小于
-    - lte: 小于等于
-    - contains: 包含
-    - not_contains: 不包含
-    - is_empty: 为空
-    - is_not_empty: 不为空
+    Supports 10 operators:
+    - eq: Equal
+    - ne: Not equal
+    - gt: Greater than
+    - gte: Greater than or equal
+    - lt: Less than
+    - lte: Less than or equal
+    - contains: Contains
+    - not_contains: Not contains
+    - is_empty: Is empty
+    - is_not_empty: Is not empty
     """
 
-    field_name: str = Field(..., description="字段名称")
+    field_name: str = Field(..., description="Field name")
 
     operator: Literal[
         "eq", "ne", "gt", "gte", "lt", "lte", "contains", "not_contains", "is_empty", "is_not_empty"
-    ] = Field(..., description="操作符")
+    ] = Field(..., description="Operator")
 
-    value: Any | None = Field(None, description="比较值 (is_empty/is_not_empty 时为 None)")
+    value: Any | None = Field(None, description="Comparison value (None for is_empty/is_not_empty)")
 
 
 class QueryFilter(BaseModel):
-    """查询过滤器
+    """Query filter.
 
-    限制:
-    - 最多 20 个条件
-    - 单次查询最多返回 500 条记录
+    Limits:
+    - Max 20 conditions
+    - Max 500 records per query
     """
 
     conditions: list[FilterCondition] = Field(
         ...,
-        description="过滤条件列表",
-        max_length=20,  # 最多 20 个条件
+        description="Filter conditions",
+        max_length=20,  # Max 20 conditions
     )
 
-    logic: Literal["and", "or"] = Field("and", description="条件逻辑 (and/or)")
+    logic: Literal["and", "or"] = Field("and", description="Condition logic (and/or)")
 
 
 class BaseRecord(BaseModel):
-    """多维表格记录"""
+    """Bitable record."""
 
     record_id: str | None = Field(
         None,
-        description="记录 ID (更新时必填,创建时自动生成)",
+        description="Record ID (required for update, auto-generated for create)",
         pattern=r"^rec[a-zA-Z0-9]{20,}$",
     )
 
-    fields: dict[str, Any] = Field(..., description="字段值字典 (field_name -> value)")
+    fields: dict[str, Any] = Field(..., description="Field values (field_name -> value)")
 
-    create_time: datetime | None = Field(None, description="创建时间")
+    create_time: datetime | None = Field(None, description="Create time")
 
-    update_time: datetime | None = Field(None, description="更新时间")
+    update_time: datetime | None = Field(None, description="Update time")
 
 
-# ==================== 电子表格相关模型 ====================
+# ==================== Sheet Models ====================
 
 
 class SheetRange(BaseModel):
-    """电子表格范围
+    """Spreadsheet range.
 
-    支持 4 种范围格式:
-    1. A1 表示法: "A1:B10"
-    2. 行列索引: "R1C1:R10C2"
-    3. 命名范围: "SalesData"
-    4. 整列/整行: "A:A", "1:1"
+    Supports 4 range formats:
+    1. A1 notation: "A1:B10"
+    2. Row-column index: "R1C1:R10C2"
+    3. Named range: "SalesData"
+    4. Entire column/row: "A:A", "1:1"
 
-    限制:
-    - 读取最大 100,000 单元格
-    - 更新最大 10,000 单元格
-    - 合并最大 1,000 单元格
+    Limits:
+    - Max 100,000 cells for read
+    - Max 10,000 cells for update
+    - Max 1,000 cells for merge
     """
 
     sheet_id: str = Field(
         ...,
-        description="工作表 ID",
+        description="Sheet ID",
         pattern=r"^[a-zA-Z0-9_-]+$",
     )
 
     range_notation: str = Field(
         ...,
-        description="范围表示 (A1:B10, R1C1:R10C2, SalesData, A:A, 1:1)",
+        description="Range notation (A1:B10, R1C1:R10C2, SalesData, A:A, 1:1)",
         max_length=100,
     )
 
     @field_validator("range_notation")
     @classmethod
     def validate_range_format(cls, v: str) -> str:
-        """验证范围格式"""
+        """Validate range format."""
         import re
 
-        # A1 表示法
+        # A1 notation
         a1_pattern = r"^[A-Z]+\d+:[A-Z]+\d+$"
-        # 行列索引
+        # Row-column index
         rc_pattern = r"^R\d+C\d+:R\d+C\d+$"
-        # 整列/整行
+        # Entire column/row
         col_pattern = r"^[A-Z]+:[A-Z]+$"
         row_pattern = r"^\d+:\d+$"
-        # 命名范围 (字母数字下划线)
+        # Named range (alphanumeric and underscore)
         named_pattern = r"^[a-zA-Z_][a-zA-Z0-9_]*$"
 
         if not (
@@ -278,68 +280,74 @@ class SheetRange(BaseModel):
 
 
 class CellData(BaseModel):
-    """单元格数据"""
+    """Cell data."""
 
-    value: str | int | float | bool | None = Field(None, description="单元格值")
+    value: str | int | float | bool | None = Field(None, description="Cell value")
 
-    formula: str | None = Field(None, description="公式 (以 = 开头)")
+    formula: str | None = Field(None, description="Formula (starts with =)")
 
-    # 格式
-    number_format: str | None = Field(None, description="数字格式 (如 0.00, #,##0)")
-    font_size: int | None = Field(None, description="字体大小", ge=8, le=72)
-    font_color: str | None = Field(None, description="字体颜色 (hex)", pattern=r"^#[0-9A-Fa-f]{6}$")
-    background_color: str | None = Field(
-        None, description="背景颜色 (hex)", pattern=r"^#[0-9A-Fa-f]{6}$"
+    # Formatting
+    number_format: str | None = Field(None, description="Number format (e.g. 0.00, #,##0)")
+    font_size: int | None = Field(None, description="Font size", ge=8, le=72)
+    font_color: str | None = Field(
+        None, description="Font color (hex)", pattern=r"^#[0-9A-Fa-f]{6}$"
     )
-    bold: bool | None = Field(None, description="粗体")
-    italic: bool | None = Field(None, description="斜体")
-    underline: bool | None = Field(None, description="下划线")
-    align: Literal["left", "center", "right"] | None = Field(None, description="水平对齐")
-    vertical_align: Literal["top", "middle", "bottom"] | None = Field(None, description="垂直对齐")
+    background_color: str | None = Field(
+        None, description="Background color (hex)", pattern=r"^#[0-9A-Fa-f]{6}$"
+    )
+    bold: bool | None = Field(None, description="Bold")
+    italic: bool | None = Field(None, description="Italic")
+    underline: bool | None = Field(None, description="Underline")
+    align: Literal["left", "center", "right"] | None = Field(
+        None, description="Horizontal alignment"
+    )
+    vertical_align: Literal["top", "middle", "bottom"] | None = Field(
+        None, description="Vertical alignment"
+    )
 
 
-# ==================== 媒体资产相关模型 ====================
+# ==================== Media Asset Models ====================
 
 
 class MediaAsset(BaseModel):
-    """媒体资产 (图片/文件)
+    """Media asset (image/file).
 
-    图片限制:
-    - 最大 10 MB
-    - 支持格式: jpg, jpeg, png, gif, bmp, webp
-    - 最大尺寸: 4096 x 4096
+    Image limits:
+    - Max 10 MB
+    - Supported formats: jpg, jpeg, png, gif, bmp, webp
+    - Max dimensions: 4096 x 4096
 
-    文件限制:
-    - 最大 30 MB
-    - 支持格式: pdf, doc, docx, xls, xlsx, ppt, pptx, txt, zip
+    File limits:
+    - Max 30 MB
+    - Supported formats: pdf, doc, docx, xls, xlsx, ppt, pptx, txt, zip
     """
 
     file_token: str = Field(
         ...,
-        description="文件 token (上传后返回)",
+        description="File token (returned after upload)",
         pattern=r"^[a-zA-Z0-9_-]{20,}$",
     )
 
-    file_name: str = Field(..., description="文件名", max_length=255)
+    file_name: str = Field(..., description="File name", max_length=255)
 
-    file_size: int = Field(..., description="文件大小 (bytes)", ge=0)
+    file_size: int = Field(..., description="File size (bytes)", ge=0)
 
-    mime_type: str = Field(..., description="MIME 类型")
+    mime_type: str = Field(..., description="MIME type")
 
-    file_type: Literal["image", "file"] = Field(..., description="文件类型")
+    file_type: Literal["image", "file"] = Field(..., description="File type")
 
-    # 图片特有字段
-    width: int | None = Field(None, description="图片宽度", ge=1, le=4096)
-    height: int | None = Field(None, description="图片高度", ge=1, le=4096)
+    # Image-specific fields
+    width: int | None = Field(None, description="Image width", ge=1, le=4096)
+    height: int | None = Field(None, description="Image height", ge=1, le=4096)
 
-    # 元数据
-    upload_time: datetime | None = Field(None, description="上传时间")
-    uploader_id: str | None = Field(None, description="上传者 ID")
+    # Metadata
+    upload_time: datetime | None = Field(None, description="Upload time")
+    uploader_id: str | None = Field(None, description="Uploader ID")
 
     @field_validator("file_size")
     @classmethod
     def validate_file_size(cls, v: int, info: Any) -> int:
-        """验证文件大小"""
+        """Validate file size."""
         file_type = info.data.get("file_type")
 
         if file_type == "image" and v > 10 * 1024 * 1024:  # 10 MB
@@ -351,110 +359,110 @@ class MediaAsset(BaseModel):
         return v
 
 
-# ==================== URL 解析相关模型 ====================
+# ==================== URL Resolution Models ====================
 
 
 class DocumentInfo(BaseModel):
-    """文档 URL 解析结果
+    """Document URL resolution result.
 
-    用于 DocumentUrlResolver 返回的文档信息。
+    Used by DocumentUrlResolver to return document information.
     """
 
     doc_type: Literal["docx", "sheet", "bitable", "doc", "mindnote", "file"] = Field(
-        ..., description="文档类型"
+        ..., description="Document type"
     )
 
-    doc_token: str = Field(..., description="实际可用的文档 token")
+    doc_token: str = Field(..., description="Actual usable document token")
 
-    source_type: Literal["wiki", "drive"] = Field(..., description="来源类型")
+    source_type: Literal["wiki", "drive"] = Field(..., description="Source type")
 
-    # 知识库特有字段
-    space_id: str | None = Field(None, description="知识空间 ID")
-    node_token: str | None = Field(None, description="知识库节点 token")
+    # Wiki-specific fields
+    space_id: str | None = Field(None, description="Wiki space ID")
+    node_token: str | None = Field(None, description="Wiki node token")
 
-    # 元数据
-    title: str | None = Field(None, description="文档标题")
-    owner: str | None = Field(None, description="所有者")
+    # Metadata
+    title: str | None = Field(None, description="Document title")
+    owner: str | None = Field(None, description="Owner")
 
 
 class WikiNode(BaseModel):
-    """知识库节点
+    """Wiki knowledge base node.
 
-    表示知识库中的一个节点 (文档、文件夹等)。
+    Represents a node in the wiki knowledge base (document, folder, etc.).
     """
 
-    space_id: str = Field(..., description="知识空间 ID", pattern=r"^\d+$")
+    space_id: str = Field(..., description="Wiki space ID", pattern=r"^\d+$")
 
     node_token: str = Field(
         ...,
-        description="节点 token",
+        description="Node token",
         pattern=r"^wik[a-zA-Z0-9]{20,}$",
     )
 
     obj_token: str = Field(
         ...,
-        description="实际对象 token (doc_token)",
+        description="Actual object token (doc_token)",
         pattern=r"^[a-zA-Z0-9_-]{20,}$",
     )
 
     obj_type: Literal["doc", "docx", "sheet", "bitable", "mindnote", "file"] = Field(
-        ..., description="对象类型"
+        ..., description="Object type"
     )
 
-    parent_node_token: str | None = Field(None, description="父节点 token")
+    parent_node_token: str | None = Field(None, description="Parent node token")
 
-    node_type: Literal["origin", "shortcut"] = Field(..., description="节点类型")
+    node_type: Literal["origin", "shortcut"] = Field(..., description="Node type")
 
-    # 元数据
-    title: str | None = Field(None, description="节点标题")
-    owner_id: str | None = Field(None, description="所有者 ID")
-    create_time: datetime | None = Field(None, description="创建时间")
-    update_time: datetime | None = Field(None, description="更新时间")
+    # Metadata
+    title: str | None = Field(None, description="Node title")
+    owner_id: str | None = Field(None, description="Owner ID")
+    create_time: datetime | None = Field(None, description="Create time")
+    update_time: datetime | None = Field(None, description="Update time")
 
 
 class WikiSpace(BaseModel):
-    """知识库空间"""
+    """Wiki knowledge base space."""
 
-    space_id: str = Field(..., description="知识空间 ID", pattern=r"^\d+$")
+    space_id: str = Field(..., description="Wiki space ID", pattern=r"^\d+$")
 
-    name: str = Field(..., description="空间名称", max_length=255)
+    name: str = Field(..., description="Space name", max_length=255)
 
-    description: str | None = Field(None, description="空间描述", max_length=1000)
+    description: str | None = Field(None, description="Space description", max_length=1000)
 
-    owner_id: str | None = Field(None, description="所有者 ID")
+    owner_id: str | None = Field(None, description="Owner ID")
 
-    # 元数据
-    create_time: datetime | None = Field(None, description="创建时间")
-    update_time: datetime | None = Field(None, description="更新时间")
+    # Metadata
+    create_time: datetime | None = Field(None, description="Create time")
+    update_time: datetime | None = Field(None, description="Update time")
 
 
-# ==================== 权限相关模型 ====================
+# ==================== Permission Models ====================
 
 
 class Permission(BaseModel):
-    """文档权限
+    """Document permission.
 
-    支持四种权限类型:
-    - read: 可阅读
-    - write: 可编辑
-    - comment: 可评论
-    - manage: 可管理
+    Supports four permission types:
+    - read: Can read
+    - write: Can edit
+    - comment: Can comment
+    - manage: Can manage
     """
 
-    permission_id: str | None = Field(None, description="权限 ID")
+    permission_id: str | None = Field(None, description="Permission ID")
 
-    doc_id: str = Field(..., description="文档 ID")
+    doc_id: str = Field(..., description="Document ID")
 
     member_type: Literal["user", "department", "group", "public"] = Field(
-        ..., description="成员类型"
+        ..., description="Member type"
     )
 
-    member_id: str | None = Field(None, description="成员 ID (public 时为 None)")
+    member_id: str | None = Field(None, description="Member ID (None for public)")
 
     permission_type: Literal["read", "write", "comment", "manage"] = Field(
-        ..., description="权限类型"
+        ..., description="Permission type"
     )
 
-    grant_time: datetime | None = Field(None, description="授予时间")
+    grant_time: datetime | None = Field(None, description="Grant time")
 
-    granter_id: str | None = Field(None, description="授予者 ID")
+    granter_id: str | None = Field(None, description="Granter ID")

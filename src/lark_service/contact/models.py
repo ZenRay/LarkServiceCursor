@@ -1,13 +1,13 @@
-"""Contact 模块数据模型
+"""Contact module data models.
 
-本模块定义通讯录查询相关的 Pydantic 模型,包括:
-- User: 用户信息 (包含 open_id, user_id, union_id)
-- UserCache: 用户缓存 (PostgreSQL 存储)
-- Department: 部门信息
-- ChatGroup: 群组信息
+This module defines Pydantic models for contact query operations:
+- User: User information (includes open_id, user_id, union_id)
+- UserCache: User cache (PostgreSQL storage)
+- Department: Department information
+- ChatGroup: Chat group information
 
-参考文档:
-- docs/phase4-spec-enhancements.md (Contact 模块补充)
+Reference:
+- docs/phase4-spec-enhancements.md (Contact module)
 - specs/001-lark-service-core/contracts/contact.yaml
 """
 
@@ -16,58 +16,60 @@ from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
-# ==================== 用户相关模型 ====================
+# ==================== User Models ====================
 
 
 class User(BaseModel):
-    """用户信息
+    """User information.
 
-    包含三种 ID 类型:
-    - open_id: 应用内用户标识 (应用维度,不同应用不同)
-    - user_id: 租户内用户标识 (租户维度,同一租户相同)
-    - union_id: 跨租户用户标识 (全局维度,跨租户相同)
+    Contains three ID types:
+    - open_id: Application-scoped user ID (different across apps)
+    - user_id: Tenant-scoped user ID (same within tenant)
+    - union_id: Global user ID (same across tenants)
 
-    使用场景:
-    - open_id: 发送消息、授权等应用内操作
-    - user_id: 租户内用户管理、权限控制
-    - union_id: 跨租户用户识别、缓存 key (推荐)
+    Usage scenarios:
+    - open_id: Send messages, authorization, etc.
+    - user_id: User management, permission control within tenant
+    - union_id: Cross-tenant user identification, cache key (recommended)
     """
 
-    # 三种 ID (必填)
+    # Three IDs (required)
     open_id: str = Field(
         ...,
-        description="应用内用户标识",
+        description="Application-scoped user ID",
         pattern=r"^ou_[a-zA-Z0-9]{20,}$",
     )
 
     user_id: str = Field(
         ...,
-        description="租户内用户标识",
+        description="Tenant-scoped user ID",
         pattern=r"^[a-zA-Z0-9]{8,}$",
     )
 
     union_id: str = Field(
         ...,
-        description="跨租户用户标识 (推荐用于缓存 key)",
+        description="Global user ID (recommended for cache key)",
         pattern=r"^on_[a-zA-Z0-9]{20,}$",
     )
 
-    # 基本信息 (必填)
-    name: str = Field(..., description="用户名称", max_length=100)
+    # Basic information (required)
+    name: str = Field(..., description="User name", max_length=100)
 
-    # 可选信息
-    avatar: str | None = Field(None, description="头像 URL")
-    email: str | None = Field(None, description="邮箱地址")
-    mobile: str | None = Field(None, description="手机号")
-    department_ids: list[str] | None = Field(None, description="部门 ID 列表")
-    employee_no: str | None = Field(None, description="工号")
-    job_title: str | None = Field(None, description="职位")
-    status: int | None = Field(None, description="用户状态 (1: 激活, 2: 停用, 4: 离职)")
+    # Optional information
+    avatar: str | None = Field(None, description="Avatar URL")
+    email: str | None = Field(None, description="Email address")
+    mobile: str | None = Field(None, description="Mobile number")
+    department_ids: list[str] | None = Field(None, description="Department ID list")
+    employee_no: str | None = Field(None, description="Employee number")
+    job_title: str | None = Field(None, description="Job title")
+    status: int | None = Field(
+        None, description="User status (1: active, 2: inactive, 4: resigned)"
+    )
 
     @field_validator("email")
     @classmethod
     def validate_email(cls, v: str | None) -> str | None:
-        """验证邮箱格式"""
+        """Validate email format."""
         if v is None:
             return v
 
@@ -82,13 +84,13 @@ class User(BaseModel):
     @field_validator("mobile")
     @classmethod
     def validate_mobile(cls, v: str | None) -> str | None:
-        """验证手机号格式 (中国大陆)"""
+        """Validate mobile number format (Chinese mainland)."""
         if v is None:
             return v
 
         import re
 
-        # 中国大陆手机号: 1 开头,11 位数字
+        # Chinese mainland mobile: starts with 1, 11 digits
         mobile_pattern = r"^1[3-9]\d{9}$"
         if not re.match(mobile_pattern, v):
             raise ValueError(f"Invalid mobile format: {v} (expected Chinese mobile number)")
@@ -97,227 +99,231 @@ class User(BaseModel):
 
 
 class UserCache(BaseModel):
-    """用户缓存 (PostgreSQL 存储)
+    """User cache (PostgreSQL storage).
 
-    缓存策略:
-    - TTL: 24 小时
-    - 刷新策略: 懒加载 (缓存未命中时刷新)
-    - app_id 隔离: 不同应用使用不同缓存
-    - 缓存 key 格式: user:{app_id}:{union_id}
+    Cache strategy:
+    - TTL: 24 hours
+    - Refresh strategy: Lazy loading (refresh on cache miss)
+    - app_id isolation: Different apps use different caches
+    - Cache key format: user:{app_id}:{union_id}
 
-    限制:
-    - 最大缓存容量: 100,000 条
-    - 批量查询: 最大 200 个用户
-    - 批量更新: 最大 1,000 条
+    Limits:
+    - Max cache capacity: 100,000 entries
+    - Batch query: Max 200 users
+    - Batch update: Max 1,000 entries
     """
 
-    # 缓存 key 组成部分
-    app_id: str = Field(..., description="应用 ID")
-    union_id: str = Field(..., description="用户 union_id (缓存 key)")
+    # Cache key components
+    app_id: str = Field(..., description="Application ID")
+    union_id: str = Field(..., description="User union_id (cache key)")
 
-    # 用户信息 (与 User 模型一致)
-    open_id: str = Field(..., description="应用内用户标识")
-    user_id: str = Field(..., description="租户内用户标识")
-    name: str = Field(..., description="用户名称")
-    avatar: str | None = Field(None, description="头像 URL")
-    email: str | None = Field(None, description="邮箱地址")
-    mobile: str | None = Field(None, description="手机号")
-    department_ids: list[str] | None = Field(None, description="部门 ID 列表")
-    employee_no: str | None = Field(None, description="工号")
-    job_title: str | None = Field(None, description="职位")
-    status: int | None = Field(None, description="用户状态")
+    # User information (same as User model)
+    open_id: str = Field(..., description="Application-scoped user ID")
+    user_id: str = Field(..., description="Tenant-scoped user ID")
+    name: str = Field(..., description="User name")
+    avatar: str | None = Field(None, description="Avatar URL")
+    email: str | None = Field(None, description="Email address")
+    mobile: str | None = Field(None, description="Mobile number")
+    department_ids: list[str] | None = Field(None, description="Department ID list")
+    employee_no: str | None = Field(None, description="Employee number")
+    job_title: str | None = Field(None, description="Job title")
+    status: int | None = Field(None, description="User status")
 
-    # 缓存元数据
-    cached_at: datetime = Field(..., description="缓存时间")
-    expires_at: datetime = Field(..., description="过期时间 (cached_at + 24h)")
-    version: int = Field(1, description="版本号 (乐观锁)")
+    # Cache metadata
+    cached_at: datetime = Field(..., description="Cache time")
+    expires_at: datetime = Field(..., description="Expiration time (cached_at + 24h)")
+    version: int = Field(1, description="Version number (optimistic lock)")
 
     @property
     def is_expired(self) -> bool:
-        """检查缓存是否过期"""
-        from datetime import datetime
-
+        """Check if cache is expired."""
         return datetime.now(UTC) > self.expires_at
 
     @property
     def cache_key(self) -> str:
-        """生成缓存 key"""
+        """Generate cache key."""
         return f"user:{self.app_id}:{self.union_id}"
 
 
-# ==================== 部门相关模型 ====================
+# ==================== Department Models ====================
 
 
 class Department(BaseModel):
-    """部门信息
+    """Department information.
 
-    限制:
-    - 单个部门最大用户数: 1,000
+    Limits:
+    - Max 1,000 users per department
     """
 
     department_id: str = Field(
         ...,
-        description="部门 ID (open_department_id)",
+        description="Department ID (open_department_id)",
         pattern=r"^od-[a-zA-Z0-9]{20,}$",
     )
 
-    name: str = Field(..., description="部门名称", max_length=100)
+    name: str = Field(..., description="Department name", max_length=100)
 
-    parent_department_id: str | None = Field(None, description="父部门 ID")
+    parent_department_id: str | None = Field(None, description="Parent department ID")
 
-    # 部门层级
-    department_path: list[str] | None = Field(None, description="部门路径 (从根到当前)")
+    # Department hierarchy
+    department_path: list[str] | None = Field(
+        None, description="Department path (from root to current)"
+    )
 
-    # 部门负责人
-    leader_user_id: str | None = Field(None, description="部门负责人 user_id")
+    # Department leader
+    leader_user_id: str | None = Field(None, description="Department leader user_id")
 
-    # 成员统计
-    member_count: int | None = Field(None, description="成员数量", ge=0, le=1000)
+    # Member statistics
+    member_count: int | None = Field(None, description="Member count", ge=0, le=1000)
 
-    # 元数据
-    status: int | None = Field(None, description="部门状态 (1: 启用, 0: 停用)")
-    order: int | None = Field(None, description="排序")
+    # Metadata
+    status: int | None = Field(None, description="Department status (1: active, 0: inactive)")
+    order: int | None = Field(None, description="Sort order")
 
 
 class DepartmentUser(BaseModel):
-    """部门成员关系
+    """Department member relationship.
 
-    用于批量获取部门成员时返回。
+    Used when batch getting department members.
     """
 
-    department_id: str = Field(..., description="部门 ID")
+    department_id: str = Field(..., description="Department ID")
 
-    user_id: str = Field(..., description="用户 ID")
+    user_id: str = Field(..., description="User ID")
 
-    # 用户在部门中的角色
-    is_leader: bool = Field(False, description="是否为部门负责人")
+    # User role in department
+    is_leader: bool = Field(False, description="Is department leader")
 
-    order: int | None = Field(None, description="排序")
+    order: int | None = Field(None, description="Sort order")
 
 
-# ==================== 群组相关模型 ====================
+# ==================== Chat Group Models ====================
 
 
 class ChatGroup(BaseModel):
-    """群组信息
+    """Chat group information.
 
-    表示一个飞书群聊。
+    Represents a Feishu chat group.
     """
 
     chat_id: str = Field(
         ...,
-        description="群组 ID",
+        description="Chat group ID",
         pattern=r"^oc_[a-zA-Z0-9]{20,}$",
     )
 
-    name: str = Field(..., description="群组名称", max_length=100)
+    name: str = Field(..., description="Group name", max_length=100)
 
-    description: str | None = Field(None, description="群组描述", max_length=500)
+    description: str | None = Field(None, description="Group description", max_length=500)
 
-    # 群主
-    owner_id: str | None = Field(None, description="群主 user_id")
+    # Group owner
+    owner_id: str | None = Field(None, description="Group owner user_id")
 
-    # 群成员
-    member_count: int | None = Field(None, description="成员数量", ge=0)
+    # Group members
+    member_count: int | None = Field(None, description="Member count", ge=0)
 
-    # 群设置
-    chat_mode: str | None = Field(None, description="群模式 (group: 群聊, p2p: 单聊)")
+    # Group settings
+    chat_mode: str | None = Field(
+        None, description="Chat mode (group: group chat, p2p: direct message)"
+    )
 
-    chat_type: str | None = Field(None, description="群类型 (private: 私有, public: 公开)")
+    chat_type: str | None = Field(None, description="Chat type (private: private, public: public)")
 
-    # 元数据
-    avatar: str | None = Field(None, description="群头像 URL")
-    create_time: datetime | None = Field(None, description="创建时间")
-    update_time: datetime | None = Field(None, description="更新时间")
+    # Metadata
+    avatar: str | None = Field(None, description="Group avatar URL")
+    create_time: datetime | None = Field(None, description="Create time")
+    update_time: datetime | None = Field(None, description="Update time")
 
 
 class ChatMember(BaseModel):
-    """群组成员
+    """Chat group member.
 
-    用于获取群组成员列表时返回。
+    Used when getting group member list.
     """
 
-    chat_id: str = Field(..., description="群组 ID")
+    chat_id: str = Field(..., description="Chat group ID")
 
-    user_id: str = Field(..., description="用户 ID")
+    user_id: str = Field(..., description="User ID")
 
-    # 成员角色
+    # Member role
     member_role: str | None = Field(
-        None, description="成员角色 (owner: 群主, admin: 管理员, member: 成员)"
+        None, description="Member role (owner: owner, admin: admin, member: member)"
     )
 
-    # 加入时间
-    join_time: datetime | None = Field(None, description="加入时间")
+    # Join time
+    join_time: datetime | None = Field(None, description="Join time")
 
 
-# ==================== 批量操作相关模型 ====================
+# ==================== Batch Operation Models ====================
 
 
 class BatchUserQuery(BaseModel):
-    """批量用户查询请求
+    """Batch user query request.
 
-    限制:
-    - 最大 200 个用户
+    Limits:
+    - Max 200 users
     """
 
     emails: list[str] | None = Field(
         None,
-        description="邮箱列表",
+        description="Email list",
         max_length=200,
     )
 
     mobiles: list[str] | None = Field(
         None,
-        description="手机号列表",
+        description="Mobile number list",
         max_length=200,
     )
 
     user_ids: list[str] | None = Field(
         None,
-        description="用户 ID 列表",
+        description="User ID list",
         max_length=200,
     )
 
     @field_validator("emails", "mobiles", "user_ids")
     @classmethod
     def validate_at_least_one(cls, v: list[str] | None, info: Any) -> list[str] | None:
-        """验证至少提供一种查询方式"""
-        # 这个验证在 model_validator 中更合适,这里先简化
+        """Validate at least one query method is provided."""
+        # This validation is better in model_validator, simplified here
         return v
 
 
 class BatchUserResponse(BaseModel):
-    """批量用户查询响应"""
+    """Batch user query response."""
 
-    users: list[User] = Field(..., description="用户列表")
+    users: list[User] = Field(..., description="User list")
 
-    not_found: list[str] | None = Field(None, description="未找到的查询条件 (email/mobile/user_id)")
+    not_found: list[str] | None = Field(
+        None, description="Not found query conditions (email/mobile/user_id)"
+    )
 
-    total: int = Field(..., description="找到的用户总数")
+    total: int = Field(..., description="Total users found")
 
 
-# ==================== 缓存统计相关模型 ====================
+# ==================== Cache Statistics Models ====================
 
 
 class CacheStats(BaseModel):
-    """缓存统计信息
+    """Cache statistics.
 
-    用于监控缓存性能。
+    Used for monitoring cache performance.
     """
 
-    app_id: str = Field(..., description="应用 ID")
+    app_id: str = Field(..., description="Application ID")
 
-    # 缓存容量
-    total_cached: int = Field(..., description="总缓存数量", ge=0)
-    max_capacity: int = Field(100000, description="最大容量")
+    # Cache capacity
+    total_cached: int = Field(..., description="Total cached entries", ge=0)
+    max_capacity: int = Field(100000, description="Max capacity")
 
-    # 命中率统计
-    hit_count: int = Field(0, description="命中次数", ge=0)
-    miss_count: int = Field(0, description="未命中次数", ge=0)
+    # Hit rate statistics
+    hit_count: int = Field(0, description="Hit count", ge=0)
+    miss_count: int = Field(0, description="Miss count", ge=0)
 
     @property
     def hit_rate(self) -> float:
-        """计算缓存命中率"""
+        """Calculate cache hit rate."""
         total = self.hit_count + self.miss_count
         if total == 0:
             return 0.0
@@ -325,8 +331,8 @@ class CacheStats(BaseModel):
 
     @property
     def usage_rate(self) -> float:
-        """计算缓存使用率"""
+        """Calculate cache usage rate."""
         return self.total_cached / self.max_capacity
 
-    # 统计时间
-    stats_time: datetime = Field(..., description="统计时间")
+    # Statistics time
+    stats_time: datetime = Field(..., description="Statistics time")
