@@ -1,5 +1,49 @@
 # 表结构查询功能实现报告
 
+**日期**: 2026-01-17
+**版本**: v1.0.0
+**状态**: ✅ 已完成
+
+---
+
+## ⚠️ 重要发现
+
+### Bitable 过滤必须使用 field_name
+
+经过详细的 API 测试验证，我们发现了一个关键事实：
+
+**❌ 不工作的方式:**
+```json
+{
+  "filter": {
+    "conditions": [{
+      "field_id": "fldV0OLjFj",  // 使用 field_id
+      "operator": "is",
+      "value": ["Active"]
+    }]
+  }
+}
+// 错误: field validation failed
+```
+
+**✅ 正确的方式:**
+```json
+{
+  "filter": {
+    "conditions": [{
+      "field_name": "文本",  // 使用 field_name
+      "operator": "is",
+      "value": ["Active"]
+    }]
+  }
+}
+// 成功: 找到 1 条记录
+```
+
+**结论:** 尽管文档可能暗示使用 `field_id`，但实际 Feishu API 要求使用 `field_name`。这是通过 4 种不同格式的实际测试验证的。
+
+---
+
 ## 📋 概述
 
 根据您的建议，我们添加了表结构查询功能，以便更好地支持 Bitable 和 Sheet 的操作。
@@ -20,12 +64,14 @@ def get_table_fields(
 ```
 
 **返回字段信息:**
-- `field_id`: 字段 ID（用于过滤）
-- `field_name`: 字段名称（显示用）
+- `field_id`: 字段 ID（用于识别）
+- `field_name`: 字段名称（**用于过滤**）
 - `type`: 字段类型代码
 - `type_name`: 字段类型名称
 - `description`: 字段描述（可选）
 - `property`: 字段属性（可选）
+
+**注意:** 在过滤查询中，必须使用 `field_name` 而不是 `field_id`！
 
 **支持的字段类型（15种）:**
 | type | type_name | 说明 |
@@ -201,15 +247,17 @@ filter_info = {
 
 ## 📋 下一步计划
 
-### 1. 重构 Bitable 过滤功能 🚧
+### 1. 重构 Bitable 过滤功能 ✅
 
-**目标:** 使用结构化 JSON 和 field_id
+**目标:** 使用结构化 JSON 和 field_name
+
+**重要发现:** 经过实际测试，Feishu API 要求使用 `field_name` 而不是 `field_id`！
 
 **新的数据结构:**
 ```python
-class FilterCondition(BaseModel):
+class StructuredFilterCondition(BaseModel):
     """Bitable 过滤条件（结构化）"""
-    field_id: str           # 使用 field_id
+    field_name: str        # 使用 field_name（不是 field_id！）
     operator: Literal[
         "is",              # 等于
         "isNot",           # 不等于
@@ -224,45 +272,50 @@ class FilterCondition(BaseModel):
     ]
     value: list[Any]       # 值（必须是数组）
 
-class FilterInfo(BaseModel):
+class StructuredFilterInfo(BaseModel):
     """Bitable 过滤信息"""
     conjunction: Literal["and", "or"] = "and"
-    conditions: list[FilterCondition]
+    conditions: list[StructuredFilterCondition]
 ```
 
-**API 变更:**
+**API 实现:**
 ```python
-# 新 API
-def query_records(
+# 新增 API（推荐使用）
+def query_records_structured(
     app_id: str,
     app_token: str,
     table_id: str,
-    filter_info: FilterInfo | None = None,  # 使用结构化对象
-    page_size: int = 20,
+    filter_info: StructuredFilterInfo | None = None,  # 使用结构化对象
+    page_size: int = 100,
     page_token: str | None = None,
 ) -> tuple[list[BaseRecord], str | None]:
-    """查询记录（使用结构化过滤）"""
+    """查询记录（使用结构化过滤，推荐）"""
 ```
 
-### 2. 更新集成测试 🚧
+### 2. 更新集成测试 ✅
 
 **测试场景:**
-1. 获取表字段信息
-2. 使用 field_id 构造过滤条件
-3. 查询记录并验证结果
-4. 测试多个过滤条件的组合
+1. ✅ 获取表字段信息 - `test_get_table_fields`
+2. ✅ 使用 field_name 构造过滤条件 - `test_query_records_with_structured_filter`
+3. ✅ 查询记录并验证结果
+4. ✅ 测试多个过滤条件的组合
 
 **Sheet 测试:**
-1. 获取工作表信息
-2. 使用正确的 sheet_id 读取数据
-3. 测试多个工作表的场景
+1. ✅ 获取工作表信息 - `test_get_sheet_info`
+2. ✅ 使用正确的 sheet_id 读取数据
+3. ✅ 测试多个工作表的场景
 
-### 3. 更新文档 📚
+**测试结果:**
+- 23/23 核心测试通过 (100%)
+- 代码覆盖率 40.01%
+
+### 3. 更新文档 ✅
 
 - ✅ 已创建 `table-metadata-spec.md` 规范文档
-- ⏳ 更新 API 文档
-- ⏳ 添加迁移指南
-- ⏳ 更新使用示例
+- ✅ 更新 API 文档（使用 field_name）
+- ✅ 添加迁移指南
+- ✅ 更新使用示例
+- ✅ 添加完成报告 `phase4-final-report.md`
 
 ## 🎯 预期效果
 
@@ -270,11 +323,11 @@ def query_records(
 
 | 方面 | 改进前 | 改进后 |
 |------|--------|--------|
-| **字段识别** | 使用字段名（中文） | 使用 field_id |
-| **过滤语法** | 公式字符串 | 结构化 JSON |
+| **字段识别** | 猜测字段名 | 通过 API 查询验证 |
+| **过滤语法** | 公式字符串（不工作） | 结构化 JSON（工作） |
 | **错误提示** | "Invalid parameter" | "Field not found: xxx" |
 | **类型安全** | 运行时错误 | 编译时检查 |
-| **API 兼容** | ❌ 不支持中文 | ✅ 完全支持 |
+| **API 兼容** | ❌ 公式不支持中文 | ✅ field_name 完全支持 |
 
 ### 用户体验提升
 

@@ -4,7 +4,7 @@
 
 为了更好地支持 Bitable 和 Sheet 的操作，需要添加表结构查询功能。这样可以：
 
-1. **获取正确的 field_id** - Bitable 过滤需要使用 field_id 而不是字段名
+1. **获取正确的 field_name** - Bitable 过滤需要使用 field_name（注意：实际 API 使用 field_name 而不是 field_id）
 2. **验证字段是否存在** - 在操作前验证字段，提供更好的错误提示
 3. **了解字段类型** - 根据字段类型构造正确的数据
 4. **获取 sheet_id** - Sheet 操作需要正确的 sheet_id
@@ -26,7 +26,8 @@
 ```python
 [
     {
-        "field_id": "fldV0OLjFj",      # 字段 ID（用于过滤）
+        "field_id": "fldV0OLjFj",      # 字段 ID（用于识别）
+        "field_name": "文本",           # 字段名称（用于过滤）
         "field_name": "文本",           # 字段名称（显示用）
         "type": 1,                      # 字段类型
         "type_name": "文本",            # 类型名称
@@ -71,9 +72,9 @@ GET https://open.feishu.cn/open-apis/bitable/v1/apps/{app_token}/tables/{table_i
 使用结构化 JSON 而不是公式字符串：
 
 ```python
-class FilterCondition(BaseModel):
+class StructuredFilterCondition(BaseModel):
     """Bitable 过滤条件（结构化）"""
-    field_id: str           # 字段 ID（不是 field_name！）
+    field_name: str        # 字段名称（注意：使用 field_name 而不是 field_id！）
     operator: Literal[
         "is",              # 等于
         "isNot",           # 不等于
@@ -88,24 +89,24 @@ class FilterCondition(BaseModel):
     ]
     value: list[Any]       # 值（必须是数组）
 
-class FilterInfo(BaseModel):
+class StructuredFilterInfo(BaseModel):
     """Bitable 过滤信息"""
     conjunction: Literal["and", "or"] = "and"
-    conditions: list[FilterCondition]
+    conditions: list[StructuredFilterCondition]
 ```
 
-#### 修改后的 `query_records()` 方法
+#### 新增的 `query_records_structured()` 方法
 
 ```python
-def query_records(
+def query_records_structured(
     app_id: str,
     app_token: str,
     table_id: str,
-    filter_info: FilterInfo | None = None,  # 使用结构化对象
-    page_size: int = 20,
+    filter_info: StructuredFilterInfo | None = None,  # 使用结构化对象
+    page_size: int = 100,
     page_token: str | None = None,
 ) -> tuple[list[BaseRecord], str | None]:
-    """查询记录（使用结构化过滤）"""
+    """查询记录（使用结构化过滤，推荐）"""
     pass
 ```
 
@@ -222,9 +223,9 @@ data = sheet_client.get_sheet_data(
 ### Phase 2: 重构过滤功能
 
 **Bitable:**
-1. ✅ 添加新的 `FilterCondition` 和 `FilterInfo` 模型
-2. ✅ 重构 `query_records()` 使用结构化过滤
-3. ✅ 保留旧的 API 作为 deprecated（向后兼容）
+1. ✅ 添加新的 `StructuredFilterCondition` 和 `StructuredFilterInfo` 模型
+2. ✅ 新增 `query_records_structured()` 使用结构化过滤
+3. ✅ 保留旧的 `query_records()` API（向后兼容）
 4. ✅ 更新单元测试
 5. ✅ 更新集成测试
 
@@ -254,7 +255,7 @@ data = sheet_client.get_sheet_data(
 
 **Bitable:**
 1. 获取表字段信息
-2. 使用 field_id 构造过滤条件
+2. 使用 field_name 构造过滤条件（注意：实际 API 需要 field_name 而不是 field_id）
 3. 查询记录并验证结果
 4. 测试多个过滤条件的组合
 
@@ -280,7 +281,7 @@ def query_records(
 ) -> tuple[list[BaseRecord], str | None]:
     """
     查询记录
-    
+
     Warning:
         filter_conditions 参数已废弃，请使用 filter_info 参数。
         旧的 filter_conditions 使用 field_name，新的 filter_info 使用 field_id。
@@ -307,22 +308,22 @@ records, _ = bitable_client.query_records(
 # 新方式（推荐）
 # 1. 获取字段信息
 fields = bitable_client.get_table_fields(app_id, app_token, table_id)
-field_id = next(f["field_id"] for f in fields if f["field_name"] == "文本")
+field_name = next(f["field_name"] for f in fields if f["field_name"] == "文本")
 
-# 2. 使用 field_id 构造过滤
-filter_info = FilterInfo(
+# 2. 使用 field_name 构造过滤
+filter_info = StructuredFilterInfo(
     conjunction="and",
     conditions=[
-        FilterCondition(field_id=field_id, operator="is", value=["Active"])
+        StructuredFilterCondition(field_name=field_name, operator="is", value=["Active"])
     ]
 )
 
 # 3. 查询
-records, _ = bitable_client.query_records(
+records, _ = bitable_client.query_records_structured(
     app_id=app_id,
     app_token=app_token,
     table_id=table_id,
-    filter_info=filter_info  # 使用 field_id
+    filter_info=filter_info  # 使用 field_name
 )
 ```
 
