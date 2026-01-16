@@ -66,7 +66,9 @@ class ContactCacheManager:
         """Context manager entry."""
         return self
 
-    def __exit__(self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: Any) -> None:
+    def __exit__(
+        self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: Any
+    ) -> None:
         """Context manager exit - close all connections."""
         self.close()
 

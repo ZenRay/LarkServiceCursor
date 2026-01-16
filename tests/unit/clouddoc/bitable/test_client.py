@@ -264,7 +264,11 @@ class TestBitableClientOperations:
 
     def test_batch_delete_records_success(self, client):
         """Test batch delete records succeeds."""
-        record_ids = ["rec1234567890abcdefghij", "rec4567890abcdefghijklmn", "rec7890abcdefghijklmnopq"]
+        record_ids = [
+            "rec1234567890abcdefghij",
+            "rec4567890abcdefghijklmn",
+            "rec7890abcdefghijklmnopq",
+        ]
 
         result = client.batch_delete_records(
             app_id="cli_test",
