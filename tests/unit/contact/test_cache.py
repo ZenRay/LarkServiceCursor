@@ -18,7 +18,10 @@ class TestContactCacheManager:
     @pytest.fixture
     def cache_manager(self):
         """Create ContactCacheManager with in-memory SQLite."""
-        return ContactCacheManager("sqlite:///:memory:")
+        manager = ContactCacheManager("sqlite:///:memory:")
+        yield manager
+        # Cleanup after test
+        manager.close()
 
     @pytest.fixture
     def sample_user(self):
@@ -328,3 +331,42 @@ class TestContactCacheManager:
 
         assert cached_user is not None
         assert cached_user.department_ids is None
+
+    def test_context_manager(self):
+        """Test ContactCacheManager as context manager."""
+        user = User(
+            open_id="ou_6234567890abcdefghij",
+            user_id="62345678",
+            union_id="on_6234567890abcdefghij",
+            name="Context User",
+        )
+
+        # Use as context manager
+        with ContactCacheManager("sqlite:///:memory:") as manager:
+            manager.cache_user("cli_test", user)
+            cached = manager.get_user_by_open_id("cli_test", user.open_id)
+            assert cached is not None
+            assert cached.name == "Context User"
+
+        # After context exit, connections should be closed
+
+    def test_explicit_close(self):
+        """Test explicit close method."""
+        manager = ContactCacheManager("sqlite:///:memory:")
+
+        user = User(
+            open_id="ou_7234567890abcdefghij",
+            user_id="72345678",
+            union_id="on_7234567890abcdefghij",
+            name="Close User",
+        )
+
+        manager.cache_user("cli_test", user)
+        cached = manager.get_user_by_open_id("cli_test", user.open_id)
+        assert cached is not None
+
+        # Explicitly close
+        manager.close()
+
+        # Multiple close calls should be safe
+        manager.close()

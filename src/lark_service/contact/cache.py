@@ -49,11 +49,43 @@ class ContactCacheManager:
             database_url : str
                 PostgreSQL database URL
         """
-        self.engine = create_engine(database_url)
+        # Add pool_pre_ping to handle stale connections
+        # Add echo=False to reduce logging noise
+        self.engine = create_engine(
+            database_url,
+            pool_pre_ping=True,
+            echo=False,
+        )
         self.session_factory = sessionmaker(bind=self.engine)
 
         # Create tables if not exist
         Base.metadata.create_all(self.engine)
+
+    def __enter__(self):
+        """Context manager entry."""
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context manager exit - close all connections."""
+        self.close()
+        return False
+
+    def close(self) -> None:
+        """
+        Close database connections and dispose of engine.
+
+        Should be called when the cache manager is no longer needed
+        to properly clean up database resources.
+
+        Examples
+        --------
+            >>> manager = ContactCacheManager("sqlite:///:memory:")
+            >>> # ... use manager ...
+            >>> manager.close()
+        """
+        if hasattr(self, "engine"):
+            self.engine.dispose()
+            logger.debug("ContactCacheManager connections closed")
 
     def cache_user(self, app_id: str, user: User) -> UserCache:
         """
