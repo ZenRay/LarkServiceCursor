@@ -267,7 +267,7 @@
 
 #### Pydantic 模型
 
-- [ ] T051 [P] [US3] 创建 CloudDoc 模型 src/lark_service/clouddoc/models.py (Document, BaseRecord, SheetRange, MediaAsset, FieldDefinition)
+- [X] T051 [P] [US3] 创建 CloudDoc 模型 src/lark_service/clouddoc/models.py (Document, BaseRecord, SheetRange, MediaAsset, FieldDefinition)
 
 #### Doc 文档客户端
 
@@ -296,7 +296,7 @@
 
 #### Pydantic 模型
 
-- [ ] T060 [P] [US4] 创建 Contact 模型 src/lark_service/contact/models.py (User 包含 open_id/user_id/union_id, ChatGroup, Department)
+- [X] T060 [P] [US4] 创建 Contact 模型 src/lark_service/contact/models.py (User 包含 open_id/user_id/union_id, ChatGroup, Department)
 
 #### 通讯录客户端
 
