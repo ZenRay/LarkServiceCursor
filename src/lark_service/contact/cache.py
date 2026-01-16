@@ -103,7 +103,11 @@ class ContactCacheManager:
                 existing.expires_at = expires_at
 
                 session.commit()
+                session.refresh(existing)  # Refresh to load all attributes
                 logger.info(f"Updated cache for user {user.open_id} in app {app_id}")
+
+                # Make a detached copy with all attributes loaded
+                session.expunge(existing)
                 return existing
             else:
                 # Create new entry
@@ -122,7 +126,11 @@ class ContactCacheManager:
                 )
                 session.add(cache_entry)
                 session.commit()
+                session.refresh(cache_entry)  # Refresh to load all attributes
                 logger.info(f"Cached user {user.open_id} in app {app_id}")
+
+                # Make a detached copy with all attributes loaded
+                session.expunge(cache_entry)
                 return cache_entry
 
     def get_user_by_open_id(self, app_id: str, open_id: str) -> User | None:

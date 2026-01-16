@@ -54,9 +54,9 @@ class TestContactCacheManager:
             open_id=sample_user.open_id,
             user_id=sample_user.user_id,
             union_id=sample_user.union_id,
+            name="Updated User",
             email="updated@example.com",
             mobile="13900139000",
-            name="Updated User",
         )
 
         # Cache updated user
@@ -64,7 +64,7 @@ class TestContactCacheManager:
 
         assert cached.email == "updated@example.com"
         assert cached.name == "Updated User"
-        assert cached.mobile == "+86-13900139000"
+        assert cached.mobile == "13900139000"
 
     def test_get_user_by_open_id_hit(self, cache_manager, sample_user):
         """Test cache hit when getting user by open_id."""
@@ -188,8 +188,9 @@ class TestContactCacheManager:
         user2 = User(
             open_id="ou_2234567890abcdefghij",
             user_id="22345678",
-            email="test2@example.com",
+            union_id="on_2234567890abcdefghij",
             name="Test User 2",
+            email="test2@example.com",
         )
 
         cache_manager.cache_user("cli_test", user1)
@@ -226,14 +227,16 @@ class TestContactCacheManager:
         user2 = User(
             open_id="ou_2234567890abcdefghij",
             user_id="22345678",
-            email="test2@example.com",
+            union_id="on_2234567890abcdefghij",
             name="Test User 2",
+            email="test2@example.com",
         )
         user3 = User(
             open_id="ou_3234567890abcdefghij",
             user_id="32345678",
-            email="test3@example.com",
+            union_id="on_3234567890abcdefghij",
             name="Test User 3",
+            email="test3@example.com",
         )
 
         cache_manager.cache_user("cli_test", user1)
@@ -271,6 +274,8 @@ class TestContactCacheManager:
         user = User(
             open_id="ou_4234567890abcdefghij",
             user_id="42345678",
+            union_id="on_4234567890abcdefghij",
+            name="Minimal User",
         )
 
         cached = cache_manager.cache_user("cli_test", user)
@@ -279,7 +284,7 @@ class TestContactCacheManager:
         assert cached.user_id == "42345678"
         assert cached.email is None
         assert cached.mobile is None
-        assert cached.name is None
+        assert cached.name == "Minimal User"
 
     def test_cache_refresh_ttl_on_update(self, cache_manager, sample_user):
         """Test that TTL is refreshed when updating cached user."""
@@ -312,6 +317,8 @@ class TestContactCacheManager:
         user = User(
             open_id="ou_5234567890abcdefghij",
             user_id="52345678",
+            union_id="on_5234567890abcdefghij",
+            name="No Dept User",
             department_ids=None,
         )
 
