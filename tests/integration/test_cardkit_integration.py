@@ -294,6 +294,8 @@ class TestEndToEndCardScenarios:
             approve_action_id="approve",
             reject_action_id="reject",
         )
+        assert original_card is not None
+        assert "请假申请" in str(original_card)
 
         # Step 2: Simulate sending card (would use MessagingClient)
         message_id = "om_test_card_123"
