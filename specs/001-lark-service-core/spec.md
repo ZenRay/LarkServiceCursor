@@ -804,42 +804,55 @@
 
 **CloudDoc 模块:**
 - ✅ Document, ContentBlock, BaseRecord, SheetRange 数据模型
-- ✅ DocClient: 创建文档、追加内容、读取文档、权限管理
-- ✅ BitableClient: CRUD 操作、批量操作、过滤查询、分页
-- ✅ SheetClient: 读写数据、格式化、合并单元格、冻结窗格
+- ✅ DocClient: 创建文档、读取文档 **[真实 API]**、追加内容 (placeholder)、权限管理 (placeholder)
+- ✅ BitableClient: CRUD 操作、批量操作、过滤查询、分页 (placeholder)
+- ✅ SheetClient: 读写数据、格式化、合并单元格、冻结窗格 (placeholder)
 - ✅ 完整的参数验证和错误处理
-- ✅ 60 个单元测试 (100% 通过)
+- ✅ 225 个单元测试 (100% 通过)
+- ✅ 2 个集成测试通过 **[新增 2026-01-15]**
 
 **Contact 模块:**
 - ✅ User, Department, ChatGroup 数据模型
-- ✅ ContactClient: 用户查询、部门查询、群组查询、批量操作
+- ✅ ContactClient: 用户查询 (4 个方法) **[真实 API]**、部门查询 (placeholder)、群组查询 (placeholder)、批量操作 **[真实 API]**
 - ✅ ContactCacheManager: PostgreSQL 缓存、TTL 24h、app_id 隔离
+- ✅ 缓存集成: cache-aside 模式完整集成 **[新增 2026-01-15]**
 - ✅ 缓存统计、懒加载刷新、显式失效
 - ✅ 完整的参数验证和错误处理
-- ✅ 46 个单元测试 (100% 通过)
+- ✅ 225 个单元测试 (100% 通过)
+- ✅ 3 个集成测试通过 **[新增 2026-01-15]**
+
+**真实 API 集成:** **[新增 2026-01-15]**
+- ✅ Contact.get_user_by_email() - 两步查询 (BatchGetId + GetUser)
+- ✅ Contact.get_user_by_mobile() - 两步查询,支持国际格式
+- ✅ Contact.get_user_by_user_id() - 直接查询
+- ✅ Contact.batch_get_users() - 批量查询优化
+- ✅ CloudDoc.get_document() - 获取文档元数据,时间戳解析
 
 **质量指标:**
 - ✅ 225 个单元测试全部通过
-- ✅ 64.15% 代码覆盖率
+- ✅ 5 个集成测试通过 (Contact 3 + CloudDoc 2) **[新增]**
+- ✅ 21.17% 代码覆盖率 (含集成测试)
 - ✅ 0 个 ruff 错误
 - ✅ 0 个 mypy 类型错误
-- ✅ 完整的类型注解
+- ✅ 100% 类型注解覆盖
 - ✅ 符合代码规范
 
 #### 待实现功能 ⏳
 
 **CloudDoc 模块:**
+- ⏳ append_content() 真实 API 实现 (当前 placeholder)
+- ⏳ Bitable/Sheet 真实 API 实现 (当前 placeholder)
 - ⏳ MediaClient: 上传/下载文档素材 (T056, 可选)
 - ⏳ DocumentUrlResolver: 统一文档 URL 解析 (FR-045)
-- ⏳ Wiki 节点缓存: node_token → obj_token 映射
 
 **Contact 模块:**
-- ⏳ 缓存集成到 ContactClient (T062b)
-- ⏳ LRU 容量淘汰策略 (FR-066.3)
+- ⏳ get_department() 真实 API 实现 (当前 placeholder)
+- ⏳ get_chat_group() 真实 API 实现 (当前 placeholder)
+- ⏳ LRU 容量淘汰策略 (FR-066.3, 可选)
 
 **测试:**
-- ⏳ 集成测试 (T059b, T065)
-- ⏳ 性能基准测试
+- ⏳ 更多集成测试 (缓存测试、批量测试)
+- ⏳ 性能基准测试 (缓存命中率、响应时间)
 
 #### 已知限制
 
@@ -865,17 +878,36 @@
 - **测试数据**: 使用符合验证规则的 mock ID
 - **结果**: 225 passed, 3 skipped
 
-#### 集成测试 ⏳ (环境已就绪)
-- **测试环境**: .env.test 已配置,PostgreSQL 已连接
-- **测试数据**: 真实 App ID/Secret,测试用户邮箱
-- **测试场景**:
-  - Contact: 查询用户 → 缓存 → 再次查询 (验证缓存命中)
-  - CloudDoc: 创建文档 → 写入内容 → 读取验证
-  - Bitable: CRUD 记录 → 过滤查询 → 批量操作
+#### 集成测试 ✅ (已完成核心测试) **[更新 2026-01-15]**
+- **测试环境**: ✅ .env.test 已配置,PostgreSQL 已连接
+- **测试数据**: ✅ 真实 App ID/Secret,测试用户邮箱,测试文档 token
+- **测试结果**:
+  - ✅ Contact: 3 个测试通过 (邮箱查询、手机号查询、用户不存在)
+  - ✅ CloudDoc: 2 个测试通过 (获取文档、文档不存在)
+  - ⏸️ 写操作测试跳过 (需要写权限)
 - **运行方式**: `pytest tests/integration/ -v`
+- **测试文档**: docs/integration-test-setup.md (421 行完整指南)
+
+**已验证场景:**
+- ✅ Contact.get_user_by_email() - 真实 API 调用成功
+- ✅ Contact.get_user_by_mobile() - 国际格式支持
+- ✅ Contact 错误处理 - NotFoundError 正确抛出
+- ✅ CloudDoc.get_document() - 真实 API 调用成功
+- ✅ CloudDoc 错误处理 - 文档不存在正确处理
+
+**待测试场景:**
+- ⏳ Contact 缓存功能 (4 个测试)
+- ⏳ Contact 批量查询 (1 个测试)
+- ⏳ CloudDoc 写操作 (需要写权限)
+- ⏳ Bitable/Sheet 操作 (需要实现真实 API)
 
 #### 性能测试 ⏳ (待实施)
-- 缓存命中响应时间 < 100ms
-- 缓存未命中响应时间 < 2s
-- 文档操作响应时间 < 3s
-- 并发测试: 100 并发请求
+- 目标: 缓存命中响应时间 < 100ms
+- 目标: 缓存未命中响应时间 < 2s
+- 目标: 文档操作响应时间 < 3s
+- 目标: 并发测试 100 并发请求
+
+**实际性能 (初步测试):**
+- ✅ Contact API (无缓存): ~5-8 秒 (2 次 API 调用)
+- ✅ CloudDoc API: ~3-5 秒 (1 次 API 调用)
+- ⏳ 缓存命中性能: 待测试
