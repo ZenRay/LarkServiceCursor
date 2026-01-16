@@ -271,25 +271,25 @@
 
 #### Doc 文档客户端
 
-- [X] T052 [P] [US3] 实现 Doc 客户端 src/lark_service/clouddoc/doc_client.py (create_document, append_content, get_document_content, update_block)
-- [X] T053 [US3] 实现文档权限管理 clouddoc/doc_client.py (grant_permission 授予权限, revoke_permission 撤销权限, list_permissions 查询权限, 支持可阅读/可编辑/可评论/可管理四种权限类型)
+- [X] T052 [P] [US3] 实现 Doc 客户端 src/lark_service/clouddoc/client.py (create_document, append_content, get_document_content, update_block)
+- [X] T053 [US3] 实现文档权限管理 clouddoc/client.py (grant_permission 授予权限, revoke_permission 撤销权限, list_permissions 查询权限, 支持可阅读/可编辑/可评论/可管理四种权限类型)
 
 #### 多维表格客户端
 
-- [ ] T054 [P] [US3] 实现 Bitable 客户端 src/lark_service/clouddoc/bitable_client.py (create_record, query_records 包含过滤器/分页, update_record, delete_record, 批量操作)
+- [ ] T054 [P] [US3] 实现 Bitable 客户端 src/lark_service/clouddoc/bitable/client.py (create_record, query_records 包含过滤器/分页, update_record, delete_record, 批量操作)
 
 #### Sheet 客户端
 
-- [ ] T055 [P] [US3] 实现 Sheet 客户端 src/lark_service/clouddoc/sheet_client.py (get_sheet_data 指定范围, update_sheet_data, format_cells 设置样式/字体/颜色/对齐, merge_cells 合并单元格, set_column_width 设置列宽行高, freeze_panes 冻结窗格)
+- [ ] T055 [P] [US3] 实现 Sheet 客户端 src/lark_service/clouddoc/sheet/client.py (get_sheet_data 指定范围, update_sheet_data, format_cells 设置样式/字体/颜色/对齐, merge_cells 合并单元格, set_column_width 设置列宽行高, freeze_panes 冻结窗格)
 
 #### 文档素材管理
 
-- [ ] T056 [US3] 实现媒体客户端 src/lark_service/clouddoc/media_client.py (upload_doc_media 上传图片/文件, download_doc_media, 返回 file_token)
+- [ ] T056 [US3] 实现媒体客户端 src/lark_service/clouddoc/media/client.py (upload_doc_media 上传图片/文件, download_doc_media, 返回 file_token)
 
 #### TDD 测试
 
 - [ ] T057 [P] [US3] CloudDoc API 契约测试 tests/contract/test_clouddoc_contract.py (验证符合 contracts/clouddoc.yaml)
-- [ ] T058 [P] [US3] Bitable 客户端单元测试 tests/unit/clouddoc/test_bitable_client.py (过滤器构建、分页)
+- [ ] T058 [P] [US3] Bitable 客户端单元测试 tests/unit/clouddoc/bitable/test_client.py (过滤器构建、分页)
 - [ ] T059 [US3] CloudDoc 集成测试 tests/integration/test_clouddoc_e2e.py (创建 doc → 写入内容 → 读取 → 验证, CRUD bitable 记录)
 
 ### US4: Contact 模块
@@ -338,17 +338,17 @@
 
 ### 数据空间客户端
 
-- [ ] T067 [P] [US5] 实现工作空间表格客户端 src/lark_service/apaas/workspace_client.py (list_workspace_tables, query_table_records 包含过滤器/排序/分页, update_table_record 包含版本冲突检测, delete_table_record)
+- [ ] T067 [P] [US5] 实现工作空间表格客户端 src/lark_service/apaas/workspace/client.py (list_workspace_tables, query_table_records 包含过滤器/排序/分页, update_table_record 包含版本冲突检测, delete_table_record)
 
 ### AI 和工作流客户端
 
-- [ ] T068 [P] [US5] 实现 AI 客户端 src/lark_service/apaas/ai_client.py (invoke_ai_capability 超时30s, 需要 user_access_token)
-- [ ] T069 [P] [US5] 实现工作流客户端 src/lark_service/apaas/workflow_client.py (trigger_workflow, get_workflow_status, 需要 user_access_token)
+- [ ] T068 [P] [US5] 实现 AI 客户端 src/lark_service/apaas/ai/client.py (invoke_ai_capability 超时30s, 需要 user_access_token)
+- [ ] T069 [P] [US5] 实现工作流客户端 src/lark_service/apaas/workflow/client.py (trigger_workflow, get_workflow_status, 需要 user_access_token)
 
 ### TDD 测试
 
 - [ ] T070 [P] [US5] aPaaS API 契约测试 tests/contract/test_apaas_contract.py (验证符合 contracts/apaas.yaml)
-- [ ] T071 [P] [US5] 工作空间客户端单元测试 tests/unit/apaas/test_workspace_client.py (查询过滤器构建、冲突检测)
+- [ ] T071 [P] [US5] 工作空间客户端单元测试 tests/unit/apaas/workspace/test_client.py (查询过滤器构建、冲突检测)
 - [ ] T072 [US5] aPaaS 集成测试 tests/integration/test_apaas_e2e.py (需要 user_access_token, 列表表格 → 查询记录 → 更新 → 删除 → 验证, 调用 AI 超时测试)
 
 ### 阶段检查点
