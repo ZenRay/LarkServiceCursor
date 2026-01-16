@@ -276,11 +276,11 @@
 
 #### 多维表格客户端
 
-- [ ] T054 [P] [US3] 实现 Bitable 客户端 src/lark_service/clouddoc/bitable/client.py (create_record, query_records 包含过滤器/分页, update_record, delete_record, 批量操作)
+- [X] T054 [P] [US3] 实现 Bitable 客户端 src/lark_service/clouddoc/bitable/client.py (create_record, query_records 包含过滤器/分页, update_record, delete_record, 批量操作)
 
 #### Sheet 客户端
 
-- [ ] T055 [P] [US3] 实现 Sheet 客户端 src/lark_service/clouddoc/sheet/client.py (get_sheet_data 指定范围, update_sheet_data, format_cells 设置样式/字体/颜色/对齐, merge_cells 合并单元格, set_column_width 设置列宽行高, freeze_panes 冻结窗格)
+- [X] T055 [P] [US3] 实现 Sheet 客户端 src/lark_service/clouddoc/sheet/client.py (get_sheet_data 指定范围, update_sheet_data, format_cells 设置样式/字体/颜色/对齐, merge_cells 合并单元格, set_column_width 设置列宽行高, freeze_panes 冻结窗格)
 
 #### 文档素材管理
 
@@ -300,7 +300,7 @@
 
 #### 通讯录客户端
 
-- [ ] T061 [US4] 实现 Contact 客户端 src/lark_service/contact/client.py (get_user_by_email, get_user_by_mobile, get_chat_by_name, get_department_users 批量更新缓存)
+- [X] T061 [US4] 实现 Contact 客户端 src/lark_service/contact/client.py (get_user_by_email, get_user_by_mobile, get_user_by_user_id, batch_get_users, get_department, get_department_members, get_chat_group, get_chat_members)
 - [ ] T062 [US4] 实现用户缓存逻辑 contact/client.py (检查 PostgreSQL 缓存, TTL 24h, 未命中时懒加载刷新, app_id 隔离)
 
 #### TDD 测试
