@@ -177,7 +177,7 @@ class CardUpdateRequest(BaseModel):
 
     message_id: str = Field(..., min_length=1, description="Message ID")
     card_content: CardConfig = Field(..., description="New card content")
-    app_id: str = Field(..., pattern=r"^cli_[a-z0-9]{16}$", description="Lark app ID")
+    app_id: str = Field(..., pattern=r"^cli_[a-zA-Z0-9]{16,32}$", description="Lark app ID")
 
 
 class CardUpdateResponse(BaseModel):

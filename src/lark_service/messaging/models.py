@@ -54,7 +54,7 @@ class Message(BaseModel):
     receiver_id: str = Field(..., min_length=1, description="Receiver user or chat ID")
     msg_type: MessageType = Field(..., description="Message type")
     content: dict[str, Any] = Field(..., description="Message content payload")
-    app_id: str = Field(..., pattern=r"^cli_[a-z0-9]{16}$", description="Lark app ID")
+    app_id: str = Field(..., pattern=r"^cli_[a-zA-Z0-9]{16,32}$", description="Lark app ID")
 
     @field_validator("content")
     @classmethod
