@@ -387,14 +387,186 @@ class SheetClient:
         logger.info(f"Updating sheet data: {sheet_id}!{range_str}")
 
         def _update() -> bool:
-            # Note: Actual API call depends on SDK implementation
-            # This is a placeholder
-            logger.info(f"Updating {len(values)} rows")
+            import requests  # type: ignore
 
-            # TODO: Implement actual API call when SDK supports it
+            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")
+
+            url = f"https://open.feishu.cn/open-apis/sheets/v2/spreadsheets/{spreadsheet_token}/values"
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json; charset=utf-8",
+            }
+
+            payload = {
+                "valueRange": {
+                    "range": f"{sheet_id}!{range_str}",
+                    "values": values,
+                }
+            }
+
+            logger.debug(f"Updating range {sheet_id}!{range_str} with {len(values)} rows")
+
+            response = requests.put(url, headers=headers, json=payload, timeout=30)
+
+            if response.status_code != 200:
+                error_msg = f"Failed to update sheet data: HTTP {response.status_code}"
+                try:
+                    error_data = response.json()
+                    error_msg = f"{error_msg} - {error_data.get('msg', 'Unknown error')}"
+                    error_code = error_data.get("code", 0)
+
+                    if error_code in [403, 1254302]:
+                        raise PermissionDeniedError(f"No permission to update sheet: {sheet_id}")
+                    elif error_code in [400, 1254001]:
+                        raise InvalidParameterError(error_msg)
+                except Exception as e:
+                    if isinstance(e, PermissionDeniedError | InvalidParameterError):
+                        raise
+                    logger.error(f"Failed to parse error response: {e}")
+
+                raise APIError(error_msg)
+
+            result = response.json()
+            if result.get("code") != 0:
+                error_msg = f"API returned error: {result.get('msg', 'Unknown error')}"
+                error_code = result.get("code", 0)
+
+                if error_code in [403, 1254302]:
+                    raise PermissionDeniedError(f"No permission to update sheet: {sheet_id}")
+                elif error_code in [400, 1254001]:
+                    raise InvalidParameterError(error_msg)
+
+                raise APIError(error_msg)
+
+            data = result.get("data", {})
+            updated_cells = data.get("updatedCells", 0)
+
+            logger.info(f"Successfully updated {updated_cells} cells in sheet {sheet_id}")
             return True
 
         return self.retry_strategy.execute(_update)
+
+    def append_data(
+        self,
+        app_id: str,
+        spreadsheet_token: str,
+        sheet_id: str,
+        range_str: str,
+        values: list[list[str | int | float | bool]],
+    ) -> bool:
+        """
+        Append data to sheet.
+
+        Parameters
+        ----------
+            app_id : str
+                Lark application ID
+            spreadsheet_token : str
+                Spreadsheet token
+            sheet_id : str
+                Sheet ID
+            range_str : str
+                Range string (e.g., "A1:B10")
+            values : list[list]
+                Data to append (2D array)
+
+        Returns
+        -------
+            bool
+                True if successful
+
+        Raises
+        ------
+            InvalidParameterError
+                If parameters are invalid
+            PermissionDeniedError
+                If user has no permission (需要 sheets:spreadsheet 编辑权限)
+            APIError
+                If API call fails
+
+        Examples
+        --------
+            >>> client.append_data(
+            ...     app_id="cli_xxx",
+            ...     spreadsheet_token="shtcn123",
+            ...     sheet_id="sheet1",
+            ...     range_str="A1:B1",
+            ...     values=[["New", "Data"]]
+            ... )
+
+        Notes
+        -----
+            **所需权限:**
+            - `sheets:spreadsheet` - 查看和编辑电子表格
+            - 应用需要被添加为电子表格的协作者，并具有编辑权限
+        """
+        if not range_str:
+            raise InvalidParameterError("Range string cannot be empty")
+
+        if not values:
+            raise InvalidParameterError("Values cannot be empty")
+
+        logger.info(f"Appending data to sheet: {sheet_id}!{range_str}")
+
+        def _append() -> bool:
+            import requests  # type: ignore
+
+            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")
+
+            url = f"https://open.feishu.cn/open-apis/sheets/v2/spreadsheets/{spreadsheet_token}/values_append"
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json; charset=utf-8",
+            }
+
+            payload = {
+                "valueRange": {
+                    "range": f"{sheet_id}!{range_str}",
+                    "values": values,
+                }
+            }
+
+            logger.debug(f"Appending {len(values)} rows to {sheet_id}!{range_str}")
+
+            response = requests.post(url, headers=headers, json=payload, timeout=30)
+
+            if response.status_code != 200:
+                error_msg = f"Failed to append sheet data: HTTP {response.status_code}"
+                try:
+                    error_data = response.json()
+                    error_msg = f"{error_msg} - {error_data.get('msg', 'Unknown error')}"
+                    error_code = error_data.get("code", 0)
+
+                    if error_code in [403, 1254302]:
+                        raise PermissionDeniedError(f"No permission to append to sheet: {sheet_id}")
+                    elif error_code in [400, 1254001]:
+                        raise InvalidParameterError(error_msg)
+                except Exception as e:
+                    if isinstance(e, PermissionDeniedError | InvalidParameterError):
+                        raise
+                    logger.error(f"Failed to parse error response: {e}")
+
+                raise APIError(error_msg)
+
+            result = response.json()
+            if result.get("code") != 0:
+                error_msg = f"API returned error: {result.get('msg', 'Unknown error')}"
+                error_code = result.get("code", 0)
+
+                if error_code in [403, 1254302]:
+                    raise PermissionDeniedError(f"No permission to append to sheet: {sheet_id}")
+                elif error_code in [400, 1254001]:
+                    raise InvalidParameterError(error_msg)
+
+                raise APIError(error_msg)
+
+            data = result.get("data", {})
+            updated_cells = data.get("updatedCells", 0)
+
+            logger.info(f"Successfully appended {updated_cells} cells to sheet {sheet_id}")
+            return True
+
+        return self.retry_strategy.execute(_append)
 
     def format_cells(
         self,

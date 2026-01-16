@@ -857,6 +857,70 @@ class TestSheetReadOperations:
             )
 
 
+class TestSheetWriteOperations:
+    """Test Sheet write operations with real API."""
+
+    def test_update_and_append_data(self, sheet_client, test_config):
+        """Test updating and appending data to sheet."""
+        sheet_token = os.getenv("TEST_SHEET_TOKEN")
+        if not sheet_token:
+            pytest.skip("TEST_SHEET_TOKEN not configured")
+
+        # Get sheet info first
+        sheets = sheet_client.get_sheet_info(
+            app_id=test_config["app_id"],
+            spreadsheet_token=sheet_token,
+        )
+
+        if not sheets:
+            pytest.skip("No sheets found in spreadsheet")
+
+        sheet_id = sheets[0]["sheet_id"]
+        print(f"   Using sheet: {sheets[0]['title']} ({sheet_id})")
+
+        try:
+            # 1. 测试更新数据
+            print("\n1️⃣ 测试更新数据...")
+            success = sheet_client.update_sheet_data(
+                app_id=test_config["app_id"],
+                spreadsheet_token=sheet_token,
+                sheet_id=sheet_id,
+                range_str="A1:B2",
+                values=[
+                    ["测试标题1", "测试标题2"],
+                    ["测试数据1", "测试数据2"],
+                ],
+            )
+
+            assert success is True
+            print("   ✅ 更新成功: A1:B2")
+
+            # 2. 测试追加数据
+            print("\n2️⃣ 测试追加数据...")
+            success = sheet_client.append_data(
+                app_id=test_config["app_id"],
+                spreadsheet_token=sheet_token,
+                sheet_id=sheet_id,
+                range_str="A3:B3",
+                values=[
+                    ["追加数据1", "追加数据2"],
+                ],
+            )
+
+            assert success is True
+            print("   ✅ 追加成功: A3:B3")
+
+            print("\n🎉 Sheet 写入操作测试通过！")
+
+        except PermissionDeniedError as e:
+            pytest.fail(
+                f"权限不足: {e}\n请确保:\n"
+                "1. 应用已添加 sheets:spreadsheet 权限\n"
+                "2. 应用已被添加为电子表格的协作者\n"
+                "3. 应用具有'可编辑'权限"
+            )
+
+
 class TestErrorHandling:
     """Test error handling in CloudDoc operations."""
 

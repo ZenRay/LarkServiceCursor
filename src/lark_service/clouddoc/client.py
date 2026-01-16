@@ -589,8 +589,74 @@ class DocClient:
         )
 
         def _grant() -> Permission:
-            # Note: Actual API call depends on SDK implementation
-            # This is a placeholder
+            import requests  # type: ignore
+
+            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")
+
+            url = f"https://open.feishu.cn/open-apis/drive/v1/permissions/{doc_id}/members"
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json; charset=utf-8",
+            }
+
+            # 映射权限类型到 API 格式
+            perm_map = {
+                "read": "view",
+                "write": "edit",
+                "comment": "edit",
+                "manage": "full_access",
+            }
+            perm = perm_map.get(permission_type, permission_type)
+
+            payload = {
+                "member_type": member_type,
+                "member_id": member_id,
+                "perm": perm,
+                "type": "doc",
+            }
+
+            logger.debug(f"Granting {perm} permission to {member_type}:{member_id}")
+
+            response = requests.post(url, headers=headers, json=payload, timeout=30)
+
+            if response.status_code != 200:
+                error_msg = f"Failed to grant permission: HTTP {response.status_code}"
+                try:
+                    error_data = response.json()
+                    error_msg = f"{error_msg} - {error_data.get('msg', 'Unknown error')}"
+                    error_code = error_data.get("code", 0)
+
+                    if error_code in [403, 1254302]:
+                        raise PermissionDeniedError(
+                            f"No permission to grant access to document: {doc_id}"
+                        )
+                    elif error_code in [400, 1254001]:
+                        raise InvalidParameterError(error_msg)
+                except Exception as e:
+                    if isinstance(e, PermissionDeniedError | InvalidParameterError):
+                        raise
+                    logger.error(f"Failed to parse error response: {e}")
+
+                raise APIError(error_msg)
+
+            result = response.json()
+            if result.get("code") != 0:
+                error_msg = f"API returned error: {result.get('msg', 'Unknown error')}"
+                error_code = result.get("code", 0)
+
+                if error_code in [403, 1254302]:
+                    raise PermissionDeniedError(
+                        f"No permission to grant access to document: {doc_id}"
+                    )
+                elif error_code in [400, 1254001]:
+                    raise InvalidParameterError(error_msg)
+
+                raise APIError(error_msg)
+
+            logger.info(
+                f"Successfully granted {permission_type} permission to {member_type}:{member_id}"
+            )
+
             return Permission(
                 doc_id=doc_id,
                 member_type=member_type,  # type: ignore
@@ -641,7 +707,58 @@ class DocClient:
         logger.info(f"Revoking permission {permission_id} from document {doc_id}")
 
         def _revoke() -> bool:
-            # Note: Actual API call depends on SDK implementation
+            import requests  # type: ignore
+
+            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")
+
+            url = f"https://open.feishu.cn/open-apis/drive/v1/permissions/{doc_id}/members/{permission_id}"
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json; charset=utf-8",
+            }
+
+            # 添加 type 参数
+            params = {"type": "doc"}
+
+            logger.debug(f"Revoking permission {permission_id} from document {doc_id}")
+
+            response = requests.delete(url, headers=headers, params=params, timeout=30)
+
+            if response.status_code != 200:
+                error_msg = f"Failed to revoke permission: HTTP {response.status_code}"
+                try:
+                    error_data = response.json()
+                    error_msg = f"{error_msg} - {error_data.get('msg', 'Unknown error')}"
+                    error_code = error_data.get("code", 0)
+
+                    if error_code in [403, 1254302]:
+                        raise PermissionDeniedError(
+                            f"No permission to revoke access from document: {doc_id}"
+                        )
+                    elif error_code in [400, 1254001]:
+                        raise InvalidParameterError(error_msg)
+                except Exception as e:
+                    if isinstance(e, PermissionDeniedError | InvalidParameterError):
+                        raise
+                    logger.error(f"Failed to parse error response: {e}")
+
+                raise APIError(error_msg)
+
+            result = response.json()
+            if result.get("code") != 0:
+                error_msg = f"API returned error: {result.get('msg', 'Unknown error')}"
+                error_code = result.get("code", 0)
+
+                if error_code in [403, 1254302]:
+                    raise PermissionDeniedError(
+                        f"No permission to revoke access from document: {doc_id}"
+                    )
+                elif error_code in [400, 1254001]:
+                    raise InvalidParameterError(error_msg)
+
+                raise APIError(error_msg)
+
+            logger.info(f"Successfully revoked permission {permission_id} from document {doc_id}")
             return True
 
         return self.retry_strategy.execute(_revoke)
