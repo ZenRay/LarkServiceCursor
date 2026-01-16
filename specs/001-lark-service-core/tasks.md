@@ -271,8 +271,8 @@
 
 #### Doc 文档客户端
 
-- [ ] T052 [P] [US3] 实现 Doc 客户端 src/lark_service/clouddoc/doc_client.py (create_document, append_content, get_document_content, update_block)
-- [ ] T053 [US3] 实现文档权限管理 clouddoc/doc_client.py (grant_permission 授予权限, revoke_permission 撤销权限, list_permissions 查询权限, 支持可阅读/可编辑/可评论/可管理四种权限类型)
+- [X] T052 [P] [US3] 实现 Doc 客户端 src/lark_service/clouddoc/doc_client.py (create_document, append_content, get_document_content, update_block)
+- [X] T053 [US3] 实现文档权限管理 clouddoc/doc_client.py (grant_permission 授予权限, revoke_permission 撤销权限, list_permissions 查询权限, 支持可阅读/可编辑/可评论/可管理四种权限类型)
 
 #### 多维表格客户端
 
