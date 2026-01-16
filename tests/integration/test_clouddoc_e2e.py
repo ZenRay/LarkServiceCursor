@@ -15,7 +15,7 @@ import os
 import pytest
 from dotenv import load_dotenv
 
-from lark_service.clouddoc.client import CloudDocClient
+from lark_service.clouddoc.client import DocClient
 from lark_service.clouddoc.models import ContentBlock
 from lark_service.core.credential_pool import CredentialPool
 from lark_service.core.exceptions import NotFoundError, PermissionDeniedError
@@ -115,8 +115,8 @@ def credential_pool(test_config, tmp_path_factory):
 
 @pytest.fixture
 def doc_client(credential_pool):
-    """Create CloudDocClient for tests."""
-    return CloudDocClient(credential_pool)
+    """Create DocClient for tests."""
+    return DocClient(credential_pool)
 
 
 class TestDocumentOperations:
