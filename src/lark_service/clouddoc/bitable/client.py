@@ -49,6 +49,25 @@ class BitableClient:
         >>> print(record.record_id)
     """
 
+    # 字段类型映射
+    FIELD_TYPE_NAMES = {
+        1: "文本",
+        2: "数字",
+        3: "单选",
+        4: "多选",
+        5: "日期",
+        7: "复选框",
+        11: "人员",
+        13: "电话号码",
+        15: "超链接",
+        17: "附件",
+        18: "关联",
+        20: "公式",
+        21: "双向关联",
+        22: "查找引用",
+        23: "创建时间",
+    }
+
     def __init__(
         self,
         credential_pool: CredentialPool,
@@ -130,6 +149,113 @@ class BitableClient:
             )
 
         return self.retry_strategy.execute(_create)
+
+    def get_table_fields(
+        self,
+        app_id: str,
+        app_token: str,
+        table_id: str,
+    ) -> list[dict[str, Any]]:
+        """
+        获取 Bitable 表的所有字段信息.
+
+        Parameters
+        ----------
+            app_id : str
+                应用 ID
+            app_token : str
+                Bitable 应用 token
+            table_id : str
+                数据表 ID
+
+        Returns
+        -------
+            list[dict]
+                字段信息列表，每个字段包含:
+                - field_id: 字段 ID
+                - field_name: 字段名称
+                - type: 字段类型代码
+                - type_name: 字段类型名称
+                - description: 字段描述（可选）
+                - property: 字段属性（可选）
+
+        Raises
+        ------
+            NotFoundError
+                表不存在
+            PermissionDeniedError
+                无权限访问
+            APIError
+                API 调用失败
+
+        Examples
+        --------
+            >>> fields = client.get_table_fields(
+            ...     app_id="cli_xxx",
+            ...     app_token="bascnxxx",
+            ...     table_id="tblxxx"
+            ... )
+            >>> text_field = next(f for f in fields if f["field_name"] == "文本")
+            >>> print(text_field["field_id"])  # "fldV0OLjFj"
+        """
+        logger.info(f"Getting fields for table {table_id}")
+
+        def _get_fields() -> list[dict[str, Any]]:
+            from lark_oapi.api.bitable.v1 import ListAppTableFieldRequest
+
+            sdk_client = self.credential_pool._get_sdk_client(app_id)
+
+            request = (
+                ListAppTableFieldRequest.builder()
+                .app_token(app_token)
+                .table_id(table_id)
+                .page_size(100)  # 一次获取所有字段
+                .build()
+            )
+
+            response = sdk_client.bitable.v1.app_table_field.list(request)
+
+            if not response.success():
+                error_msg = f"Failed to get table fields: {response.msg}"
+                logger.error(
+                    error_msg,
+                    extra={
+                        "app_token": app_token,
+                        "table_id": table_id,
+                        "code": response.code,
+                    },
+                )
+
+                # Map error codes
+                if response.code == 1770002:
+                    raise NotFoundError(f"Table not found: {table_id}")
+                elif response.code in [1770032, 403]:
+                    raise PermissionDeniedError(f"No permission to access table: {table_id}")
+                else:
+                    raise APIError(error_msg)
+
+            fields = []
+            if response.data and response.data.items:
+                for item in response.data.items:
+                    field_info = {
+                        "field_id": item.field_id,
+                        "field_name": item.field_name,
+                        "type": item.type,
+                        "type_name": self.FIELD_TYPE_NAMES.get(item.type, f"Unknown({item.type})"),
+                    }
+
+                    # 添加可选字段
+                    if hasattr(item, "description") and item.description:
+                        field_info["description"] = item.description
+                    if hasattr(item, "property") and item.property:
+                        field_info["property"] = item.property
+
+                    fields.append(field_info)
+
+            logger.info(f"Retrieved {len(fields)} fields for table {table_id}")
+            return fields
+
+        return self.retry_strategy.execute(_get_fields)
 
     def query_records(
         self,

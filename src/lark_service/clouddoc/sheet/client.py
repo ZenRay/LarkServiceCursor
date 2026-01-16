@@ -6,9 +6,11 @@ via Lark Sheets API, including reading, updating, formatting, and managing cells
 """
 
 
+from typing import Any
+
 import requests  # type: ignore
 
-from lark_service.clouddoc.models import CellData
+from lark_service.clouddoc.models import CellData, SheetInfo
 from lark_service.core.credential_pool import CredentialPool
 from lark_service.core.exceptions import (
     APIError,
@@ -65,6 +67,117 @@ class SheetClient:
         """
         self.credential_pool = credential_pool
         self.retry_strategy = retry_strategy or RetryStrategy()
+
+    def get_sheet_info(
+        self,
+        app_id: str,
+        spreadsheet_token: str,
+    ) -> list[dict[str, any]]:
+        """
+        获取电子表格的所有工作表信息.
+
+        Parameters
+        ----------
+            app_id : str
+                应用 ID
+            spreadsheet_token : str
+                电子表格 token
+
+        Returns
+        -------
+            list[dict]
+                工作表信息列表，每个工作表包含:
+                - sheet_id: 工作表 ID
+                - title: 工作表标题
+                - index: 工作表索引
+                - row_count: 行数（可选）
+                - column_count: 列数（可选）
+                - hidden: 是否隐藏（可选）
+                - resource_type: 资源类型（可选）
+
+        Raises
+        ------
+            NotFoundError
+                电子表格不存在
+            PermissionDeniedError
+                无权限访问
+            APIError
+                API 调用失败
+
+        Examples
+        --------
+            >>> sheets = client.get_sheet_info(
+            ...     app_id="cli_xxx",
+            ...     spreadsheet_token="shtcnxxx"
+            ... )
+            >>> first_sheet = sheets[0]
+            >>> print(first_sheet["sheet_id"])  # "a3fb01"
+        """
+        logger.info(f"Getting sheet info for spreadsheet {spreadsheet_token}")
+
+        def _get_info() -> list[dict[str, Any]]:
+            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")
+
+            url = f"https://open.feishu.cn/open-apis/sheets/v3/spreadsheets/{spreadsheet_token}/sheets/query"
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json; charset=utf-8"
+            }
+
+            response = requests.get(url, headers=headers, timeout=30)
+
+            if response.status_code != 200:
+                error_msg = f"Failed to get sheet info: HTTP {response.status_code}"
+                try:
+                    error_data = response.json()
+                    error_msg = f"{error_msg} - {error_data.get('msg', 'Unknown error')}"
+                    error_code = error_data.get('code', 0)
+
+                    if error_code == 404:
+                        raise NotFoundError(f"Spreadsheet not found: {spreadsheet_token}")
+                    elif error_code in [403, 1770032]:
+                        raise PermissionDeniedError(f"No permission to access spreadsheet: {spreadsheet_token}")
+                except Exception as e:
+                    if isinstance(e, (NotFoundError, PermissionDeniedError)):
+                        raise
+                    logger.error(f"Failed to parse error response: {e}")
+
+                raise APIError(error_msg)
+
+            result = response.json()
+            if result.get("code") != 0:
+                error_msg = f"API returned error: {result.get('msg', 'Unknown error')}"
+                raise APIError(error_msg)
+
+            sheets = []
+            data = result.get("data", {})
+            sheet_list = data.get("sheets", [])
+
+            for sheet in sheet_list:
+                sheet_info = {
+                    "sheet_id": sheet.get("sheet_id"),
+                    "title": sheet.get("title"),
+                    "index": sheet.get("index"),
+                }
+
+                # 添加可选字段
+                if "grid_properties" in sheet:
+                    props = sheet["grid_properties"]
+                    sheet_info["row_count"] = props.get("row_count")
+                    sheet_info["column_count"] = props.get("column_count")
+
+                if "hidden" in sheet:
+                    sheet_info["hidden"] = sheet["hidden"]
+
+                if "resource_type" in sheet:
+                    sheet_info["resource_type"] = sheet["resource_type"]
+
+                sheets.append(sheet_info)
+
+            logger.info(f"Retrieved {len(sheets)} sheets for spreadsheet {spreadsheet_token}")
+            return sheets
+
+        return self.retry_strategy.execute(_get_info)
 
     def get_sheet_data(
         self,

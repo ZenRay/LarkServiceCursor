@@ -22,6 +22,10 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field, field_validator
 
+from lark_service.utils.logger import get_logger
+
+logger = get_logger()
+
 # ==================== Document Models ====================
 
 
@@ -202,6 +206,27 @@ class QueryFilter(BaseModel):
     logic: Literal["and", "or"] = Field("and", description="Condition logic (and/or)")
 
 
+class TableField(BaseModel):
+    """Bitable 表字段信息."""
+
+    field_id: str = Field(..., description="字段 ID", pattern=r"^fld[a-zA-Z0-9]+$")
+    field_name: str = Field(..., description="字段名称", min_length=1, max_length=100)
+    type: int = Field(..., description="字段类型代码", ge=1, le=25)
+    type_name: str | None = Field(None, description="字段类型名称")
+    description: str | None = Field(None, description="字段描述")
+    property: dict[str, Any] | None = Field(None, description="字段属性")
+
+    @field_validator("type")
+    @classmethod
+    def validate_type(cls, v: int) -> int:
+        """Validate field type."""
+        # 常见的字段类型
+        valid_types = {1, 2, 3, 4, 5, 7, 11, 13, 15, 17, 18, 20, 21, 22, 23}
+        if v not in valid_types:
+            logger.warning(f"Unknown field type: {v}")
+        return v
+
+
 class BaseRecord(BaseModel):
     """Bitable record."""
 
@@ -219,6 +244,18 @@ class BaseRecord(BaseModel):
 
 
 # ==================== Sheet Models ====================
+
+
+class SheetInfo(BaseModel):
+    """Sheet 工作表信息."""
+
+    sheet_id: str = Field(..., description="工作表 ID", pattern=r"^[a-zA-Z0-9_-]+$")
+    title: str = Field(..., description="工作表标题", min_length=1, max_length=100)
+    index: int = Field(..., description="工作表索引", ge=0)
+    row_count: int | None = Field(None, description="行数", ge=0)
+    column_count: int | None = Field(None, description="列数", ge=0)
+    hidden: bool | None = Field(None, description="是否隐藏")
+    resource_type: str | None = Field(None, description="资源类型")
 
 
 class SheetRange(BaseModel):
