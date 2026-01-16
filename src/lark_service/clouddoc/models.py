@@ -48,9 +48,9 @@ class ContentBlock(BaseModel):
         pattern=r"^[a-zA-Z0-9_-]{20,}$",
     )
 
-    block_type: Literal["paragraph", "heading", "image", "table", "code", "list", "divider"] = (
-        Field(..., description="Content type")
-    )
+    block_type: Literal[
+        "paragraph", "heading", "image", "table", "code", "list", "divider"
+    ] = Field(..., description="Content type")
 
     content: str | list[Any] | None = Field(
         ...,
@@ -224,19 +224,21 @@ class StructuredFilterCondition(BaseModel):
     field_name: str = Field(..., description="字段名称")
 
     operator: Literal[
-        "is",              # equals
-        "isNot",           # not equals
-        "contains",        # contains
+        "is",  # equals
+        "isNot",  # not equals
+        "contains",  # contains
         "doesNotContain",  # does not contain
-        "isEmpty",         # is empty
-        "isNotEmpty",      # is not empty
-        "isGreater",       # greater than
+        "isEmpty",  # is empty
+        "isNotEmpty",  # is not empty
+        "isGreater",  # greater than
         "isGreaterEqual",  # greater than or equal
-        "isLess",          # less than
-        "isLessEqual",     # less than or equal
+        "isLess",  # less than
+        "isLessEqual",  # less than or equal
     ] = Field(..., description="操作符")
 
-    value: list[Any] = Field(default_factory=list, description="值（必须是数组，isEmpty/isNotEmpty 可为空）")
+    value: list[Any] = Field(
+        default_factory=list, description="值（必须是数组，isEmpty/isNotEmpty 可为空）"
+    )
 
 
 class StructuredFilterInfo(BaseModel):
@@ -539,9 +541,9 @@ class Permission(BaseModel):
 
     doc_id: str = Field(..., description="Document ID")
 
-    member_type: Literal["user", "department", "group", "public"] = Field(
-        ..., description="Member type"
-    )
+    member_type: Literal[
+        "user", "department", "group", "public", "openid", "openchat", "opendepartment"
+    ] = Field(..., description="Member type")
 
     member_id: str | None = Field(None, description="Member ID (None for public)")
 

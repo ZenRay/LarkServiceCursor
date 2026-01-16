@@ -71,6 +71,25 @@ class BitableClient:
         23: "创建时间",
     }
 
+    # Field type mapping from API numeric type to model string type
+    FIELD_TYPE_MAPPING = {
+        1: "text",
+        2: "number",
+        3: "select",
+        4: "multi_select",
+        5: "date",
+        7: "checkbox",
+        11: "user",
+        13: "text",  # phone number as text
+        15: "url",
+        17: "attachment",
+        18: "text",  # relation as text
+        20: "text",  # formula as text
+        21: "text",  # bidirectional relation as text
+        22: "text",  # lookup as text
+        23: "date",  # created time as date
+    }
+
     def __init__(
         self,
         credential_pool: CredentialPool,
@@ -1184,10 +1203,52 @@ class BitableClient:
         logger.info(f"Listing fields for table {table_id}")
 
         def _list() -> list[FieldDefinition]:
-            # Note: Actual API call depends on SDK implementation
-            # This is a placeholder
+            from lark_oapi.api.bitable.v1 import ListAppTableFieldRequest
 
-            # TODO: Implement actual API call when SDK supports it
-            return []
+            sdk_client = self.credential_pool._get_sdk_client(app_id)
+
+            request = (
+                ListAppTableFieldRequest.builder()
+                .app_token(app_token)
+                .table_id(table_id)
+                .page_size(500)  # Fetch all fields at once
+                .build()
+            )
+
+            response = sdk_client.bitable.v1.app_table_field.list(request)
+
+            if not response.success():
+                error_msg = f"Failed to list table fields: {response.msg}"
+                logger.error(
+                    error_msg,
+                    extra={
+                        "app_token": app_token,
+                        "table_id": table_id,
+                        "code": response.code,
+                    },
+                )
+
+                # Map error codes
+                if response.code == 1770002:
+                    raise NotFoundError(f"Table not found: {table_id}")
+                elif response.code in [1770032, 403]:
+                    raise PermissionDeniedError(f"No permission to access table: {table_id}")
+                else:
+                    raise APIError(error_msg)
+
+            fields = []
+            if response.data and response.data.items:
+                for item in response.data.items:
+                    # Map numeric type to string type for the model
+                    field_type = self.FIELD_TYPE_MAPPING.get(item.type, "text")
+                    field = FieldDefinition(
+                        field_id=item.field_id,
+                        field_name=item.field_name,
+                        field_type=field_type,
+                    )
+                    fields.append(field)
+
+            logger.info(f"Retrieved {len(fields)} fields for table {table_id}")
+            return fields
 
         return self.retry_strategy.execute(_list)

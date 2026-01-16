@@ -210,16 +210,16 @@ class DocClient:
             # Block type mapping: string -> integer
             block_type_map = {
                 "paragraph": 2,  # Text paragraph
-                "heading": 3,    # Heading (need to specify level)
+                "heading": 3,  # Heading (need to specify level)
                 "heading_1": 3,
                 "heading_2": 4,
                 "heading_3": 5,
-                "list": 6,       # Bullet list
+                "list": 6,  # Bullet list
                 "ordered_list": 7,  # Ordered list
-                "code": 8,       # Code block
-                "divider": 11,   # Divider line
-                "image": 27,     # Image
-                "table": 31,     # Table
+                "code": 8,  # Code block
+                "divider": 11,  # Divider line
+                "image": 27,  # Image
+                "table": 31,  # Table
             }
 
             for block in blocks:
@@ -235,12 +235,12 @@ class DocClient:
                                 {
                                     "text_run": {
                                         "content": str(block.content) if block.content else "",
-                                        "text_element_style": {}
+                                        "text_element_style": {},
                                     }
                                 }
                             ],
-                            "style": {}
-                        }
+                            "style": {},
+                        },
                     }
                 elif block.block_type.startswith("heading"):
                     # Heading block
@@ -257,12 +257,12 @@ class DocClient:
                                 {
                                     "text_run": {
                                         "content": str(block.content) if block.content else "",
-                                        "text_element_style": {}
+                                        "text_element_style": {},
                                     }
                                 }
                             ],
-                            "style": {}
-                        }
+                            "style": {},
+                        },
                     }
                 elif block.block_type == "divider":
                     # Divider block
@@ -278,12 +278,12 @@ class DocClient:
                                 {
                                     "text_run": {
                                         "content": str(block.content) if block.content else "",
-                                        "text_element_style": {}
+                                        "text_element_style": {},
                                     }
                                 }
                             ],
-                            "style": {}
-                        }
+                            "style": {},
+                        },
                     }
 
                 children.append(block_dict)
@@ -297,12 +297,12 @@ class DocClient:
 
             headers = {
                 "Authorization": f"Bearer {token}",
-                "Content-Type": "application/json; charset=utf-8"
+                "Content-Type": "application/json; charset=utf-8",
             }
 
             payload = {
                 "index": -1,  # Append to end
-                "children": children
+                "children": children,
             }
 
             response = requests.post(url, headers=headers, json=payload, timeout=30)
@@ -312,7 +312,7 @@ class DocClient:
                 try:
                     error_data = response.json()
                     error_msg = f"{error_msg} - {error_data.get('msg', 'Unknown error')}"
-                    error_code = error_data.get('code', 0)
+                    error_code = error_data.get("code", 0)
 
                     # Map error codes
                     if error_code == 1770002:
@@ -403,6 +403,7 @@ class DocClient:
             if hasattr(doc_data, "create_time") and doc_data.create_time:
                 try:
                     from datetime import datetime
+
                     # Lark API returns timestamps in seconds
                     create_time = datetime.fromtimestamp(int(doc_data.create_time))
                 except (ValueError, TypeError):
@@ -411,6 +412,7 @@ class DocClient:
             if hasattr(doc_data, "update_time") and doc_data.update_time:
                 try:
                     from datetime import datetime
+
                     update_time = datetime.fromtimestamp(int(doc_data.update_time))
                 except (ValueError, TypeError):
                     pass
@@ -561,9 +563,7 @@ class DocClient:
                     elif error_code in [400, 1254001]:
                         raise InvalidParameterError(error_msg)
                 except Exception as e:
-                    if isinstance(
-                        e, NotFoundError | PermissionDeniedError | InvalidParameterError
-                    ):
+                    if isinstance(e, NotFoundError | PermissionDeniedError | InvalidParameterError):
                         raise
                     logger.error(f"Failed to parse error response: {e}")
 
@@ -874,8 +874,8 @@ class DocClient:
             }
 
             # Determine type based on doc_id prefix
-            # doxcn - doc, shtcn - sheet, bascn - bitable
-            # Note: Some legacy format tokens may not require type parameter
+            # doxcn - doc, shtcn - sheet, bascn - bitable, wikicn - wiki
+            # For legacy format tokens, try to infer type or default to 'doc'
             params = {}
             if doc_id.startswith("doxcn"):
                 params["type"] = "doc"
@@ -885,7 +885,10 @@ class DocClient:
                 params["type"] = "bitable"
             elif doc_id.startswith("wikicn"):
                 params["type"] = "wiki"
-            # For legacy format tokens, don't add type parameter
+            else:
+                # For legacy format tokens, try 'docx' as default type
+                # This is required by the API for field validation
+                params["type"] = "docx"
 
             logger.debug(f"Listing permissions for document {doc_id}")
 
@@ -907,9 +910,7 @@ class DocClient:
                     elif error_code in [400, 1063001]:
                         raise InvalidParameterError(error_msg)
                 except Exception as e:
-                    if isinstance(
-                        e, PermissionDeniedError | NotFoundError | InvalidParameterError
-                    ):
+                    if isinstance(e, PermissionDeniedError | NotFoundError | InvalidParameterError):
                         raise
                     logger.error(f"Failed to parse error response: {e}")
 
