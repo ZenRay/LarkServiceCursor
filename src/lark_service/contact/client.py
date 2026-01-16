@@ -5,6 +5,9 @@ This module provides a high-level client for contact query operations
 via Lark Contact API, including user queries, department queries, and chat group queries.
 """
 
+from datetime import timedelta
+
+from lark_service.contact.cache import ContactCacheManager
 from lark_service.contact.models import (
     BatchUserQuery,
     BatchUserResponse,
@@ -27,7 +30,7 @@ class ContactClient:
     High-level client for Lark Contact operations.
 
     Provides convenient methods for querying users, departments, and chat groups
-    via Lark Contact API, with automatic error handling and retry.
+    via Lark Contact API, with automatic error handling, retry, and optional caching.
 
     Attributes
     ----------
@@ -35,10 +38,23 @@ class ContactClient:
             Credential pool for token management
         retry_strategy : RetryStrategy
             Retry strategy for API calls
+        cache_manager : ContactCacheManager | None
+            Cache manager for user information (optional)
+        enable_cache : bool
+            Whether caching is enabled
 
     Examples
     --------
+        >>> # Without cache
         >>> client = ContactClient(credential_pool)
+
+        >>> # With cache (recommended for production)
+        >>> cache_manager = ContactCacheManager(db_url="postgresql://...")
+        >>> client = ContactClient(
+        ...     credential_pool,
+        ...     cache_manager=cache_manager,
+        ...     enable_cache=True
+        ... )
         >>> user = client.get_user_by_email(
         ...     app_id="cli_xxx",
         ...     email="user@example.com"
@@ -50,6 +66,9 @@ class ContactClient:
         self,
         credential_pool: CredentialPool,
         retry_strategy: RetryStrategy | None = None,
+        cache_manager: ContactCacheManager | None = None,
+        enable_cache: bool = False,
+        cache_ttl: timedelta | None = None,
     ) -> None:
         """
         Initialize ContactClient.
@@ -60,9 +79,30 @@ class ContactClient:
                 Credential pool for token management
             retry_strategy : RetryStrategy | None
                 Retry strategy (default: creates new instance)
+            cache_manager : ContactCacheManager | None
+                Cache manager for user information (optional)
+            enable_cache : bool
+                Whether to enable caching (default: False)
+            cache_ttl : timedelta | None
+                Cache TTL (default: 24 hours if not specified)
+
+        Notes
+        -----
+            - If enable_cache=True but cache_manager is None, caching will be disabled
+            - Cache is app_id isolated (different apps have different open_ids)
+            - Cache uses union_id as primary key (consistent across apps)
         """
         self.credential_pool = credential_pool
         self.retry_strategy = retry_strategy or RetryStrategy()
+        self.cache_manager = cache_manager
+        self.enable_cache = enable_cache and cache_manager is not None
+        self.cache_ttl = cache_ttl or timedelta(hours=24)
+
+        if enable_cache and cache_manager is None:
+            logger.warning(
+                "Cache is enabled but cache_manager is None. "
+                "Caching will be disabled. Please provide a ContactCacheManager instance."
+            )
 
     def get_user_by_email(
         self,
@@ -71,6 +111,9 @@ class ContactClient:
     ) -> User:
         """
         Get user information by email.
+
+        If caching is enabled, checks cache first before making API call.
+        Cache is keyed by (app_id, email) and uses union_id for consistency.
 
         Parameters
         ----------
@@ -102,17 +145,32 @@ class ContactClient:
         if not email or "@" not in email:
             raise InvalidParameterError(f"Invalid email: {email}")
 
-        logger.info(f"Getting user by email: {email}")
+        # Check cache first if enabled
+        if self.enable_cache and self.cache_manager:
+            cached_user = self.cache_manager.get_user_by_email(app_id, email)
+            if cached_user:
+                logger.debug(f"Cache hit for user email: {email}")
+                return cached_user
+            logger.debug(f"Cache miss for user email: {email}")
+
+        logger.info(f"Getting user by email from API: {email}")
 
         def _get() -> User:
             # Note: Actual API call depends on SDK implementation
-            # This is a placeholder
+            # This is a placeholder for now
 
             # TODO: Implement actual API call when SDK supports it
-            # Should also check cache first
+            # For now, raise NotFoundError to maintain existing behavior
             raise NotFoundError(f"User not found: {email}")
 
-        return self.retry_strategy.execute(_get)
+        user = self.retry_strategy.execute(_get)
+
+        # Store in cache if enabled
+        if self.enable_cache and self.cache_manager:
+            self.cache_manager.cache_user(app_id, user)
+            logger.debug(f"Cached user: {user.union_id}")
+
+        return user
 
     def get_user_by_mobile(
         self,
@@ -152,17 +210,31 @@ class ContactClient:
         if not mobile:
             raise InvalidParameterError("Mobile cannot be empty")
 
-        logger.info(f"Getting user by mobile: {mobile}")
+        # Check cache first if enabled
+        if self.enable_cache and self.cache_manager:
+            cached_user = self.cache_manager.get_user_by_mobile(app_id, mobile)
+            if cached_user:
+                logger.debug(f"Cache hit for user mobile: {mobile}")
+                return cached_user
+            logger.debug(f"Cache miss for user mobile: {mobile}")
+
+        logger.info(f"Getting user by mobile from API: {mobile}")
 
         def _get() -> User:
             # Note: Actual API call depends on SDK implementation
-            # This is a placeholder
+            # This is a placeholder for now
 
             # TODO: Implement actual API call when SDK supports it
-            # Should also check cache first
             raise NotFoundError(f"User not found: {mobile}")
 
-        return self.retry_strategy.execute(_get)
+        user = self.retry_strategy.execute(_get)
+
+        # Store in cache if enabled
+        if self.enable_cache and self.cache_manager:
+            self.cache_manager.cache_user(app_id, user)
+            logger.debug(f"Cached user: {user.union_id}")
+
+        return user
 
     def get_user_by_user_id(
         self,
@@ -202,17 +274,31 @@ class ContactClient:
         if not user_id:
             raise InvalidParameterError("User ID cannot be empty")
 
-        logger.info(f"Getting user by user_id: {user_id}")
+        # Check cache first if enabled
+        if self.enable_cache and self.cache_manager:
+            cached_user = self.cache_manager.get_user_by_user_id(app_id, user_id)
+            if cached_user:
+                logger.debug(f"Cache hit for user_id: {user_id}")
+                return cached_user
+            logger.debug(f"Cache miss for user_id: {user_id}")
+
+        logger.info(f"Getting user by user_id from API: {user_id}")
 
         def _get() -> User:
             # Note: Actual API call depends on SDK implementation
-            # This is a placeholder
+            # This is a placeholder for now
 
             # TODO: Implement actual API call when SDK supports it
-            # Should also check cache first
             raise NotFoundError(f"User not found: {user_id}")
 
-        return self.retry_strategy.execute(_get)
+        user = self.retry_strategy.execute(_get)
+
+        # Store in cache if enabled
+        if self.enable_cache and self.cache_manager:
+            self.cache_manager.cache_user(app_id, user)
+            logger.debug(f"Cached user: {user.union_id}")
+
+        return user
 
     def batch_get_users(
         self,
@@ -262,19 +348,107 @@ class ContactClient:
 
         logger.info(f"Batch getting {len(queries)} users")
 
+        # Check cache first if enabled
+        found_users: list[User] = []
+        remaining_queries: list[BatchUserQuery] = []
+        not_found_identifiers: list[str] = []
+
+        if self.enable_cache and self.cache_manager:
+            for query in queries:
+                # Try to find users from cache for each identifier in the query
+                query_found = False
+
+                if query.emails:
+                    for email in query.emails:
+                        cached_user = self.cache_manager.get_user_by_email(app_id, email)
+                        if cached_user:
+                            found_users.append(cached_user)
+                            query_found = True
+                            logger.debug(f"Cache hit for email: {email}")
+                        else:
+                            not_found_identifiers.append(email)
+
+                if query.mobiles:
+                    for mobile in query.mobiles:
+                        cached_user = self.cache_manager.get_user_by_mobile(app_id, mobile)
+                        if cached_user:
+                            found_users.append(cached_user)
+                            query_found = True
+                            logger.debug(f"Cache hit for mobile: {mobile}")
+                        else:
+                            not_found_identifiers.append(mobile)
+
+                if query.user_ids:
+                    for user_id in query.user_ids:
+                        cached_user = self.cache_manager.get_user_by_user_id(app_id, user_id)
+                        if cached_user:
+                            found_users.append(cached_user)
+                            query_found = True
+                            logger.debug(f"Cache hit for user_id: {user_id}")
+                        else:
+                            not_found_identifiers.append(user_id)
+
+                if not query_found:
+                    remaining_queries.append(query)
+        else:
+            remaining_queries = queries
+
+        # If all queries were satisfied by cache, return immediately
+        if not remaining_queries:
+            logger.info(f"All {len(queries)} users found in cache")
+            return BatchUserResponse(
+                users=found_users,
+                not_found=not_found_identifiers if not_found_identifiers else None,
+                total=len(found_users),
+            )
+
+        logger.info(
+            f"Fetching {len(remaining_queries)} users from API (cache hits: {len(found_users)})"
+        )
+
         def _batch_get() -> BatchUserResponse:
             # Note: Actual API call depends on SDK implementation
-            # This is a placeholder
+            # This is a placeholder for now
 
             # TODO: Implement actual API call when SDK supports it
-            # Should also check cache first
+            # For now, return empty response for remaining queries
+            # Extract identifiers from remaining queries for not_found list
+            api_not_found: list[str] = []
+            for q in remaining_queries:
+                if q.emails:
+                    api_not_found.extend(q.emails)
+                if q.mobiles:
+                    api_not_found.extend(q.mobiles)
+                if q.user_ids:
+                    api_not_found.extend(q.user_ids)
+
             return BatchUserResponse(
                 users=[],
-                not_found=[],
+                not_found=api_not_found if api_not_found else None,
                 total=0,
             )
 
-        return self.retry_strategy.execute(_batch_get)
+        api_response = self.retry_strategy.execute(_batch_get)
+
+        # Store API results in cache if enabled
+        if self.enable_cache and self.cache_manager and api_response.users:
+            for user in api_response.users:
+                self.cache_manager.cache_user(app_id, user)
+                logger.debug(f"Cached user from batch: {user.union_id}")
+
+        # Combine cached and API results
+        all_users = found_users + api_response.users
+
+        # Combine not_found lists
+        all_not_found = not_found_identifiers.copy()
+        if api_response.not_found:
+            all_not_found.extend(api_response.not_found)
+
+        return BatchUserResponse(
+            users=all_users,
+            not_found=all_not_found if all_not_found else None,
+            total=len(all_users),
+        )
 
     def get_department(
         self,
