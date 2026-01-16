@@ -1,419 +1,420 @@
-# 集成测试环境配置指南
+# 集成测试配置指南
 
-本文档说明如何配置和运行 Lark Service 的集成测试。
-
----
-
-## 📋 目录
-
-1. [前置条件](#前置条件)
-2. [获取飞书应用凭证](#获取飞书应用凭证)
-3. [配置测试环境](#配置测试环境)
-4. [准备测试数据](#准备测试数据)
-5. [运行集成测试](#运行集成测试)
-6. [常见问题](#常见问题)
+本文档说明如何配置和运行 Phase 4 集成测试。
 
 ---
 
-## 🔧 前置条件
+## 📋 前置要求
 
-### 1. 数据库环境
+### 1. 基础设施
 
-确保 PostgreSQL 已启动并创建测试数据库:
+需要运行以下服务:
 
 ```bash
-# 启动 PostgreSQL (使用 Docker)
-docker run -d \
-  --name postgres-test \
-  -e POSTGRES_USER=lark \
-  -e POSTGRES_PASSWORD=test_password_123 \
-  -e POSTGRES_DB=lark_service_test \
-  -p 5432:5432 \
-  postgres:15
+# 使用 docker-compose 启动 (推荐)
+docker-compose up -d postgres rabbitmq
 
-# 或使用 docker-compose
-docker-compose up -d postgres
+# 或手动启动
+# PostgreSQL: 端口 5432
+# RabbitMQ: 端口 5672
 ```
 
-### 2. Python 环境
+### 2. 飞书应用配置
 
-```bash
-# 安装依赖
-pip install -r requirements.txt
+需要一个有效的飞书应用,并配置以下权限:
 
-# 或使用 uv (更快)
-uv pip install -r requirements.txt
-```
+#### Contact 模块测试所需权限:
+- `contact:user.email:readonly` - 通过邮箱查询用户
+- `contact:user.phone:readonly` - 通过手机号查询用户
+- `contact:user.employee_id:readonly` - 通过 user_id 查询用户
+- `contact:user.id:readonly` - 获取用户 open_id
+- `contact:department.list` - 查询部门列表
+- `im:chat:readonly` - 查询群组信息
+
+#### CloudDoc 模块测试所需权限:
+- `docx:document:readonly` - 读取文档
+- `docx:document` - 创建和编辑文档 (写操作测试)
+- `bitable:app:readonly` - 读取多维表格
+- `bitable:app` - 创建和编辑多维表格 (写操作测试)
+- `sheets:spreadsheet:readonly` - 读取电子表格
+- `sheets:spreadsheet` - 编辑电子表格 (写操作测试)
 
 ---
 
-## 🔑 获取飞书应用凭证
+## 🔧 配置步骤
 
-### 步骤 1: 创建或选择飞书应用
+### 步骤 1: 创建 `.env.test` 文件
 
-1. 访问 [飞书开放平台](https://open.feishu.cn/app)
-2. 选择现有应用或创建新应用
-3. 进入 **凭证与基础信息** 页面
-
-### 步骤 2: 获取凭证
-
-复制以下信息:
-- **App ID**: `cli_xxxxxxxxxxxxxxxx`
-- **App Secret**: `xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
-
-### 步骤 3: 配置应用权限
-
-在 **权限管理** 中开通以下权限:
-
-#### 通讯录权限 (Contact 模块必需)
-- ✅ `contact:user:read` - 获取用户基本信息
-- ✅ `contact:user:read_sensitive` - 获取用户敏感信息 (手机号、邮箱)
-- ✅ `contact:department:read` - 获取部门信息
-- ✅ `im:chat:read` - 获取群组信息
-
-#### 文档权限 (CloudDoc 模块必需)
-- ✅ `docx:document` - 文档读写权限
-- ✅ `bitable:app` - 多维表格权限
-- ✅ `sheets:spreadsheet` - 电子表格权限
-- ✅ `drive:drive` - 云空间权限
-
-#### 消息权限 (Messaging 模块必需)
-- ✅ `im:message` - 发送消息
-- ✅ `im:message:send_as_bot` - 以机器人身份发送
-
-### 步骤 4: 发布应用
-
-- 开发环境: 添加测试用户到 **可用范围**
-- 生产环境: 提交审核并发布
-
----
-
-## ⚙️ 配置测试环境
-
-### 方法 1: 使用 .env.test 文件 (推荐)
-
-编辑项目根目录的 `.env.test` 文件:
+在项目根目录创建 `.env.test` 文件:
 
 ```bash
-# 编辑配置文件
-nano .env.test
-
-# 或使用您喜欢的编辑器
-code .env.test
+# 复制示例文件
+cp .env.example .env.test
 ```
 
-**必填配置:**
+### 步骤 2: 配置基础设施连接
+
+编辑 `.env.test`,填入 PostgreSQL 和 RabbitMQ 配置:
 
 ```bash
 # ============================================
+# PostgreSQL 配置
+# ============================================
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_DB=lark_service
+POSTGRES_USER=lark
+POSTGRES_PASSWORD=your_postgres_password
+
+# ============================================
+# RabbitMQ 配置
+# ============================================
+RABBITMQ_HOST=localhost
+RABBITMQ_PORT=5672
+RABBITMQ_USER=lark
+RABBITMQ_PASSWORD=your_rabbitmq_password
+
+# ============================================
+# 加密密钥
+# ============================================
+# 生成方式: openssl rand -base64 32
+LARK_CONFIG_ENCRYPTION_KEY=your_random_32_byte_key_here
+
+# ============================================
+# 日志配置
+# ============================================
+LOG_LEVEL=DEBUG  # 测试时建议使用 DEBUG
+```
+
+### 步骤 3: 配置飞书应用凭证
+
+在 `.env.test` 中添加测试应用配置:
+
+```bash
+# ============================================
+# 集成测试专用配置
+# ============================================
+
 # 飞书应用凭证
-# ============================================
-TEST_APP_ID=cli_a1b2c3d4e5f6g7h8      # 替换为您的 App ID
-TEST_APP_SECRET=abc123def456ghi789    # 替换为您的 App Secret
+TEST_APP_ID=cli_a1b2c3d4e5f6g7h8
+TEST_APP_SECRET=your_app_secret_here
 
-# ============================================
-# 测试用户信息
-# ============================================
-TEST_USER_EMAIL=zhangsan@company.com  # 替换为真实用户邮箱
-TEST_USER_MOBILE=+8613800138000       # 替换为真实用户手机号
+# Contact 测试数据
+TEST_USER_EMAIL=test@yourcompany.com      # 必需: 用于测试邮箱查询
+TEST_USER_MOBILE=+8613800138000           # 可选: 用于测试手机号查询
+TEST_DEPARTMENT_ID=od-xxx                 # 可选: 用于测试部门查询
+TEST_CHAT_ID=oc_xxx                       # 可选: 用于测试群组查询
+
+# CloudDoc 测试数据
+TEST_DOC_TOKEN=doxcnXXXXXXXXXXXXXXXXXXXX  # 可选: 测试文档 ID (需要读权限)
+TEST_BITABLE_APP_TOKEN=bascnXXXXXXXXXXXX  # 可选: 测试多维表格 ID (需要读权限)
+TEST_SHEET_TOKEN=shtcnXXXXXXXXXXXXXXXXXX  # 可选: 测试电子表格 ID (需要读权限)
 ```
 
-**可选配置 (用于特定测试):**
+### 步骤 4: 生成加密密钥
 
 ```bash
-# 如果您已知用户 ID (可选,测试会自动获取)
-TEST_USER_OPEN_ID=ou_1234567890abcdef
-TEST_USER_ID=12345678
+# 生成随机加密密钥
+openssl rand -base64 32
 
-# 如果您有测试文档 (可选,测试会自动创建)
-TEST_DOC_TOKEN=doxcn1234567890abcdef
-TEST_BITABLE_APP_TOKEN=bascn1234567890abcdef
-TEST_BITABLE_TABLE_ID=tbl1234567890abcdef
-```
-
-### 方法 2: 使用环境变量
-
-```bash
-# 临时设置 (当前会话有效)
-export TEST_APP_ID="cli_xxxxxxxxxxxxxxxx"
-export TEST_APP_SECRET="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-export TEST_USER_EMAIL="test@company.com"
-
-# 运行测试
-pytest tests/integration/ -v
-```
-
----
-
-## 📝 准备测试数据
-
-### 自动准备 (推荐)
-
-大部分测试数据会自动创建,您只需提供:
-1. ✅ 应用凭证 (`TEST_APP_ID`, `TEST_APP_SECRET`)
-2. ✅ 一个真实用户的邮箱 (`TEST_USER_EMAIL`)
-
-测试会自动:
-- 创建测试文档
-- 创建测试多维表格
-- 查询用户信息
-- 清理测试数据
-
-### 手动准备 (可选)
-
-如果您想使用现有的测试数据:
-
-#### 1. 获取文档 Token
-
-创建一个测试文档,从 URL 中提取 token:
-
-```
-https://example.feishu.cn/docx/doxcnABCDEFG1234567890
-                              └─────────┬─────────┘
-                                    文档 token
-```
-
-配置到 `.env.test`:
-```bash
-TEST_DOC_TOKEN=doxcnABCDEFG1234567890
-```
-
-#### 2. 获取多维表格 Token
-
-创建一个测试多维表格,从 URL 中提取 app_token 和 table_id:
-
-```
-https://example.feishu.cn/base/bascnXYZ123?table=tblABC456
-                              └────┬────┘      └───┬───┘
-                              app_token        table_id
-```
-
-配置到 `.env.test`:
-```bash
-TEST_BITABLE_APP_TOKEN=bascnXYZ123
-TEST_BITABLE_TABLE_ID=tblABC456
-```
-
-#### 3. 获取用户 ID
-
-通过飞书管理后台或 API 查询用户 ID:
-
-```bash
-# 使用我们的 CLI 工具查询
-python -m lark_service.cli user query --email test@company.com
+# 将生成的密钥填入 .env.test 的 LARK_CONFIG_ENCRYPTION_KEY
 ```
 
 ---
 
 ## 🚀 运行集成测试
 
-### 运行所有集成测试
+### 完整测试套件
 
 ```bash
-# 使用 .env.test 配置
+# 运行所有集成测试
 pytest tests/integration/ -v
 
-# 指定环境文件
-pytest tests/integration/ -v --envfile=.env.test
+# 运行并显示详细输出
+pytest tests/integration/ -v -s
 ```
 
-### 运行特定模块的测试
+### Contact 模块测试
 
 ```bash
-# 只测试 Contact 模块
-pytest tests/integration/test_contact_integration.py -v
+# 运行所有 Contact 测试
+pytest tests/integration/test_contact_e2e.py -v
 
-# 只测试 CloudDoc 模块
-pytest tests/integration/test_clouddoc_integration.py -v
+# 运行特定测试类
+pytest tests/integration/test_contact_e2e.py::TestContactWithoutCache -v
+
+# 运行单个测试
+pytest tests/integration/test_contact_e2e.py::TestContactWithoutCache::test_get_user_by_email_success -v
 ```
 
-### 运行特定测试用例
+### CloudDoc 模块测试
 
 ```bash
-# 测试用户查询
-pytest tests/integration/test_contact_integration.py::test_get_user_by_email -v
+# 运行所有 CloudDoc 测试
+pytest tests/integration/test_clouddoc_e2e.py -v
 
-# 测试文档创建
-pytest tests/integration/test_clouddoc_integration.py::test_create_document -v
-```
+# 跳过需要写权限的测试
+pytest tests/integration/test_clouddoc_e2e.py -v -m "not write_permission"
 
-### 查看详细日志
-
-```bash
-# 显示详细日志输出
-pytest tests/integration/ -v -s --log-cli-level=DEBUG
-
-# 保存日志到文件
-pytest tests/integration/ -v --log-file=integration_test.log
-```
-
-### 跳过集成测试 (运行单元测试)
-
-```bash
-# 只运行单元测试,跳过集成测试
-pytest tests/unit/ -v
-
-# 运行所有测试但跳过标记为 integration 的
-pytest -v -m "not integration"
+# 只运行读操作测试
+pytest tests/integration/test_clouddoc_e2e.py::TestDocumentOperations::test_get_document_success -v
 ```
 
 ---
 
-## 🔍 验证配置
+## 📊 测试说明
 
-运行配置验证脚本:
+### Contact 模块 (8 个测试)
 
+#### 不使用缓存的测试 (3 个)
+- `test_get_user_by_email_success` - 通过邮箱查询用户成功
+- `test_get_user_by_email_not_found` - 用户不存在时返回 NotFoundError
+- `test_get_user_by_mobile_success` - 通过手机号查询用户
+
+#### 缓存功能测试 (4 个)
+- `test_cache_miss_then_hit` - 验证缓存未命中→API 调用→缓存命中流程
+- `test_cache_by_different_identifiers` - 验证多标识符缓存 (email/mobile/user_id)
+- `test_cache_invalidation` - 验证缓存失效机制
+- `test_cache_app_isolation` - 验证不同 App 的缓存隔离
+
+#### 批量操作测试 (1 个)
+- `test_batch_get_users_with_cache` - 验证批量查询的缓存优化
+
+### CloudDoc 模块 (9 个测试)
+
+#### 文档操作 (3 个)
+- `test_get_document_success` - 获取文档元数据
+- `test_get_document_not_found` - 文档不存在处理
+- `test_append_blocks_to_document` - 追加内容块 (需要写权限,默认跳过)
+
+#### 多维表格操作 (2 个)
+- `test_bitable_crud_operations` - 记录 CRUD 操作 (需要写权限,默认跳过)
+- `test_bitable_query_with_filter` - 过滤查询
+
+#### 权限管理 (1 个)
+- `test_grant_and_revoke_permission` - 授予和撤销权限 (需要写权限,默认跳过)
+
+#### 电子表格操作 (1 个)
+- `test_sheet_read_write` - Sheet 读写操作 (需要写权限,默认跳过)
+
+#### 错误处理 (2 个)
+- `test_invalid_doc_id_format` - 无效 ID 格式验证
+- `test_permission_denied` - 权限拒绝处理
+
+---
+
+## ⚠️ 当前状态说明
+
+### 测试框架状态: ✅ 完整
+
+- ✅ 所有 fixtures 正确初始化
+- ✅ CredentialPool 正确配置
+- ✅ ContactCacheManager 正确集成
+- ✅ 异常处理正确
+- ✅ 测试可以收集和运行
+
+### API 实现状态: ⏸️ Placeholder
+
+**当前行为:**
+- Contact 和 CloudDoc 的客户端方法是 **placeholder**
+- 所有方法都抛出 `NotFoundError` 或 `PermissionDeniedError`
+- 这是**正常的**,因为还未实现真实的 Lark API 调用
+
+**测试运行结果:**
 ```bash
-# 验证环境配置
-python scripts/verify_integration_config.py
+$ pytest tests/integration/test_contact_e2e.py::TestContactWithoutCache::test_get_user_by_email_success -v
 
-# 输出示例:
-# ✅ PostgreSQL 连接正常
-# ✅ 应用凭证配置正确
-# ✅ 测试用户邮箱有效
-# ✅ 应用权限充足
-# ⚠️  未配置测试文档 (将自动创建)
+FAILED - NotFoundError: User not found: test@yourcompany.com
+```
+
+这个失败是**预期的**! 表示:
+1. ✅ 测试框架工作正常
+2. ✅ 异常处理正确
+3. ⏸️ 等待实现真实 API 调用
+
+---
+
+## 🔨 实现真实 API 调用
+
+要让测试通过,需要在以下文件中实现真实的 Lark API 调用:
+
+### Contact 模块
+
+**文件:** `src/lark_service/contact/client.py`
+
+**需要实现的方法:**
+
+```python
+def get_user_by_email(self, app_id: str, email: str) -> User:
+    """通过邮箱查询用户 - 需要实现真实 API 调用"""
+    # TODO: 实现 Lark API 调用
+    # 1. 获取 tenant_access_token
+    # 2. 调用 lark_oapi.api.contact.v3.User.get()
+    # 3. 解析响应并返回 User 模型
+    raise NotFoundError(f"User not found: {email}")  # 当前 placeholder
+
+def get_user_by_mobile(self, app_id: str, mobile: str) -> User:
+    """通过手机号查询用户 - 需要实现真实 API 调用"""
+    raise NotFoundError(f"User not found: {mobile}")  # 当前 placeholder
+
+def get_user_by_user_id(self, app_id: str, user_id: str) -> User:
+    """通过 user_id 查询用户 - 需要实现真实 API 调用"""
+    raise NotFoundError(f"User not found: {user_id}")  # 当前 placeholder
+
+def batch_get_users(self, app_id: str, queries: list[BatchUserQuery]) -> list[User]:
+    """批量查询用户 - 需要实现真实 API 调用"""
+    raise NotFoundError("Batch query not implemented")  # 当前 placeholder
+```
+
+### CloudDoc 模块
+
+**文件:** `src/lark_service/clouddoc/client.py`
+
+**需要实现的方法:**
+
+```python
+def get_document(self, app_id: str, doc_id: str) -> Document:
+    """获取文档 - 需要实现真实 API 调用"""
+    raise NotFoundError(f"Document not found: {doc_id}")  # 当前 placeholder
+
+def append_blocks(self, app_id: str, doc_id: str, blocks: list[ContentBlock]) -> list[str]:
+    """追加内容块 - 需要实现真实 API 调用"""
+    raise PermissionDeniedError("Write operation not implemented")  # 当前 placeholder
+```
+
+**文件:** `src/lark_service/clouddoc/bitable/client.py`
+
+```python
+def create_record(self, app_id: str, app_token: str, table_id: str, fields: dict) -> BaseRecord:
+    """创建记录 - 需要实现真实 API 调用"""
+    raise PermissionDeniedError("Write operation not implemented")  # 当前 placeholder
+
+def list_records(self, app_id: str, app_token: str, table_id: str, ...) -> list[BaseRecord]:
+    """查询记录 - 需要实现真实 API 调用"""
+    raise NotFoundError("Bitable query not implemented")  # 当前 placeholder
+```
+
+**文件:** `src/lark_service/clouddoc/sheet/client.py`
+
+```python
+def read_range(self, app_id: str, sheet_token: str, range_str: str) -> SheetRange:
+    """读取范围 - 需要实现真实 API 调用"""
+    raise NotFoundError("Sheet read not implemented")  # 当前 placeholder
+
+def write_range(self, app_id: str, sheet_token: str, range_str: str, values: list[list]) -> bool:
+    """写入范围 - 需要实现真实 API 调用"""
+    raise PermissionDeniedError("Write operation not implemented")  # 当前 placeholder
 ```
 
 ---
 
-## ❓ 常见问题
+## 🎯 实现优先级建议
 
-### Q1: 测试失败: "Permission Denied"
+### 高优先级 (解锁集成测试)
 
-**原因**: 应用缺少必要权限
+1. **Contact.get_user_by_email** - 最基础的用户查询
+2. **Contact.get_user_by_mobile** - 手机号查询
+3. **CloudDoc.get_document** - 文档元数据查询
 
-**解决**:
-1. 检查应用权限配置 (见 [步骤 3](#步骤-3-配置应用权限))
-2. 确保应用已发布或测试用户在可用范围内
-3. 重新获取 Token (删除缓存的 Token)
+### 中优先级 (完善功能)
 
-```bash
-# 清理 Token 缓存
-python -m lark_service.cli token clear --app-id cli_xxx
-```
+4. **Contact.batch_get_users** - 批量查询优化
+5. **Bitable.list_records** - 多维表格查询
+6. **Sheet.read_range** - 电子表格读取
 
-### Q2: 测试失败: "User not found"
+### 低优先级 (写操作,可选)
 
-**原因**: 测试用户不在应用可用范围内
-
-**解决**:
-1. 在飞书开放平台添加测试用户到 **可用范围**
-2. 或使用已在范围内的用户邮箱
-
-### Q3: 测试失败: "Database connection error"
-
-**原因**: PostgreSQL 未启动或配置错误
-
-**解决**:
-```bash
-# 检查 PostgreSQL 状态
-docker ps | grep postgres
-
-# 启动 PostgreSQL
-docker-compose up -d postgres
-
-# 检查连接
-psql -h localhost -U lark -d lark_service_test
-```
-
-### Q4: 如何清理测试数据?
-
-```bash
-# 清理测试数据库
-python scripts/cleanup_test_data.py
-
-# 或手动清理
-psql -h localhost -U lark -d lark_service_test -c "TRUNCATE TABLE tokens, user_cache;"
-```
-
-### Q5: 测试运行很慢
-
-**原因**: 集成测试需要真实 API 调用
-
-**优化**:
-1. 只运行需要的测试模块
-2. 使用缓存减少 API 调用
-3. 并行运行测试 (谨慎使用):
-
-```bash
-# 并行运行 (需要 pytest-xdist)
-pip install pytest-xdist
-pytest tests/integration/ -v -n 4  # 4 个并行进程
-```
-
-### Q6: 如何在 CI/CD 中运行集成测试?
-
-在 GitHub Actions 中:
-
-```yaml
-# .github/workflows/integration-test.yml
-name: Integration Tests
-
-on: [push, pull_request]
-
-jobs:
-  integration-test:
-    runs-on: ubuntu-latest
-    
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: lark
-          POSTGRES_PASSWORD: test_password_123
-          POSTGRES_DB: lark_service_test
-        ports:
-          - 5432:5432
-    
-    steps:
-      - uses: actions/checkout@v3
-      
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.12'
-      
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-      
-      - name: Run integration tests
-        env:
-          TEST_APP_ID: ${{ secrets.TEST_APP_ID }}
-          TEST_APP_SECRET: ${{ secrets.TEST_APP_SECRET }}
-          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
-          POSTGRES_HOST: localhost
-          POSTGRES_PORT: 5432
-          POSTGRES_DB: lark_service_test
-          POSTGRES_USER: lark
-          POSTGRES_PASSWORD: test_password_123
-        run: pytest tests/integration/ -v
-```
-
-在 GitHub 仓库设置中添加 Secrets:
-- `TEST_APP_ID`
-- `TEST_APP_SECRET`
-- `TEST_USER_EMAIL`
+7. **CloudDoc.append_blocks** - 文档编辑
+8. **Bitable.create_record** - 记录创建
+9. **Sheet.write_range** - 电子表格写入
 
 ---
 
 ## 📚 相关文档
 
-- [飞书开放平台文档](https://open.feishu.cn/document/)
-- [API 参考文档](./api_reference.md)
-- [架构设计文档](./architecture.md)
-- [开发环境配置](./development-environment.md)
+- [Lark OpenAPI 文档](https://open.feishu.cn/document/home/index)
+- [Contact API 参考](https://open.feishu.cn/document/server-docs/contact-v3/user/get)
+- [CloudDoc API 参考](https://open.feishu.cn/document/server-docs/docs/docs/docx-v1/document/get)
+- [Bitable API 参考](https://open.feishu.cn/document/server-docs/docs/bitable-v1/app-table-record/list)
 
 ---
 
-## 🆘 获取帮助
+## 🐛 故障排查
 
-如果遇到问题:
+### 问题 1: `Missing required config: TEST_APP_ID`
 
-1. 查看测试日志: `pytest tests/integration/ -v -s --log-cli-level=DEBUG`
-2. 查看飞书开放平台错误码: https://open.feishu.cn/document/server-docs/api-call-guide/error-code
-3. 提交 Issue: [GitHub Issues](https://github.com/your-repo/issues)
+**原因:** `.env.test` 文件未配置或未加载
+
+**解决:**
+```bash
+# 检查文件是否存在
+ls -la .env.test
+
+# 检查文件内容
+cat .env.test | grep TEST_APP_ID
+
+# 确保文件在项目根目录
+pwd
+```
+
+### 问题 2: `Connection refused` (PostgreSQL)
+
+**原因:** PostgreSQL 未启动
+
+**解决:**
+```bash
+# 使用 docker-compose
+docker-compose up -d postgres
+
+# 检查连接
+psql -h localhost -U lark -d lark_service
+```
+
+### 问题 3: `NotFoundError: User not found`
+
+**原因:** 这是**正常的**! API 方法还是 placeholder
+
+**解决:** 实现真实的 API 调用 (参见上面的"实现真实 API 调用"章节)
+
+### 问题 4: 测试超时
+
+**原因:** 重试策略导致的延迟 (已修复)
+
+**当前状态:** ✅ 已优化
+- 客户端错误 (4xx) 不再重试
+- 测试运行时间正常 (~4-5 秒)
 
 ---
 
-**最后更新**: 2026-01-16
+## ✅ 检查清单
+
+运行集成测试前,确认以下项目:
+
+- [ ] PostgreSQL 运行中 (`docker-compose ps`)
+- [ ] RabbitMQ 运行中 (可选,某些测试需要)
+- [ ] `.env.test` 文件存在且配置完整
+- [ ] `TEST_APP_ID` 和 `TEST_APP_SECRET` 已填写
+- [ ] `TEST_USER_EMAIL` 已填写 (Contact 测试必需)
+- [ ] 飞书应用权限已配置
+- [ ] 加密密钥已生成 (`LARK_CONFIG_ENCRYPTION_KEY`)
+
+---
+
+## 🎉 总结
+
+**当前状态:**
+- ✅ 测试框架完整且可运行
+- ✅ Fixtures 正确配置
+- ✅ 环境变量加载正常
+- ⏸️ 等待实现真实 API 调用
+
+**下一步:**
+1. 配置 `.env.test` 文件
+2. 实现 Contact 和 CloudDoc 的真实 API 调用
+3. 运行集成测试验证功能
+4. 添加性能基准测试
+
+**配置完成后,即可运行:**
+```bash
+pytest tests/integration/test_contact_e2e.py -v
+```
