@@ -1,7 +1,7 @@
 # API 参考文档 - Phase 4 (Contact & CloudDoc)
 
-**版本**: v0.4.0  
-**更新日期**: 2026-01-15  
+**版本**: v0.4.0
+**更新日期**: 2026-01-15
 **状态**: 核心功能已实现并验证
 
 ---
@@ -56,10 +56,10 @@ client = ContactClient(
 | `get_user_by_mobile()` | ✅ 真实 API | 通过手机号查询用户 |
 | `get_user_by_user_id()` | ✅ 真实 API | 通过 user_id 查询用户 |
 | `batch_get_users()` | ✅ 真实 API | 批量查询用户 |
-| `get_department()` | ⏸️ Placeholder | 获取部门信息 |
-| `get_department_members()` | ⏸️ Placeholder | 获取部门成员 |
-| `get_chat_group()` | ⏸️ Placeholder | 获取群组信息 |
-| `get_chat_members()` | ⏸️ Placeholder | 获取群组成员 |
+| `get_department()` | ✅ 真实 API | 获取部门信息 |
+| `get_department_members()` | ✅ 真实 API | 获取部门成员 (支持分页) |
+| `get_chat_group()` | ✅ 真实 API | 获取群组信息 |
+| `get_chat_members()` | ✅ 真实 API | 获取群组成员 (支持分页) |
 
 ---
 
@@ -338,10 +338,10 @@ class User(BaseModel):
     open_id: str          # 应用级用户 ID (ou_...)
     user_id: str          # 租户级用户 ID
     union_id: str         # 全局用户 ID (on_...)
-    
+
     # 基本信息 (必需)
     name: str             # 用户名
-    
+
     # 可选信息
     avatar: str | None           # 头像 URL
     email: str | None            # 邮箱
@@ -441,11 +441,11 @@ client = DocClient(credential_pool)
 | `create_document()` | ✅ 真实 API | 创建文档 |
 | `get_document()` | ✅ 真实 API | 获取文档信息 |
 | `get_document_content()` | ✅ 真实 API | 获取文档内容 (同 get_document) |
-| `append_content()` | ⏸️ Placeholder | 追加内容块 |
-| `update_block()` | ⏸️ Placeholder | 更新内容块 |
-| `grant_permission()` | ⏸️ Placeholder | 授予权限 |
-| `revoke_permission()` | ⏸️ Placeholder | 撤销权限 |
-| `list_permissions()` | ⏸️ Placeholder | 查询权限列表 |
+| `append_content()` | ✅ 真实 API | 追加内容块 (7种内容类型) |
+| `update_block()` | ✅ 真实 API | 更新内容块 (HTTP直接调用) |
+| `grant_permission()` | ✅ 真实 API | 授予权限 (HTTP直接调用) |
+| `revoke_permission()` | ✅ 真实 API | 撤销权限 (HTTP直接调用) |
+| `list_permissions()` | ✅ 真实 API | 查询权限列表 (HTTP直接调用) |
 
 ---
 
@@ -569,17 +569,17 @@ from lark_service.clouddoc.bitable.client import BitableClient
 client = BitableClient(credential_pool)
 ```
 
-**方法 (placeholder):**
-- `create_record()` - 创建记录
-- `get_record()` - 获取记录
-- `update_record()` - 更新记录
-- `delete_record()` - 删除记录
-- `list_records()` - 查询记录 (支持过滤、排序、分页)
-- `batch_create_records()` - 批量创建
-- `batch_update_records()` - 批量更新
-- `batch_delete_records()` - 批量删除
+**方法:**
+- ✅ `create_record()` - 创建记录 (真实API)
+- ✅ `query_records()` - 查询记录 (真实API, 支持过滤、分页)
+- ✅ `update_record()` - 更新记录 (真实API)
+- ✅ `delete_record()` - 删除记录 (真实API)
+- ✅ `list_fields()` - 列出字段 (真实API)
+- ⚠️ `batch_create_records()` - 批量创建 (Placeholder, P2优先级)
+- ⚠️ `batch_update_records()` - 批量更新 (Placeholder, P2优先级)
+- ⚠️ `batch_delete_records()` - 批量删除 (Placeholder, P2优先级)
 
-**示例 (placeholder):**
+**示例:**
 ```python
 # 创建记录
 record = bitable_client.create_record(
@@ -954,7 +954,7 @@ client = ContactClient(
 
 #### 问题: 文档标题为空
 
-**原因**: 
+**原因**:
 1. 文档未命名
 2. 权限不足
 3. API 版本差异
@@ -1032,9 +1032,9 @@ title = doc.title or "(无标题)"
 
 **Phase 4 核心功能已完成并验证!**
 
-**完成度**: 100% (核心功能)  
-**测试状态**: 5/5 通过  
-**代码质量**: 优秀  
+**完成度**: 100% (核心功能)
+**测试状态**: 5/5 通过
+**代码质量**: 优秀
 **文档**: 完整
 
 **可以进入下一阶段开发!** 🚀

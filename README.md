@@ -7,7 +7,7 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Code Style](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 [![Type Checked](https://img.shields.io/badge/type%20checked-mypy-blue.svg)](http://mypy-lang.org/)
-[![Tests](https://img.shields.io/badge/tests-140%20passed-success.svg)](tests/)
+[![Tests](https://img.shields.io/badge/tests-234%20passed-success.svg)](tests/)
 [![Coverage](https://img.shields.io/badge/coverage-77.33%25-brightgreen.svg)](htmlcov/)
 [![Mypy](https://img.shields.io/badge/mypy-99.8%25-blue.svg)](src/)
 [![Security](https://img.shields.io/badge/security-FR--077~095%20compliant-success.svg)](docs/security-guide.md)
@@ -238,19 +238,52 @@ print(f"批量发送完成: {response.success}/{response.total} 成功")
 - ✅ **文件验证** - 自动验证文件大小和类型
 - ✅ **重试机制** - 上传失败自动重试 (最多 3 次)
 
-### 📄 CloudDoc 模块
+### 📄 CloudDoc 模块 (Phase 4 ✅)
 
-- ✅ **Doc 文档**: 创建、读取、更新、权限管理 (可阅读/可编辑/可评论/可管理)
-- ✅ **Sheet 电子表格**: 读写、格式化 (样式/合并/列宽/冻结)
-- ✅ **多维表格 (Bitable)**: CRUD、批量操作、过滤查询
-- ✅ **文档素材**: 上传图片/文件到文档,下载文档素材
+#### Doc 文档操作
+- ✅ **创建文档** - `create_document()`
+- ✅ **追加内容** - `append_content()` (7种内容类型)
+- ✅ **获取文档** - `get_document()`
+- ✅ **更新块** - `update_block()` (HTTP直接调用)
 
-### 👥 Contact 模块
+#### 文档权限管理
+- ✅ **授予权限** - `grant_permission()` (可阅读/可编辑/可评论/可管理)
+- ✅ **撤销权限** - `revoke_permission()`
+- ✅ **列出权限** - `list_permissions()`
 
-- ✅ 通过邮箱/手机号查询用户
-- ✅ 获取用户多种 ID (`open_id`、`user_id`、`union_id`)
-- ✅ PostgreSQL 本地缓存 (24 小时 TTL)
-- ✅ 查询群组和部门信息
+#### 多维表格 (Bitable) ⭐ 真实API
+- ✅ **创建记录** - `create_record()`
+- ✅ **查询记录** - `query_records()` (过滤、分页)
+- ✅ **更新记录** - `update_record()`
+- ✅ **删除记录** - `delete_record()`
+- ✅ **列出字段** - `list_fields()`
+- ⚠️ **批量操作** - Placeholder (P2优先级)
+
+#### Sheet 电子表格
+- ⚠️ 所有方法 - Placeholder实现 (P2优先级)
+
+### 👥 Contact 模块 (Phase 4 ✅) ⭐ 8个真实API
+
+#### 用户查询
+- ✅ **邮箱查询** - `get_user_by_email()` (真实API + 缓存)
+- ✅ **手机号查询** - `get_user_by_mobile()` (真实API + 缓存)
+- ✅ **ID查询** - `get_user_by_user_id()` (真实API + 缓存)
+- ✅ **批量查询** - `batch_get_users()` (真实API + 缓存优化)
+
+#### 部门查询
+- ✅ **获取部门** - `get_department()` (真实API)
+- ✅ **部门成员** - `get_department_members()` (真实API + 分页)
+
+#### 群组查询
+- ✅ **获取群组** - `get_chat_group()` (真实API)
+- ✅ **群组成员** - `get_chat_members()` (真实API + 分页)
+
+#### 缓存管理
+- ✅ **ContactCacheManager** - 完整的缓存管理器
+  - TTL: 24小时
+  - app_id隔离
+  - union_id作为主键
+  - PostgreSQL存储
 
 ### 🤖 aPaaS 模块
 
