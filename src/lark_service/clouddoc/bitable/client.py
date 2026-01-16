@@ -114,7 +114,7 @@ class BitableClient:
 
             # TODO: Implement actual API call when SDK supports it
             return BaseRecord(
-                record_id="rec_placeholder",
+                record_id="rec1234567890placeholder",
                 fields=fields,
                 create_time=None,
                 update_time=None,
@@ -380,7 +380,7 @@ class BitableClient:
             # TODO: Implement actual API call when SDK supports it
             return [
                 BaseRecord(
-                    record_id=f"rec_placeholder_{i}",
+                    record_id=f"rec1234567890placeholder{i}",
                     fields=record,
                     create_time=None,
                     update_time=None,

@@ -65,7 +65,7 @@ class TestBitableClientValidation:
                 app_id="cli_test",
                 app_token="bascn123",
                 table_id="tbl123",
-                record_id="rec123",
+                record_id="rec1234567890abcdefghij",
                 fields={},
             )
 
@@ -157,7 +157,7 @@ class TestBitableClientOperations:
             fields=fields,
         )
 
-        assert record.record_id == "rec_placeholder"
+        assert record.record_id == "rec1234567890placeholder"
         assert record.fields == fields
 
     def test_query_records_with_filters(self, client):
@@ -165,12 +165,12 @@ class TestBitableClientOperations:
         filters = [
             FilterCondition(
                 field_name="Age",
-                operator=">=",
+                operator="gte",
                 value=18,
             ),
             FilterCondition(
                 field_name="Active",
-                operator="=",
+                operator="eq",
                 value=True,
             ),
         ]
@@ -205,11 +205,11 @@ class TestBitableClientOperations:
             app_id="cli_test",
             app_token="bascn123",
             table_id="tbl123",
-            record_id="rec123",
+            record_id="rec1234567890abcdefghij",
             fields=fields,
         )
 
-        assert record.record_id == "rec123"
+        assert record.record_id == "rec1234567890abcdefghij"
         assert record.fields == fields
 
     def test_delete_record_success(self, client):
@@ -218,7 +218,7 @@ class TestBitableClientOperations:
             app_id="cli_test",
             app_token="bascn123",
             table_id="tbl123",
-            record_id="rec123",
+            record_id="rec1234567890abcdefghij",
         )
 
         assert result is True
@@ -240,14 +240,14 @@ class TestBitableClientOperations:
 
         assert len(created) == 3
         for i, record in enumerate(created):
-            assert record.record_id == f"rec_placeholder_{i}"
+            assert record.record_id == f"rec1234567890placeholder{i}"
             assert record.fields == records[i]
 
     def test_batch_update_records_success(self, client):
         """Test batch update records succeeds."""
         updates = [
-            ("rec123", {"Age": 31}),
-            ("rec456", {"Age": 26}),
+            ("rec1234567890abcdefghij", {"Age": 31}),
+            ("rec4567890abcdefghijklmn", {"Age": 26}),
         ]
 
         updated = client.batch_update_records(
@@ -264,7 +264,7 @@ class TestBitableClientOperations:
 
     def test_batch_delete_records_success(self, client):
         """Test batch delete records succeeds."""
-        record_ids = ["rec123", "rec456", "rec789"]
+        record_ids = ["rec1234567890abcdefghij", "rec4567890abcdefghijklmn", "rec7890abcdefghijklmnopq"]
 
         result = client.batch_delete_records(
             app_id="cli_test",
@@ -302,7 +302,7 @@ class TestBitableClientFilters:
 
     def test_filter_operators(self, client):
         """Test various filter operators."""
-        operators = ["=", "!=", ">", ">=", "<", "<=", "contains", "not_contains"]
+        operators = ["eq", "ne", "gt", "gte", "lt", "lte", "contains", "not_contains"]
 
         for operator in operators:
             filters = [
@@ -324,9 +324,9 @@ class TestBitableClientFilters:
     def test_multiple_filters(self, client):
         """Test multiple filter conditions."""
         filters = [
-            FilterCondition(field_name="Age", operator=">=", value=18),
-            FilterCondition(field_name="Age", operator="<", value=65),
-            FilterCondition(field_name="Active", operator="=", value=True),
+            FilterCondition(field_name="Age", operator="gte", value=18),
+            FilterCondition(field_name="Age", operator="lt", value=65),
+            FilterCondition(field_name="Active", operator="eq", value=True),
             FilterCondition(field_name="Department", operator="contains", value="Engineering"),
         ]
 
