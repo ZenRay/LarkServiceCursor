@@ -10,7 +10,7 @@ from typing import Any
 
 import requests  # type: ignore
 
-from lark_service.clouddoc.models import CellData, SheetInfo
+from lark_service.clouddoc.models import CellData
 from lark_service.core.credential_pool import CredentialPool
 from lark_service.core.exceptions import (
     APIError,

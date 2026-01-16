@@ -261,7 +261,7 @@ class TestBitableOperations:
     def test_bitable_query_with_filter(self, doc_client, test_config):
         """Test Bitable query with filter conditions."""
         from lark_service.clouddoc.bitable.client import BitableClient
-        from lark_service.clouddoc.models import FilterCondition, QueryFilter
+        from lark_service.clouddoc.models import QueryFilter
 
         bitable_client = BitableClient(doc_client.credential_pool)
 
@@ -456,6 +456,37 @@ class TestDocumentWriteOperations:
 class TestBitableQueryOperations:
     """Test Bitable query operations with real API."""
 
+    def test_get_table_fields(self, bitable_client, test_config):
+        """Test getting table fields."""
+        if not test_config.get("bitable_token"):
+            pytest.skip("TEST_BITABLE_APP_TOKEN not configured")
+
+        table_id = os.getenv("TEST_BITABLE_TABLE_ID", "tblEnSV2PfThFqBa")
+
+        fields = bitable_client.get_table_fields(
+            app_id=test_config["app_id"],
+            app_token=test_config["bitable_token"],
+            table_id=table_id,
+        )
+
+        # Verify results
+        assert isinstance(fields, list)
+        assert len(fields) > 0
+
+        # Check field structure
+        first_field = fields[0]
+        assert "field_id" in first_field
+        assert "field_name" in first_field
+        assert "type" in first_field
+        assert "type_name" in first_field
+
+        print(f"✅ Retrieved {len(fields)} fields from Bitable table")
+        print(f"   First field: {first_field['field_name']} ({first_field['field_id']}) - {first_field['type_name']}")
+
+        # Print all fields for reference
+        for field in fields:
+            print(f"   - {field['field_name']}: {field['field_id']} ({field['type_name']})")
+
     def test_query_records_no_filter(self, bitable_client, test_config):
         """Test querying records without filter."""
         if not test_config.get("bitable_token"):
@@ -480,25 +511,58 @@ class TestBitableQueryOperations:
             print(f"   First record ID: {records[0].record_id}")
             print(f"   First record fields: {list(records[0].fields.keys())}")
 
-    def test_query_records_with_filter(self, bitable_client, test_config):
-        """Test querying records with filter conditions."""
+    def test_query_records_with_structured_filter(self, bitable_client, test_config):
+        """Test querying records with structured filter (using field_id)."""
         if not test_config.get("bitable_token"):
             pytest.skip("TEST_BITABLE_APP_TOKEN not configured")
 
         table_id = os.getenv("TEST_BITABLE_TABLE_ID", "tblEnSV2PfThFqBa")
 
-        # Create filter conditions (使用实际存在的字段名 "文本")
-        filters = [
-            FilterCondition(
-                field_name="文本",
-                operator="eq",
-                value="Active",
-            ),
-        ]
+        # 1. Get table fields first
+        fields = bitable_client.get_table_fields(
+            app_id=test_config["app_id"],
+            app_token=test_config["bitable_token"],
+            table_id=table_id,
+        )
 
-        # Note: Bitable filter formula syntax is complex and not well documented
-        # Skip this test as the filter syntax needs further investigation
-        pytest.skip("Bitable filter syntax requires further investigation")
+        # 2. Find the "文本" field
+        text_field = next((f for f in fields if f["field_name"] == "文本"), None)
+        if not text_field:
+            pytest.skip("'文本' field not found in test table")
+
+        field_id = text_field["field_id"]
+        print(f"   Using field: {text_field['field_name']} ({field_id})")
+
+        # 3. Create structured filter
+        from lark_service.clouddoc.models import StructuredFilterCondition, StructuredFilterInfo
+
+        filter_info = StructuredFilterInfo(
+            conjunction="and",
+            conditions=[
+                StructuredFilterCondition(
+                    field_id=field_id,
+                    operator="is",
+                    value=["Active"]
+                )
+            ]
+        )
+
+        # 4. Query records with filter
+        records, next_token = bitable_client.query_records_structured(
+            app_id=test_config["app_id"],
+            app_token=test_config["bitable_token"],
+            table_id=table_id,
+            filter_info=filter_info,
+            page_size=10,
+        )
+
+        # Verify results
+        assert isinstance(records, list)
+        print(f"✅ Retrieved {len(records)} filtered records")
+        print(f"   Filter: {text_field['field_name']} = 'Active'")
+
+        if records:
+            print(f"   First record: {records[0].fields.get(text_field['field_name'])}")
 
     def test_query_records_pagination(self, bitable_client, test_config):
         """Test pagination in query records."""

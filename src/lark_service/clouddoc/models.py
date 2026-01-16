@@ -22,10 +22,6 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field, field_validator
 
-from lark_service.utils.logger import get_logger
-
-logger = get_logger()
-
 # ==================== Document Models ====================
 
 
@@ -206,6 +202,62 @@ class QueryFilter(BaseModel):
     logic: Literal["and", "or"] = Field("and", description="Condition logic (and/or)")
 
 
+class StructuredFilterCondition(BaseModel):
+    """Bitable 结构化过滤条件（使用 field_id）.
+
+    使用结构化 JSON 格式，支持 Feishu API 的原生过滤语法。
+    必须使用 field_id 而不是 field_name。
+
+    支持的操作符:
+    - is: 等于
+    - isNot: 不等于
+    - contains: 包含
+    - doesNotContain: 不包含
+    - isEmpty: 为空
+    - isNotEmpty: 不为空
+    - isGreater: 大于
+    - isGreaterEqual: 大于等于
+    - isLess: 小于
+    - isLessEqual: 小于等于
+    """
+
+    field_id: str = Field(..., description="字段 ID (fldXXX)", pattern=r"^fld[a-zA-Z0-9]+$")
+
+    operator: Literal[
+        "is",              # 等于
+        "isNot",           # 不等于
+        "contains",        # 包含
+        "doesNotContain",  # 不包含
+        "isEmpty",         # 为空
+        "isNotEmpty",      # 不为空
+        "isGreater",       # 大于
+        "isGreaterEqual",  # 大于等于
+        "isLess",          # 小于
+        "isLessEqual",     # 小于等于
+    ] = Field(..., description="操作符")
+
+    value: list[Any] = Field(default_factory=list, description="值（必须是数组，isEmpty/isNotEmpty 可为空）")
+
+
+class StructuredFilterInfo(BaseModel):
+    """Bitable 结构化过滤信息.
+
+    使用结构化 JSON 格式，完全兼容 Feishu API。
+
+    限制:
+    - 最多 20 个过滤条件
+    - 单次查询最多 500 条记录
+    """
+
+    conjunction: Literal["and", "or"] = Field("and", description="逻辑连接符")
+
+    conditions: list[StructuredFilterCondition] = Field(
+        ...,
+        description="过滤条件列表",
+        max_length=20,
+    )
+
+
 class TableField(BaseModel):
     """Bitable 表字段信息."""
 
@@ -220,10 +272,7 @@ class TableField(BaseModel):
     @classmethod
     def validate_type(cls, v: int) -> int:
         """Validate field type."""
-        # 常见的字段类型
-        valid_types = {1, 2, 3, 4, 5, 7, 11, 13, 15, 17, 18, 20, 21, 22, 23}
-        if v not in valid_types:
-            logger.warning(f"Unknown field type: {v}")
+        # 常见的字段类型（如果类型未知，仍然接受）
         return v
 
 

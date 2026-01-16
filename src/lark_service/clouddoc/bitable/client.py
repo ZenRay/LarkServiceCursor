@@ -5,11 +5,14 @@ This module provides a high-level client for multi-dimensional table operations
 via Lark Base API, including CRUD operations with filters and pagination.
 """
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from lark_oapi.api.bitable.v1 import SearchAppTableRecordRequest, SearchAppTableRecordRequestBody
 
 from lark_service.clouddoc.models import BaseRecord, FieldDefinition, FilterCondition
+
+if TYPE_CHECKING:
+    from lark_service.clouddoc.models import StructuredFilterInfo
 from lark_service.core.credential_pool import CredentialPool
 from lark_service.core.exceptions import (
     APIError,
@@ -439,6 +442,176 @@ class BitableClient:
 
             logger.info(
                 f"Successfully queried {len(records)} records from table {table_id}, "
+                f"has_more: {next_page_token is not None}"
+            )
+
+            return records, next_page_token
+
+        return self.retry_strategy.execute(_query)
+
+    def query_records_structured(
+        self,
+        app_id: str,
+        app_token: str,
+        table_id: str,
+        filter_info: "StructuredFilterInfo | None" = None,
+        page_size: int = 100,
+        page_token: str | None = None,
+    ) -> tuple[list[BaseRecord], str | None]:
+        """
+        使用结构化过滤查询记录（推荐）.
+
+        使用 field_id 和结构化 JSON 格式，完全兼容 Feishu API。
+
+        Parameters
+        ----------
+            app_id : str
+                应用 ID
+            app_token : str
+                Bitable 应用 token
+            table_id : str
+                数据表 ID
+            filter_info : StructuredFilterInfo | None
+                结构化过滤信息（使用 field_id）
+            page_size : int
+                页面大小 (默认: 100, 最大: 500)
+            page_token : str | None
+                分页 token
+
+        Returns
+        -------
+            tuple[list[BaseRecord], str | None]
+                (记录列表, 下一页 token)
+
+        Raises
+        ------
+            InvalidParameterError
+                参数无效
+            NotFoundError
+                表不存在
+            PermissionDeniedError
+                无权限访问
+
+        Examples
+        --------
+            >>> # 1. 获取字段信息
+            >>> fields = client.get_table_fields(app_id, app_token, table_id)
+            >>> field_id = next(f["field_id"] for f in fields if f["field_name"] == "文本")
+            >>>
+            >>> # 2. 构造过滤条件
+            >>> filter_info = StructuredFilterInfo(
+            ...     conjunction="and",
+            ...     conditions=[
+            ...         StructuredFilterCondition(
+            ...             field_id=field_id,
+            ...             operator="is",
+            ...             value=["Active"]
+            ...         )
+            ...     ]
+            ... )
+            >>>
+            >>> # 3. 查询记录
+            >>> records, next_token = client.query_records_structured(
+            ...     app_id="cli_xxx",
+            ...     app_token="bascnxxx",
+            ...     table_id="tblxxx",
+            ...     filter_info=filter_info
+            ... )
+        """
+        if page_size < 1 or page_size > 500:
+            raise InvalidParameterError(f"Invalid page_size: {page_size} (1-500)")
+
+        logger.info(f"Querying records (structured) from table {table_id}, page_size={page_size}")
+
+        def _query() -> tuple[list[BaseRecord], str | None]:
+            # 使用直接 HTTP 请求，因为 SDK 可能不支持新的过滤格式
+            import requests  # type: ignore
+
+            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")
+
+            url = f"https://open.feishu.cn/open-apis/bitable/v1/apps/{app_token}/tables/{table_id}/records/search"
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json; charset=utf-8"
+            }
+
+            payload: dict[str, Any] = {
+                "page_size": page_size,
+            }
+
+            if page_token:
+                payload["page_token"] = page_token
+
+            # 构造结构化过滤
+            if filter_info:
+                filter_dict: dict[str, Any] = {
+                    "conjunction": filter_info.conjunction,
+                    "conditions": []
+                }
+
+                for condition in filter_info.conditions:
+                    cond_dict: dict[str, Any] = {
+                        "field_id": condition.field_id,
+                        "operator": condition.operator,
+                    }
+
+                    # 只有非空操作符才需要 value
+                    if condition.operator not in ["isEmpty", "isNotEmpty"] and condition.value:
+                        cond_dict["value"] = condition.value
+
+                    filter_dict["conditions"].append(cond_dict)
+
+                payload["filter"] = filter_dict
+                logger.debug(f"Filter: {filter_dict}")
+
+            response = requests.post(url, headers=headers, json=payload, timeout=30)
+
+            if response.status_code != 200:
+                error_msg = f"Failed to query records: HTTP {response.status_code}"
+                try:
+                    error_data = response.json()
+                    error_msg = f"{error_msg} - {error_data.get('msg', 'Unknown error')}"
+                    error_code = error_data.get('code', 0)
+
+                    if error_code == 1770002:
+                        raise NotFoundError(f"Table not found: {table_id}")
+                    elif error_code in [1770032, 403]:
+                        raise PermissionDeniedError(f"No permission to access table: {table_id}")
+                    elif error_code in [1770001, 400]:
+                        raise InvalidParameterError(error_msg)
+                except Exception as e:
+                    if isinstance(e, (NotFoundError, PermissionDeniedError, InvalidParameterError)):
+                        raise
+                    logger.error(f"Failed to parse error response: {e}")
+
+                raise APIError(error_msg)
+
+            result = response.json()
+            if result.get("code") != 0:
+                error_msg = f"API returned error: {result.get('msg', 'Unknown error')}"
+                raise APIError(error_msg)
+
+            records = []
+            data = result.get("data", {})
+            items = data.get("items", [])
+
+            for item in items:
+                record_id = item.get("record_id")
+                fields = item.get("fields", {})
+
+                records.append(
+                    BaseRecord(
+                        record_id=record_id,
+                        fields=fields,
+                        create_time=None,
+                        update_time=None,
+                    )
+                )
+
+            next_page_token = data.get("page_token")
+
+            logger.info(
+                f"Successfully queried {len(records)} records (structured) from table {table_id}, "
                 f"has_more: {next_page_token is not None}"
             )
 
