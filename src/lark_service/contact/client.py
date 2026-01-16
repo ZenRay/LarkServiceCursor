@@ -7,6 +7,12 @@ via Lark Contact API, including user queries, department queries, and chat group
 
 from datetime import timedelta
 
+from lark_oapi.api.contact.v3 import (
+    BatchGetIdUserRequest,
+    BatchGetIdUserRequestBody,
+    GetUserRequest,
+)
+
 from lark_service.contact.cache import ContactCacheManager
 from lark_service.contact.models import (
     BatchUserQuery,
@@ -18,11 +24,39 @@ from lark_service.contact.models import (
     User,
 )
 from lark_service.core.credential_pool import CredentialPool
-from lark_service.core.exceptions import InvalidParameterError, NotFoundError
+from lark_service.core.exceptions import (
+    APIError,
+    InvalidParameterError,
+    NotFoundError,
+)
 from lark_service.core.retry import RetryStrategy
 from lark_service.utils.logger import get_logger
 
 logger = get_logger()
+
+
+def _convert_lark_user_status(lark_status: object | None) -> int | None:
+    """Convert Lark UserStatus to our status code.
+
+    Args:
+        lark_status: Lark UserStatus object
+
+    Returns:
+        Status code: 1 (active), 2 (inactive), 4 (resigned), or None
+    """
+    if not lark_status:
+        return None
+
+    # Check status flags (using hasattr for dynamic attributes)
+    if hasattr(lark_status, "is_resigned") and getattr(lark_status, "is_resigned"):
+        return 4  # Resigned
+    if hasattr(lark_status, "is_frozen") and getattr(lark_status, "is_frozen"):
+        return 2  # Inactive/Frozen
+    if hasattr(lark_status, "is_activated") and getattr(lark_status, "is_activated"):
+        return 1  # Active
+
+    # Default to active if no clear status
+    return 1
 
 
 class ContactClient:
@@ -156,12 +190,89 @@ class ContactClient:
         logger.info(f"Getting user by email from API: {email}")
 
         def _get() -> User:
-            # Note: Actual API call depends on SDK implementation
-            # This is a placeholder for now
+            # Get SDK client (handles token management internally)
+            client = self.credential_pool._get_sdk_client(app_id)
 
-            # TODO: Implement actual API call when SDK supports it
-            # For now, raise NotFoundError to maintain existing behavior
-            raise NotFoundError(f"User not found: {email}")
+            # Step 1: Get user_id from email using BatchGetId
+            batch_request = (
+                BatchGetIdUserRequest.builder()
+                .user_id_type("user_id")
+                .request_body(
+                    BatchGetIdUserRequestBody.builder()
+                    .emails([email])
+                    .build()
+                )
+                .build()
+            )
+
+            batch_response = client.contact.v3.user.batch_get_id(batch_request)
+
+            # Check response
+            if not batch_response.success():
+                logger.error(
+                    f"Failed to get user_id by email: {batch_response.code} - {batch_response.msg}",
+                    extra={"email": email, "code": batch_response.code},
+                )
+                if batch_response.code == 99991663:  # User not found
+                    raise NotFoundError(f"User not found: {email}")
+                raise APIError(
+                    f"API error: {batch_response.msg}",
+                    status_code=batch_response.code,
+                    details={"email": email},
+                )
+
+            # Parse response to get user_id
+            if not batch_response.data or not batch_response.data.user_list:
+                raise NotFoundError(f"User not found: {email}")
+
+            user_contact_info = batch_response.data.user_list[0]
+            if not user_contact_info.user_id:
+                raise NotFoundError(f"User not found: {email}")
+
+            # Step 2: Get full user info using GetUser API
+            get_request = (
+                GetUserRequest.builder()
+                .user_id_type("user_id")
+                .user_id(user_contact_info.user_id)
+                .build()
+            )
+
+            get_response = client.contact.v3.user.get(get_request)
+
+            if not get_response.success():
+                logger.error(
+                    f"Failed to get user details: {get_response.code} - {get_response.msg}",
+                    extra={"user_id": user_contact_info.user_id, "code": get_response.code},
+                )
+                raise APIError(
+                    f"API error: {get_response.msg}",
+                    status_code=get_response.code,
+                    details={"user_id": user_contact_info.user_id},
+                )
+
+            if not get_response.data or not get_response.data.user:
+                raise NotFoundError(f"User not found: {email}")
+
+            # Get full user object
+            lark_user = get_response.data.user
+
+            # Convert to our User model
+            user = User(
+                open_id=lark_user.open_id or "",
+                user_id=lark_user.user_id or "",
+                union_id=lark_user.union_id or "",
+                name=lark_user.name or "",
+                avatar=lark_user.avatar.avatar_origin if lark_user.avatar else None,
+                email=lark_user.email or None,
+                mobile=lark_user.mobile or None,
+                department_ids=lark_user.department_ids or None,
+                employee_no=lark_user.employee_no or None,
+                job_title=lark_user.job_title or None,
+                status=_convert_lark_user_status(lark_user.status),
+            )
+
+            logger.info(f"Successfully retrieved user: {user.name} ({user.open_id})")
+            return user
 
         user = self.retry_strategy.execute(_get)
 
@@ -221,11 +332,89 @@ class ContactClient:
         logger.info(f"Getting user by mobile from API: {mobile}")
 
         def _get() -> User:
-            # Note: Actual API call depends on SDK implementation
-            # This is a placeholder for now
+            # Get SDK client (handles token management internally)
+            client = self.credential_pool._get_sdk_client(app_id)
 
-            # TODO: Implement actual API call when SDK supports it
-            raise NotFoundError(f"User not found: {mobile}")
+            # Step 1: Get user_id from mobile using BatchGetId
+            batch_request = (
+                BatchGetIdUserRequest.builder()
+                .user_id_type("user_id")
+                .request_body(
+                    BatchGetIdUserRequestBody.builder()
+                    .mobiles([mobile])
+                    .build()
+                )
+                .build()
+            )
+
+            batch_response = client.contact.v3.user.batch_get_id(batch_request)
+
+            # Check response
+            if not batch_response.success():
+                logger.error(
+                    f"Failed to get user_id by mobile: {batch_response.code} - {batch_response.msg}",
+                    extra={"mobile": mobile, "code": batch_response.code},
+                )
+                if batch_response.code == 99991663:  # User not found
+                    raise NotFoundError(f"User not found: {mobile}")
+                raise APIError(
+                    f"API error: {batch_response.msg}",
+                    status_code=batch_response.code,
+                    details={"mobile": mobile},
+                )
+
+            # Parse response to get user_id
+            if not batch_response.data or not batch_response.data.user_list:
+                raise NotFoundError(f"User not found: {mobile}")
+
+            user_contact_info = batch_response.data.user_list[0]
+            if not user_contact_info.user_id:
+                raise NotFoundError(f"User not found: {mobile}")
+
+            # Step 2: Get full user info using GetUser API
+            get_request = (
+                GetUserRequest.builder()
+                .user_id_type("user_id")
+                .user_id(user_contact_info.user_id)
+                .build()
+            )
+
+            get_response = client.contact.v3.user.get(get_request)
+
+            if not get_response.success():
+                logger.error(
+                    f"Failed to get user details: {get_response.code} - {get_response.msg}",
+                    extra={"user_id": user_contact_info.user_id, "code": get_response.code},
+                )
+                raise APIError(
+                    f"API error: {get_response.msg}",
+                    status_code=get_response.code,
+                    details={"user_id": user_contact_info.user_id},
+                )
+
+            if not get_response.data or not get_response.data.user:
+                raise NotFoundError(f"User not found: {mobile}")
+
+            # Get full user object
+            lark_user = get_response.data.user
+
+            # Convert to our User model
+            user = User(
+                open_id=lark_user.open_id or "",
+                user_id=lark_user.user_id or "",
+                union_id=lark_user.union_id or "",
+                name=lark_user.name or "",
+                avatar=lark_user.avatar.avatar_origin if lark_user.avatar else None,
+                email=lark_user.email or None,
+                mobile=lark_user.mobile or None,
+                department_ids=lark_user.department_ids or None,
+                employee_no=lark_user.employee_no or None,
+                job_title=lark_user.job_title or None,
+                status=_convert_lark_user_status(lark_user.status),
+            )
+
+            logger.info(f"Successfully retrieved user: {user.name} ({user.open_id})")
+            return user
 
         user = self.retry_strategy.execute(_get)
 
@@ -285,11 +474,58 @@ class ContactClient:
         logger.info(f"Getting user by user_id from API: {user_id}")
 
         def _get() -> User:
-            # Note: Actual API call depends on SDK implementation
-            # This is a placeholder for now
+            # Get SDK client (handles token management internally)
+            client = self.credential_pool._get_sdk_client(app_id)
 
-            # TODO: Implement actual API call when SDK supports it
-            raise NotFoundError(f"User not found: {user_id}")
+            # Build request - use GetUser API with user_id
+            request = (
+                GetUserRequest.builder()
+                .user_id_type("user_id")
+                .user_id(user_id)
+                .build()
+            )
+
+            # Make API call
+            response = client.contact.v3.user.get(request)
+
+            # Check response
+            if not response.success():
+                logger.error(
+                    f"Failed to get user by user_id: {response.code} - {response.msg}",
+                    extra={"user_id": user_id, "code": response.code},
+                )
+                if response.code == 99991663:  # User not found
+                    raise NotFoundError(f"User not found: {user_id}")
+                raise APIError(
+                    f"API error: {response.msg}",
+                    status_code=response.code,
+                    details={"user_id": user_id},
+                )
+
+            # Parse response
+            if not response.data or not response.data.user:
+                raise NotFoundError(f"User not found: {user_id}")
+
+            # Get user
+            lark_user = response.data.user
+
+            # Convert to our User model
+            user = User(
+                open_id=lark_user.open_id or "",
+                user_id=lark_user.user_id or "",
+                union_id=lark_user.union_id or "",
+                name=lark_user.name or "",
+                avatar=lark_user.avatar.avatar_origin if lark_user.avatar else None,
+                email=lark_user.email or None,
+                mobile=lark_user.mobile or None,
+                department_ids=lark_user.department_ids or None,
+                employee_no=lark_user.employee_no or None,
+                job_title=lark_user.job_title or None,
+                status=_convert_lark_user_status(lark_user.status),
+            )
+
+            logger.info(f"Successfully retrieved user: {user.name} ({user.open_id})")
+            return user
 
         user = self.retry_strategy.execute(_get)
 
@@ -407,25 +643,154 @@ class ContactClient:
         )
 
         def _batch_get() -> BatchUserResponse:
-            # Note: Actual API call depends on SDK implementation
-            # This is a placeholder for now
+            # Get SDK client (handles token management internally)
+            client = self.credential_pool._get_sdk_client(app_id)
 
-            # TODO: Implement actual API call when SDK supports it
-            # For now, return empty response for remaining queries
-            # Extract identifiers from remaining queries for not_found list
-            api_not_found: list[str] = []
+            # Collect all identifiers from remaining queries
+            all_emails: list[str] = []
+            all_mobiles: list[str] = []
+
             for q in remaining_queries:
                 if q.emails:
-                    api_not_found.extend(q.emails)
+                    all_emails.extend(q.emails)
                 if q.mobiles:
-                    api_not_found.extend(q.mobiles)
+                    all_mobiles.extend(q.mobiles)
+                # Note: user_ids need to be queried individually via GetUser API
+                # For now, we'll handle emails and mobiles via BatchGetId
+
+            api_users: list[User] = []
+            api_not_found: list[str] = []
+            user_id_map: dict[str, str] = {}  # Maps user_id to email/mobile for tracking
+
+            # Query by email/mobile if any
+            if all_emails or all_mobiles:
+                # Step 1: Get user_ids using BatchGetId
+                body_builder = BatchGetIdUserRequestBody.builder()
+                if all_emails:
+                    body_builder.emails(all_emails)
+                if all_mobiles:
+                    body_builder.mobiles(all_mobiles)
+
+                batch_request = (
+                    BatchGetIdUserRequest.builder()
+                    .user_id_type("user_id")
+                    .request_body(body_builder.build())
+                    .build()
+                )
+
+                # Make API call
+                batch_response = client.contact.v3.user.batch_get_id(batch_request)
+
+                # Check response
+                if not batch_response.success():
+                    logger.error(
+                        f"Failed to batch get user_ids: {batch_response.code} - {batch_response.msg}",
+                        extra={"code": batch_response.code},
+                    )
+                    # Don't raise error for batch queries, just log
+                    # Mark all as not found
+                    api_not_found.extend(all_emails)
+                    api_not_found.extend(all_mobiles)
+                else:
+                    # Parse response to get user_ids
+                    user_ids_to_fetch: list[str] = []
+                    if batch_response.data and batch_response.data.user_list:
+                        for user_contact_info in batch_response.data.user_list:
+                            if user_contact_info.user_id:
+                                user_ids_to_fetch.append(user_contact_info.user_id)
+                                # Track which identifier this user_id corresponds to
+                                if user_contact_info.email:
+                                    user_id_map[user_contact_info.user_id] = user_contact_info.email
+                                elif user_contact_info.mobile:
+                                    user_id_map[user_contact_info.user_id] = user_contact_info.mobile
+
+                    # Step 2: Get full user info for each user_id
+                    for uid in user_ids_to_fetch:
+                        try:
+                            get_request = (
+                                GetUserRequest.builder()
+                                .user_id_type("user_id")
+                                .user_id(uid)
+                                .build()
+                            )
+
+                            get_response = client.contact.v3.user.get(get_request)
+
+                            if get_response.success() and get_response.data and get_response.data.user:
+                                lark_user = get_response.data.user
+                                user = User(
+                                    open_id=lark_user.open_id or "",
+                                    user_id=lark_user.user_id or "",
+                                    union_id=lark_user.union_id or "",
+                                    name=lark_user.name or "",
+                                    avatar=lark_user.avatar.avatar_origin if lark_user.avatar else None,
+                                    email=lark_user.email or None,
+                                    mobile=lark_user.mobile or None,
+                                    department_ids=lark_user.department_ids or None,
+                                    employee_no=lark_user.employee_no or None,
+                                    job_title=lark_user.job_title or None,
+                                    status=_convert_lark_user_status(lark_user.status),
+                                )
+                                api_users.append(user)
+                            else:
+                                # Mark the original identifier as not found
+                                if uid in user_id_map:
+                                    api_not_found.append(user_id_map[uid])
+                        except Exception as e:
+                            logger.warning(f"Failed to get user {uid}: {e}")
+                            if uid in user_id_map:
+                                api_not_found.append(user_id_map[uid])
+
+                    # Determine which identifiers were not found in Step 1
+                    found_emails = {u.email for u in api_users if u.email}
+                    found_mobiles = {u.mobile for u in api_users if u.mobile}
+
+                    api_not_found.extend([e for e in all_emails if e not in found_emails and e not in api_not_found])
+                    api_not_found.extend([m for m in all_mobiles if m not in found_mobiles and m not in api_not_found])
+
+            # Handle user_ids separately (need individual GetUser calls)
+            for q in remaining_queries:
                 if q.user_ids:
-                    api_not_found.extend(q.user_ids)
+                    for uid in q.user_ids:
+                        try:
+                            # Use GetUser API for user_id
+                            request = (
+                                GetUserRequest.builder()
+                                .user_id_type("user_id")
+                                .user_id(uid)
+                                .build()
+                            )
+
+                            response = client.contact.v3.user.get(request)
+
+                            if response.success() and response.data and response.data.user:
+                                lark_user = response.data.user
+                                user = User(
+                                    open_id=lark_user.open_id or "",
+                                    user_id=lark_user.user_id or "",
+                                    union_id=lark_user.union_id or "",
+                                    name=lark_user.name or "",
+                                    avatar=lark_user.avatar.avatar_origin if lark_user.avatar else None,
+                                    email=lark_user.email or None,
+                                    mobile=lark_user.mobile or None,
+                                    department_ids=lark_user.department_ids or None,
+                                    employee_no=lark_user.employee_no or None,
+                                    job_title=lark_user.job_title or None,
+                                    status=_convert_lark_user_status(lark_user.status),
+                                )
+                                api_users.append(user)
+                            else:
+                                api_not_found.append(uid)
+                        except Exception as e:
+                            logger.warning(f"Failed to get user by user_id {uid}: {e}")
+                            api_not_found.append(uid)
+
+            logger.info(f"Batch query completed: {len(api_users)} found, {len(api_not_found)} not found")
 
             return BatchUserResponse(
-                users=[],
+                users=api_users,
                 not_found=api_not_found if api_not_found else None,
-                total=0,
+                total=len(api_users),
             )
 
         api_response = self.retry_strategy.execute(_batch_get)

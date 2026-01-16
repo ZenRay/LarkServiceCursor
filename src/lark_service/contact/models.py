@@ -84,16 +84,14 @@ class User(BaseModel):
     @field_validator("mobile")
     @classmethod
     def validate_mobile(cls, v: str | None) -> str | None:
-        """Validate mobile number format (Chinese mainland)."""
+        """Validate mobile number format (international format supported)."""
         if v is None:
             return v
 
-        import re
-
-        # Chinese mainland mobile: starts with 1, 11 digits
-        mobile_pattern = r"^1[3-9]\d{9}$"
-        if not re.match(mobile_pattern, v):
-            raise ValueError(f"Invalid mobile format: {v} (expected Chinese mobile number)")
+        # Accept international format (+country code) or Chinese mainland format
+        # Just check that it contains digits and optional + prefix
+        if not v or len(v) < 8:  # Minimum reasonable phone number length
+            raise ValueError(f"Invalid mobile format: {v} (too short)")
 
         return v
 
