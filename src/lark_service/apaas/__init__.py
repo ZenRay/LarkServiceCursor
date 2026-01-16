@@ -16,6 +16,7 @@ Reference:
 https://open.feishu.cn/document/uAjLw4CM/ukTMukTMukTM/apaas-v1/workspace-table/list
 """
 
+from lark_service.apaas.client import WorkspaceTableClient
 from lark_service.apaas.models import (
     FieldDefinition,
     FieldType,
@@ -24,6 +25,7 @@ from lark_service.apaas.models import (
 )
 
 __all__ = [
+    "WorkspaceTableClient",
     "WorkspaceTable",
     "TableRecord",
     "FieldDefinition",

@@ -6,6 +6,8 @@ Provides:
 - Masking: Sensitive data masking utilities
 """
 
+from typing import Any
+
 from lark_service.utils.logger import (
     LoggerContextManager,
     clear_request_context,
@@ -58,7 +60,7 @@ __all__ = [
 ]
 
 
-def __getattr__(name: str):
+def __getattr__(name: str) -> Any:
     """Lazy import for masking functions to avoid circular imports."""
     if name in [
         "mask_email",

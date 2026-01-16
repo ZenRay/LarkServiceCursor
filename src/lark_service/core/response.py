@@ -3,7 +3,7 @@
 This module defines the standardized response structure for all API operations.
 """
 
-from typing import Any, TypeVar
+from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel, Field
 
@@ -27,7 +27,7 @@ class ErrorDetail(BaseModel):
     details: dict[str, Any] | None = None
 
 
-class StandardResponse[T](BaseModel):
+class StandardResponse(BaseModel, Generic[T]):
     """Standardized response structure for all operations.
 
     Provides consistent response format with status code, message,

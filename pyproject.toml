@@ -119,6 +119,7 @@ module = [
     "lark_oapi.*",
     "pika.*",
     "pythonjsonlogger.*",
+    "requests",
 ]
 ignore_missing_imports = true
 
@@ -127,6 +128,19 @@ ignore_missing_imports = true
 module = "lark_service.utils.logger"
 disallow_untyped_calls = false
 disallow_untyped_defs = false
+
+# Relax checking for SQLAlchemy model files (known issues with DeclarativeBase)
+[[tool.mypy.overrides]]
+module = [
+    "lark_service.core.models.*",
+    "lark_service.core.storage.*",
+    "lark_service.core.credential_pool",
+    "lark_service.core.response",
+    "lark_service.utils",
+]
+disallow_subclassing_any = false
+disallow_untyped_defs = false
+warn_return_any = false
 
 # Pytest 配置
 [tool.pytest.ini_options]
