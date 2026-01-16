@@ -3,14 +3,14 @@ info:
   title: Lark Service - aPaaS Module API
   description: |
     飞书 aPaaS 平台服务模块 API 契约,提供数据空间表格 CRUD、AI 能力调用、工作流触发。
-    
+
     核心特性:
     - 数据空间表格操作 (查询/更新/删除记录)
     - 并发写冲突检测 (版本控制)
     - AI 能力调用 (需要 user_access_token)
     - 自动化工作流触发 (需要 user_access_token)
     - 超时控制 (AI 调用默认 30秒超时)
-    
+
     权限要求:
     所有 aPaaS 操作均需要 user_access_token (用户级权限)。
   version: 0.1.0
@@ -274,7 +274,7 @@ paths:
       summary: 调用 AI 能力
       description: |
         调用飞书 AI 能力 (如文本分析、智能问答等)。
-        
+
         注意事项:
         - 需要 user_access_token
         - 默认超时时间 30 秒

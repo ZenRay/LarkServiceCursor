@@ -255,15 +255,15 @@ def check_time_sync(engine, threshold_seconds: float = 5.0) -> bool:
     """Check if app and DB time are synchronized."""
     from sqlalchemy import text
     from datetime import datetime
-    
+
     app_time = datetime.now()
-    
+
     with engine.connect() as conn:
         result = conn.execute(text("SELECT now()"))
         db_time = result.scalar()
-    
+
     diff = abs((app_time - db_time.replace(tzinfo=None)).total_seconds())
-    
+
     if diff > threshold_seconds:
         logger.warning(
             "Time sync issue detected",
@@ -274,7 +274,7 @@ def check_time_sync(engine, threshold_seconds: float = 5.0) -> bool:
             }
         )
         return False
-    
+
     return True
 ```
 
@@ -287,11 +287,11 @@ def check_health():
     """Check system health including time sync."""
     config = Config.load_from_env()
     token_storage = TokenStorageService(config.get_postgres_url())
-    
+
     if not check_time_sync(token_storage.engine):
         console.print("[red]✗[/red] Time sync issue detected!")
         sys.exit(1)
-    
+
     console.print("[green]✓[/green] Time sync OK")
 ```
 
@@ -324,7 +324,7 @@ def check_health():
 
 ---
 
-**更新时间**: 2026-01-15  
-**相关文档**: 
+**更新时间**: 2026-01-15
+**相关文档**:
 - [错误处理指南](./error-handling-guide.md)
 - [可观测性指南](./observability-guide.md)

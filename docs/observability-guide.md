@@ -1,7 +1,7 @@
 # 可观测性与监控指南
 
-**版本**: 1.0.0  
-**更新时间**: 2026-01-15  
+**版本**: 1.0.0
+**更新时间**: 2026-01-15
 **状态**: Production Ready
 
 ---
@@ -86,20 +86,20 @@ docker build --progress=plain --no-cache -t lark-service:latest . 2>&1 | tee bui
 ```
 [build 5/10] RUN pip install --no-cache-dir -r requirements.txt
 ❌ ERROR: Failed to install dependencies
-   
+
    Error details:
    ERROR: Could not find a version that satisfies the requirement lark-oapi==1.2.15
-   
+
    Stack trace:
    Traceback (most recent call last):
      File "/usr/local/lib/python3.12/site-packages/pip/_internal/...", line 123, in resolve
        ...
-   
+
    Possible causes:
    1. Package version not found in PyPI
    2. Network connectivity issues
    3. Private package requires authentication
-   
+
    Suggested actions:
    1. Check package name and version: pip search lark-oapi
    2. Verify network access to PyPI
@@ -121,7 +121,7 @@ class Config:
     def from_env(cls) -> "Config":
         """Load configuration with comprehensive logging."""
         logger.info("Starting configuration load")
-        
+
         # 加载 .env 文件
         env_file = Path(".env")
         if env_file.exists():
@@ -129,7 +129,7 @@ class Config:
             load_dotenv(env_file)
         else:
             logger.warning(f".env file not found: {env_file.absolute()}")
-        
+
         # 加载必需配置
         encryption_key = os.getenv("LARK_CONFIG_ENCRYPTION_KEY")
         if not encryption_key:
@@ -137,15 +137,15 @@ class Config:
             raise ConfigError("Missing required environment variable")
         else:
             logger.info("Encryption key loaded (length: 44 chars)")
-        
+
         # 加载可选配置
         log_level = os.getenv("LOG_LEVEL", "INFO")
         logger.info(f"Log level: {log_level}")
-        
+
         postgres_host = os.getenv("POSTGRES_HOST", "localhost")
         postgres_port = int(os.getenv("POSTGRES_PORT", "5432"))
         logger.info(f"PostgreSQL: {postgres_host}:{postgres_port}")
-        
+
         config = cls(
             config_encryption_key=encryption_key,
             log_level=log_level,
@@ -153,10 +153,10 @@ class Config:
             postgres_port=postgres_port,
             # ... 其他配置
         )
-        
+
         logger.info("Configuration loaded successfully")
         logger.debug(f"Config: {config}")  # 仅 DEBUG 级别输出详情
-        
+
         return config
 ```
 
@@ -262,7 +262,7 @@ app = FastAPI()
 @app.get("/health/live")
 async def liveness():
     """Liveness probe - 应用是否活着.
-    
+
     响应时间: ≤ 1 秒
     """
     return {
@@ -274,7 +274,7 @@ async def liveness():
 @app.get("/health/ready")
 async def readiness():
     """Readiness probe - 应用是否就绪.
-    
+
     响应时间: ≤ 2 秒
     检查项:
     - 数据库连接
@@ -283,7 +283,7 @@ async def readiness():
     """
     checks = {}
     overall_status = "ready"
-    
+
     # 检查数据库
     start_time = time.time()
     try:
@@ -299,7 +299,7 @@ async def readiness():
             "error": str(e),
         }
         overall_status = "not_ready"
-    
+
     # 检查消息队列
     start_time = time.time()
     try:
@@ -317,7 +317,7 @@ async def readiness():
             "error": str(e),
         }
         # MQ 失败不阻止服务 (降级运行)
-    
+
     # 返回结果
     if overall_status != "ready":
         return Response(
@@ -329,7 +329,7 @@ async def readiness():
             status_code=503,
             media_type="application/json",
         )
-    
+
     return {
         "status": overall_status,
         "checks": checks,
@@ -418,17 +418,17 @@ from metrics import (
 @app.get("/health/ready")
 async def readiness():
     start_time = time.time()
-    
+
     # ... 健康检查逻辑 ...
-    
+
     # 记录指标
     duration = time.time() - start_time
     health_check_duration.labels(endpoint="readiness").observe(duration)
     health_check_total.labels(endpoint="readiness", status=overall_status).inc()
-    
+
     # 更新数据库健康状态
     database_health.set(1 if db_healthy else 0)
-    
+
     return response
 ```
 
@@ -448,7 +448,7 @@ spec:
         image: lark-service:latest
         ports:
         - containerPort: 8000
-        
+
         # Liveness Probe (应用是否活着)
         livenessProbe:
           httpGet:
@@ -458,7 +458,7 @@ spec:
           periodSeconds: 10
           timeoutSeconds: 1
           failureThreshold: 3
-        
+
         # Readiness Probe (应用是否就绪)
         readinessProbe:
           httpGet:
@@ -469,7 +469,7 @@ spec:
           timeoutSeconds: 2
           successThreshold: 1
           failureThreshold: 3
-        
+
         # Startup Probe (应用启动检查)
         startupProbe:
           httpGet:
@@ -518,14 +518,14 @@ groups:
         for: 1m
         annotations:
           summary: "Lark Service is down"
-      
+
       # 数据库不健康
       - alert: DatabaseUnhealthy
         expr: database_health_status == 0
         for: 2m
         annotations:
           summary: "Database connection unhealthy"
-      
+
       # 健康检查响应慢
       - alert: HealthCheckSlow
         expr: |
@@ -575,5 +575,5 @@ groups:
 
 ---
 
-**维护者**: Lark Service Team  
+**维护者**: Lark Service Team
 **参考**: [observability-guide.md](./observability-guide.md)

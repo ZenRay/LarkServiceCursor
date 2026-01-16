@@ -1,7 +1,7 @@
 # Quick Start Guide: Lark Service 核心组件
 
-**Feature**: 001-lark-service-core  
-**Version**: 1.0.0  
+**Feature**: 001-lark-service-core
+**Version**: 1.0.0
 **Last Updated**: 2026-01-14
 
 ## 概述
@@ -137,10 +137,10 @@ from lark_service import LarkServiceClient
 
 ---
 
-> 💡 **选择建议**: 
+> 💡 **选择建议**:
 > - **开发阶段**: 使用**方式 1 (子项目集成)** - 便于调试和定制
 > - **生产部署**: 可选**方式 2 (PyPI 安装)** - 标准化管理
-> 
+>
 > 详细对比请参考: [research.md § 8 服务集成方式技术调研](research.md#8-服务集成方式技术调研)
 
 ---
@@ -301,7 +301,7 @@ print(f"Request ID: {response.request_id}")
 print(f"Message ID: {response.data['message_id']}")
 ```
 
-> **工作原理**: 
+> **工作原理**:
 > 1. 组件从 SQLite 加载应用配置(App ID/Secret)
 > 2. 自动获取 `app_access_token` 并存储到 PostgreSQL
 > 3. 使用 Token 调用飞书 API 发送消息
@@ -437,7 +437,7 @@ def handle_approval_callback(event):
     """处理用户点击卡片按钮的回调"""
     user_id = event['user_id']
     action = event['action']['value']  # 'approve' or 'reject'
-    
+
     if action == 'approve':
         print(f"用户 {user_id} 同意了审批")
         # 更新业务系统状态

@@ -1,7 +1,7 @@
 # Git 工作流程与分支管理
 
-**版本**: 1.0.0  
-**更新时间**: 2026-01-15  
+**版本**: 1.0.0
+**更新时间**: 2026-01-15
 **状态**: Production Ready
 
 ---
@@ -30,7 +30,7 @@ main (生产分支)
 | **release** | `release/v<版本>` | 临时 | main | 发布准备 |
 | **hotfix** | `hotfix/v<版本>-<描述>` | 临时 | main | 紧急修复 |
 
-**注意**: 
+**注意**:
 - `NNN` 是3位数字前缀 (如 `001`, `002`, `003`)
 - 功能分支由 `/speckit.specify` 命令自动创建
 - 每个功能分支对应 `specs/NNN-<描述>/` 目录
@@ -355,7 +355,7 @@ Closes #42
 - ⚠️ **有条件通过**: 所有 P1 条件满足 + P2 条件 ≥ 50%
 - ❌ **不通过**: P1 条件 < 100%
 
-**当前状态**: 
+**当前状态**:
 - 综合评分: 82%
 - Blocker: 0 项 ✅
 - Major Gap: 8 项 ⚠️
@@ -399,19 +399,19 @@ Phase N 开发 → 自测试 → Code Review → CI/CD → Phase 验收 → 打�
    ```bash
    # 切换到功能分支
    git checkout 001-lark-service-core
-   
+
    # 运行测试
    pytest tests/ --cov=src
-   
+
    # 检查类型
    mypy src/
-   
+
    # 检查代码风格
    ruff check src/
-   
+
    # 检查文档
    pydocstyle src/
-   
+
    # 运行 Speckit 检查清单
    /speckit.checklist
    ```
@@ -445,11 +445,11 @@ Phase N 开发 → 自测试 → Code Review → CI/CD → Phase 验收 → 打�
    - ✅ Token 管理池
    - ✅ 测试覆盖率 77.33%
    - ✅ 安全合规 (FR-077~095)
-   
+
    Spec: specs/001-lark-service-core/
    "
    git push origin main --tags
-   
+
    # 可选: 删除已合并的功能分支
    git branch -d 001-lark-service-core
    git push origin --delete 001-lark-service-core
@@ -461,11 +461,11 @@ Phase N 开发 → 自测试 → Code Review → CI/CD → Phase 验收 → 打�
    /speckit.specify "Implement messaging service for group chats"
    # → 创建: 002-messaging-service
    # → 创建: specs/002-messaging-service/
-   
+
    # 编写规范
    /speckit.plan
    /speckit.tasks
-   
+
    # 分配任务给团队
    ```
 
@@ -543,7 +543,7 @@ PR 创建 → 自动检查 → 人工审查 → 反馈修改 → 审批合并
 - [ ] Test (测试)
 
 ## 分支信息
-**功能分支**: `XXX-<描述>`  
+**功能分支**: `XXX-<描述>`
 **Spec 目录**: `specs/XXX-<描述>/`
 
 ## 变更描述
@@ -627,7 +627,7 @@ archives/
 ```markdown
 # Release v0.1.0 - Phase 1-2 完成
 
-**发布日期**: 2026-01-15  
+**发布日期**: 2026-01-15
 **标签**: v0.1.0
 
 ## ✨ 新功能
@@ -800,5 +800,5 @@ git push -u origin feature/my-feature
 
 ---
 
-**维护者**: Lark Service Team  
+**维护者**: Lark Service Team
 **参考**: [git-workflow.md](./git-workflow.md)

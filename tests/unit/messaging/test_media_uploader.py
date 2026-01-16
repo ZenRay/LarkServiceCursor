@@ -4,7 +4,6 @@ Unit tests for MediaUploader.
 Tests file size validation, file type validation, and upload logic.
 """
 
-from pathlib import Path
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
@@ -78,19 +77,19 @@ class TestMediaUploaderUpload:
     def mock_credential_pool(self):
         """Create mock credential pool with SDK client."""
         pool = Mock(spec=CredentialPool)
-        
+
         # Mock SDK client
         mock_client = MagicMock()
         mock_response = MagicMock()
         mock_response.success.return_value = True
         mock_response.data.image_key = "img_v2_test123"
         mock_response.data.file_key = "file_v2_test456"
-        
+
         mock_client.im.v1.image.create.return_value = mock_response
         mock_client.im.v1.file.create.return_value = mock_response
-        
+
         pool._get_sdk_client.return_value = mock_client
-        
+
         return pool
 
     @pytest.fixture

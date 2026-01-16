@@ -1,7 +1,7 @@
 # CI/CD 流程与自动化
 
-**版本**: 1.0.0  
-**更新时间**: 2026-01-15  
+**版本**: 1.0.0
+**更新时间**: 2026-01-15
 **状态**: Production Ready
 
 ---
@@ -108,11 +108,11 @@ name: CI
 
 on:
   push:
-    branches: 
+    branches:
       - main
       - '[0-9][0-9][0-9]-*'  # Speckit 功能分支 (如 001-lark-service-core)
   pull_request:
-    branches: 
+    branches:
       - main
 
 jobs:
@@ -430,16 +430,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: 构建镜像
         run: |
           BRANCH_NAME=${GITHUB_REF#refs/heads/}
           docker build -t lark-service:$BRANCH_NAME .
-      
+
       - name: 推送到测试仓库
         run: |
           docker push test-registry/lark-service:$BRANCH_NAME
-      
+
       - name: 部署到测试环境
         run: |
           kubectl set image deployment/lark-service \\
@@ -490,5 +490,5 @@ jobs:
 
 ---
 
-**维护者**: Lark Service Team  
+**维护者**: Lark Service Team
 **参考**: [ci-cd.md](./ci-cd.md)

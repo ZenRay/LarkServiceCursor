@@ -1,6 +1,6 @@
 # 团队协作指南
 
-**版本**: 1.0.0  
+**版本**: 1.0.0
 **更新时间**: 2026-01-15
 
 ---
@@ -78,7 +78,7 @@ from lark_oapi import Client as LarkOapiClient
 
 class LarkClient:
     """Wrapper for lark-oapi SDK.
-    
+
     隔离 lark-oapi 版本变更的影响。
     """
     def __init__(self, app_id: str, app_secret: str):
@@ -86,19 +86,19 @@ class LarkClient:
             .app_id(app_id)\\
             .app_secret(app_secret)\\
             .build()
-    
+
     def fetch_app_token(self) -> str:
         """Fetch app access token.
-        
+
         如果 SDK API 变更,仅需修改此方法。
         """
         req = self._client.auth.v3.app_access_token.internal\\
             .create()
         resp = req.do()
-        
+
         if resp.code != 0:
             raise APIError(f"Failed: {resp.msg}")
-        
+
         return resp.data.app_access_token
 ```
 
@@ -453,5 +453,5 @@ refactor(storage): 优化数据库连接池
 
 ---
 
-**维护者**: Lark Service Team  
+**维护者**: Lark Service Team
 **参考**: [Git 工作流](./git-workflow.md) | [CI/CD 流程](./ci-cd.md)

@@ -1,7 +1,7 @@
 # 性能基线文档
 
-**日期**: 2026-01-15  
-**版本**: v0.1.0  
+**日期**: 2026-01-15
+**版本**: v0.1.0
 **状态**: ✅ 已建立基线
 
 ---
@@ -270,5 +270,5 @@ pytest tests/performance/ --benchmark-compare=baseline.json
 
 ---
 
-**维护者**: Lark Service Team  
+**维护者**: Lark Service Team
 **下次更新**: Phase 2 完成时

@@ -1,7 +1,7 @@
 # 测试策略与最佳实践
 
-**版本**: 1.0.0  
-**更新时间**: 2026-01-15  
+**版本**: 1.0.0
+**更新时间**: 2026-01-15
 **状态**: Production Ready
 
 ---
@@ -104,7 +104,7 @@ from lark_service.core.models.token_storage import Base
 @pytest.fixture(scope="session")
 def test_config() -> Config:
     """Provide test configuration (session-wide).
-    
+
     使用临时数据库路径,避免污染开发环境。
     """
     return Config(
@@ -122,7 +122,7 @@ def test_config() -> Config:
 @pytest.fixture(scope="session")
 def test_db_engine(test_config: Config):
     """Provide PostgreSQL test database engine.
-    
+
     使用 session scope 以减少数据库连接开销。
     """
     database_url = (
@@ -133,12 +133,12 @@ def test_db_engine(test_config: Config):
         f"{test_config.postgres_db}"
     )
     engine = create_engine(database_url, echo=False)
-    
+
     # 创建所有表
     Base.metadata.create_all(engine)
-    
+
     yield engine
-    
+
     # 清理: 删除所有表
     Base.metadata.drop_all(engine)
     engine.dispose()
@@ -157,7 +157,7 @@ def test_app_id() -> str:
 @pytest.fixture(scope="function")
 def clean_db(test_db_engine):
     """Provide clean database for each test.
-    
+
     每个测试开始前清空数据,确保测试隔离。
     """
     # 清空所有表
@@ -166,14 +166,14 @@ def clean_db(test_db_engine):
         conn.execute("DELETE FROM user_cache")
         conn.execute("DELETE FROM user_auth_sessions")
         conn.commit()
-    
+
     yield test_db_engine
 
 
 @pytest.fixture
 def credential_pool(test_config: Config, clean_db) -> CredentialPool:
     """Provide initialized CredentialPool.
-    
+
     依赖 clean_db 确保每次测试都有干净的数据库。
     """
     pool = CredentialPool(test_config)
@@ -183,13 +183,13 @@ def credential_pool(test_config: Config, clean_db) -> CredentialPool:
 @pytest.fixture
 def test_application(test_config: Config):
     """Provide test application configuration.
-    
+
     自动创建和清理测试应用。
     """
     from lark_service.core.storage.sqlite_storage import ApplicationManager
-    
+
     manager = ApplicationManager(test_config)
-    
+
     # 创建测试应用
     app = manager.create_application(
         app_id="cli_fixture_test_app",
@@ -197,9 +197,9 @@ def test_application(test_config: Config):
         app_secret="test_secret_1234567890",
         description="Fixture test app",
     )
-    
+
     yield app
-    
+
     # 清理: 删除测试应用
     try:
         manager.delete_application(app.app_id)
@@ -214,7 +214,7 @@ def test_application(test_config: Config):
 @pytest.fixture
 def mock_lark_api(mocker):
     """Mock Feishu API responses.
-    
+
     提供标准的 API mock,避免真实 API 调用。
     """
     mock_response = {
@@ -223,7 +223,7 @@ def mock_lark_api(mocker):
         "app_access_token": "t-test_token_12345",
         "expire": 7200,
     }
-    
+
     return mocker.patch(
         "lark_service.core.credential_pool.CredentialPool._fetch_app_access_token",
         return_value="t-test_token_12345"
@@ -233,19 +233,19 @@ def mock_lark_api(mocker):
 @pytest.fixture
 def mock_token_storage(mocker):
     """Mock token storage operations.
-    
+
     加速测试,避免真实数据库操作。
     """
     from lark_service.core.models.token_storage import TokenStorage
     from datetime import datetime, timedelta
-    
+
     mock_token = TokenStorage(
         app_id="cli_mock_app",
         token_type="app_access_token",
         token_value="t-mock_token",
         expires_at=datetime.now() + timedelta(hours=2),
     )
-    
+
     return mocker.patch(
         "lark_service.core.storage.postgres_storage.TokenStorageService.get_token",
         return_value=mock_token
@@ -277,9 +277,9 @@ def db_engine():
 def temp_file():
     file_path = Path("/tmp/test_file.txt")
     file_path.write_text("test data")
-    
+
     yield file_path  # 测试代码在这里执行
-    
+
     # 清理代码 (无论测试成功或失败都会执行)
     if file_path.exists():
         file_path.unlink()
@@ -330,15 +330,15 @@ from sqlalchemy.orm import Session
 @pytest.fixture
 def db_session(test_db_engine):
     """Provide database session with transaction rollback.
-    
+
     每个测试在事务中执行,结束后回滚,确保数据隔离。
     """
     connection = test_db_engine.connect()
     transaction = connection.begin()
     session = Session(bind=connection)
-    
+
     yield session
-    
+
     # 回滚事务,撤销所有数据变更
     session.close()
     transaction.rollback()
@@ -351,16 +351,16 @@ def db_session(test_db_engine):
 @pytest.fixture
 def isolated_db(test_db_engine):
     """Provide isolated database by cleaning data.
-    
+
     测试前后清空所有表。
     """
     # 测试前清空
     with test_db_engine.connect() as conn:
         conn.execute("TRUNCATE tokens, user_cache, user_auth_sessions CASCADE")
         conn.commit()
-    
+
     yield test_db_engine
-    
+
     # 测试后清空 (可选,下次测试前也会清空)
     with test_db_engine.connect() as conn:
         conn.execute("TRUNCATE tokens, user_cache, user_auth_sessions CASCADE")
@@ -373,24 +373,24 @@ def isolated_db(test_db_engine):
 @pytest.fixture
 def isolated_db_per_test(test_config):
     """Create separate database for each test.
-    
+
     最强隔离,但性能开销大,仅用于关键测试。
     """
     import uuid
     db_name = f"test_db_{uuid.uuid4().hex[:8]}"
-    
+
     # 创建数据库
     admin_engine = create_engine(f"postgresql://admin@localhost/postgres")
     with admin_engine.connect() as conn:
         conn.execution_options(isolation_level="AUTOCOMMIT")
         conn.execute(f"CREATE DATABASE {db_name}")
-    
+
     # 创建表
     test_engine = create_engine(f"postgresql://admin@localhost/{db_name}")
     Base.metadata.create_all(test_engine)
-    
+
     yield test_engine
-    
+
     # 清理: 删除数据库
     test_engine.dispose()
     with admin_engine.connect() as conn:
@@ -409,13 +409,13 @@ import shutil
 @pytest.fixture
 def temp_dir():
     """Provide isolated temporary directory.
-    
+
     每个测试使用独立的临时目录。
     """
     temp_path = Path(tempfile.mkdtemp(prefix="lark_test_"))
-    
+
     yield temp_path
-    
+
     # 清理: 删除临时目录
     if temp_path.exists():
         shutil.rmtree(temp_path)
@@ -424,14 +424,14 @@ def temp_dir():
 @pytest.fixture
 def isolated_config_db(temp_dir):
     """Provide isolated SQLite config database.
-    
+
     使用临时目录中的 SQLite 文件。
     """
     db_path = temp_dir / "applications.db"
     config = Config(config_db_path=str(db_path), ...)
-    
+
     yield config
-    
+
     # 清理: 删除数据库文件 (temp_dir fixture 会一起清理)
 ```
 
@@ -444,7 +444,7 @@ import responses
 @pytest.fixture
 def mock_feishu_api():
     """Mock all Feishu API calls.
-    
+
     使用 responses 库拦截所有 HTTP 请求。
     """
     with responses.RequestsMock() as rsps:
@@ -460,7 +460,7 @@ def mock_feishu_api():
             },
             status=200,
         )
-        
+
         # Mock user info API
         rsps.add(
             responses.GET,
@@ -477,7 +477,7 @@ def mock_feishu_api():
             },
             status=200,
         )
-        
+
         yield rsps
 
 
@@ -485,7 +485,7 @@ def test_api_call_with_mock(mock_feishu_api, credential_pool):
     """Test with mocked API."""
     token = credential_pool.get_token("cli_test")
     assert token == "t-test_token"
-    
+
     # 验证 API 被调用
     assert len(mock_feishu_api.calls) == 1
 ```
@@ -498,18 +498,18 @@ from concurrent.futures import ThreadPoolExecutor
 
 def test_concurrent_token_acquisition(credential_pool):
     """Test concurrent token acquisition with proper isolation.
-    
+
     确保并发测试不会互相干扰。
     """
     app_ids = [f"cli_test_concurrent_{i}" for i in range(10)]
-    
+
     def get_token_for_app(app_id: str) -> str:
         return credential_pool.get_token(app_id)
-    
+
     # 并发获取 Token
     with ThreadPoolExecutor(max_workers=10) as executor:
         results = list(executor.map(get_token_for_app, app_ids))
-    
+
     # 验证所有结果
     assert len(results) == 10
     assert all(token for token in results)
@@ -637,5 +637,5 @@ pytest tests/ -s
 
 ---
 
-**维护者**: Lark Service Team  
+**维护者**: Lark Service Team
 **参考**: [testing-strategy.md](./testing-strategy.md)

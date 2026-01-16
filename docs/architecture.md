@@ -1,7 +1,7 @@
 # Lark Service 架构设计文档
 
-**版本**: 1.0.0  
-**更新时间**: 2026-01-15  
+**版本**: 1.0.0
+**更新时间**: 2026-01-15
 **状态**: Draft
 
 ## 1. 系统概述
@@ -182,7 +182,7 @@ with threading_lock:
         token = get_from_cache()
         if token and not is_expired(token):
             return token
-        
+
         # 刷新 Token
         new_token = refresh_from_api()
         save_to_cache(new_token)
@@ -445,7 +445,7 @@ src/lark_service/new_module/
 class NewModuleClient:
     def __init__(self, credential_pool):
         self.credential_pool = credential_pool
-    
+
     def some_method(self):
         token = self.credential_pool.get_token(...)
         # 调用飞书 API
@@ -485,6 +485,6 @@ def get_user_access_token(self, app_id, user_id):
 
 ---
 
-**维护者**: Lark Service Team  
-**最后更新**: 2026-01-15  
+**维护者**: Lark Service Team
+**最后更新**: 2026-01-15
 **版本**: 1.0.0

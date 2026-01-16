@@ -1,6 +1,6 @@
 # Lark Service 部署指南
 
-**版本**: 1.0.0  
+**版本**: 1.0.0
 **更新时间**: 2026-01-15
 
 ## 1. 部署概述
@@ -370,12 +370,12 @@ from lark_service import LarkServiceClient
 
 def send_notification(request):
     client = LarkServiceClient(app_id="cli_your_app_id")
-    
+
     response = client.messaging.send_text(
         receiver_id=request.user.lark_user_id,
         content="您有新的订单通知!"
     )
-    
+
     return JsonResponse({"message_id": response.data['message_id']})
 ```
 
@@ -416,12 +416,12 @@ app.config.from_object('config.Config')
 @app.route('/send-message', methods=['POST'])
 def send_message():
     client = LarkServiceClient(app_id="cli_your_app_id")
-    
+
     response = client.messaging.send_text(
         receiver_id="ou_xxxxxxxx",
         content="Hello from Flask!"
     )
-    
+
     return jsonify({"message_id": response.data['message_id']})
 ```
 
@@ -447,16 +447,16 @@ from lark_service import LarkServiceClient
 def load_to_lark(**context):
     """ETL 完成后将数据加载到飞书"""
     client = LarkServiceClient(app_id="cli_airflow_app")
-    
+
     # 获取 ETL 结果
     etl_result = context['task_instance'].xcom_pull(task_ids='etl_task')
-    
+
     # 发送通知
     client.messaging.send_text(
         receiver_id="ou_team_leader",
         content=f"✅ ETL 完成! 数据量: {etl_result['row_count']}"
     )
-    
+
     # 写入飞书多维表格
     for record in etl_result['data']:
         client.clouddoc.bitable.create_record(
@@ -470,7 +470,7 @@ with DAG(
     start_date=datetime(2026, 1, 1),
     schedule_interval='@daily',
 ) as dag:
-    
+
     load_task = PythonOperator(
         task_id='load_to_lark',
         python_callable=load_to_lark,
@@ -504,7 +504,7 @@ async def send_notification(user_id: str, message: str):
         receiver_id=user_id,
         content=message
     )
-    
+
     return {"message_id": response.data['message_id']}
 ```
 
@@ -876,6 +876,6 @@ cp config/applications.db.backup_20260115 config/applications.db
 
 ---
 
-**维护者**: Lark Service Team  
-**最后更新**: 2026-01-15  
+**维护者**: Lark Service Team
+**最后更新**: 2026-01-15
 **版本**: 1.0.0

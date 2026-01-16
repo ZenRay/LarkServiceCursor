@@ -1,7 +1,7 @@
 # 项目维护与管理流程
 
-**版本**: 1.0.0  
-**更新时间**: 2026-01-15  
+**版本**: 1.0.0
+**更新时间**: 2026-01-15
 **状态**: Production Ready
 
 ---
@@ -355,7 +355,7 @@ safety check
 ```markdown
 # Sprint N 计划
 
-**时间**: 2026-XX-XX ~ 2026-XX-XX  
+**时间**: 2026-XX-XX ~ 2026-XX-XX
 **目标**: [Sprint 主要目标]
 
 ## 任务列表
@@ -410,5 +410,5 @@ safety check
 
 ---
 
-**维护者**: Lark Service Team  
+**维护者**: Lark Service Team
 **参考**: [project-maintenance.md](./project-maintenance.md)

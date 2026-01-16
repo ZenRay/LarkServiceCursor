@@ -219,7 +219,7 @@ Fixed in: 41.0.7
 CVE: CVE-2024-1234
 
 Description:
-A vulnerability in the cryptography package allows 
+A vulnerability in the cryptography package allows
 arbitrary code execution when processing malformed input.
 
 Affected Files:
@@ -243,8 +243,8 @@ References:
 ❌ Code scanning — 3 new alerts found
    🔴 1 Critical
    🟠 2 High
-   
-   View details → 
+
+   View details →
 ```
 
 **点击查看详情**:
@@ -254,7 +254,7 @@ New alerts in this pull request:
 1. 🔴 SQL Injection vulnerability
    File: src/lark_service/core/storage.py:123
    Recommendation: Use parameterized queries
-   
+
 2. 🟠 Insecure deserialization
    File: src/lark_service/utils/cache.py:45
    Recommendation: Validate input before deserializing
@@ -434,5 +434,5 @@ jobs:
 
 ---
 
-**更新时间**: 2026-01-15  
+**更新时间**: 2026-01-15
 **维护者**: DevOps Team

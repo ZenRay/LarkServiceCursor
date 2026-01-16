@@ -1,7 +1,7 @@
 # Data Model: Lark Service 核心组件
 
-**Feature**: 001-lark-service-core  
-**Date**: 2026-01-14  
+**Feature**: 001-lark-service-core
+**Date**: 2026-01-14
 **Phase**: Phase 1 - Data Model Design
 
 ## 概述
@@ -19,7 +19,7 @@
 
 **用途**: 存储和管理飞书应用的配置信息
 
-**存储**: SQLite (`config/applications.db`)  
+**存储**: SQLite (`config/applications.db`)
 **表名**: `applications`
 
 **字段**:
@@ -62,7 +62,7 @@ class Application(ConfigBase):
     Stored in SQLite for lightweight config management.
     """
     __tablename__ = "applications"
-    
+
     app_id = Column(String(64), primary_key=True)
     app_name = Column(String(128), nullable=False, unique=True)
     app_secret = Column(Text, nullable=False)  # Encrypted
@@ -72,11 +72,11 @@ class Application(ConfigBase):
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     created_by = Column(String(64), nullable=True)
-    
+
     def is_active(self) -> bool:
         """Check if application is active."""
         return self.status == "active"
-    
+
     def get_decrypted_secret(self, encryption_key: str) -> str:
         """Decrypt and return app secret."""
         from cryptography.fernet import Fernet
@@ -102,7 +102,7 @@ VALUES (
 
 **用途**: 存储多应用的访问令牌,支持加密持久化
 
-**存储**: PostgreSQL  
+**存储**: PostgreSQL
 **表名**: `tokens`
 
 **字段**:
@@ -145,7 +145,7 @@ class TokenStorage(Base):
     Persistent token storage with encryption.
     """
     __tablename__ = "tokens"
-    
+
     id = Column(Integer, primary_key=True)
     app_id = Column(String(64), nullable=False)
     token_type = Column(String(32), nullable=False)
@@ -153,7 +153,7 @@ class TokenStorage(Base):
     expires_at = Column(DateTime, nullable=False)
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
-    
+
     __table_args__ = (
         UniqueConstraint('app_id', 'token_type', name='uq_app_token'),
     )
@@ -165,7 +165,7 @@ class TokenStorage(Base):
 
 **用途**: 缓存飞书用户信息,减少API调用,支持多应用隔离
 
-**存储**: PostgreSQL  
+**存储**: PostgreSQL
 **表名**: `user_cache`
 
 **字段**:
@@ -216,7 +216,7 @@ class UserCache(Base):
     User information cache with multi-app isolation.
     """
     __tablename__ = "user_cache"
-    
+
     id = Column(Integer, primary_key=True)
     app_id = Column(String(64), nullable=False)
     open_id = Column(String(64), nullable=False)
@@ -231,15 +231,15 @@ class UserCache(Base):
     cached_at = Column(DateTime, default=func.now())
     expires_at = Column(DateTime, nullable=False)
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
-    
+
     __table_args__ = (
         UniqueConstraint('app_id', 'open_id', name='uq_app_open_id'),
     )
-    
+
     def is_expired(self) -> bool:
         """Check if cache is expired."""
         return datetime.utcnow() > self.expires_at
-    
+
     @staticmethod
     def calculate_expires_at(cached_at: datetime) -> datetime:
         """Calculate cache expiration time (24 hours)."""
@@ -249,7 +249,7 @@ class UserCache(Base):
 **示例数据**:
 ```sql
 INSERT INTO user_cache (
-    app_id, open_id, user_id, union_id, name, email, 
+    app_id, open_id, user_id, union_id, name, email,
     mobile, department_ids, cached_at, expires_at
 )
 VALUES (
@@ -313,7 +313,7 @@ class UserAuthSession(Base):
     OAuth authentication session management.
     """
     __tablename__ = "auth_sessions"
-    
+
     session_id = Column(String(64), primary_key=True)
     app_id = Column(String(64), nullable=False)
     user_id = Column(String(64), nullable=True)
@@ -347,28 +347,28 @@ class CredentialPool:
     def get_token(self, app_id: str, token_type: TokenType) -> str:
         """
         Get token with automatic refresh.
-        
+
         Args:
         ----------
             app_id: Lark application ID
             token_type: Type of token (app_access/tenant_access/user_access)
-            
+
         Returns:
         ----------
             Valid token string
-            
+
         Raises:
         ----------
             TokenAcquisitionError: If token cannot be obtained
         """
         pass
-    
+
     def refresh_token(self, app_id: str, token_type: TokenType) -> str:
         """
         Force refresh token (bypassing cache).
         """
         pass
-    
+
     def clear_cache(self, app_id: str) -> None:
         """
         Clear all cached tokens for an application.
@@ -421,7 +421,7 @@ class MessageType(str, Enum):
 class Message(BaseModel):
     """
     Lark message data transfer object.
-    
+
     Attributes:
     ----------
         receiver_id: User ID or chat ID
@@ -433,7 +433,7 @@ class Message(BaseModel):
     msg_type: MessageType = Field(..., description="Message type")
     content: dict = Field(..., description="Message content payload")
     app_id: str = Field(..., regex=r"^cli_[a-z0-9]{16}$", description="Lark app ID")
-    
+
     class Config:
         use_enum_values = True
 ```
@@ -483,11 +483,11 @@ class CallbackEvent(BaseModel):
     signature: str = Field(..., description="Lark callback signature")
     timestamp: datetime = Field(..., description="Event timestamp")
     app_id: str = Field(..., description="Application ID")
-    
+
     def verify_signature(self, encryption_key: str) -> bool:
         """
         Verify Lark callback signature.
-        
+
         Returns:
         ----------
             True if signature is valid, False otherwise
@@ -505,7 +505,7 @@ class CallbackEvent(BaseModel):
 class StandardResponse(BaseModel):
     """
     Standardized API response structure.
-    
+
     Attributes:
     ----------
         code: Business status code (0 = success)
@@ -519,11 +519,11 @@ class StandardResponse(BaseModel):
     request_id: str = Field(..., description="Unique request ID")
     data: Optional[dict] = Field(None, description="Response data")
     error: Optional[dict] = Field(None, description="Error context")
-    
+
     @classmethod
     def success(cls, data: dict, request_id: str, message: str = "Success") -> "StandardResponse":
         return cls(code=0, message=message, request_id=request_id, data=data)
-    
+
     @classmethod
     def error(cls, code: int, message: str, request_id: str, error_details: dict = None) -> "StandardResponse":
         return cls(code=code, message=message, request_id=request_id, error=error_details)
@@ -539,11 +539,11 @@ class StandardResponse(BaseModel):
 class User(BaseModel):
     """
     Lark user information.
-    
+
     Attributes:
     ----------
         open_id: Application-scoped user ID
-        user_id: Tenant-scoped user ID  
+        user_id: Tenant-scoped user ID
         union_id: Enterprise-wide unique user ID
         name: User display name
         email: User email address
@@ -592,7 +592,7 @@ class FieldDefinition(BaseModel):
 class WorkspaceTable(BaseModel):
     """
     aPaaS workspace table metadata.
-    
+
     Attributes:
     ----------
         workspace_id: Workspace ID
@@ -610,7 +610,7 @@ class WorkspaceTable(BaseModel):
 class TableRecord(BaseModel):
     """
     aPaaS workspace table record.
-    
+
     Attributes:
     ----------
         record_id: Unique record ID
@@ -626,16 +626,16 @@ class TableRecord(BaseModel):
     version: Optional[int] = Field(None, description="Record version for conflict detection")
     created_at: Optional[datetime] = Field(None, description="Creation time")
     updated_at: Optional[datetime] = Field(None, description="Update time")
-    
+
     def get_field_value(self, field_id: str, default: Any = None) -> Any:
         """
         Get field value by field ID.
-        
+
         Args:
         ----------
             field_id: Field ID to retrieve
             default: Default value if field not found
-            
+
         Returns:
         ----------
             Field value or default
@@ -766,20 +766,20 @@ def init_config_database(db_path: str = "config/applications.db"):
     Initialize SQLite database for application configuration.
     """
     engine = create_engine(f"sqlite:///{db_path}")
-    
+
     # Create tables
     ConfigBase.metadata.create_all(engine)
-    
+
     # Create default application (optional)
     from sqlalchemy.orm import sessionmaker
     Session = sessionmaker(bind=engine)
     session = Session()
-    
+
     # Check if default app exists
     default_app = session.query(Application).filter_by(
         app_id=os.getenv("LARK_DEFAULT_APP_ID")
     ).first()
-    
+
     if not default_app and os.getenv("LARK_DEFAULT_APP_ID"):
         # Add default app from environment variables
         from cryptography.fernet import Fernet
@@ -787,7 +787,7 @@ def init_config_database(db_path: str = "config/applications.db"):
         encrypted_secret = cipher.encrypt(
             os.getenv("LARK_DEFAULT_APP_SECRET").encode()
         ).decode()
-        
+
         default_app = Application(
             app_id=os.getenv("LARK_DEFAULT_APP_ID"),
             app_name="Default Application",
@@ -798,7 +798,7 @@ def init_config_database(db_path: str = "config/applications.db"):
         session.add(default_app)
         session.commit()
         print(f"✓ Created default application: {default_app.app_id}")
-    
+
     session.close()
     print(f"✓ Config database initialized: {db_path}")
 ```
@@ -825,9 +825,9 @@ def upgrade():
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('app_id', 'token_type', name='uq_app_token')
     )
-    
+
     op.create_index('idx_tokens_expires', 'tokens', ['expires_at'])
-    
+
     # Create auth_sessions table
     op.create_table(
         'auth_sessions',
@@ -841,10 +841,10 @@ def upgrade():
         sa.Column('created_at', sa.DateTime(), server_default=sa.func.now()),
         sa.PrimaryKeyConstraint('session_id')
     )
-    
+
     op.create_index('idx_auth_sessions_expires', 'auth_sessions', ['expires_at'])
     op.create_index('idx_auth_sessions_app_user', 'auth_sessions', ['app_id', 'user_id'])
-    
+
     # Create user_cache table
     op.create_table(
         'user_cache',
@@ -865,12 +865,12 @@ def upgrade():
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('app_id', 'open_id', name='uq_app_open_id')
     )
-    
+
     op.create_index('idx_user_cache_union', 'user_cache', ['union_id'])
     op.create_index('idx_user_cache_email', 'user_cache', ['email'])
     op.create_index('idx_user_cache_mobile', 'user_cache', ['mobile'])
     op.create_index('idx_user_cache_expires', 'user_cache', ['expires_at'])
-    
+
     # Enable pg_crypto extension for encryption
     op.execute("CREATE EXTENSION IF NOT EXISTS pgcrypto")
 
@@ -881,12 +881,12 @@ def downgrade():
     op.drop_index('idx_user_cache_email', table_name='user_cache')
     op.drop_index('idx_user_cache_union', table_name='user_cache')
     op.drop_table('user_cache')
-    
+
     # Drop auth_sessions table
     op.drop_index('idx_auth_sessions_app_user', table_name='auth_sessions')
     op.drop_index('idx_auth_sessions_expires', table_name='auth_sessions')
     op.drop_table('auth_sessions')
-    
+
     # Drop tokens table
     op.drop_index('idx_tokens_expires', table_name='tokens')
     op.drop_table('tokens')
