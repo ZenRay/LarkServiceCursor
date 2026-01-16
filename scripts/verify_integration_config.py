@@ -140,31 +140,51 @@ def check_lark_credentials(env_vars: dict[str, str]) -> bool:
 
     print("✅ Lark credentials format valid")
 
-    # Try to get tenant access token
+    # Try to get tenant access token using HTTP request
+    # Note: Using direct HTTP instead of SDK due to SDK bug in version 1.5.2
     try:
-        import lark_oapi as lark
-        from lark_oapi.api.auth.v3 import InternalTenantAccessTokenRequest
+        import requests
 
-        client = lark.Client.builder().app_id(app_id).app_secret(app_secret).build()
+        url = "https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal"
+        payload = {
+            "app_id": app_id,
+            "app_secret": app_secret
+        }
 
-        request = InternalTenantAccessTokenRequest.builder().build()
-        response = client.auth.v3.tenant_access_token.internal(request)
+        response = requests.post(url, json=payload, timeout=10)
+        result = response.json()
 
-        if response.success():
+        if result.get("code") == 0:
             print("✅ Lark API authentication successful")
-            print(f"   Tenant access token obtained (expires in {response.data.expire} seconds)")
+            expire = result.get("expire", 0)
+            print(f"   Tenant access token obtained (expires in {expire} seconds)")
             return True
         else:
-            print(f"❌ Lark API authentication failed: {response.code} - {response.msg}")
-            print("   Please check your APP_ID and APP_SECRET")
+            error_code = result.get("code")
+            error_msg = result.get("msg", "Unknown error")
+            print(f"❌ Lark API authentication failed: {error_code} - {error_msg}")
+            
+            # Provide helpful error messages
+            if error_code == 10003:
+                print("   Possible causes:")
+                print("   - App ID or App Secret is incorrect")
+                print("   - Application is not activated")
+                print("   - Application has been disabled")
+            elif error_code == 99991663:
+                print("   Possible causes:")
+                print("   - App Secret is incorrect")
+                print("   - App Secret has been regenerated")
+            
+            print("   Please verify at: https://open.feishu.cn/app")
             return False
 
     except ImportError:
-        print("⚠️  lark-oapi-sdk not installed - skipping API check")
-        print("   Install: pip install lark-oapi")
+        print("⚠️  requests library not installed - skipping API check")
+        print("   Install: pip install requests")
         return True  # Not a failure, just can't check
     except Exception as e:
         print(f"❌ Lark API check failed: {e}")
+        print("   Please check your network connection")
         return False
 
 
