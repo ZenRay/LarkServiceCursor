@@ -262,3 +262,35 @@ class RequestTimeoutError(APIError):
     """
 
     pass
+
+
+class NotFoundError(APIError):
+    """Resource not found errors.
+
+    Raised when a requested resource (document, user, etc.) is not found.
+
+    Example
+    ----------
+        >>> raise NotFoundError(
+        ...     "Document not found",
+        ...     details={"doc_id": "doxcn123"}
+        ... )
+    """
+
+    pass
+
+
+class PermissionDeniedError(APIError):
+    """Permission denied errors.
+
+    Raised when user has no permission to access or modify a resource.
+
+    Example
+    ----------
+        >>> raise PermissionDeniedError(
+        ...     "No permission to edit document",
+        ...     details={"doc_id": "doxcn123", "required_permission": "write"}
+        ... )
+    """
+
+    pass
