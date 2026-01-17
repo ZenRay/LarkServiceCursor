@@ -1,0 +1,23 @@
+# Staging模拟环境 - Git忽略文件
+
+# 环境变量文件
+.env.local
+*.env
+
+# 备份文件
+backups/
+*.sql
+*.sql.gz
+*.gpg
+
+# 日志文件
+logs/
+*.log
+
+# Docker volumes数据
+*_data/
+
+# 临时文件
+*.tmp
+*.bak
+*~
