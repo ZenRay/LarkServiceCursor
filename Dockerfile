@@ -34,7 +34,7 @@ RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple && 
     pip install --no-cache-dir --upgrade pip setuptools wheel
 
 # Copy dependency files (leverage Docker cache layers)
-COPY requirements.txt pyproject.toml README.md ./
+COPY requirements.txt ./
 
 # Separate production and development dependencies
 # Only install production-required dependencies
