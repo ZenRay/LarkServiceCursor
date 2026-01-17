@@ -63,7 +63,12 @@ echo -e "${BLUE}═════════════════════�
 echo -e "${YELLOW}📝 Step 2: Adding files to staging area${NC}"
 echo -e "${BLUE}═══════════════════════════════════════════════════════${NC}"
 
-# Add files to staging
+# Add files to staging (use --force to ensure we get latest version)
+# This ensures working directory changes are staged
+git add "$@"
+
+# Verify: re-add to catch any last-minute changes
+# (handles case where file was modified between format and add)
 git add "$@"
 
 # Get list of staged files for display
@@ -79,6 +84,10 @@ echo ""
 echo -e "${BLUE}═══════════════════════════════════════════════════════${NC}"
 echo -e "${YELLOW}🔍 Step 3: Running code quality checks${NC}"
 echo -e "${BLUE}═══════════════════════════════════════════════════════${NC}"
+
+# Important: Re-add files right before pre-commit to ensure staging area is in sync
+echo -e "${BLUE}ℹ Syncing staging area with working directory...${NC}"
+git add "$@"
 
 # Run pre-commit checks on staged files
 # Note: ruff-format is now in --check mode, so it won't modify files

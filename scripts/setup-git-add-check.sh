@@ -49,6 +49,11 @@ git config alias.fmt '!f() { python -m ruff format "$@"; }; f'
 echo -e "${GREEN}✓ Git alias 'git fmt' configured${NC}"
 echo -e "   Usage: ${BLUE}git fmt <files>${NC} (format files)"
 
+# csync - commit with staging sync
+git config alias.csync '!f() { ./scripts/git-commit-sync.sh "$@"; }; f'
+echo -e "${GREEN}✓ Git alias 'git csync' configured${NC}"
+echo -e "   Usage: ${BLUE}git csync -m \"message\"${NC} (auto-sync before commit)"
+
 echo ""
 
 # 4. Suggest shell alias
@@ -62,6 +67,7 @@ echo ""
 # 5. Make scripts executable
 echo -e "${YELLOW}5. Making scripts executable...${NC}"
 chmod +x scripts/git-add-check.sh
+chmod +x scripts/git-commit-sync.sh
 chmod +x scripts/setup-git-add-check.sh
 echo -e "${GREEN}✓ Scripts are now executable${NC}"
 echo ""
@@ -83,6 +89,9 @@ echo -e "     Format files only (no add/check)"
 echo ""
 echo -e "  4. ${GREEN}git cfmt <files>${NC}"
 echo -e "     Check format only (no modify)"
+echo ""
+echo -e "  5. ${GREEN}git csync -m \"message\"${NC}"
+echo -e "     Commit with auto-sync (prevents staging/working dir mismatch)"
 echo ""
 echo -e "${YELLOW}Workflow improvements:${NC}"
 echo -e "  ✅ Auto-format before staging (no surprises)"
