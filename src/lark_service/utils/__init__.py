@@ -21,7 +21,9 @@ from lark_service.utils.validators import (
     validate_chat_id,
     validate_enum,
     validate_file_path,
+    validate_non_empty_string,
     validate_non_negative_float,
+    validate_non_negative_int,
     validate_open_id,
     validate_positive_int,
     validate_token,
@@ -56,6 +58,8 @@ __all__ = [
     "validate_file_path",
     "validate_positive_int",
     "validate_non_negative_float",
+    "validate_non_negative_int",
+    "validate_non_empty_string",
     "validate_enum",
 ]
 

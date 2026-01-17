@@ -1,16 +1,8 @@
-"""
-Workspace table client for Lark aPaaS data space integration.
-
-This module provides a high-level client for aPaaS workspace table operations,
-including table listing, record CRUD, batch operations, and field definitions.
-
-All operations require user_access_token authentication.
-"""
-
 from typing import Any
 
 from lark_service.apaas.models import (
     FieldDefinition,
+    FieldType,
     TableRecord,
     WorkspaceTable,
 )
@@ -22,6 +14,28 @@ from lark_service.core.retry import RetryStrategy
 from lark_service.utils.logger import get_logger
 
 logger = get_logger()
+
+# Feishu aPaaS API base URL
+APAAS_API_BASE = "https://open.feishu.cn/open-apis"
+
+# Field type mapping from API response to FieldType enum
+FIELD_TYPE_MAP = {
+    1: FieldType.TEXT,
+    2: FieldType.NUMBER,
+    3: FieldType.SINGLE_SELECT,
+    4: FieldType.MULTI_SELECT,
+    5: FieldType.DATE,
+    6: FieldType.DATETIME,
+    7: FieldType.CHECKBOX,
+    11: FieldType.PERSON,
+    13: FieldType.PHONE,
+    15: FieldType.EMAIL,
+    17: FieldType.URL,
+    18: FieldType.ATTACHMENT,
+    19: FieldType.LINK,
+    20: FieldType.FORMULA,
+    21: FieldType.LOOKUP,
+}
 
 
 class WorkspaceTableClient:
