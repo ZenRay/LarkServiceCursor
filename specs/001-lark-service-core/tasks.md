@@ -421,9 +421,9 @@
 
 ### 端到端集成测试
 
-- [ ] T073 [P] 端到端测试 tests/integration/test_end_to_end.py (从应用配置初始化 → 获取Token → 发送消息 → 创建文档 → 查询用户 → 全流程验证)
-- [ ] T074 [P] 并发测试 tests/integration/test_concurrency.py (100并发API调用,验证Token刷新不成为瓶颈,锁机制正常工作)
-- [ ] T075 [P] 故障恢复测试 tests/integration/test_failure_recovery.py (数据库断连恢复、消息队列故障降级、Token失效重试)
+- [X] T073 [P] 端到端测试 tests/integration/test_end_to_end.py (从应用配置初始化 → 获取Token → 发送消息 → 创建文档 → 查询用户 → 全流程验证) ✅ 2026-01-18
+- [X] T074 [P] 并发测试 tests/integration/test_concurrency.py (100并发API调用,验证Token刷新不成为瓶颈,锁机制正常工作) ✅ 2026-01-18
+- [X] T075 [P] 故障恢复测试 tests/integration/test_failure_recovery.py (数据库断连恢复、消息队列故障降级、Token失效重试) ✅ 2026-01-18
 
 ### 性能与可靠性验证
 
