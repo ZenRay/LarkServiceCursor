@@ -697,11 +697,11 @@ class WorkspaceTableClient:
             columns = ", ".join(fields.keys())
             placeholders = ", ".join(self._format_sql_value(v) for v in fields.values())
 
-            sql = f"""  # nosec B608
+            sql = f"""
                 INSERT INTO {table_id} ({columns})
                 VALUES ({placeholders})
                 RETURNING id
-            """
+            """  # nosec B608
 
             # Execute via SQL Commands API
             result_records = self.sql_query(
@@ -801,11 +801,11 @@ class WorkspaceTableClient:
             ]
             set_clause = ", ".join(set_clauses)
 
-            sql = f"""  # nosec B608
+            sql = f"""
                 UPDATE {table_id}
                 SET {set_clause}
                 WHERE id = '{record_id}'
-            """
+            """  # nosec B608
 
             # Execute via SQL Commands API
             self.sql_query(
@@ -884,10 +884,10 @@ class WorkspaceTableClient:
 
         try:
             # Build SQL DELETE statement
-            sql = f"""  # nosec B608
+            sql = f"""
                 DELETE FROM {table_id}
                 WHERE id = '{record_id}'
-            """
+            """  # nosec B608
 
             # Execute via SQL Commands API
             self.sql_query(
@@ -1003,11 +1003,11 @@ class WorkspaceTableClient:
 
                 values_str = ", ".join(values_clauses)
 
-                sql = f"""  # nosec B608
+                sql = f"""
                     INSERT INTO {table_id} ({columns_str})
                     VALUES {values_str}
                     RETURNING id
-                """
+                """  # nosec B608
 
                 # Execute batch
                 result_records = self.sql_query(
@@ -1139,11 +1139,11 @@ class WorkspaceTableClient:
 
                 set_clause = ", ".join(set_clauses)
 
-                sql = f"""  # nosec B608
+                sql = f"""
                     UPDATE {table_id}
                     SET {set_clause}
                     WHERE id IN ({record_ids_str})
-                """
+                """  # nosec B608
 
                 # Execute batch
                 self.sql_query(
@@ -1250,10 +1250,10 @@ class WorkspaceTableClient:
                 # Build SQL DELETE with IN clause
                 ids_str = ", ".join(f"'{rid}'" for rid in batch)
 
-                sql = f"""  # nosec B608
+                sql = f"""
                     DELETE FROM {table_id}
                     WHERE id IN ({ids_str})
-                """
+                """  # nosec B608
 
                 # Execute batch
                 self.sql_query(
