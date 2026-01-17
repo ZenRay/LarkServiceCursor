@@ -99,9 +99,12 @@ LARK_APP_SECRET=xxx              # 飞书应用密钥
 ### 方案2: 使用setup脚本自动创建
 
 ```bash
-# 运行自动化设置脚本
+# 运行自动化设置脚本（在项目根目录）
 cd /home/ray/Documents/Files/LarkServiceCursor
 python scripts/setup_integration_test.py
+
+# 或使用staging-simulation的脚本
+bash staging-simulation/scripts/update_test_tokens.sh
 
 # 脚本会:
 # 1. 检查应用权限

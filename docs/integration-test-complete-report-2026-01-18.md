@@ -174,6 +174,9 @@ export POSTGRES_PASSWORD=staging_password_local_only
 pytest tests/integration/test_bitable_e2e.py \
        tests/integration/test_clouddoc_e2e.py \
        -v --tb=line
+
+# 或使用便捷脚本
+bash staging-simulation/scripts/test-deployment.sh
 ```
 
 ---

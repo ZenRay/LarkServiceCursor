@@ -1,8 +1,13 @@
 #!/bin/bash
 # 快速验证集成测试资源配置
-# 使用方式: ./verify_test_config.sh
+# 使用方式: bash scripts/verify_test_config.sh
 
 set -e
+
+# 获取脚本所在目录的父目录（staging-simulation目录）
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+STAGING_DIR="$(dirname "$SCRIPT_DIR")"
+ENV_FILE="$STAGING_DIR/.env.local"
 
 echo "╔══════════════════════════════════════════════════════════════╗"
 echo "║                                                              ║"
@@ -12,12 +17,12 @@ echo "╚═══════════════════════�
 echo ""
 
 # 加载环境变量
-if [ -f "staging-simulation/.env.local" ]; then
-    echo "📄 加载配置文件: staging-simulation/.env.local"
-    export $(cat staging-simulation/.env.local | grep -v '^#' | grep -v '^$' | xargs)
+if [ -f "$ENV_FILE" ]; then
+    echo "📄 加载配置文件: $ENV_FILE"
+    export $(cat "$ENV_FILE" | grep -v '^#' | grep -v '^$' | xargs)
     echo ""
 else
-    echo "❌ 错误: staging-simulation/.env.local 文件不存在"
+    echo "❌ 错误: $ENV_FILE 文件不存在"
     exit 1
 fi
 
@@ -77,7 +82,7 @@ if [ $ERRORS -eq 0 ]; then
     echo "🚀 可以运行集成测试了！"
     echo ""
     echo "运行命令:"
-    echo "  export \$(cat staging-simulation/.env.local | grep -v '^#' | xargs)"
+    echo "  export \$(cat $ENV_FILE | grep -v '^#' | xargs)"
     echo ""
     echo "  # 测试Bitable功能"
     echo "  pytest tests/integration/test_bitable_e2e.py -v"

@@ -1,8 +1,9 @@
 # Staging模拟环境 - Git忽略文件
 
-# 环境变量文件
+# 环境变量文件（包含敏感信息）
 .env.local
 *.env
+.env.*.backup.*
 
 # 备份文件
 backups/
@@ -21,3 +22,9 @@ logs/
 *.tmp
 *.bak
 *~
+*.swp
+
+# 测试输出
+test-output*.log
+coverage.xml
+.coverage

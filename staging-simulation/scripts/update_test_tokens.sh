@@ -1,10 +1,13 @@
 #!/bin/bash
 # 更新 .env.local 文件添加集成测试资源token
-# 使用方式: ./update_test_tokens.sh
+# 使用方式: bash scripts/update_test_tokens.sh
 
 set -e
 
-ENV_FILE="staging-simulation/.env.local"
+# 获取脚本所在目录的父目录（staging-simulation目录）
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+STAGING_DIR="$(dirname "$SCRIPT_DIR")"
+ENV_FILE="$STAGING_DIR/.env.local"
 
 echo "🔧 更新集成测试资源token到 $ENV_FILE"
 
