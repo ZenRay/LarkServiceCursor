@@ -2,16 +2,46 @@
 
 ## 🔍 代码质量检查工作流
 
-### 问题：`git add` 后发现代码质量问题
+### 问题：传统 Git 工作流的痛点
 
-传统的工作流：
+传统工作流：
 ```bash
 git add file.py          # 添加文件
-git commit -m "fix"      # 提交 → pre-commit hook 报错 ❌
-# 需要修复后重新 add + commit
+git commit -m "fix"      # 提交 → pre-commit hook 报格式错误 ❌
+# 需要修复后重新 add + commit，可能产生循环
 ```
 
-**痛点**：在 commit 时才发现问题，需要反复修改。
+**痛点**：
+- ❌ 在 commit 时才发现格式问题
+- ❌ pre-commit hook 自动修改文件导致循环
+- ❌ 需要反复 add → commit → 失败 → 修复
+
+---
+
+## ✅ 新的智能工作流
+
+### 核心改进
+
+**3步式流程**：`Format → Add → Check`
+
+```bash
+# 使用智能脚本（推荐）
+./scripts/git-add-check.sh src/file.py
+
+# 或使用 git alias
+git cadd src/file.py
+```
+
+**工作原理**：
+1. **Step 1**: 自动检测格式问题并 format
+2. **Step 2**: 添加文件到 staging area
+3. **Step 3**: 运行所有质量检查（ruff-format 现在是 --check 模式）
+
+**优势**：
+- ✅ 在 add 前就自动格式化（避免循环）
+- ✅ Pre-commit hooks 只检查，不修改
+- ✅ 清晰的 3 步流程，易于理解
+- ✅ 一次命令完成所有操作
 
 ---
 

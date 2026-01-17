@@ -6,6 +6,9 @@ repos:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
       - id: ruff-format
+        # 在 pre-commit 时只检查，不自动修改（避免循环）
+        # 用户应该在 add 前手动运行 ruff format，或使用 git-add-check.sh
+        args: [--check]
 
   # Mypy - 类型检查
   - repo: https://github.com/pre-commit/mirrors-mypy

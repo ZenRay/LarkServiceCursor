@@ -31,11 +31,24 @@ pre-commit install
 echo -e "${GREEN}✓ Pre-commit hooks installed${NC}"
 echo ""
 
-# 3. Setup git alias
-echo -e "${YELLOW}3. Setting up git alias 'cadd' (checked add)...${NC}"
-git config alias.cadd '!f() { git add "$@" && pre-commit run --files "$@"; }; f'
+# 3. Setup git alias (updated to use script for better workflow)
+echo -e "${YELLOW}3. Setting up git aliases...${NC}"
+
+# cadd - checked add (uses the smart script)
+git config alias.cadd '!f() { ./scripts/git-add-check.sh "$@"; }; f'
 echo -e "${GREEN}✓ Git alias 'git cadd' configured${NC}"
 echo -e "   Usage: ${BLUE}git cadd <files>${NC}"
+
+# cfmt - check format only
+git config alias.cfmt '!f() { python -m ruff format --check "$@"; }; f'
+echo -e "${GREEN}✓ Git alias 'git cfmt' configured${NC}"
+echo -e "   Usage: ${BLUE}git cfmt <files>${NC} (check format without modifying)"
+
+# fmt - format files
+git config alias.fmt '!f() { python -m ruff format "$@"; }; f'
+echo -e "${GREEN}✓ Git alias 'git fmt' configured${NC}"
+echo -e "   Usage: ${BLUE}git fmt <files>${NC} (format files)"
+
 echo ""
 
 # 4. Suggest shell alias
@@ -43,6 +56,7 @@ echo -e "${YELLOW}4. Shell alias suggestions:${NC}"
 echo -e "   Add these lines to your ${BLUE}~/.bashrc${NC} or ${BLUE}~/.zshrc${NC}:"
 echo -e "   ${GREEN}alias gadd='./scripts/git-add-check.sh'${NC}"
 echo -e "   ${GREEN}alias gac='./scripts/git-add-check.sh'${NC}"
+echo -e "   ${GREEN}alias rfmt='python -m ruff format'${NC}"
 echo ""
 
 # 5. Make scripts executable
@@ -59,16 +73,25 @@ echo -e "${BLUE}═════════════════════�
 echo ""
 echo -e "${YELLOW}Available commands:${NC}"
 echo -e "  1. ${GREEN}./scripts/git-add-check.sh <files>${NC}"
-echo -e "     Add files and run checks immediately"
+echo -e "     Smart workflow: format → add → check (recommended)"
 echo ""
 echo -e "  2. ${GREEN}git cadd <files>${NC}"
-echo -e "     Git alias for add + check (shorter command)"
+echo -e "     Same as #1, shorter command"
 echo ""
-echo -e "  3. ${GREEN}git add <files> && pre-commit run${NC}"
-echo -e "     Manual workflow (most flexible)"
+echo -e "  3. ${GREEN}git fmt <files>${NC}"
+echo -e "     Format files only (no add/check)"
+echo ""
+echo -e "  4. ${GREEN}git cfmt <files>${NC}"
+echo -e "     Check format only (no modify)"
+echo ""
+echo -e "${YELLOW}Workflow improvements:${NC}"
+echo -e "  ✅ Auto-format before staging (no surprises)"
+echo -e "  ✅ Pre-commit hooks now in --check mode (no auto-modify)"
+echo -e "  ✅ Prevents formatting loops"
+echo -e "  ✅ Clear 3-step process: format → add → check"
 echo ""
 echo -e "${YELLOW}Next steps:${NC}"
 echo -e "  • Read ${BLUE}docs/dev-workflow.md${NC} for detailed guide"
-echo -e "  • Try: ${GREEN}./scripts/git-add-check.sh src/lark_service/apaas/client.py${NC}"
 echo -e "  • Try: ${GREEN}git cadd src/lark_service/apaas/client.py${NC}"
+echo -e "  • Try: ${GREEN}git fmt src/**/*.py${NC} (format all Python files)"
 echo ""
