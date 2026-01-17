@@ -142,6 +142,11 @@ disallow_subclassing_any = false
 disallow_untyped_defs = false
 warn_return_any = false
 
+# Relax checking for test files (pytest fixtures and decorators)
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_decorators = false
+
 # Pytest 配置
 [tool.pytest.ini_options]
 testpaths = ["tests"]
