@@ -102,12 +102,28 @@ API可达性: 正常 (HTTP 404 on root endpoint, expected)
 
 ### 3.3 跳过的测试
 
-29个测试被跳过的原因：
-- 需要特定外部资源（Redis、RabbitMQ）
-- 需要真实飞书环境配置
-- 标记为慢速测试（性能测试）
+29个测试被跳过的详细分析：
 
-这些跳过是预期的，不影响核心功能验证。
+**原因1: 功能未实现（预期跳过）** - 3个
+- `batch_update_records` - 批量更新功能未实现
+- `batch_delete_records` - 批量删除功能未实现
+- `list_fields` - 字段列表功能未实现
+
+**原因2: 标记为需要真实API（实际可运行）** - 26个
+- clouddoc/bitable - 多维表格操作测试 (8个)
+- clouddoc/sheet - 电子表格操作测试 (11个)
+- clouddoc/doc - 文档操作测试 (5个)
+- messaging - 媒体上传测试 (2个)
+
+**说明**:
+- ✅ Docker环境中PostgreSQL、Redis、RabbitMQ均已启动运行
+- ✅ 飞书凭证已正确配置（LARK_APP_ID/SECRET）
+- ⚠️ 这26个测试被标记为 `@pytest.mark.skip`，但实际上现在可以运行
+- 💡 这些skip标记是开发时添加的（当时可能还没有测试环境）
+
+**修正后的统计**:
+- 实际可用测试: 403个 (406 - 3未实现)
+- 实际通过率: 93.1% (375/403) ✅
 
 ## 🔗 集成测试
 
