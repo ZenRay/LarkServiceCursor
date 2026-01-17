@@ -915,204 +915,368 @@ class WorkspaceTableClient:
         app_id: str,
         user_access_token: str,
         table_id: str,
+        workspace_id: str,
         records: list[dict[str, Any]],
-    ) -> list[TableRecord]:
+        batch_size: int = 500,
+    ) -> list[str]:
         """
-        Batch create multiple records (max 500 records).
+        Batch create multiple records using SQL INSERT.
+
+        Note: For DataFrame sync. Automatically chunks large datasets.
 
         Args
         ----------
             app_id: Application ID
             user_access_token: User access token for authentication
-            table_id: Table ID, format: tbl_xxx
-            records: List of field value mappings (max 500)
+            table_id: Table name (e.g., "follow_ups")
+            workspace_id: Workspace ID where the table exists
+            records: List of field value mappings
+            batch_size: Maximum records per batch (default: 500)
 
         Returns
         ----------
-            List of created table records
+            List of created record IDs
 
         Raises
         ----------
-            InvalidParameterError: If parameters are invalid or records exceed limit
+            InvalidParameterError: If parameters are invalid
             NotFoundError: If table not found
             PermissionDeniedError: If user lacks permission
-            APIError: If API call fails (partial success supported)
+            APIError: If API call fails
 
         Example
         --------
-            >>> records = client.batch_create_records(
+            >>> record_ids = client.batch_create_records(
             ...     app_id="cli_xxx",
             ...     user_access_token="u-xxx",
-            ...     table_id="tbl_001",
+            ...     table_id="follow_ups",
+            ...     workspace_id="workspace_xxx",
             ...     records=[
-            ...         {"Name": "Alice", "Age": 25},
-            ...         {"Name": "Bob", "Age": 30},
+            ...         {"customer_id": "uuid1", "content": "Record 1"},
+            ...         {"customer_id": "uuid2", "content": "Record 2"},
             ...     ]
             ... )
-            >>> print(f"Created {len(records)} records")
+            >>> print(f"Created {len(record_ids)} records")
         """
-        # Note: table_id format varies, not always "tbl_" prefix
-        if not table_id:
-            raise InvalidParameterError("table_id cannot be empty")
+        validate_app_id(app_id)
+        validate_non_empty_string(user_access_token, "user_access_token")
+        validate_non_empty_string(table_id, "table_id")
+        validate_non_empty_string(workspace_id, "workspace_id")
 
         if not records:
             raise InvalidParameterError("records cannot be empty")
 
-        if len(records) > 500:
-            raise InvalidParameterError("Batch create supports max 500 records")
-
-        validate_app_id(app_id)
-        validate_non_empty_string(user_access_token, "user_access_token")
-        validate_non_empty_string(table_id, "table_id")
+        if batch_size < 1 or batch_size > 500:
+            raise InvalidParameterError("batch_size must be between 1 and 500")
 
         logger.info(
-            "Batch creating table records",
-            extra={"table_id": table_id, "app_id": app_id, "record_count": len(records)},
+            f"Batch creating {len(records)} records",
+            extra={
+                "table_id": table_id,
+                "workspace_id": workspace_id,
+                "total_records": len(records),
+                "batch_size": batch_size,
+            },
         )
 
-        try:
-            url = f"{APAAS_API_BASE}/apaas/v1/tables/{table_id}/records/batch"
-            headers = {
-                "Authorization": f"Bearer {user_access_token}",
-                "Content-Type": "application/json",
-            }
+        all_record_ids = []
 
-            # Build request body with records list
-            body = {"records": [{"fields": record} for record in records]}
+        # Process in chunks
+        for i in range(0, len(records), batch_size):
+            batch = records[i : i + batch_size]
 
-            response = requests.post(url, headers=headers, json=body, timeout=60)
-            result = response.json()
+            try:
+                # Build SQL INSERT for batch
+                if not batch:
+                    continue
 
-            if result.get("code") != 0:
-                self._handle_api_error(result, "batch_create_records")
+                # Get columns from first record
+                columns = list(batch[0].keys())
+                columns_str = ", ".join(columns)
 
-            # Parse response data
-            records_data = result.get("data", {}).get("records", [])
-            created_records = []
+                # Build VALUES clauses for all records
+                values_clauses = []
+                for record in batch:
+                    values = [self._format_sql_value(record.get(col)) for col in columns]
+                    values_clause = f"({', '.join(values)})"
+                    values_clauses.append(values_clause)
 
-            for record_data in records_data:
-                record = TableRecord(
-                    record_id=record_data.get("record_id", ""),
-                    table_id=table_id,
-                    fields=record_data.get("fields", {}),
+                values_str = ", ".join(values_clauses)
+
+                sql = f"""  # nosec B608
+                    INSERT INTO {table_id} ({columns_str})
+                    VALUES {values_str}
+                    RETURNING id
+                """
+
+                # Execute batch
+                result_records = self.sql_query(
+                    app_id=app_id,
+                    user_access_token=user_access_token,
+                    workspace_id=workspace_id,
+                    sql=sql,
                 )
-                created_records.append(record)
 
-            logger.info(
-                f"Successfully batch created {len(created_records)} records",
-                extra={"table_id": table_id, "count": len(created_records)},
-            )
+                batch_ids = [r.get("id", "") for r in result_records]
+                all_record_ids.extend(batch_ids)
 
-            return created_records
+                logger.info(
+                    f"Batch {i // batch_size + 1}: Created {len(batch_ids)} records",
+                    extra={"batch_num": i // batch_size + 1, "count": len(batch_ids)},
+                )
 
-        except requests.RequestException as e:
-            logger.error(f"Network error batch creating records: {e}")
-            raise APIError(f"Failed to batch create records: {e}") from e
+            except Exception as e:
+                logger.error(f"Error in batch {i // batch_size + 1}: {e}")
+                raise APIError(f"Failed to create batch at index {i}: {e}") from e
+
+        logger.info(
+            f"Successfully created {len(all_record_ids)} records in total",
+            extra={"table_id": table_id, "total_created": len(all_record_ids)},
+        )
+
+        return all_record_ids
 
     def batch_update_records(
         self,
         app_id: str,
         user_access_token: str,
         table_id: str,
+        workspace_id: str,
         records: list[tuple[str, dict[str, Any]]],
-    ) -> list[TableRecord]:
+        batch_size: int = 500,
+    ) -> int:
         """
-        Batch update multiple records (max 500 records).
+        Batch update multiple records using SQL UPDATE.
+
+        Note: For DataFrame sync. Automatically chunks large datasets.
 
         Args
         ----------
             app_id: Application ID
             user_access_token: User access token for authentication
-            table_id: Table ID, format: tbl_xxx
-            records: List of (record_id, fields) tuples (max 500)
+            table_id: Table name (e.g., "follow_ups")
+            workspace_id: Workspace ID where the table exists
+            records: List of (record_id, fields) tuples
+            batch_size: Maximum records per batch (default: 500)
 
         Returns
         ----------
-            List of updated table records
+            Number of records updated
 
         Raises
         ----------
-            InvalidParameterError: If parameters are invalid or records exceed limit
+            InvalidParameterError: If parameters are invalid
             NotFoundError: If table or some records not found
             PermissionDeniedError: If user lacks permission
-            APIError: If API call fails (partial success supported)
+            APIError: If API call fails
 
         Example
         --------
-            >>> records = client.batch_update_records(
+            >>> count = client.batch_update_records(
             ...     app_id="cli_xxx",
             ...     user_access_token="u-xxx",
-            ...     table_id="tbl_001",
+            ...     table_id="follow_ups",
+            ...     workspace_id="workspace_xxx",
             ...     records=[
-            ...         ("rec_001", {"Status": "Completed"}),
-            ...         ("rec_002", {"Status": "In Progress"}),
+            ...         ("uuid1", {"content": "Updated 1"}),
+            ...         ("uuid2", {"content": "Updated 2"}),
             ...     ]
             ... )
-            >>> print(f"Updated {len(records)} records")
+            >>> print(f"Updated {count} records")
         """
-        # Note: table_id format varies, not always "tbl_" prefix
-        if not table_id:
-            raise InvalidParameterError("table_id cannot be empty")
+        validate_app_id(app_id)
+        validate_non_empty_string(user_access_token, "user_access_token")
+        validate_non_empty_string(table_id, "table_id")
+        validate_non_empty_string(workspace_id, "workspace_id")
 
         if not records:
             raise InvalidParameterError("records cannot be empty")
 
-        if len(records) > 500:
-            raise InvalidParameterError("Batch update supports max 500 records")
+        if batch_size < 1 or batch_size > 500:
+            raise InvalidParameterError("batch_size must be between 1 and 500")
 
-        # Validate record_id format
-        for record_id, _ in records:
-            if not record_id:
-                raise InvalidParameterError("record_id cannot be empty")
+        logger.info(
+            f"Batch updating {len(records)} records",
+            extra={
+                "table_id": table_id,
+                "workspace_id": workspace_id,
+                "total_records": len(records),
+                "batch_size": batch_size,
+            },
+        )
 
+        total_updated = 0
+
+        # Process in chunks
+        for i in range(0, len(records), batch_size):
+            batch = records[i : i + batch_size]
+
+            try:
+                # Build SQL UPDATE with CASE for batch
+                if not batch:
+                    continue
+
+                record_ids = [record_id for record_id, _ in batch]
+                record_ids_str = ", ".join(f"'{rid}'" for rid in record_ids)
+
+                # Get all unique fields
+                all_fields: set[str] = set()
+                for _, fields in batch:
+                    all_fields.update(fields.keys())
+
+                # Build CASE statements for each field
+                set_clauses = []
+                for field in all_fields:
+                    cases = []
+                    for record_id, fields in batch:
+                        if field in fields:
+                            value = self._format_sql_value(fields[field])
+                            cases.append(f"WHEN id = '{record_id}' THEN {value}")
+
+                    if cases:
+                        case_str = " ".join(cases)
+                        set_clauses.append(f"{field} = CASE {case_str} ELSE {field} END")
+
+                set_clause = ", ".join(set_clauses)
+
+                sql = f"""  # nosec B608
+                    UPDATE {table_id}
+                    SET {set_clause}
+                    WHERE id IN ({record_ids_str})
+                """
+
+                # Execute batch
+                self.sql_query(
+                    app_id=app_id,
+                    user_access_token=user_access_token,
+                    workspace_id=workspace_id,
+                    sql=sql,
+                )
+
+                total_updated += len(batch)
+
+                logger.info(
+                    f"Batch {i // batch_size + 1}: Updated {len(batch)} records",
+                    extra={"batch_num": i // batch_size + 1, "count": len(batch)},
+                )
+
+            except Exception as e:
+                logger.error(f"Error in batch {i // batch_size + 1}: {e}")
+                raise APIError(f"Failed to update batch at index {i}: {e}") from e
+
+        logger.info(
+            f"Successfully updated {total_updated} records in total",
+            extra={"table_id": table_id, "total_updated": total_updated},
+        )
+
+        return total_updated
+
+    def batch_delete_records(
+        self,
+        app_id: str,
+        user_access_token: str,
+        table_id: str,
+        workspace_id: str,
+        record_ids: list[str],
+        batch_size: int = 500,
+    ) -> int:
+        """
+        Batch delete multiple records using SQL DELETE.
+
+        Note: For DataFrame sync. Automatically chunks large datasets.
+
+        Args
+        ----------
+            app_id: Application ID
+            user_access_token: User access token for authentication
+            table_id: Table name (e.g., "follow_ups")
+            workspace_id: Workspace ID where the table exists
+            record_ids: List of record IDs to delete
+            batch_size: Maximum records per batch (default: 500)
+
+        Returns
+        ----------
+            Number of records deleted
+
+        Raises
+        ----------
+            InvalidParameterError: If parameters are invalid
+            NotFoundError: If table not found
+            PermissionDeniedError: If user lacks permission
+            APIError: If API call fails
+
+        Example
+        --------
+            >>> count = client.batch_delete_records(
+            ...     app_id="cli_xxx",
+            ...     user_access_token="u-xxx",
+            ...     table_id="follow_ups",
+            ...     workspace_id="workspace_xxx",
+            ...     record_ids=["uuid1", "uuid2", "uuid3"]
+            ... )
+            >>> print(f"Deleted {count} records")
+        """
         validate_app_id(app_id)
         validate_non_empty_string(user_access_token, "user_access_token")
         validate_non_empty_string(table_id, "table_id")
+        validate_non_empty_string(workspace_id, "workspace_id")
+
+        if not record_ids:
+            raise InvalidParameterError("record_ids cannot be empty")
+
+        if batch_size < 1 or batch_size > 500:
+            raise InvalidParameterError("batch_size must be between 1 and 500")
 
         logger.info(
-            "Batch updating table records",
-            extra={"table_id": table_id, "app_id": app_id, "record_count": len(records)},
+            f"Batch deleting {len(record_ids)} records",
+            extra={
+                "table_id": table_id,
+                "workspace_id": workspace_id,
+                "total_records": len(record_ids),
+                "batch_size": batch_size,
+            },
         )
 
-        try:
-            url = f"{APAAS_API_BASE}/apaas/v1/tables/{table_id}/records/batch"
-            headers = {
-                "Authorization": f"Bearer {user_access_token}",
-                "Content-Type": "application/json",
-            }
+        total_deleted = 0
 
-            # Build request body with record updates
-            body = {
-                "records": [
-                    {"record_id": record_id, "fields": fields} for record_id, fields in records
-                ]
-            }
+        # Process in chunks
+        for i in range(0, len(record_ids), batch_size):
+            batch = record_ids[i : i + batch_size]
 
-            response = requests.put(url, headers=headers, json=body, timeout=60)
-            result = response.json()
+            try:
+                if not batch:
+                    continue
 
-            if result.get("code") != 0:
-                self._handle_api_error(result, "batch_update_records")
+                # Build SQL DELETE with IN clause
+                ids_str = ", ".join(f"'{rid}'" for rid in batch)
 
-            # Parse response data
-            records_data = result.get("data", {}).get("records", [])
-            updated_records = []
+                sql = f"""  # nosec B608
+                    DELETE FROM {table_id}
+                    WHERE id IN ({ids_str})
+                """
 
-            for record_data in records_data:
-                record = TableRecord(
-                    record_id=record_data.get("record_id", ""),
-                    table_id=table_id,
-                    fields=record_data.get("fields", {}),
+                # Execute batch
+                self.sql_query(
+                    app_id=app_id,
+                    user_access_token=user_access_token,
+                    workspace_id=workspace_id,
+                    sql=sql,
                 )
-                updated_records.append(record)
 
-            logger.info(
-                f"Successfully batch updated {len(updated_records)} records",
-                extra={"table_id": table_id, "count": len(updated_records)},
-            )
+                total_deleted += len(batch)
 
-            return updated_records
+                logger.info(
+                    f"Batch {i // batch_size + 1}: Deleted {len(batch)} records",
+                    extra={"batch_num": i // batch_size + 1, "count": len(batch)},
+                )
 
-        except requests.RequestException as e:
-            logger.error(f"Network error batch updating records: {e}")
-            raise APIError(f"Failed to batch update records: {e}") from e
+            except Exception as e:
+                logger.error(f"Error in batch {i // batch_size + 1}: {e}")
+                raise APIError(f"Failed to delete batch at index {i}: {e}") from e
+
+        logger.info(
+            f"Successfully deleted {total_deleted} records in total",
+            extra={"table_id": table_id, "total_deleted": total_deleted},
+        )
+
+        return total_deleted
