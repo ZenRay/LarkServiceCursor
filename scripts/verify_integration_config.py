@@ -135,11 +135,10 @@ def check_lark_credentials(env_vars: dict[str, str]) -> bool:
         return False
 
     if len(app_secret) < 20:
-        print(f"❌ TEST_APP_SECRET too short: should be at least 20 characters")
+        print("❌ TEST_APP_SECRET too short: should be at least 20 characters")
         return False
 
     print("✅ Lark credentials format valid")
-
     # Try to get tenant access token using HTTP request
     # Note: Using direct HTTP instead of SDK due to SDK bug in version 1.5.2
     try:
@@ -163,7 +162,7 @@ def check_lark_credentials(env_vars: dict[str, str]) -> bool:
             error_code = result.get("code")
             error_msg = result.get("msg", "Unknown error")
             print(f"❌ Lark API authentication failed: {error_code} - {error_msg}")
-            
+
             # Provide helpful error messages
             if error_code == 10003:
                 print("   Possible causes:")
@@ -174,7 +173,7 @@ def check_lark_credentials(env_vars: dict[str, str]) -> bool:
                 print("   Possible causes:")
                 print("   - App Secret is incorrect")
                 print("   - App Secret has been regenerated")
-            
+
             print("   Please verify at: https://open.feishu.cn/app")
             return False
 

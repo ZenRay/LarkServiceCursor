@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 
 from lark_service.clouddoc.bitable.client import BitableClient
 from lark_service.clouddoc.client import DocClient
-from lark_service.clouddoc.models import ContentBlock, FilterCondition
+from lark_service.clouddoc.models import ContentBlock
 from lark_service.core.credential_pool import CredentialPool
 from lark_service.core.exceptions import (
     APIError,
@@ -558,16 +558,16 @@ class TestBitableCRUDOperations:
             )
 
         finally:
+            from contextlib import suppress
+
             for record_id in created_record_ids:
-                try:
+                with suppress(Exception):
                     bitable_client.delete_record(
                         app_id=test_config["app_id"],
                         app_token=test_config["bitable_token"],
                         table_id=table_id,
                         record_id=record_id,
                     )
-                except Exception:
-                    pass
             if created_record_ids:
                 print(f"\n🧹 清理了 {len(created_record_ids)} 条测试数据")
 

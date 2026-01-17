@@ -49,8 +49,6 @@ def test_config():
 @pytest.fixture(scope="module")
 def credential_pool(test_config, tmp_path_factory):
     """Create credential pool for tests."""
-    from pathlib import Path
-
     from cryptography.fernet import Fernet
 
     from lark_service.core.config import Config
@@ -216,7 +214,7 @@ class TestContactWithCache:
             app_id=test_config["app_id"],
             email=test_config["user_email"],
         )
-        
+
         # Clear cache to ensure miss
         cache_manager.invalidate_user(
             test_config["app_id"],
@@ -317,7 +315,7 @@ class TestContactWithCache:
             user.open_id,
         )
         assert success
-        print(f"✅ Cache invalidated successfully")
+        print("✅ Cache invalidated successfully")
 
         # Verify cache is empty
         cached_after = cache_manager.get_user_by_email(

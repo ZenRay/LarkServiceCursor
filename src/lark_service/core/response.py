@@ -27,7 +27,7 @@ class ErrorDetail(BaseModel):
     details: dict[str, Any] | None = None
 
 
-class StandardResponse(BaseModel, Generic[T]):
+class StandardResponse(BaseModel, Generic[T]):  # noqa: UP046
     """Standardized response structure for all operations.
 
     Provides consistent response format with status code, message,
