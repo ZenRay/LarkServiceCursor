@@ -84,7 +84,7 @@ jobs:
         run: bandit -r src/ -f json -o bandit-report.json || true
 
       - name: Upload Bandit report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: bandit-report
@@ -143,6 +143,10 @@ jobs:
           pip install -r requirements.txt
           pip install pytest pytest-cov pytest-asyncio
 
+      - name: Install package in editable mode
+        run: |
+          pip install -e .
+
       - name: Run unit tests
         env:
           POSTGRES_HOST: localhost
@@ -154,6 +158,7 @@ jobs:
           RABBITMQ_PORT: 5672
           RABBITMQ_USER: lark
           RABBITMQ_PASSWORD: rabbitmq_password_123
+          PYTHONPATH: ${{ github.workspace }}/src
         run: |
           pytest tests/unit/ -v --cov=src/lark_service --cov-report=xml --cov-report=term
 
@@ -164,6 +169,11 @@ jobs:
           POSTGRES_DB: lark_service
           POSTGRES_USER: lark
           POSTGRES_PASSWORD: lark_password_123
+          RABBITMQ_HOST: localhost
+          RABBITMQ_PORT: 5672
+          RABBITMQ_USER: lark
+          RABBITMQ_PASSWORD: rabbitmq_password_123
+          PYTHONPATH: ${{ github.workspace }}/src
         run: |
           pytest tests/contract/ -v
 
