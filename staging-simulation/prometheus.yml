@@ -1,18 +1,21 @@
 # Prometheus 配置文件
 # 用于采集 Lark Service metrics
+#
+# 注意: 本文件支持环境变量替换
+# 在docker-compose.yml中通过environment或.env文件注入
 
 global:
-  scrape_interval: 15s
-  evaluation_interval: 15s
+  scrape_interval: ${PROMETHEUS_SCRAPE_INTERVAL:-15s}
+  evaluation_interval: ${PROMETHEUS_EVALUATION_INTERVAL:-15s}
   external_labels:
-    environment: 'staging-local'
+    environment: '${ENVIRONMENT:-staging-local}'
     project: 'lark-service'
 
 # Alertmanager 配置 (可选)
 # alerting:
 #   alertmanagers:
 #     - static_configs:
-#         - targets: ['alertmanager:9093']
+#         - targets: ['${ALERTMANAGER_HOST:-alertmanager}:${ALERTMANAGER_PORT:-9093}']
 
 # 抓取配置
 scrape_configs:
@@ -22,26 +25,25 @@ scrape_configs:
       - targets: ['localhost:9090']
 
   # Lark Service 应用 metrics
-  # 注意: 需要应用暴露 metrics 端点
-  # 使用Docker网桥IP访问宿主机应用
+  # 使用环境变量配置target地址，支持不同部署环境
   - job_name: 'lark-service'
     static_configs:
-      - targets: ['172.17.0.1:9091']  # Docker网桥IP
+      - targets: ['${LARK_SERVICE_METRICS_HOST:-172.17.0.1}:${LARK_SERVICE_METRICS_PORT:-9091}']
     metrics_path: '/metrics'
-    scrape_interval: 10s
+    scrape_interval: ${LARK_SERVICE_SCRAPE_INTERVAL:-10s}
 
   # PostgreSQL Exporter (可选)
   # - job_name: 'postgres'
   #   static_configs:
-  #     - targets: ['postgres-exporter:9187']
+  #     - targets: ['${POSTGRES_EXPORTER_HOST:-postgres-exporter}:${POSTGRES_EXPORTER_PORT:-9187}']
 
   # RabbitMQ (内置prometheus插件)
   - job_name: 'rabbitmq'
     static_configs:
-      - targets: ['rabbitmq:15692']
+      - targets: ['${RABBITMQ_HOST:-rabbitmq}:${RABBITMQ_METRICS_PORT:-15692}']
     metrics_path: '/metrics'
 
   # Redis Exporter (可选)
   # - job_name: 'redis'
   #   static_configs:
-  #     - targets: ['redis-exporter:9121']
+  #     - targets: ['${REDIS_EXPORTER_HOST:-redis-exporter}:${REDIS_EXPORTER_PORT:-9121}']
