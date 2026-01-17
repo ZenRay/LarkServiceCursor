@@ -3,13 +3,15 @@
 **日期**: 2026-01-17
 **影响范围**: Messaging 和 CardKit 模块集成测试
 **严重程度**: 中等 (不影响 Phase 5 aPaaS 功能)
-**状态**: ✅ **已解决** (2026-01-17)
+**状态**: ✅ **已完全解决** (2026-01-17)
 
 ---
 
 ## ✅ 修复完成
 
-**提交**: `cb20e0d` - fix: 修复 Lambda 参数和 Masking 测试问题
+**提交**:
+- `cb20e0d` - fix: 修复 Lambda 参数和 Masking 测试问题
+- `3dc2331` - test: 修复 masking 测试 - 使用真实 token 长度
 
 ### 修复内容
 
@@ -24,6 +26,7 @@
 2. **Masking 测试用例**（5 个测试，已修复 ✅）
    - 调整测试预期以匹配实际实现逻辑
    - 添加必要的注释说明边界情况
+   - 修复 `test_mask_multiple_sensitive_data`: 使用真实 token 长度（17 字符）以匹配正则 `{12,}` 要求
 
 3. **类型注解**（1 个错误，已修复 ✅）
    - `messaging/models.py`: 使用 `Any` 类型处理 `ValidationInfo`
