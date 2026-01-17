@@ -1,90 +1,209 @@
-version: '3.8'
+# ============================================================================
+# Docker Compose - 优化生产环境配置
+# ============================================================================
+# Docker Compose V2 规范 (无需 version 字段)
+# 功能:
+# - 多服务编排 (Lark Service + PostgreSQL + RabbitMQ)
+# - 健康检查和自动重启
+# - 网络隔离和安全配置
+# - 资源限制和日志管理
+# ============================================================================
 
 services:
-  # PostgreSQL - Token 存储和用户缓存
+  # ==========================================================================
+  # PostgreSQL 数据库
+  # ==========================================================================
   postgres:
-    image: postgres:15-alpine
-    container_name: lark-service-postgres
+    image: postgres:16-alpine
+    container_name: lark-postgres
+    restart: unless-stopped
+
     environment:
       POSTGRES_DB: lark_service
-      POSTGRES_USER: lark
-      POSTGRES_PASSWORD: lark_password_123
-      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
-    ports:
-      - "5432:5432"
+      POSTGRES_USER: lark_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+      PGDATA: /var/lib/postgresql/data/pgdata
+
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./migrations/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./migrations:/docker-entrypoint-initdb.d:ro
+
+    ports:
+      - "5432:5432"
+
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U lark -d lark_service"]
+      test: ["CMD-SHELL", "pg_isready -U lark_user -d lark_service"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
+
     networks:
       - lark-network
 
-  # RabbitMQ - 消息队列 (交互式卡片回调)
+    # 资源限制 (Compose V2 原生支持)
+    cpus: 1.0
+    mem_limit: 512m
+    mem_reservation: 256m
+
+    # 日志配置
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ==========================================================================
+  # RabbitMQ 消息队列 (可选)
+  # ==========================================================================
   rabbitmq:
-    image: rabbitmq:3-management-alpine
-    container_name: lark-service-rabbitmq
+    image: rabbitmq:3.13-management-alpine
+    container_name: lark-rabbitmq
+    restart: unless-stopped
+
     environment:
-      RABBITMQ_DEFAULT_USER: lark
-      RABBITMQ_DEFAULT_PASS: rabbitmq_password_123
-    ports:
-      - "5672:5672"   # AMQP
-      - "15672:15672" # Management UI
+      RABBITMQ_DEFAULT_USER: lark_user
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-changeme}
+      RABBITMQ_DEFAULT_VHOST: lark_vhost
+
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+
+    ports:
+      - "5672:5672"      # AMQP 协议端口
+      - "15672:15672"    # 管理界面端口
+
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "ping"]
-      interval: 10s
-      timeout: 5s
+      interval: 30s
+      timeout: 10s
       retries: 5
+      start_period: 30s
+
     networks:
       - lark-network
 
-  # Lark Service Application (可选,用于测试)
-  app:
+    # 资源限制 (Compose V2 原生支持)
+    cpus: 0.5
+    mem_limit: 512m
+    mem_reservation: 256m
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ==========================================================================
+  # Lark Service 主应用
+  # ==========================================================================
+  lark-service:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: lark-service-app
+      args:
+        - BUILDKIT_INLINE_CACHE=1
+
+    image: lark-service:latest
+    container_name: lark-service
+    restart: unless-stopped
+
     environment:
-      # PostgreSQL
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: 5432
-      POSTGRES_DB: lark_service
-      POSTGRES_USER: lark
-      POSTGRES_PASSWORD: lark_password_123
-      # RabbitMQ
-      RABBITMQ_HOST: rabbitmq
-      RABBITMQ_PORT: 5672
-      RABBITMQ_USER: lark
-      RABBITMQ_PASSWORD: rabbitmq_password_123
-      # 加密密钥 (生产环境请使用 secrets)
-      LARK_CONFIG_ENCRYPTION_KEY: "CHANGE_THIS_TO_RANDOM_32_BYTE_KEY"
-      # 日志
-      LOG_LEVEL: INFO
+      # 数据库配置
+      DATABASE_URL: postgresql://lark_user:${POSTGRES_PASSWORD:-changeme}@postgres:5432/lark_service
+
+      # RabbitMQ 配置
+      RABBITMQ_URL: amqp://lark_user:${RABBITMQ_PASSWORD:-changeme}@rabbitmq:5672/lark_vhost
+
+      # 应用配置
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+
+      # 飞书应用配置 (从 .env 文件加载)
+      APP_ID: ${APP_ID}
+      APP_SECRET: ${APP_SECRET}
+
+    env_file:
+      - .env
+
     volumes:
-      - ./src:/app/src:ro
-      - ./config:/app/config
+      - ./config:/app/config:ro
       - ./logs:/app/logs
+      - ./data:/app/data
+
+    ports:
+      - "8000:8000"
+
     depends_on:
       postgres:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; from lark_service.core.config import Config; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
     networks:
       - lark-network
-    # 注释掉 command,因为这是一个库,不是服务
-    # command: python -m lark_service
 
+    # 资源限制 (Compose V2 原生支持)
+    cpus: 2.0
+    mem_limit: 1g
+    mem_reservation: 512m
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+# ============================================================================
+# 网络配置
+# ============================================================================
+networks:
+  lark-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# ============================================================================
+# 数据卷
+# ============================================================================
 volumes:
   postgres_data:
     driver: local
   rabbitmq_data:
     driver: local
 
-networks:
-  lark-network:
-    driver: bridge
+# ============================================================================
+# 使用说明 (Docker Compose V2):
+# ============================================================================
+# 启动所有服务:
+#   docker compose up -d
+#
+# 查看日志:
+#   docker compose logs -f lark-service
+#
+# 查看服务状态:
+#   docker compose ps
+#
+# 停止服务:
+#   docker compose down
+#
+# 完全清理 (包括数据卷):
+#   docker compose down -v
+#
+# 重新构建镜像:
+#   docker compose build --no-cache
+#
+# 查看资源使用情况:
+#   docker compose stats
+#
+# 注意: Docker Compose V2 使用 'docker compose' 而不是 'docker-compose'
+# ============================================================================
