@@ -6,7 +6,7 @@ with PostgreSQL storage, 24-hour TTL, and app_id isolation.
 """
 
 from datetime import datetime, timedelta
-from typing import Any, cast
+from typing import Any
 
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
@@ -117,7 +117,7 @@ class ContactCacheManager:
             stmt = select(UserCache).where(
                 UserCache.app_id == app_id, UserCache.open_id == user.open_id
             )
-            existing = session.execute(stmt).scalar_one_or_none()
+            existing: UserCache | None = session.execute(stmt).scalar_one_or_none()
 
             now = datetime.now()
             expires_at = now + timedelta(hours=24)
@@ -142,7 +142,7 @@ class ContactCacheManager:
 
                 # Make a detached copy with all attributes loaded
                 session.expunge(existing)
-                return cast(UserCache, existing)
+                return existing
             else:
                 # Create new entry
                 cache_entry = UserCache(

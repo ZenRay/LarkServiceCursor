@@ -158,9 +158,9 @@ class BitableClient:
         logger.info(f"Creating record in table {table_id}")
 
         def _create() -> BaseRecord:
-            import requests  # type: ignore
+            import requests
 
-            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")
+            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")  # nosec B106
 
             url = f"https://open.feishu.cn/open-apis/bitable/v1/apps/{app_token}/tables/{table_id}/records"
             headers = {
@@ -187,7 +187,7 @@ class BitableClient:
                     elif error_code in [1254000, 1254001, 400]:
                         raise InvalidParameterError(error_msg)
                 except Exception as e:
-                    if isinstance(e, (PermissionDeniedError, InvalidParameterError)):
+                    if isinstance(e, PermissionDeniedError | InvalidParameterError):
                         raise
                     logger.error(f"Failed to parse error response: {e}")
 
@@ -594,9 +594,9 @@ class BitableClient:
 
         def _query() -> tuple[list[BaseRecord], str | None]:
             # Use direct HTTP request as SDK may not support new filter format
-            import requests  # type: ignore
+            import requests
 
-            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")
+            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")  # nosec B106
 
             url = f"https://open.feishu.cn/open-apis/bitable/v1/apps/{app_token}/tables/{table_id}/records/search"
             headers = {
@@ -649,7 +649,7 @@ class BitableClient:
                     elif error_code in [1770001, 400]:
                         raise InvalidParameterError(error_msg)
                 except Exception as e:
-                    if isinstance(e, (NotFoundError, PermissionDeniedError, InvalidParameterError)):
+                    if isinstance(e, NotFoundError | PermissionDeniedError | InvalidParameterError):
                         raise
                     logger.error(f"Failed to parse error response: {e}")
 
@@ -742,9 +742,9 @@ class BitableClient:
         logger.info(f"Updating record {record_id} in table {table_id}")
 
         def _update() -> BaseRecord:
-            import requests  # type: ignore
+            import requests
 
-            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")
+            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")  # nosec B106
 
             url = f"https://open.feishu.cn/open-apis/bitable/v1/apps/{app_token}/tables/{table_id}/records/{record_id}"
             headers = {
@@ -771,7 +771,7 @@ class BitableClient:
                     elif error_code in [1254000, 1254001, 400]:
                         raise InvalidParameterError(error_msg)
                 except Exception as e:
-                    if isinstance(e, (NotFoundError, PermissionDeniedError, InvalidParameterError)):
+                    if isinstance(e, NotFoundError | PermissionDeniedError | InvalidParameterError):
                         raise
                     logger.error(f"Failed to parse error response: {e}")
 
@@ -851,9 +851,9 @@ class BitableClient:
         logger.info(f"Deleting record {record_id} from table {table_id}")
 
         def _delete() -> bool:
-            import requests  # type: ignore
+            import requests
 
-            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")
+            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")  # nosec B106
 
             url = f"https://open.feishu.cn/open-apis/bitable/v1/apps/{app_token}/tables/{table_id}/records/{record_id}"
             headers = {
@@ -877,7 +877,7 @@ class BitableClient:
                     elif error_code in [1254302, 403]:
                         raise PermissionDeniedError(f"No permission to delete record: {record_id}")
                 except Exception as e:
-                    if isinstance(e, (NotFoundError, PermissionDeniedError)):
+                    if isinstance(e, NotFoundError | PermissionDeniedError):
                         raise
                     logger.error(f"Failed to parse error response: {e}")
 
@@ -957,9 +957,9 @@ class BitableClient:
         logger.info(f"Batch creating {len(records)} records in table {table_id}")
 
         def _batch_create() -> list[BaseRecord]:
-            import requests  # type: ignore
+            import requests
 
-            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")
+            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")  # nosec B106
 
             url = f"https://open.feishu.cn/open-apis/bitable/v1/apps/{app_token}/tables/{table_id}/records/batch_create"
             headers = {
@@ -986,7 +986,7 @@ class BitableClient:
                     elif error_code in [1254000, 1254001, 400]:
                         raise InvalidParameterError(error_msg)
                 except Exception as e:
-                    if isinstance(e, (PermissionDeniedError, InvalidParameterError)):
+                    if isinstance(e, PermissionDeniedError | InvalidParameterError):
                         raise
                     logger.error(f"Failed to parse error response: {e}")
 

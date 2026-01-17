@@ -7,7 +7,7 @@ including creating documents, appending content, getting content, and updating b
 
 from typing import Any
 
-import requests  # type: ignore
+import requests
 from lark_oapi.api.docx.v1 import (
     CreateDocumentRequest,
     CreateDocumentRequestBody,
@@ -202,7 +202,7 @@ class DocClient:
 
         def _append() -> bool:
             # Get tenant access token
-            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")
+            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")  # nosec B106
 
             # Convert ContentBlock to Lark API format
             children: list[dict[str, Any]] = []
@@ -243,11 +243,12 @@ class DocClient:
                         },
                     }
                 elif block.block_type.startswith("heading"):
-                    # Heading block
+                    # Heading block - need to check string value for subtype
                     level = 1
-                    if block.block_type == "heading_2":
+                    block_type_str = str(block.block_type)
+                    if block_type_str == "heading_2":
                         level = 2
-                    elif block.block_type == "heading_3":
+                    elif block_type_str == "heading_3":
                         level = 3
 
                     block_dict = {
@@ -322,7 +323,7 @@ class DocClient:
                     elif error_code in [1770001, 1770007, 1770005, 1770028]:
                         raise InvalidParameterError(error_msg)
                 except Exception as e:
-                    if isinstance(e, (NotFoundError, PermissionDeniedError, InvalidParameterError)):
+                    if isinstance(e, NotFoundError | PermissionDeniedError | InvalidParameterError):
                         raise
                     logger.error(f"Failed to parse error response: {e}")
 
@@ -519,9 +520,9 @@ class DocClient:
         logger.info(f"Updating block {block_id} in document {doc_id}")
 
         def _update() -> bool:
-            import requests  # type: ignore
+            import requests
 
-            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")
+            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")  # nosec B106
 
             url = f"https://open.feishu.cn/open-apis/docx/v1/documents/{doc_id}/blocks/{block_id}"
             headers = {
@@ -531,7 +532,7 @@ class DocClient:
 
             # Build update content
             # Construct different update requests based on block_type
-            elements = []
+            elements: list[dict[str, Any]] = []
 
             if block.content:
                 elements.append(
@@ -650,9 +651,9 @@ class DocClient:
         )
 
         def _grant() -> Permission:
-            import requests  # type: ignore
+            import requests
 
-            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")
+            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")  # nosec B106
 
             url = f"https://open.feishu.cn/open-apis/drive/v1/permissions/{doc_id}/members"
             headers = {
@@ -720,9 +721,9 @@ class DocClient:
 
             return Permission(
                 doc_id=doc_id,
-                member_type=member_type,  # type: ignore
+                member_type=member_type,
                 member_id=member_id if member_type != "public" else None,
-                permission_type=permission_type,  # type: ignore
+                permission_type=permission_type,
             )
 
         return self.retry_strategy.execute(_grant)
@@ -768,9 +769,9 @@ class DocClient:
         logger.info(f"Revoking permission {permission_id} from document {doc_id}")
 
         def _revoke() -> bool:
-            import requests  # type: ignore
+            import requests
 
-            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")
+            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")  # nosec B106
 
             url = f"https://open.feishu.cn/open-apis/drive/v1/permissions/{doc_id}/members/{permission_id}"
             headers = {
@@ -863,9 +864,9 @@ class DocClient:
         logger.info(f"Listing permissions for document {doc_id}")
 
         def _list() -> list[Permission]:
-            import requests  # type: ignore
+            import requests
 
-            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")
+            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")  # nosec B106
 
             url = f"https://open.feishu.cn/open-apis/drive/v1/permissions/{doc_id}/members"
             headers = {
@@ -950,9 +951,9 @@ class DocClient:
                 permissions.append(
                     Permission(
                         doc_id=doc_id,
-                        member_type=item.get("member_type", "user"),  # type: ignore
+                        member_type=item.get("member_type", "user"),
                         member_id=item.get("member_id"),
-                        permission_type=permission_type,  # type: ignore
+                        permission_type=permission_type,
                     )
                 )
 
