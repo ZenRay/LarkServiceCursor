@@ -133,6 +133,37 @@ class WorkspaceTableClient:
         # Generic API error
         raise APIError(f"aPaaS API error ({code}): {msg}")
 
+    def _map_data_type_to_field_type(self, data_type: str) -> FieldType:
+        """
+        Map aPaaS database column type to FieldType enum.
+
+        Args
+        ----------
+            data_type: Database column type (uuid, varchar, timestamptz, etc.)
+
+        Returns
+        ----------
+            Corresponding FieldType enum value
+        """
+        # Map common database types to FieldType
+        type_mapping = {
+            "varchar": FieldType.TEXT,
+            "text": FieldType.TEXT,
+            "uuid": FieldType.TEXT,
+            "int4": FieldType.NUMBER,
+            "int8": FieldType.NUMBER,
+            "float4": FieldType.NUMBER,
+            "float8": FieldType.NUMBER,
+            "numeric": FieldType.NUMBER,
+            "bool": FieldType.CHECKBOX,
+            "timestamptz": FieldType.DATETIME,
+            "timestamp": FieldType.DATETIME,
+            "date": FieldType.DATE,
+            "user_profile": FieldType.PERSON,
+        }
+
+        return type_mapping.get(data_type.lower(), FieldType.TEXT)
+
     def list_workspace_tables(
         self,
         app_id: str,
@@ -194,17 +225,17 @@ class WorkspaceTableClient:
             if result.get("code") != 0:
                 self._handle_api_error(result, "list_workspace_tables")
 
-            # Parse response data
-            tables_data = result.get("data", {}).get("tables", [])
+            # Parse response data - aPaaS returns 'items' not 'tables'
+            tables_data = result.get("data", {}).get("items", [])
             tables = []
 
             for table_data in tables_data:
                 table = WorkspaceTable(
-                    table_id=table_data.get("table_id", ""),
+                    table_id=table_data.get("name", ""),  # aPaaS uses table name as ID
                     workspace_id=workspace_id,
                     name=table_data.get("name", ""),
                     description=table_data.get("description"),
-                    field_count=table_data.get("field_count"),
+                    field_count=len(table_data.get("columns", [])),  # Count columns
                 )
                 tables.append(table)
 
@@ -224,15 +255,20 @@ class WorkspaceTableClient:
         app_id: str,
         user_access_token: str,
         table_id: str,
+        workspace_id: str,
     ) -> list[FieldDefinition]:
         """
         Get field definitions for a data table.
+
+        Note: aPaaS doesn't have a separate fields endpoint. This method
+        fetches table information and extracts column definitions.
 
         Args
         ----------
             app_id: Application ID
             user_access_token: User access token for authentication
-            table_id: Table ID, format: tbl_xxx
+            table_id: Table name (e.g., "follow_ups")
+            workspace_id: Workspace ID where the table exists
 
         Returns
         ----------
@@ -250,7 +286,8 @@ class WorkspaceTableClient:
             >>> fields = client.list_fields(
             ...     app_id="cli_xxx",
             ...     user_access_token="u-xxx",
-            ...     table_id="tbl_001"
+            ...     table_id="follow_ups",
+            ...     workspace_id="workspace_xxx"
             ... )
             >>> for field in fields:
             ...     print(f"{field.field_name}: {field.field_type}")
@@ -269,7 +306,8 @@ class WorkspaceTableClient:
         )
 
         try:
-            url = f"{APAAS_API_BASE}/apaas/v1/tables/{table_id}/fields"
+            # aPaaS doesn't have separate fields endpoint, get from table list
+            url = f"{APAAS_API_BASE}/apaas/v1/workspaces/{workspace_id}/tables"
             headers = {
                 "Authorization": f"Bearer {user_access_token}",
                 "Content-Type": "application/json",
@@ -281,36 +319,33 @@ class WorkspaceTableClient:
             if result.get("code") != 0:
                 self._handle_api_error(result, "list_fields")
 
-            # Parse response data
-            fields_data = result.get("data", {}).get("fields", [])
+            # Find the specified table
+            tables_data = result.get("data", {}).get("items", [])
+            target_table = None
+            for table_data in tables_data:
+                if table_data.get("name") == table_id:
+                    target_table = table_data
+                    break
+
+            if not target_table:
+                raise NotFoundError(f"Table not found: {table_id}")
+
+            # Parse columns from table data
+            columns_data = target_table.get("columns", [])
             fields = []
 
-            for field_data in fields_data:
-                field_type_code = field_data.get("type", 1)
-                field_type = FIELD_TYPE_MAP.get(field_type_code, FieldType.TEXT)
-
-                # Parse options for select fields
-                options = None
-                if field_type in (FieldType.SINGLE_SELECT, FieldType.MULTI_SELECT):
-                    options_data = field_data.get("options", [])
-                    from lark_service.apaas.models import SelectOption
-
-                    options = [
-                        SelectOption(
-                            id=opt.get("id", ""),
-                            name=opt.get("name", ""),
-                            color=opt.get("color"),
-                        )
-                        for opt in options_data
-                    ]
+            for col_data in columns_data:
+                # Map database column type to FieldType
+                data_type = col_data.get("data_type", "text")
+                field_type = self._map_data_type_to_field_type(data_type)
 
                 field = FieldDefinition(
-                    field_id=field_data.get("field_id", ""),
-                    field_name=field_data.get("field_name", ""),
+                    field_id=col_data.get("name", ""),  # Use column name as field_id
+                    field_name=col_data.get("name", ""),
                     field_type=field_type,
-                    is_required=field_data.get("is_required", False),
-                    description=field_data.get("description"),
-                    options=options,
+                    is_required=not col_data.get("is_allow_null", True),
+                    description=col_data.get("description"),
+                    options=None,  # aPaaS columns don't have select options
                 )
                 fields.append(field)
 
