@@ -114,7 +114,7 @@ def main() -> int:
         postgres_port = "5432"
         postgres_db = "lark_service_test"
         postgres_user = "lark"
-        postgres_password = "test_password_123"
+        postgres_password = "test_password_123"  # nosec B105 - Test environment password
         print(f"   Host: {postgres_host}:{postgres_port}")
         print(f"   Database: {postgres_db}")
         print(f"   User: {postgres_user}")
@@ -149,8 +149,8 @@ def main() -> int:
 
     configure_docs = get_yes_no("Configure test document tokens?", default=False)
 
-    doc_token = ""
-    bitable_app_token = ""
+    doc_token = ""  # nosec B105 - Empty string placeholder, not a password
+    bitable_app_token = ""  # nosec B105 - Empty string placeholder, not a password
     bitable_table_id = ""
 
     if configure_docs:
@@ -244,7 +244,7 @@ LOG_LEVEL=DEBUG
         print("\n" + "=" * 60)
         verify_script = project_root / "scripts" / "verify_integration_config.py"
         if verify_script.exists():
-            os.system(f"python {verify_script}")
+            os.system(f"python {verify_script}")  # nosec B605 - Trusted script path
         else:
             print("⚠️  Verification script not found")
             print(f"   Expected: {verify_script}")
