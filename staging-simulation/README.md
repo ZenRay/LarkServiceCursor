@@ -27,27 +27,27 @@ staging-simulation/
 ### 1. 启动所有服务
 ```bash
 cd staging-simulation
-docker-compose up -d
+docker compose up -d
 ```
 
 ### 2. 查看服务状态
 ```bash
-docker-compose ps
+docker compose ps
 ```
 
 ### 3. 查看日志
 ```bash
-docker-compose logs -f
+docker compose logs -f
 ```
 
 ### 4. 停止所有服务
 ```bash
-docker-compose down
+docker compose down
 ```
 
 ### 5. 清理所有数据（包括数据库）
 ```bash
-docker-compose down -v
+docker compose down -v
 ```
 
 ---
@@ -57,13 +57,13 @@ docker-compose down -v
 ### 步骤1: 启动依赖服务
 ```bash
 # 启动PostgreSQL和RabbitMQ
-docker-compose up -d postgres rabbitmq
+docker compose up -d postgres rabbitmq
 
 # 等待服务就绪
 sleep 10
 
 # 验证PostgreSQL连接
-docker-compose exec postgres psql -U lark_staging -d lark_service_staging -c "SELECT version();"
+docker compose exec postgres psql -U lark_staging -d lark_service_staging -c "SELECT version();"
 
 # 验证RabbitMQ
 curl http://localhost:15672
@@ -147,7 +147,7 @@ bash scripts/test_migration_rollback.sh
 
 1. **仅用于本地测试**: 这是模拟环境，不要用于实际生产
 2. **密码安全**: 使用的是测试密码，真实staging环境必须使用强密码
-3. **数据持久化**: 默认使用Docker volumes，`docker-compose down -v`会删除所有数据
+3. **数据持久化**: 默认使用Docker volumes，`docker compose down -v`会删除所有数据
 4. **端口冲突**: 确保本地5432、5672、15672端口未被占用
 
 ---
@@ -157,25 +157,25 @@ bash scripts/test_migration_rollback.sh
 ### PostgreSQL连接失败
 ```bash
 # 检查容器状态
-docker-compose ps postgres
+docker compose ps postgres
 
 # 查看日志
-docker-compose logs postgres
+docker compose logs postgres
 
 # 重启
-docker-compose restart postgres
+docker compose restart postgres
 ```
 
 ### RabbitMQ连接失败
 ```bash
 # 检查容器状态
-docker-compose ps rabbitmq
+docker compose ps rabbitmq
 
 # 查看日志
-docker-compose logs rabbitmq
+docker compose logs rabbitmq
 
 # 重启
-docker-compose restart rabbitmq
+docker compose restart rabbitmq
 ```
 
 ---
@@ -184,13 +184,13 @@ docker-compose restart rabbitmq
 
 ```bash
 # 停止所有服务
-docker-compose down
+docker compose down
 
 # 删除所有数据卷
-docker-compose down -v
+docker compose down -v
 
 # 删除所有镜像
-docker-compose down --rmi all
+docker compose down --rmi all
 
 # 清理日志
 rm -rf logs/*

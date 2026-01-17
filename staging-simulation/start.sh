@@ -37,23 +37,25 @@ if ! command -v docker &> /dev/null; then
     exit 1
 fi
 
-if ! command -v docker-compose &> /dev/null && ! docker compose version &> /dev/null; then
+# 检查 docker compose 命令 (优先使用新版本)
+if docker compose version &> /dev/null 2>&1; then
+    DOCKER_COMPOSE="docker compose"
+    echo -e "${GREEN}✓${NC} 使用 Docker Compose v2 (docker compose)"
+elif command -v docker-compose &> /dev/null; then
+    DOCKER_COMPOSE="docker-compose"
+    echo -e "${GREEN}✓${NC} 使用 Docker Compose v1 (docker-compose)"
+else
     echo -e "${RED}❌ Docker Compose未安装${NC}"
+    echo "请安装 Docker Compose: https://docs.docker.com/compose/install/"
     exit 1
 fi
+
 echo -e "${GREEN}✓${NC} Docker环境正常"
 echo ""
 
 # 步骤2: 启动Docker服务
 echo "步骤 2/6: 启动Docker服务..."
 cd "$SCRIPT_DIR"
-
-# 使用 docker compose (新版本) 或 docker-compose (旧版本)
-if docker compose version &> /dev/null; then
-    DOCKER_COMPOSE="docker compose"
-else
-    DOCKER_COMPOSE="docker-compose"
-fi
 
 $DOCKER_COMPOSE up -d
 echo -e "${GREEN}✓${NC} Docker服务已启动"
