@@ -187,3 +187,8 @@ exclude_lines = [
     "if TYPE_CHECKING:",
     "@abstractmethod",
 ]
+
+# Bandit security checks configuration
+[tool.bandit]
+exclude_dirs = ["tests"]
+skips = ["B101"]  # Skip assert_used in tests
