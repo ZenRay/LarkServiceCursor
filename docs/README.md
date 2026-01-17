@@ -1,133 +1,148 @@
-# LarkService 文档索引
-
-**最后更新**: 2026-01-17
-
-本文档提供项目文档的快速导航和说明。
-
----
+# Lark Service - 项目文档索引
 
 ## 📚 核心文档
 
+### 产品与规格
+- [项目移交文档](project-handoff.md) - 项目概览、完成功能、待办事项
+- [功能规格](../specs/001-lark-service-core/spec.md) - 详细功能需求 (FR-001 至 FR-122)
+- [任务列表](../specs/001-lark-service-core/tasks.md) - Phase 1-6 任务详情
+- [实施计划](../specs/001-lark-service-core/plan.md) - 技术实施方案
+
 ### 架构与设计
-- **[architecture.md](architecture.md)** - 系统架构设计（核心文档）
-- **[technical-debt.md](technical-debt.md)** - 技术债务追踪
+- [架构设计](architecture.md) - 系统架构、模块依赖、数据流
+- [API合约](../specs/001-lark-service-core/contracts/) - OpenAPI规范
+- [错误处理指南](error-handling-guide.md) - 错误处理策略
+- [安全指南](security-guide.md) - 安全要求与实施
 
 ### 开发指南
-- **[development-environment.md](development-environment.md)** - 开发环境搭建
-- **[dev-workflow.md](dev-workflow.md)** - 开发工作流程（包含 git hooks）
-- **[quick-reference.md](quick-reference.md)** - 快速参考（代码质量工具）
-- **[docstring-standard.md](docstring-standard.md)** - 文档字符串规范
-- **[error-handling-guide.md](error-handling-guide.md)** - 错误处理指南
+- [开发环境配置](development-environment.md) - 环境搭建
+- [测试指南](testing-guide.md) - 测试策略与执行
+- [Docstring标准](docstring-standard.md) - 文档字符串规范
+- [性能要求](performance-requirements.md) - 性能指标与测试
 
-### Git 工作流
-- **[git-workflow.md](git-workflow.md)** - Git 工作流程和分支策略
-- **[git-commit-standards.md](git-commit-standards.md)** - Git 提交规范
-
-### 测试
-- **[testing-strategy.md](testing-strategy.md)** - 测试策略（核心文档）
-- **[integration-test-setup.md](integration-test-setup.md)** - 集成测试环境配置
-- **[integration-test-guide.md](integration-test-guide.md)** - 集成测试编写指南
-- **[apaas-test-guide.md](apaas-test-guide.md)** - aPaaS 模块测试指南
-- **[skipped-tests-explanation.md](skipped-tests-explanation.md)** - 跳过测试说明
-
-### 安全
-- **[security-guide.md](security-guide.md)** - 安全开发指南（核心文档）
-- **[ci-security-scanning.md](ci-security-scanning.md)** - CI 安全扫描配置
-
-### 运维
-- **[deployment.md](deployment.md)** - 部署指南
-- **[ci-cd.md](ci-cd.md)** - CI/CD 配置
-- **[observability-guide.md](observability-guide.md)** - 可观测性指南
-- **[json-logging-guide.md](json-logging-guide.md)** - JSON 日志规范
-
-### 性能
-- **[performance-requirements.md](performance-requirements.md)** - 性能要求和优化
-
-### 数据库
-- **[sqlalchemy-2.0-guide.md](sqlalchemy-2.0-guide.md)** - SQLAlchemy 2.0 迁移指南
-- **[database-timezone-config.md](database-timezone-config.md)** - 数据库时区配置
-
-### 团队协作
-- **[team-collaboration.md](team-collaboration.md)** - 团队协作规范
-- **[project-maintenance.md](project-maintenance.md)** - 项目维护指南
+### 部署与运维
+- [部署指南](deployment.md) - 部署流程与配置
+- [RabbitMQ配置](rabbitmq-config.md) - 消息队列配置
 
 ---
 
-## 🚀 当前状态文档
+## 📊 测试与质量报告
 
-### Phase 5 (aPaaS 功能) - 已完成
-- **[phase5-completion-report.md](phase5-completion-report.md)** - Phase 5 完成报告
-- **[phase5-implementation-handoff.md](phase5-implementation-handoff.md)** - Phase 5 到 Phase 6 交接文档
+### 测试覆盖率报告
+- [最终测试覆盖率报告](reports/FINAL-TEST-COVERAGE-REPORT.md) - 60.38% 覆盖率详情
+- [Phase 1 完成报告](reports/PHASE1-COMPLETE-REPORT.md) - 核心模块测试总结
+- [Task 1.1 完成报告](reports/PHASE1-TASK1.1-COMPLETE.md) - CredentialPool测试详情
+- [会话工作总结](reports/SESSION-SUMMARY.md) - 本次工作会话成果
 
-### Phase 3/4 完成报告
-- **[phase3-completion-report.md](phase3-completion-report.md)** - Phase 3 完成报告
-- **[phase4-completion-report.md](phase4-completion-report.md)** - Phase 4 完成报告
+### 检查清单
+- [生产就绪检查](../specs/001-lark-service-core/checklists/production-readiness.md) - 生产部署检查项
+- [Phase 6 最终报告](../specs/001-lark-service-core/checklists/phase6-final-report.md) - Phase 6完成状态
 
-### 最新测试报告
-- **[test-report-2026-01-17.md](test-report-2026-01-17.md)** - 最新功能测试报告
-- **[github-actions-test-failures-report.md](github-actions-test-failures-report.md)** - GitHub Actions 测试修复报告
-
-### CloudDoc API 参考
-- **[clouddoc-complete-api-guide.md](clouddoc-complete-api-guide.md)** - CloudDoc 完整 API 指南
-- **[clouddoc-permissions-guide.md](clouddoc-permissions-guide.md)** - CloudDoc 权限指南
-
-### 规划文档
-- **[next-steps-roadmap.md](next-steps-roadmap.md)** - 后续开发路线图
+### 其他报告
+- [测试覆盖率分析](test-coverage-analysis.md) - 覆盖率详细分析
+- [测试覆盖率BCA验证](test-coverage-bca-verification.md) - 覆盖率改进计划
+- [漏洞修复计划](vulnerability-fix-plan.md) - 依赖漏洞修复
 
 ---
 
-## 📦 配置示例
-- **[env.test.example](env.test.example)** - 测试环境配置示例
+## 🔧 技术文档
+
+### 模块说明
+每个模块的详细使用说明参见对应的 `__init__.py` 或模块文档:
+
+- **Core**: Token管理、配置、重试、异常处理
+  - `src/lark_service/core/` - 核心功能
+
+- **Messaging**: 消息发送
+  - `src/lark_service/messaging/` - 消息服务
+
+- **CloudDoc**: 文档操作
+  - `src/lark_service/clouddoc/` - 文档服务
+
+- **Contact**: 通讯录
+  - `src/lark_service/contact/` - 联系人服务
+
+- **CardKit**: 交互式卡片
+  - `src/lark_service/cardkit/` - 卡片构建与回调
+
+- **aPaaS**: 数据空间
+  - `src/lark_service/apaas/` - aPaaS数据操作
 
 ---
 
-## 🗄️ 归档文档
+## 📖 快速开始
 
-历史文档和已完成阶段的过程文档已移至 `archive/` 目录：
+### 查看项目概览
+```bash
+# 项目README
+cat README.md
 
-- **[archive/phase3/](archive/phase3/)** - Phase 3 历史文档
-- **[archive/phase4/](archive/phase4/)** - Phase 4 历史文档
-- **[archive/phase5/](archive/phase5/)** - Phase 5 中间文档
-- **[archive/reports/](archive/reports/)** - 历史报告
+# 项目移交文档
+cat docs/project-handoff.md
 
-详见 [archive/README.md](archive/README.md)
+# 变更日志
+cat CHANGELOG.md
+```
 
----
+### 运行测试
+```bash
+# 激活测试环境
+source .venv-test/bin/activate
 
-## 📖 文档使用指南
+# 运行所有测试
+pytest tests/unit/ -v
 
-### 新人入门
-1. 阅读 [architecture.md](architecture.md) 了解系统架构
-2. 参考 [development-environment.md](development-environment.md) 搭建开发环境
-3. 学习 [dev-workflow.md](dev-workflow.md) 了解开发流程
-4. 遵循 [git-commit-standards.md](git-commit-standards.md) 提交代码
+# 查看覆盖率
+pytest tests/unit/ --cov=src/lark_service --cov-report=term-missing
 
-### 功能开发
-1. 参考 [testing-strategy.md](testing-strategy.md) 编写测试
-2. 遵循 [docstring-standard.md](docstring-standard.md) 编写文档
-3. 使用 [quick-reference.md](quick-reference.md) 进行代码质量检查
-4. 参考相应模块的 API 指南
+# 生成HTML报告
+pytest tests/unit/ --cov=src/lark_service --cov-report=html
+# 查看: htmlcov/index.html
+```
 
-### 故障排查
-1. 查看 [skipped-tests-explanation.md](skipped-tests-explanation.md) 了解跳过的测试
-2. 参考 [error-handling-guide.md](error-handling-guide.md) 处理错误
-3. 使用 [observability-guide.md](observability-guide.md) 排查问题
+### 查看测试报告
+```bash
+# 最终测试覆盖率报告
+cat docs/reports/FINAL-TEST-COVERAGE-REPORT.md
 
-### 部署运维
-1. 参考 [deployment.md](deployment.md) 进行部署
-2. 配置 [ci-cd.md](ci-cd.md) 设置自动化流程
-3. 遵循 [security-guide.md](security-guide.md) 确保安全
-
----
-
-## 📝 文档维护
-
-- **定期更新**: 完成重要功能后更新相关文档
-- **归档策略**: 已完成阶段的过程文档移至 `archive/`
-- **版本控制**: 所有文档纳入 Git 版本控制
-- **审查机制**: 文档变更需经过 Code Review
+# Phase 1 完成报告
+cat docs/reports/PHASE1-COMPLETE-REPORT.md
+```
 
 ---
 
-**维护者**: LarkService 开发团队
-**联系方式**: 见项目 README.md
+## 📋 项目规范
+
+### 代码规范
+参见 [项目宪章](../.specify/memory/constitution.md):
+- Python 3.12+
+- 代码使用英文,文档使用中文
+- 遵循PEP 8
+- Ruff格式化
+- MyPy类型检查
+- Google风格Docstring
+
+### Git提交规范
+- 使用 Conventional Commits
+- 格式: `<type>(<scope>): <description>`
+- 类型: feat, fix, docs, test, refactor, chore
+
+---
+
+## 🔍 相关资源
+
+### 外部文档
+- [Lark Open Platform](https://open.feishu.cn/document/)
+- [lark-oapi SDK](https://github.com/larksuite/oapi-sdk-python)
+
+### 项目状态
+- **当前版本**: v0.1.0
+- **整体覆盖率**: 60.38%
+- **测试总数**: 377个
+- **文档完整度**: 优秀
+
+---
+
+**最后更新**: 2026-01-18
+**维护者**: Ray
+**状态**: ✅ Phase 1 完成
