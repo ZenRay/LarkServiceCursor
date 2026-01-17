@@ -1,4 +1,7 @@
+import urllib.parse
 from typing import Any
+
+import requests
 
 from lark_service.apaas.models import (
     FieldDefinition,
@@ -8,10 +11,18 @@ from lark_service.apaas.models import (
 )
 from lark_service.core.credential_pool import CredentialPool
 from lark_service.core.exceptions import (
+    APIError,
     InvalidParameterError,
+    NotFoundError,
+    PermissionDeniedError,
 )
 from lark_service.core.retry import RetryStrategy
 from lark_service.utils.logger import get_logger
+from lark_service.utils.validators import (
+    validate_app_id,
+    validate_non_empty_string,
+    validate_non_negative_int,
+)
 
 logger = get_logger()
 
@@ -87,6 +98,41 @@ class WorkspaceTableClient:
         self.credential_pool = credential_pool
         self.retry_strategy = retry_strategy or RetryStrategy()
 
+    def _handle_api_error(self, result: dict[str, Any], method_name: str) -> None:
+        """
+        Handle API error responses and raise appropriate exceptions.
+
+        Args
+        ----------
+            result: API response dictionary
+            method_name: Name of the method that called the API
+
+        Raises
+        ----------
+            PermissionDeniedError: Permission denied error
+            NotFoundError: Resource not found error
+            InvalidParameterError: Invalid parameter error
+            APIError: Generic API error
+        """
+        code = result.get("code", -1)
+        msg = result.get("msg", "Unknown error")
+
+        logger.error(
+            f"aPaaS API error in {method_name}",
+            extra={"code": code, "msg": msg, "method": method_name},
+        )
+
+        # Map Feishu error codes to custom exceptions
+        if code in (99991400, 99991401, 99991663):  # Authentication/permission errors
+            raise PermissionDeniedError(f"Permission denied: {msg}")
+        if code in (99991404, 230002):  # Not found errors
+            raise NotFoundError(f"Resource not found: {msg}")
+        if code in (99991402, 99991403):  # Invalid parameter errors
+            raise InvalidParameterError(f"Invalid parameter: {msg}")
+
+        # Generic API error
+        raise APIError(f"aPaaS API error ({code}): {msg}")
+
     def list_workspace_tables(
         self,
         app_id: str,
@@ -125,14 +171,52 @@ class WorkspaceTableClient:
         if not workspace_id or not workspace_id.startswith("ws_"):
             raise InvalidParameterError("Invalid workspace_id format, expected: ws_xxx")
 
+        validate_app_id(app_id)
+        validate_non_empty_string(user_access_token, "user_access_token")
+        validate_non_empty_string(workspace_id, "workspace_id")
+
         logger.info(
             "Listing workspace tables",
             extra={"workspace_id": workspace_id, "app_id": app_id},
         )
 
-        # TODO: Implement actual API call using lark-oapi SDK or HTTP client
-        # This is a placeholder implementation
-        raise NotImplementedError("list_workspace_tables not yet implemented")
+        try:
+            url = f"{APAAS_API_BASE}/apaas/v1/workspaces/{workspace_id}/tables"
+            headers = {
+                "Authorization": f"Bearer {user_access_token}",
+                "Content-Type": "application/json",
+            }
+
+            response = requests.get(url, headers=headers, timeout=30)
+            result = response.json()
+
+            if result.get("code") != 0:
+                self._handle_api_error(result, "list_workspace_tables")
+
+            # Parse response data
+            tables_data = result.get("data", {}).get("tables", [])
+            tables = []
+
+            for table_data in tables_data:
+                table = WorkspaceTable(
+                    table_id=table_data.get("table_id", ""),
+                    workspace_id=workspace_id,
+                    name=table_data.get("name", ""),
+                    description=table_data.get("description"),
+                    field_count=table_data.get("field_count"),
+                )
+                tables.append(table)
+
+            logger.info(
+                f"Successfully listed {len(tables)} tables",
+                extra={"workspace_id": workspace_id, "count": len(tables)},
+            )
+
+            return tables
+
+        except requests.RequestException as e:
+            logger.error(f"Network error listing workspace tables: {e}")
+            raise APIError(f"Failed to list workspace tables: {e}") from e
 
     def list_fields(
         self,
@@ -173,13 +257,71 @@ class WorkspaceTableClient:
         if not table_id or not table_id.startswith("tbl_"):
             raise InvalidParameterError("Invalid table_id format, expected: tbl_xxx")
 
+        validate_app_id(app_id)
+        validate_non_empty_string(user_access_token, "user_access_token")
+        validate_non_empty_string(table_id, "table_id")
+
         logger.info(
             "Listing table fields",
             extra={"table_id": table_id, "app_id": app_id},
         )
 
-        # TODO: Implement actual API call
-        raise NotImplementedError("list_fields not yet implemented")
+        try:
+            url = f"{APAAS_API_BASE}/apaas/v1/tables/{table_id}/fields"
+            headers = {
+                "Authorization": f"Bearer {user_access_token}",
+                "Content-Type": "application/json",
+            }
+
+            response = requests.get(url, headers=headers, timeout=30)
+            result = response.json()
+
+            if result.get("code") != 0:
+                self._handle_api_error(result, "list_fields")
+
+            # Parse response data
+            fields_data = result.get("data", {}).get("fields", [])
+            fields = []
+
+            for field_data in fields_data:
+                field_type_code = field_data.get("type", 1)
+                field_type = FIELD_TYPE_MAP.get(field_type_code, FieldType.TEXT)
+
+                # Parse options for select fields
+                options = None
+                if field_type in (FieldType.SINGLE_SELECT, FieldType.MULTI_SELECT):
+                    options_data = field_data.get("options", [])
+                    from lark_service.apaas.models import SelectOption
+
+                    options = [
+                        SelectOption(
+                            id=opt.get("id", ""),
+                            name=opt.get("name", ""),
+                            color=opt.get("color"),
+                        )
+                        for opt in options_data
+                    ]
+
+                field = FieldDefinition(
+                    field_id=field_data.get("field_id", ""),
+                    field_name=field_data.get("field_name", ""),
+                    field_type=field_type,
+                    is_required=field_data.get("is_required", False),
+                    description=field_data.get("description"),
+                    options=options,
+                )
+                fields.append(field)
+
+            logger.info(
+                f"Successfully listed {len(fields)} fields",
+                extra={"table_id": table_id, "count": len(fields)},
+            )
+
+            return fields
+
+        except requests.RequestException as e:
+            logger.error(f"Network error listing table fields: {e}")
+            raise APIError(f"Failed to list table fields: {e}") from e
 
     def query_records(
         self,
@@ -234,6 +376,11 @@ class WorkspaceTableClient:
         if page_size < 1 or page_size > 500:
             raise InvalidParameterError("page_size must be between 1 and 500")
 
+        validate_app_id(app_id)
+        validate_non_empty_string(user_access_token, "user_access_token")
+        validate_non_empty_string(table_id, "table_id")
+        validate_non_negative_int(page_size, "page_size", min_value=1, max_value=500)
+
         logger.info(
             "Querying table records",
             extra={
@@ -244,8 +391,58 @@ class WorkspaceTableClient:
             },
         )
 
-        # TODO: Implement actual API call with filter and pagination
-        raise NotImplementedError("query_records not yet implemented")
+        try:
+            url = f"{APAAS_API_BASE}/apaas/v1/tables/{table_id}/records/query"
+            headers = {
+                "Authorization": f"Bearer {user_access_token}",
+                "Content-Type": "application/json",
+            }
+
+            # Build request body
+            body: dict[str, Any] = {"page_size": page_size}
+
+            if filter_expr:
+                # URL encode the filter expression as per API requirements
+                body["filter"] = urllib.parse.quote(filter_expr)
+
+            if page_token:
+                body["page_token"] = page_token
+
+            response = requests.post(url, headers=headers, json=body, timeout=30)
+            result = response.json()
+
+            if result.get("code") != 0:
+                self._handle_api_error(result, "query_records")
+
+            # Parse response data
+            data = result.get("data", {})
+            records_data = data.get("records", [])
+            next_page_token = data.get("page_token")
+            has_more = data.get("has_more", False)
+
+            records = []
+            for record_data in records_data:
+                record = TableRecord(
+                    record_id=record_data.get("record_id", ""),
+                    table_id=table_id,
+                    fields=record_data.get("fields", {}),
+                )
+                records.append(record)
+
+            logger.info(
+                f"Successfully queried {len(records)} records",
+                extra={
+                    "table_id": table_id,
+                    "count": len(records),
+                    "has_more": has_more,
+                },
+            )
+
+            return (records, next_page_token, has_more)
+
+        except requests.RequestException as e:
+            logger.error(f"Network error querying records: {e}")
+            raise APIError(f"Failed to query records: {e}") from e
 
     def create_record(
         self,
@@ -291,13 +488,48 @@ class WorkspaceTableClient:
         if not fields:
             raise InvalidParameterError("fields cannot be empty")
 
+        validate_app_id(app_id)
+        validate_non_empty_string(user_access_token, "user_access_token")
+        validate_non_empty_string(table_id, "table_id")
+
         logger.info(
             "Creating table record",
             extra={"table_id": table_id, "app_id": app_id, "field_count": len(fields)},
         )
 
-        # TODO: Implement actual API call
-        raise NotImplementedError("create_record not yet implemented")
+        try:
+            url = f"{APAAS_API_BASE}/apaas/v1/tables/{table_id}/records"
+            headers = {
+                "Authorization": f"Bearer {user_access_token}",
+                "Content-Type": "application/json",
+            }
+
+            body = {"fields": fields}
+
+            response = requests.post(url, headers=headers, json=body, timeout=30)
+            result = response.json()
+
+            if result.get("code") != 0:
+                self._handle_api_error(result, "create_record")
+
+            # Parse response data
+            record_data = result.get("data", {}).get("record", {})
+            record = TableRecord(
+                record_id=record_data.get("record_id", ""),
+                table_id=table_id,
+                fields=record_data.get("fields", {}),
+            )
+
+            logger.info(
+                f"Successfully created record: {record.record_id}",
+                extra={"table_id": table_id, "record_id": record.record_id},
+            )
+
+            return record
+
+        except requests.RequestException as e:
+            logger.error(f"Network error creating record: {e}")
+            raise APIError(f"Failed to create record: {e}") from e
 
     def update_record(
         self,
@@ -349,6 +581,11 @@ class WorkspaceTableClient:
         if not fields:
             raise InvalidParameterError("fields cannot be empty")
 
+        validate_app_id(app_id)
+        validate_non_empty_string(user_access_token, "user_access_token")
+        validate_non_empty_string(table_id, "table_id")
+        validate_non_empty_string(record_id, "record_id")
+
         logger.info(
             "Updating table record",
             extra={
@@ -359,8 +596,39 @@ class WorkspaceTableClient:
             },
         )
 
-        # TODO: Implement actual API call
-        raise NotImplementedError("update_record not yet implemented")
+        try:
+            url = f"{APAAS_API_BASE}/apaas/v1/tables/{table_id}/records/{record_id}"
+            headers = {
+                "Authorization": f"Bearer {user_access_token}",
+                "Content-Type": "application/json",
+            }
+
+            body = {"fields": fields}
+
+            response = requests.put(url, headers=headers, json=body, timeout=30)
+            result = response.json()
+
+            if result.get("code") != 0:
+                self._handle_api_error(result, "update_record")
+
+            # Parse response data
+            record_data = result.get("data", {}).get("record", {})
+            record = TableRecord(
+                record_id=record_data.get("record_id", record_id),
+                table_id=table_id,
+                fields=record_data.get("fields", {}),
+            )
+
+            logger.info(
+                f"Successfully updated record: {record.record_id}",
+                extra={"table_id": table_id, "record_id": record.record_id},
+            )
+
+            return record
+
+        except requests.RequestException as e:
+            logger.error(f"Network error updating record: {e}")
+            raise APIError(f"Failed to update record: {e}") from e
 
     def delete_record(
         self,
@@ -402,13 +670,37 @@ class WorkspaceTableClient:
         if not record_id or not record_id.startswith("rec_"):
             raise InvalidParameterError("Invalid record_id format, expected: rec_xxx")
 
+        validate_app_id(app_id)
+        validate_non_empty_string(user_access_token, "user_access_token")
+        validate_non_empty_string(table_id, "table_id")
+        validate_non_empty_string(record_id, "record_id")
+
         logger.info(
             "Deleting table record",
             extra={"table_id": table_id, "record_id": record_id, "app_id": app_id},
         )
 
-        # TODO: Implement actual API call
-        raise NotImplementedError("delete_record not yet implemented")
+        try:
+            url = f"{APAAS_API_BASE}/apaas/v1/tables/{table_id}/records/{record_id}"
+            headers = {
+                "Authorization": f"Bearer {user_access_token}",
+                "Content-Type": "application/json",
+            }
+
+            response = requests.delete(url, headers=headers, timeout=30)
+            result = response.json()
+
+            if result.get("code") != 0:
+                self._handle_api_error(result, "delete_record")
+
+            logger.info(
+                f"Successfully deleted record: {record_id}",
+                extra={"table_id": table_id, "record_id": record_id},
+            )
+
+        except requests.RequestException as e:
+            logger.error(f"Network error deleting record: {e}")
+            raise APIError(f"Failed to delete record: {e}") from e
 
     def batch_create_records(
         self,
@@ -460,13 +752,53 @@ class WorkspaceTableClient:
         if len(records) > 500:
             raise InvalidParameterError("Batch create supports max 500 records")
 
+        validate_app_id(app_id)
+        validate_non_empty_string(user_access_token, "user_access_token")
+        validate_non_empty_string(table_id, "table_id")
+
         logger.info(
             "Batch creating table records",
             extra={"table_id": table_id, "app_id": app_id, "record_count": len(records)},
         )
 
-        # TODO: Implement actual API call
-        raise NotImplementedError("batch_create_records not yet implemented")
+        try:
+            url = f"{APAAS_API_BASE}/apaas/v1/tables/{table_id}/records/batch"
+            headers = {
+                "Authorization": f"Bearer {user_access_token}",
+                "Content-Type": "application/json",
+            }
+
+            # Build request body with records list
+            body = {"records": [{"fields": record} for record in records]}
+
+            response = requests.post(url, headers=headers, json=body, timeout=60)
+            result = response.json()
+
+            if result.get("code") != 0:
+                self._handle_api_error(result, "batch_create_records")
+
+            # Parse response data
+            records_data = result.get("data", {}).get("records", [])
+            created_records = []
+
+            for record_data in records_data:
+                record = TableRecord(
+                    record_id=record_data.get("record_id", ""),
+                    table_id=table_id,
+                    fields=record_data.get("fields", {}),
+                )
+                created_records.append(record)
+
+            logger.info(
+                f"Successfully batch created {len(created_records)} records",
+                extra={"table_id": table_id, "count": len(created_records)},
+            )
+
+            return created_records
+
+        except requests.RequestException as e:
+            logger.error(f"Network error batch creating records: {e}")
+            raise APIError(f"Failed to batch create records: {e}") from e
 
     def batch_update_records(
         self,
@@ -525,10 +857,54 @@ class WorkspaceTableClient:
                     f"Invalid record_id format: {record_id}, expected: rec_xxx"
                 )
 
+        validate_app_id(app_id)
+        validate_non_empty_string(user_access_token, "user_access_token")
+        validate_non_empty_string(table_id, "table_id")
+
         logger.info(
             "Batch updating table records",
             extra={"table_id": table_id, "app_id": app_id, "record_count": len(records)},
         )
 
-        # TODO: Implement actual API call
-        raise NotImplementedError("batch_update_records not yet implemented")
+        try:
+            url = f"{APAAS_API_BASE}/apaas/v1/tables/{table_id}/records/batch"
+            headers = {
+                "Authorization": f"Bearer {user_access_token}",
+                "Content-Type": "application/json",
+            }
+
+            # Build request body with record updates
+            body = {
+                "records": [
+                    {"record_id": record_id, "fields": fields} for record_id, fields in records
+                ]
+            }
+
+            response = requests.put(url, headers=headers, json=body, timeout=60)
+            result = response.json()
+
+            if result.get("code") != 0:
+                self._handle_api_error(result, "batch_update_records")
+
+            # Parse response data
+            records_data = result.get("data", {}).get("records", [])
+            updated_records = []
+
+            for record_data in records_data:
+                record = TableRecord(
+                    record_id=record_data.get("record_id", ""),
+                    table_id=table_id,
+                    fields=record_data.get("fields", {}),
+                )
+                updated_records.append(record)
+
+            logger.info(
+                f"Successfully batch updated {len(updated_records)} records",
+                extra={"table_id": table_id, "count": len(updated_records)},
+            )
+
+            return updated_records
+
+        except requests.RequestException as e:
+            logger.error(f"Network error batch updating records: {e}")
+            raise APIError(f"Failed to batch update records: {e}") from e
