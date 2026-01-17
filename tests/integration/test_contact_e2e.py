@@ -11,6 +11,7 @@ Prerequisites:
 
 import os
 from datetime import timedelta
+from typing import Any
 
 import pytest
 from dotenv import load_dotenv
@@ -25,7 +26,7 @@ load_dotenv(".env.test")
 
 
 @pytest.fixture(scope="module")
-def test_config():
+def test_config() -> Any:
     """Load test configuration from .env.test."""
     config = {
         "app_id": os.getenv("TEST_APP_ID"),
@@ -47,7 +48,7 @@ def test_config():
 
 
 @pytest.fixture(scope="module")
-def credential_pool(test_config, tmp_path_factory):
+def credential_pool(test_config: Any, tmp_path_factory: Any) -> Any:
     """Create credential pool for tests."""
     from cryptography.fernet import Fernet
 
@@ -110,7 +111,7 @@ def credential_pool(test_config, tmp_path_factory):
 
 
 @pytest.fixture(scope="module")
-def cache_manager(test_config):
+def cache_manager(test_config: Any) -> Any:
     """Create cache manager for tests."""
     manager = ContactCacheManager(database_url=test_config["db_url"])
 
@@ -118,29 +119,25 @@ def cache_manager(test_config):
     with manager.session_factory() as session:
         from lark_service.core.models.user_cache import UserCache
 
-        session.query(UserCache).filter(
-            UserCache.app_id == test_config["app_id"]
-        ).delete()
+        session.query(UserCache).filter(UserCache.app_id == test_config["app_id"]).delete()
         session.commit()
 
     yield manager
 
     # Cleanup after tests
     with manager.session_factory() as session:
-        session.query(UserCache).filter(
-            UserCache.app_id == test_config["app_id"]
-        ).delete()
+        session.query(UserCache).filter(UserCache.app_id == test_config["app_id"]).delete()
         session.commit()
 
 
 @pytest.fixture
-def client_without_cache(credential_pool):
+def client_without_cache(credential_pool: Any) -> Any:
     """Create ContactClient without cache."""
     return ContactClient(credential_pool, enable_cache=False)
 
 
 @pytest.fixture
-def client_with_cache(credential_pool, cache_manager):
+def client_with_cache(credential_pool: Any, cache_manager: Any) -> Any:
     """Create ContactClient with cache enabled."""
     return ContactClient(
         credential_pool,
@@ -153,7 +150,9 @@ def client_with_cache(credential_pool, cache_manager):
 class TestContactWithoutCache:
     """Test Contact client without cache (direct API calls)."""
 
-    def test_get_user_by_email_success(self, client_without_cache, test_config):
+    def test_get_user_by_email_success(
+        self: Any, client_without_cache: Any, test_config: Any
+    ) -> None:
         """Test get user by email returns valid user."""
         if not test_config["user_email"]:
             pytest.skip("TEST_USER_EMAIL not configured")
@@ -173,7 +172,9 @@ class TestContactWithoutCache:
 
         print(f"✅ Found user: {user.name} ({user.open_id})")
 
-    def test_get_user_by_email_not_found(self, client_without_cache, test_config):
+    def test_get_user_by_email_not_found(
+        self: Any, client_without_cache: Any, test_config: Any
+    ) -> None:
         """Test get user by email raises NotFoundError for non-existent user."""
         with pytest.raises(NotFoundError, match="User not found"):
             client_without_cache.get_user_by_email(
@@ -185,7 +186,9 @@ class TestContactWithoutCache:
         not os.getenv("TEST_USER_MOBILE"),
         reason="TEST_USER_MOBILE not configured",
     )
-    def test_get_user_by_mobile_success(self, client_without_cache, test_config):
+    def test_get_user_by_mobile_success(
+        self: Any, client_without_cache: Any, test_config: Any
+    ) -> None:
         """Test get user by mobile returns valid user."""
         user = client_without_cache.get_user_by_mobile(
             app_id=test_config["app_id"],
@@ -203,7 +206,9 @@ class TestContactWithoutCache:
 class TestContactWithCache:
     """Test Contact client with cache enabled."""
 
-    def test_cache_miss_then_hit(self, client_with_cache, cache_manager, test_config):
+    def test_cache_miss_then_hit(
+        self: Any, client_with_cache: Any, cache_manager: Any, test_config: Any
+    ) -> None:
         """Test cache miss on first call, then cache hit on second call."""
         if not test_config["user_email"]:
             pytest.skip("TEST_USER_EMAIL not configured")
@@ -253,8 +258,8 @@ class TestContactWithCache:
         print(f"✅ Cache stats: total={stats['total']}, active={stats['active']}")
 
     def test_cache_by_different_identifiers(
-        self, client_with_cache, cache_manager, test_config
-    ):
+        self: Any, client_with_cache: Any, cache_manager: Any, test_config: Any
+    ) -> None:
         """Test cache works with different identifiers (email, mobile, user_id)."""
         if not test_config["user_email"]:
             pytest.skip("TEST_USER_EMAIL not configured")
@@ -290,7 +295,9 @@ class TestContactWithCache:
             assert user_by_mobile.union_id == user_by_email.union_id
             print(f"✅ Queried by mobile (cache hit): {user_by_mobile.name}")
 
-    def test_cache_invalidation(self, client_with_cache, cache_manager, test_config):
+    def test_cache_invalidation(
+        self: Any, client_with_cache: Any, cache_manager: Any, test_config: Any
+    ) -> None:
         """Test cache invalidation works correctly."""
         if not test_config["user_email"]:
             pytest.skip("TEST_USER_EMAIL not configured")
@@ -325,7 +332,7 @@ class TestContactWithCache:
         assert cached_after is None
         print("✅ Cache successfully invalidated")
 
-    def test_cache_app_isolation(self, cache_manager, test_config):
+    def test_cache_app_isolation(self: Any, cache_manager: Any, test_config: Any) -> None:
         """Test cache is isolated by app_id."""
         from lark_service.contact.models import User
 
@@ -377,8 +384,8 @@ class TestContactBatchOperations:
         reason="TEST_USER_EMAIL not configured",
     )
     def test_batch_get_users_with_cache(
-        self, client_with_cache, cache_manager, test_config
-    ):
+        self: Any, client_with_cache: Any, cache_manager: Any, test_config: Any
+    ) -> None:
         """Test batch get users with cache optimization."""
         from lark_service.contact.models import BatchUserQuery
 

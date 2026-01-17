@@ -200,11 +200,7 @@ class ContactClient:
             batch_request = (
                 BatchGetIdUserRequest.builder()
                 .user_id_type("user_id")
-                .request_body(
-                    BatchGetIdUserRequestBody.builder()
-                    .emails([email])
-                    .build()
-                )
+                .request_body(BatchGetIdUserRequestBody.builder().emails([email]).build())
                 .build()
             )
 
@@ -342,11 +338,7 @@ class ContactClient:
             batch_request = (
                 BatchGetIdUserRequest.builder()
                 .user_id_type("user_id")
-                .request_body(
-                    BatchGetIdUserRequestBody.builder()
-                    .mobiles([mobile])
-                    .build()
-                )
+                .request_body(BatchGetIdUserRequestBody.builder().mobiles([mobile]).build())
                 .build()
             )
 
@@ -481,12 +473,7 @@ class ContactClient:
             client = self.credential_pool._get_sdk_client(app_id)
 
             # Build request - use GetUser API with user_id
-            request = (
-                GetUserRequest.builder()
-                .user_id_type("user_id")
-                .user_id(user_id)
-                .build()
-            )
+            request = GetUserRequest.builder().user_id_type("user_id").user_id(user_id).build()
 
             # Make API call
             response = client.contact.v3.user.get(request)
@@ -705,7 +692,9 @@ class ContactClient:
                                 if user_contact_info.email:
                                     user_id_map[user_contact_info.user_id] = user_contact_info.email
                                 elif user_contact_info.mobile:
-                                    user_id_map[user_contact_info.user_id] = user_contact_info.mobile
+                                    user_id_map[
+                                        user_contact_info.user_id
+                                    ] = user_contact_info.mobile
 
                     # Step 2: Get full user info for each user_id
                     for uid in user_ids_to_fetch:
@@ -719,14 +708,20 @@ class ContactClient:
 
                             get_response = client.contact.v3.user.get(get_request)
 
-                            if get_response.success() and get_response.data and get_response.data.user:
+                            if (
+                                get_response.success()
+                                and get_response.data
+                                and get_response.data.user
+                            ):
                                 lark_user = get_response.data.user
                                 user = User(
                                     open_id=lark_user.open_id or "",
                                     user_id=lark_user.user_id or "",
                                     union_id=lark_user.union_id or "",
                                     name=lark_user.name or "",
-                                    avatar=lark_user.avatar.avatar_origin if lark_user.avatar else None,
+                                    avatar=lark_user.avatar.avatar_origin
+                                    if lark_user.avatar
+                                    else None,
                                     email=lark_user.email or None,
                                     mobile=lark_user.mobile or None,
                                     department_ids=lark_user.department_ids or None,
@@ -748,8 +743,16 @@ class ContactClient:
                     found_emails = {u.email for u in api_users if u.email}
                     found_mobiles = {u.mobile for u in api_users if u.mobile}
 
-                    api_not_found.extend([e for e in all_emails if e not in found_emails and e not in api_not_found])
-                    api_not_found.extend([m for m in all_mobiles if m not in found_mobiles and m not in api_not_found])
+                    api_not_found.extend(
+                        [e for e in all_emails if e not in found_emails and e not in api_not_found]
+                    )
+                    api_not_found.extend(
+                        [
+                            m
+                            for m in all_mobiles
+                            if m not in found_mobiles and m not in api_not_found
+                        ]
+                    )
 
             # Handle user_ids separately (need individual GetUser calls)
             for q in remaining_queries:
@@ -773,7 +776,9 @@ class ContactClient:
                                     user_id=lark_user.user_id or "",
                                     union_id=lark_user.union_id or "",
                                     name=lark_user.name or "",
-                                    avatar=lark_user.avatar.avatar_origin if lark_user.avatar else None,
+                                    avatar=lark_user.avatar.avatar_origin
+                                    if lark_user.avatar
+                                    else None,
                                     email=lark_user.email or None,
                                     mobile=lark_user.mobile or None,
                                     department_ids=lark_user.department_ids or None,
@@ -788,7 +793,9 @@ class ContactClient:
                             logger.warning(f"Failed to get user by user_id {uid}: {e}")
                             api_not_found.append(uid)
 
-            logger.info(f"Batch query completed: {len(api_users)} found, {len(api_not_found)} not found")
+            logger.info(
+                f"Batch query completed: {len(api_users)} found, {len(api_not_found)} not found"
+            )
 
             return BatchUserResponse(
                 users=api_users,

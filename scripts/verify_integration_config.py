@@ -109,7 +109,9 @@ def check_postgres_connection(env_vars: dict[str, str]) -> bool:
             connect_timeout=5,
         )
         conn.close()
-        print(f"✅ PostgreSQL connection successful ({env_vars['POSTGRES_HOST']}:{env_vars['POSTGRES_PORT']})")
+        print(
+            f"✅ PostgreSQL connection successful ({env_vars['POSTGRES_HOST']}:{env_vars['POSTGRES_PORT']})"
+        )
         return True
     except ImportError:
         print("⚠️  psycopg2 not installed - skipping PostgreSQL check")
@@ -145,10 +147,7 @@ def check_lark_credentials(env_vars: dict[str, str]) -> bool:
         import requests
 
         url = "https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal"
-        payload = {
-            "app_id": app_id,
-            "app_secret": app_secret
-        }
+        payload = {"app_id": app_id, "app_secret": app_secret}
 
         response = requests.post(url, json=payload, timeout=10)
         result = response.json()

@@ -5,10 +5,9 @@ This module provides a high-level client for spreadsheet operations
 via Lark Sheets API, including reading, updating, formatting, and managing cells.
 """
 
-
 from typing import Any
 
-import requests  # type: ignore
+import requests
 
 from lark_service.clouddoc.models import CellData
 from lark_service.core.credential_pool import CredentialPool
@@ -72,7 +71,7 @@ class SheetClient:
         self,
         app_id: str,
         spreadsheet_token: str,
-    ) -> list[dict[str, any]]:
+    ) -> list[dict[str, Any]]:
         """
         获取电子表格的所有工作表信息.
 
@@ -116,12 +115,12 @@ class SheetClient:
         logger.info(f"Getting sheet info for spreadsheet {spreadsheet_token}")
 
         def _get_info() -> list[dict[str, Any]]:
-            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")
+            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")  # nosec B106
 
             url = f"https://open.feishu.cn/open-apis/sheets/v3/spreadsheets/{spreadsheet_token}/sheets/query"
             headers = {
                 "Authorization": f"Bearer {token}",
-                "Content-Type": "application/json; charset=utf-8"
+                "Content-Type": "application/json; charset=utf-8",
             }
 
             response = requests.get(url, headers=headers, timeout=30)
@@ -131,14 +130,16 @@ class SheetClient:
                 try:
                     error_data = response.json()
                     error_msg = f"{error_msg} - {error_data.get('msg', 'Unknown error')}"
-                    error_code = error_data.get('code', 0)
+                    error_code = error_data.get("code", 0)
 
                     if error_code == 404:
                         raise NotFoundError(f"Spreadsheet not found: {spreadsheet_token}")
                     elif error_code in [403, 1770032]:
-                        raise PermissionDeniedError(f"No permission to access spreadsheet: {spreadsheet_token}")
+                        raise PermissionDeniedError(
+                            f"No permission to access spreadsheet: {spreadsheet_token}"
+                        )
                 except Exception as e:
-                    if isinstance(e, (NotFoundError, PermissionDeniedError)):
+                    if isinstance(e, NotFoundError | PermissionDeniedError):
                         raise
                     logger.error(f"Failed to parse error response: {e}")
 
@@ -233,7 +234,7 @@ class SheetClient:
 
         def _get() -> list[list[CellData]]:
             # Get tenant access token
-            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")
+            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")  # nosec B106
 
             # Build the range parameter: sheetId!A1:B10
             full_range = f"{sheet_id}!{range_str}"
@@ -266,15 +267,11 @@ class SheetClient:
                     if error_code in [404, 1770002]:
                         raise NotFoundError(f"Sheet or range not found: {full_range}")
                     elif error_code in [403, 1770032]:
-                        raise PermissionDeniedError(
-                            f"No permission to access sheet: {full_range}"
-                        )
+                        raise PermissionDeniedError(f"No permission to access sheet: {full_range}")
                     elif error_code in [400, 1770001]:
                         raise InvalidParameterError(error_msg)
                 except Exception as e:
-                    if isinstance(
-                        e, (NotFoundError, PermissionDeniedError, InvalidParameterError)
-                    ):
+                    if isinstance(e, NotFoundError | PermissionDeniedError | InvalidParameterError):
                         raise
                     logger.error(f"Failed to parse error response: {e}")
 
@@ -387,9 +384,9 @@ class SheetClient:
         logger.info(f"Updating sheet data: {sheet_id}!{range_str}")
 
         def _update() -> bool:
-            import requests  # type: ignore
+            import requests
 
-            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")
+            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")  # nosec B106
 
             url = f"https://open.feishu.cn/open-apis/sheets/v2/spreadsheets/{spreadsheet_token}/values"
             headers = {
@@ -509,9 +506,9 @@ class SheetClient:
         logger.info(f"Appending data to sheet: {sheet_id}!{range_str}")
 
         def _append() -> bool:
-            import requests  # type: ignore
+            import requests
 
-            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")
+            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")  # nosec B106
 
             url = f"https://open.feishu.cn/open-apis/sheets/v2/spreadsheets/{spreadsheet_token}/values_append"
             headers = {

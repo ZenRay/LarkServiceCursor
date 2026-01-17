@@ -151,7 +151,12 @@ class RetryStrategy:
                     )
                     raise
 
-            except (ValidationError, InvalidParameterError, NotFoundError, PermissionDeniedError) as e:
+            except (
+                ValidationError,
+                InvalidParameterError,
+                NotFoundError,
+                PermissionDeniedError,
+            ) as e:
                 # These errors are not retryable - they indicate client-side issues
                 logger.error(
                     "Non-retryable error (client error)",
