@@ -11,7 +11,7 @@ services:
       POSTGRES_PASSWORD: staging_password_local_only
       POSTGRES_INITDB_ARGS: "-E UTF8"
     ports:
-      - "5432:5432"
+      - "5433:5432"  # 使用5433避免与本地PostgreSQL冲突
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
@@ -32,8 +32,8 @@ services:
       RABBITMQ_DEFAULT_PASS: staging_rabbitmq_local_only
       RABBITMQ_DEFAULT_VHOST: /lark-staging
     ports:
-      - "5672:5672"    # AMQP
-      - "15672:15672"  # 管理界面
+      - "5673:5672"    # AMQP (避免冲突)
+      - "15673:15672"  # 管理界面 (避免冲突)
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:
@@ -50,7 +50,7 @@ services:
     container_name: lark-staging-redis
     command: redis-server --requirepass staging_redis_local_only
     ports:
-      - "6379:6379"
+      - "6380:6379"  # Redis (避免冲突)
     volumes:
       - redis_data:/data
     healthcheck:

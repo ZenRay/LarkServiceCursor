@@ -79,7 +79,7 @@ done
 
 echo "  等待RabbitMQ..."
 for i in {1..30}; do
-    if curl -s http://localhost:15672 > /dev/null 2>&1; then
+    if curl -s http://localhost:15673 > /dev/null 2>&1; then
         echo -e "${GREEN}✓${NC} RabbitMQ已就绪"
         break
     fi
@@ -122,14 +122,14 @@ echo ""
 echo "📊 服务连接信息:"
 echo ""
 echo "PostgreSQL:"
-echo "  Host: localhost:5432"
+echo "  Host: localhost:5433"
 echo "  Database: lark_service_staging"
 echo "  User: lark_staging"
 echo "  Password: staging_password_local_only"
 echo ""
 echo "RabbitMQ:"
-echo "  AMQP: localhost:5672"
-echo "  Management: http://localhost:15672"
+echo "  AMQP: localhost:5673"
+echo "  Management: http://localhost:15673"
 echo "  User: lark_staging"
 echo "  Password: staging_rabbitmq_local_only"
 echo ""
