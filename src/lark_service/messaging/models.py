@@ -9,7 +9,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel, Field, ValidationInfo, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class MessageType(str, Enum):
@@ -199,7 +199,7 @@ class BatchSendResponse(BaseModel):
 
     @field_validator("total")
     @classmethod
-    def validate_total_matches_results(cls, v: int, info: ValidationInfo) -> int:
+    def validate_total_matches_results(cls, v: int, info: Any) -> int:
         """Validate that total matches the number of results."""
         if "results" in info.data and v != len(info.data["results"]):
             raise ValueError("total must match the number of results")

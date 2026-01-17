@@ -122,7 +122,7 @@ class MessageLifecycleManager:
         # Execute with retry
         try:
             response = self.retry_strategy.execute(
-                lambda: client.im.v1.message.delete(request),
+                lambda **kwargs: client.im.v1.message.delete(request),
                 operation_name="recall_message",
             )
 
@@ -231,7 +231,7 @@ class MessageLifecycleManager:
         # Execute with retry
         try:
             response = self.retry_strategy.execute(
-                lambda: client.im.v1.message.patch(request),
+                lambda **kwargs: client.im.v1.message.patch(request),
                 operation_name="edit_message",
             )
 
@@ -342,7 +342,7 @@ class MessageLifecycleManager:
         # Execute with retry
         try:
             response = self.retry_strategy.execute(
-                lambda: client.im.v1.message.reply(request),
+                lambda **kwargs: client.im.v1.message.reply(request),
                 operation_name="reply_message",
             )
 

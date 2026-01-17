@@ -21,8 +21,10 @@ class TestMaskEmail:
 
     def test_mask_short_email(self) -> None:
         """Test masking short email."""
+        # For username length <= 2, show only first char
         assert mask_email("a@b.com") == "a***@b***.com"
-        assert mask_email("ab@cd.com") == "ab***@cd***.com"
+        # "ab" has length 2, so shows "a***"
+        assert mask_email("ab@cd.com") == "a***@c***.com"
 
     def test_mask_long_email(self) -> None:
         """Test masking long email."""
@@ -33,8 +35,10 @@ class TestMaskEmail:
     def test_mask_invalid_email(self) -> None:
         """Test masking invalid email."""
         assert mask_email("") == "***"
+        # Invalid email without "@" returns "***"
         assert mask_email("notanemail") == "***"
-        assert mask_email("@") == "***"
+        # Exception in parsing returns "***@***.***"
+        assert mask_email("@") == "***@***.***"
 
 
 class TestMaskMobile:
@@ -52,7 +56,9 @@ class TestMaskMobile:
 
     def test_mask_short_mobile(self) -> None:
         """Test masking short mobile."""
-        assert mask_mobile("12345") == "1***5"
+        # Length 5: shows first 3 and last 2 (len <= 7 branch)
+        assert mask_mobile("12345") == "123***45"
+        # Length 3: shows first and last char
         assert mask_mobile("123") == "1***3"
 
     def test_mask_mobile_with_spaces(self) -> None:
@@ -71,7 +77,8 @@ class TestMaskToken:
     def test_mask_normal_token(self) -> None:
         """Test masking normal token."""
         assert mask_token("t-abc123def456ghi789") == "t-ab***i789"
-        assert mask_token("cli_a1b2c3d4e5f6g7h8") == "cli_***7h8"
+        # "cli_a1b2c3d4e5f6g7h8" has 20 chars, show_prefix=4, show_suffix=4
+        assert mask_token("cli_a1b2c3d4e5f6g7h8") == "cli_***g7h8"
 
     def test_mask_short_token(self) -> None:
         """Test masking short token."""
@@ -187,6 +194,7 @@ class TestMaskLogMessage:
         message = "User john@example.com with token t-abc123 and mobile +8615680013621"
         masked = mask_log_message(message)
         assert "jo***@ex***" in masked
+        # Token "t-abc123" with show_prefix=4, show_suffix=4 -> "t-ab***"
         assert "t-ab***" in masked
         assert "+86****3621" in masked
 

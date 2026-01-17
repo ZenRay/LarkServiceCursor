@@ -145,7 +145,7 @@ class CardUpdater:
         # Execute with retry
         try:
             response = self.retry_strategy.execute(
-                lambda: client.im.v1.message.patch(request),
+                lambda **kwargs: client.im.v1.message.patch(request),
                 operation_name="update_card_content",
             )
 

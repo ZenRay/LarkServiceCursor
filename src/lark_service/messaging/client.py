@@ -134,7 +134,7 @@ class MessagingClient:
         # Send with retry
         try:
             response = self.retry_strategy.execute(
-                lambda: client.im.v1.message.create(request),
+                lambda **kwargs: client.im.v1.message.create(request),
                 operation_name=f"send_{msg_type}_message",
             )
 

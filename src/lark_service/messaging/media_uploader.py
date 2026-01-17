@@ -271,7 +271,7 @@ class MediaUploader:
         # Upload with retry
         try:
             response = self.retry_strategy.execute(
-                lambda: client.im.v1.image.create(request),
+                lambda **kwargs: client.im.v1.image.create(request),
                 operation_name=f"upload_image_{image_path.name}",
             )
 
@@ -396,7 +396,7 @@ class MediaUploader:
         # Upload with retry
         try:
             response = self.retry_strategy.execute(
-                lambda: client.im.v1.file.create(request),
+                lambda **kwargs: client.im.v1.file.create(request),
                 operation_name=f"upload_file_{file_path.name}",
             )
 
