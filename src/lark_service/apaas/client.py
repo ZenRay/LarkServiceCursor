@@ -168,8 +168,9 @@ class WorkspaceTableClient:
             ... )
             >>> print(f"Found {len(tables)} tables")
         """
-        if not workspace_id or not workspace_id.startswith("ws_"):
-            raise InvalidParameterError("Invalid workspace_id format, expected: ws_xxx")
+        # Note: workspace_id format varies, not always "ws_" prefix
+        if not workspace_id:
+            raise InvalidParameterError("workspace_id cannot be empty")
 
         validate_app_id(app_id)
         validate_non_empty_string(user_access_token, "user_access_token")
@@ -254,8 +255,9 @@ class WorkspaceTableClient:
             >>> for field in fields:
             ...     print(f"{field.field_name}: {field.field_type}")
         """
-        if not table_id or not table_id.startswith("tbl_"):
-            raise InvalidParameterError("Invalid table_id format, expected: tbl_xxx")
+        # Note: table_id format varies, not always "tbl_" prefix
+        if not table_id:
+            raise InvalidParameterError("table_id cannot be empty")
 
         validate_app_id(app_id)
         validate_non_empty_string(user_access_token, "user_access_token")
@@ -370,8 +372,9 @@ class WorkspaceTableClient:
             ... )
             >>> print(f"Found {len(records)} records")
         """
-        if not table_id or not table_id.startswith("tbl_"):
-            raise InvalidParameterError("Invalid table_id format, expected: tbl_xxx")
+        # Note: table_id format varies, not always "tbl_" prefix
+        if not table_id:
+            raise InvalidParameterError("table_id cannot be empty")
 
         if page_size < 1 or page_size > 500:
             raise InvalidParameterError("page_size must be between 1 and 500")
@@ -482,8 +485,9 @@ class WorkspaceTableClient:
             ... )
             >>> print(f"Created record: {record.record_id}")
         """
-        if not table_id or not table_id.startswith("tbl_"):
-            raise InvalidParameterError("Invalid table_id format, expected: tbl_xxx")
+        # Note: table_id format varies, not always "tbl_" prefix
+        if not table_id:
+            raise InvalidParameterError("table_id cannot be empty")
 
         if not fields:
             raise InvalidParameterError("fields cannot be empty")
@@ -572,11 +576,13 @@ class WorkspaceTableClient:
             ... )
             >>> print(f"Updated record: {record.record_id}")
         """
-        if not table_id or not table_id.startswith("tbl_"):
-            raise InvalidParameterError("Invalid table_id format, expected: tbl_xxx")
+        # Note: table_id format varies, not always "tbl_" prefix
+        if not table_id:
+            raise InvalidParameterError("table_id cannot be empty")
 
-        if not record_id or not record_id.startswith("rec_"):
-            raise InvalidParameterError("Invalid record_id format, expected: rec_xxx")
+        # Note: record_id format varies
+        if not record_id:
+            raise InvalidParameterError("record_id cannot be empty")
 
         if not fields:
             raise InvalidParameterError("fields cannot be empty")
@@ -664,11 +670,13 @@ class WorkspaceTableClient:
             ... )
             >>> print("Record deleted successfully")
         """
-        if not table_id or not table_id.startswith("tbl_"):
-            raise InvalidParameterError("Invalid table_id format, expected: tbl_xxx")
+        # Note: table_id format varies, not always "tbl_" prefix
+        if not table_id:
+            raise InvalidParameterError("table_id cannot be empty")
 
-        if not record_id or not record_id.startswith("rec_"):
-            raise InvalidParameterError("Invalid record_id format, expected: rec_xxx")
+        # Note: record_id format varies
+        if not record_id:
+            raise InvalidParameterError("record_id cannot be empty")
 
         validate_app_id(app_id)
         validate_non_empty_string(user_access_token, "user_access_token")
@@ -743,8 +751,9 @@ class WorkspaceTableClient:
             ... )
             >>> print(f"Created {len(records)} records")
         """
-        if not table_id or not table_id.startswith("tbl_"):
-            raise InvalidParameterError("Invalid table_id format, expected: tbl_xxx")
+        # Note: table_id format varies, not always "tbl_" prefix
+        if not table_id:
+            raise InvalidParameterError("table_id cannot be empty")
 
         if not records:
             raise InvalidParameterError("records cannot be empty")
@@ -841,8 +850,9 @@ class WorkspaceTableClient:
             ... )
             >>> print(f"Updated {len(records)} records")
         """
-        if not table_id or not table_id.startswith("tbl_"):
-            raise InvalidParameterError("Invalid table_id format, expected: tbl_xxx")
+        # Note: table_id format varies, not always "tbl_" prefix
+        if not table_id:
+            raise InvalidParameterError("table_id cannot be empty")
 
         if not records:
             raise InvalidParameterError("records cannot be empty")
@@ -852,10 +862,8 @@ class WorkspaceTableClient:
 
         # Validate record_id format
         for record_id, _ in records:
-            if not record_id or not record_id.startswith("rec_"):
-                raise InvalidParameterError(
-                    f"Invalid record_id format: {record_id}, expected: rec_xxx"
-                )
+            if not record_id:
+                raise InvalidParameterError("record_id cannot be empty")
 
         validate_app_id(app_id)
         validate_non_empty_string(user_access_token, "user_access_token")
