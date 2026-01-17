@@ -54,6 +54,11 @@ git config alias.csync '!f() { ./scripts/git-commit-sync.sh "$@"; }; f'
 echo -e "${GREEN}✓ Git alias 'git csync' configured${NC}"
 echo -e "   Usage: ${BLUE}git csync -m \"message\"${NC} (auto-sync before commit)"
 
+# check - run all quality checks
+git config alias.check '!f() { ./scripts/check-all.sh "$@"; }; f'
+echo -e "${GREEN}✓ Git alias 'git check' configured${NC}"
+echo -e "   Usage: ${BLUE}git check${NC} (run all quality checks locally)"
+
 echo ""
 
 # 4. Suggest shell alias
@@ -68,6 +73,7 @@ echo ""
 echo -e "${YELLOW}5. Making scripts executable...${NC}"
 chmod +x scripts/git-add-check.sh
 chmod +x scripts/git-commit-sync.sh
+chmod +x scripts/check-all.sh
 chmod +x scripts/setup-git-add-check.sh
 echo -e "${GREEN}✓ Scripts are now executable${NC}"
 echo ""
@@ -93,14 +99,19 @@ echo ""
 echo -e "  5. ${GREEN}git csync -m \"message\"${NC}"
 echo -e "     Commit with auto-sync (prevents staging/working dir mismatch)"
 echo ""
+echo -e "  6. ${GREEN}git check${NC}"
+echo -e "     Run all quality checks (same config as CI/pre-commit)"
+echo ""
 echo -e "${YELLOW}Workflow improvements:${NC}"
 echo -e "  ✅ Auto-format before staging (no surprises)"
 echo -e "  ✅ Pre-commit hooks now in --check mode (no auto-modify)"
 echo -e "  ✅ Prevents formatting loops"
 echo -e "  ✅ Clear 3-step process: format → add → check"
+echo -e "  ✅ Tests/ uses relaxed checks (no type annotation warnings)"
 echo ""
 echo -e "${YELLOW}Next steps:${NC}"
 echo -e "  • Read ${BLUE}docs/dev-workflow.md${NC} for detailed guide"
+echo -e "  • Try: ${GREEN}git check${NC} (run all checks locally)"
 echo -e "  • Try: ${GREEN}git cadd src/lark_service/apaas/client.py${NC}"
-echo -e "  • Try: ${GREEN}git fmt src/**/*.py${NC} (format all Python files)"
+echo -e "  • Try: ${GREEN}git csync -m \"your message\"${NC}"
 echo ""
