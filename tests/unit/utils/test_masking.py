@@ -191,10 +191,11 @@ class TestMaskLogMessage:
 
     def test_mask_multiple_sensitive_data(self) -> None:
         """Test masking multiple sensitive data."""
-        message = "User john@example.com with token t-abc123 and mobile +8615680013621"
+        # Use a realistic token length (12+ chars after prefix) to match regex pattern
+        message = "User john@example.com with token t-abc123def456ghi and mobile +8615680013621"
         masked = mask_log_message(message)
         assert "jo***@ex***" in masked
-        # Token "t-abc123" with show_prefix=4, show_suffix=4 -> "t-ab***"
+        # Token "t-abc123def456ghi" (17 chars) matches regex {12,}, gets masked
         assert "t-ab***" in masked
         assert "+86****3621" in masked
 
