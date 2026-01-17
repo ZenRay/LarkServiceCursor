@@ -114,23 +114,23 @@ class WorkspaceTableClient:
             APIError: Generic API error
         """
         code = result.get("code", -1)
-        msg = result.get("msg", "Unknown error")
+        error_msg = result.get("msg", "Unknown error")
 
         logger.error(
             f"aPaaS API error in {method_name}",
-            extra={"code": code, "msg": msg, "method": method_name},
+            extra={"error_code": code, "error_msg": error_msg, "method": method_name},
         )
 
         # Map Feishu error codes to custom exceptions
         if code in (99991400, 99991401, 99991663):  # Authentication/permission errors
-            raise PermissionDeniedError(f"Permission denied: {msg}")
+            raise PermissionDeniedError(f"Permission denied: {error_msg}")
         if code in (99991404, 230002):  # Not found errors
-            raise NotFoundError(f"Resource not found: {msg}")
+            raise NotFoundError(f"Resource not found: {error_msg}")
         if code in (99991402, 99991403):  # Invalid parameter errors
-            raise InvalidParameterError(f"Invalid parameter: {msg}")
+            raise InvalidParameterError(f"Invalid parameter: {error_msg}")
 
         # Generic API error
-        raise APIError(f"aPaaS API error ({code}): {msg}")
+        raise APIError(f"aPaaS API error ({code}): {error_msg}")
 
     def _map_data_type_to_field_type(self, data_type: str) -> FieldType:
         """
@@ -162,6 +162,40 @@ class WorkspaceTableClient:
         }
 
         return type_mapping.get(data_type.lower(), FieldType.TEXT)
+
+    def _format_sql_value(self, value: Any) -> str:
+        """
+        Format a Python value for SQL statement.
+
+        Args
+        ----------
+            value: Python value to format
+
+        Returns
+        ----------
+            SQL-formatted string
+        """
+        if value is None:
+            return "NULL"
+        if isinstance(value, bool):
+            return "TRUE" if value else "FALSE"
+        if isinstance(value, (int | float)):
+            return str(value)
+        if isinstance(value, dict):
+            # For complex types like user_profile, convert to JSON string
+            import json as jsonlib
+
+            json_str = jsonlib.dumps(value, ensure_ascii=False)
+            # Escape single quotes for SQL
+            escaped = json_str.replace("'", "''")
+            return f"'{escaped}'"
+        if isinstance(value, str):
+            # Escape single quotes
+            escaped = value.replace("'", "''")
+            return f"'{escaped}'"
+        # Default: convert to string and quote
+        str_value = str(value).replace("'", "''")
+        return f"'{str_value}'"
 
     def list_workspace_tables(
         self,
@@ -601,21 +635,26 @@ class WorkspaceTableClient:
         app_id: str,
         user_access_token: str,
         table_id: str,
+        workspace_id: str,
         fields: dict[str, Any],
-    ) -> TableRecord:
+    ) -> str:
         """
-        Create a new record in a data table.
+        Create a new record in a data table using SQL INSERT.
+
+        Note: Uses SQL Commands API. Requires correct data types for fields
+        (e.g., UUID format for uuid columns, proper timestamps for timestamptz).
 
         Args
         ----------
             app_id: Application ID
             user_access_token: User access token for authentication
-            table_id: Table ID, format: tbl_xxx
+            table_id: Table name (e.g., "follow_ups")
+            workspace_id: Workspace ID where the table exists
             fields: Field values mapping (field_name -> value)
 
         Returns
         ----------
-            Created table record with record_id
+            Created record ID
 
         Raises
         ----------
@@ -626,62 +665,68 @@ class WorkspaceTableClient:
 
         Example
         --------
-            >>> record = client.create_record(
+            >>> record_id = client.create_record(
             ...     app_id="cli_xxx",
             ...     user_access_token="u-xxx",
-            ...     table_id="tbl_001",
-            ...     fields={"Name": "John Doe", "Age": 30, "Status": "Active"}
+            ...     table_id="follow_ups",
+            ...     workspace_id="workspace_xxx",
+            ...     fields={
+            ...         "customer_id": "9f837291-5bb9-4200-b8c6-ae3909b5b7f0",
+            ...         "followup_date": "2026-01-17T10:00:00+08:00",
+            ...         "channel": "电话",
+            ...         "content": "客户沟通记录"
+            ...     }
             ... )
-            >>> print(f"Created record: {record.record_id}")
+            >>> print(f"Created record: {record_id}")
         """
-        # Note: table_id format varies, not always "tbl_" prefix
-        if not table_id:
-            raise InvalidParameterError("table_id cannot be empty")
+        validate_app_id(app_id)
+        validate_non_empty_string(user_access_token, "user_access_token")
+        validate_non_empty_string(table_id, "table_id")
+        validate_non_empty_string(workspace_id, "workspace_id")
 
         if not fields:
             raise InvalidParameterError("fields cannot be empty")
 
-        validate_app_id(app_id)
-        validate_non_empty_string(user_access_token, "user_access_token")
-        validate_non_empty_string(table_id, "table_id")
-
         logger.info(
-            "Creating table record",
-            extra={"table_id": table_id, "app_id": app_id, "field_count": len(fields)},
+            "Creating table record via SQL",
+            extra={"table_id": table_id, "workspace_id": workspace_id, "field_count": len(fields)},
         )
 
         try:
-            url = f"{APAAS_API_BASE}/apaas/v1/tables/{table_id}/records"
-            headers = {
-                "Authorization": f"Bearer {user_access_token}",
-                "Content-Type": "application/json",
-            }
+            # Build SQL INSERT statement
+            columns = ", ".join(fields.keys())
+            placeholders = ", ".join(self._format_sql_value(v) for v in fields.values())
 
-            body = {"fields": fields}
+            sql = f"""  # nosec B608
+                INSERT INTO {table_id} ({columns})
+                VALUES ({placeholders})
+                RETURNING id
+            """
 
-            response = requests.post(url, headers=headers, json=body, timeout=30)
-            result = response.json()
-
-            if result.get("code") != 0:
-                self._handle_api_error(result, "create_record")
-
-            # Parse response data
-            record_data = result.get("data", {}).get("record", {})
-            record = TableRecord(
-                record_id=record_data.get("record_id", ""),
-                table_id=table_id,
-                fields=record_data.get("fields", {}),
+            # Execute via SQL Commands API
+            result_records = self.sql_query(
+                app_id=app_id,
+                user_access_token=user_access_token,
+                workspace_id=workspace_id,
+                sql=sql,
             )
+
+            if not result_records or len(result_records) == 0:
+                raise APIError("Failed to create record: no ID returned")
+
+            record_id: str = result_records[0].get("id", "")
 
             logger.info(
-                f"Successfully created record: {record.record_id}",
-                extra={"table_id": table_id, "record_id": record.record_id},
+                f"Successfully created record: {record_id}",
+                extra={"table_id": table_id, "record_id": record_id},
             )
 
-            return record
+            return record_id
 
-        except requests.RequestException as e:
-            logger.error(f"Network error creating record: {e}")
+        except APIError:
+            raise
+        except Exception as e:
+            logger.error(f"Error creating record: {e}")
             raise APIError(f"Failed to create record: {e}") from e
 
     def update_record(
@@ -689,118 +734,27 @@ class WorkspaceTableClient:
         app_id: str,
         user_access_token: str,
         table_id: str,
+        workspace_id: str,
         record_id: str,
         fields: dict[str, Any],
-    ) -> TableRecord:
+    ) -> bool:
         """
-        Update an existing record (supports partial update).
+        Update an existing record using SQL UPDATE.
+
+        Note: Uses SQL Commands API with WHERE id = clause.
 
         Args
         ----------
             app_id: Application ID
             user_access_token: User access token for authentication
-            table_id: Table ID, format: tbl_xxx
-            record_id: Record ID, format: rec_xxx
+            table_id: Table name (e.g., "follow_ups")
+            workspace_id: Workspace ID where the table exists
+            record_id: Record ID to update
             fields: Field values to update (field_name -> value)
 
         Returns
         ----------
-            Updated table record
-
-        Raises
-        ----------
-            InvalidParameterError: If parameters are invalid
-            NotFoundError: If table or record not found
-            PermissionDeniedError: If user lacks permission
-            APIError: If API call fails (e.g., field not found, type mismatch)
-
-        Example
-        --------
-            >>> record = client.update_record(
-            ...     app_id="cli_xxx",
-            ...     user_access_token="u-xxx",
-            ...     table_id="tbl_001",
-            ...     record_id="rec_001",
-            ...     fields={"Status": "Completed"}
-            ... )
-            >>> print(f"Updated record: {record.record_id}")
-        """
-        # Note: table_id format varies, not always "tbl_" prefix
-        if not table_id:
-            raise InvalidParameterError("table_id cannot be empty")
-
-        # Note: record_id format varies
-        if not record_id:
-            raise InvalidParameterError("record_id cannot be empty")
-
-        if not fields:
-            raise InvalidParameterError("fields cannot be empty")
-
-        validate_app_id(app_id)
-        validate_non_empty_string(user_access_token, "user_access_token")
-        validate_non_empty_string(table_id, "table_id")
-        validate_non_empty_string(record_id, "record_id")
-
-        logger.info(
-            "Updating table record",
-            extra={
-                "table_id": table_id,
-                "record_id": record_id,
-                "app_id": app_id,
-                "field_count": len(fields),
-            },
-        )
-
-        try:
-            url = f"{APAAS_API_BASE}/apaas/v1/tables/{table_id}/records/{record_id}"
-            headers = {
-                "Authorization": f"Bearer {user_access_token}",
-                "Content-Type": "application/json",
-            }
-
-            body = {"fields": fields}
-
-            response = requests.put(url, headers=headers, json=body, timeout=30)
-            result = response.json()
-
-            if result.get("code") != 0:
-                self._handle_api_error(result, "update_record")
-
-            # Parse response data
-            record_data = result.get("data", {}).get("record", {})
-            record = TableRecord(
-                record_id=record_data.get("record_id", record_id),
-                table_id=table_id,
-                fields=record_data.get("fields", {}),
-            )
-
-            logger.info(
-                f"Successfully updated record: {record.record_id}",
-                extra={"table_id": table_id, "record_id": record.record_id},
-            )
-
-            return record
-
-        except requests.RequestException as e:
-            logger.error(f"Network error updating record: {e}")
-            raise APIError(f"Failed to update record: {e}") from e
-
-    def delete_record(
-        self,
-        app_id: str,
-        user_access_token: str,
-        table_id: str,
-        record_id: str,
-    ) -> None:
-        """
-        Delete a record from a data table.
-
-        Args
-        ----------
-            app_id: Application ID
-            user_access_token: User access token for authentication
-            table_id: Table ID, format: tbl_xxx
-            record_id: Record ID, format: rec_xxx
+            True if update successful
 
         Raises
         ----------
@@ -811,52 +765,149 @@ class WorkspaceTableClient:
 
         Example
         --------
-            >>> client.delete_record(
+            >>> success = client.update_record(
             ...     app_id="cli_xxx",
             ...     user_access_token="u-xxx",
-            ...     table_id="tbl_001",
-            ...     record_id="rec_001"
+            ...     table_id="follow_ups",
+            ...     workspace_id="workspace_xxx",
+            ...     record_id="df390b9d-a444-482a-8074-6d47bd3231f6",
+            ...     fields={"content": "更新的内容", "stage": "进行中"}
             ... )
-            >>> print("Record deleted successfully")
+            >>> print(f"Update successful: {success}")
         """
-        # Note: table_id format varies, not always "tbl_" prefix
-        if not table_id:
-            raise InvalidParameterError("table_id cannot be empty")
-
-        # Note: record_id format varies
-        if not record_id:
-            raise InvalidParameterError("record_id cannot be empty")
-
         validate_app_id(app_id)
         validate_non_empty_string(user_access_token, "user_access_token")
         validate_non_empty_string(table_id, "table_id")
+        validate_non_empty_string(workspace_id, "workspace_id")
         validate_non_empty_string(record_id, "record_id")
 
+        if not fields:
+            raise InvalidParameterError("fields cannot be empty")
+
         logger.info(
-            "Deleting table record",
-            extra={"table_id": table_id, "record_id": record_id, "app_id": app_id},
+            "Updating table record via SQL",
+            extra={
+                "table_id": table_id,
+                "workspace_id": workspace_id,
+                "record_id": record_id,
+                "field_count": len(fields),
+            },
         )
 
         try:
-            url = f"{APAAS_API_BASE}/apaas/v1/tables/{table_id}/records/{record_id}"
-            headers = {
-                "Authorization": f"Bearer {user_access_token}",
-                "Content-Type": "application/json",
-            }
+            # Build SQL UPDATE statement
+            set_clauses = [
+                f"{key} = {self._format_sql_value(value)}" for key, value in fields.items()
+            ]
+            set_clause = ", ".join(set_clauses)
 
-            response = requests.delete(url, headers=headers, timeout=30)
-            result = response.json()
+            sql = f"""  # nosec B608
+                UPDATE {table_id}
+                SET {set_clause}
+                WHERE id = '{record_id}'
+            """
 
-            if result.get("code") != 0:
-                self._handle_api_error(result, "delete_record")
+            # Execute via SQL Commands API
+            self.sql_query(
+                app_id=app_id,
+                user_access_token=user_access_token,
+                workspace_id=workspace_id,
+                sql=sql,
+            )
+
+            logger.info(
+                f"Successfully updated record: {record_id}",
+                extra={"table_id": table_id, "record_id": record_id},
+            )
+
+            return True
+
+        except APIError:
+            raise
+        except Exception as e:
+            logger.error(f"Error updating record: {e}")
+            raise APIError(f"Failed to update record: {e}") from e
+
+    def delete_record(
+        self,
+        app_id: str,
+        user_access_token: str,
+        table_id: str,
+        workspace_id: str,
+        record_id: str,
+    ) -> bool:
+        """
+        Delete a record from a data table using SQL DELETE.
+
+        Note: Uses SQL Commands API with WHERE id = clause.
+
+        Args
+        ----------
+            app_id: Application ID
+            user_access_token: User access token for authentication
+            table_id: Table name (e.g., "follow_ups")
+            workspace_id: Workspace ID where the table exists
+            record_id: Record ID to delete
+
+        Returns
+        ----------
+            True if delete successful
+
+        Raises
+        ----------
+            InvalidParameterError: If parameters are invalid
+            NotFoundError: If table or record not found
+            PermissionDeniedError: If user lacks permission
+            APIError: If API call fails
+
+        Example
+        --------
+            >>> success = client.delete_record(
+            ...     app_id="cli_xxx",
+            ...     user_access_token="u-xxx",
+            ...     table_id="follow_ups",
+            ...     workspace_id="workspace_xxx",
+            ...     record_id="df390b9d-a444-482a-8074-6d47bd3231f6"
+            ... )
+            >>> print(f"Delete successful: {success}")
+        """
+        validate_app_id(app_id)
+        validate_non_empty_string(user_access_token, "user_access_token")
+        validate_non_empty_string(table_id, "table_id")
+        validate_non_empty_string(workspace_id, "workspace_id")
+        validate_non_empty_string(record_id, "record_id")
+
+        logger.info(
+            "Deleting table record via SQL",
+            extra={"table_id": table_id, "workspace_id": workspace_id, "record_id": record_id},
+        )
+
+        try:
+            # Build SQL DELETE statement
+            sql = f"""  # nosec B608
+                DELETE FROM {table_id}
+                WHERE id = '{record_id}'
+            """
+
+            # Execute via SQL Commands API
+            self.sql_query(
+                app_id=app_id,
+                user_access_token=user_access_token,
+                workspace_id=workspace_id,
+                sql=sql,
+            )
 
             logger.info(
                 f"Successfully deleted record: {record_id}",
                 extra={"table_id": table_id, "record_id": record_id},
             )
 
-        except requests.RequestException as e:
-            logger.error(f"Network error deleting record: {e}")
+            return True
+
+        except APIError:
+            raise
+        except Exception as e:
+            logger.error(f"Error deleting record: {e}")
             raise APIError(f"Failed to delete record: {e}") from e
 
     def batch_create_records(
