@@ -17,11 +17,11 @@ from datetime import datetime
 
 import pytest
 from cryptography.fernet import Fernet
+from lark_service.clouddoc.doc_client import DocClient
 
 from lark_service.apaas.client import WorkspaceTableClient
 from lark_service.cardkit.builder import CardBuilder
 from lark_service.clouddoc.bitable.client import BitableClient
-from lark_service.clouddoc.doc_client import DocClient
 from lark_service.contact.client import ContactClient
 from lark_service.core.config import Config
 from lark_service.core.credential_pool import CredentialPool
