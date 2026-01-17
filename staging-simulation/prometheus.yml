@@ -23,9 +23,10 @@ scrape_configs:
 
   # Lark Service 应用 metrics
   # 注意: 需要应用暴露 metrics 端点
+  # 使用Docker网桥IP访问宿主机应用
   - job_name: 'lark-service'
     static_configs:
-      - targets: ['host.docker.internal:9091']  # 应用metrics端口
+      - targets: ['172.17.0.1:9091']  # Docker网桥IP
     metrics_path: '/metrics'
     scrape_interval: 10s
 
