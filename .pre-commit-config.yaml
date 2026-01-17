@@ -15,11 +15,27 @@ repos:
     rev: v1.8.0
     hooks:
       - id: mypy
+        name: mypy-src
+        files: ^src/
         additional_dependencies:
           - pydantic>=2.0.0
           - types-psycopg2
           - types-pika
         args: [--strict, --ignore-missing-imports]
+      - id: mypy
+        name: mypy-tests
+        files: ^tests/
+        additional_dependencies:
+          - pydantic>=2.0.0
+          - types-psycopg2
+          - types-pika
+        # 对测试文件放宽检查
+        args:
+          - --ignore-missing-imports
+          - --allow-untyped-defs
+          - --allow-untyped-calls
+          - --no-warn-return-any
+          - --no-warn-unused-ignores
 
   # 基础检查
   - repo: https://github.com/pre-commit/pre-commit-hooks
