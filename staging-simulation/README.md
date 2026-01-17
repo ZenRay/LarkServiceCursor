@@ -77,10 +77,15 @@ cp ../config/staging.env.template .env.local
 # 编辑配置（使用本地服务地址）
 vim .env.local
 
+# 注意: 配置文件中包含两套数据库环境变量
+# - DB_*: 应用使用
+# - POSTGRES_*: Alembic迁移工具使用
+# 两套变量值应保持一致
+
 # 验证配置
 cd ..
 source .venv-test/bin/activate
-python scripts/validate_env.py staging-simulation/.env.local
+python scripts/validate_env.py staging-simulation/env.local.template
 ```
 
 ### 步骤3: 数据库初始化
