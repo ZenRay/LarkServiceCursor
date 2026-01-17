@@ -61,7 +61,29 @@ if not encryption_key:
 ### 数据库错误
 - 唯一约束违反: 不重试
 - 连接错误: 重试3次
+- 事务冲突: 自动回滚,重试1次(间隔2秒) - **FR-119**
 - 所有错误都回滚事务
+
+**事务处理示例** (FR-119):
+
+```python
+def write_with_retry(session, data, max_retries=1):
+    for attempt in range(max_retries + 1):
+        try:
+            with session.begin():
+                session.add(data)
+                session.commit()
+                return True
+        except IntegrityError:
+            session.rollback()
+            raise  # 唯一约束冲突,不重试
+        except (OperationalError, TimeoutError):
+            session.rollback()
+            if attempt < max_retries:
+                time.sleep(2)  # 间隔2秒重试
+            else:
+                raise
+```
 
 ## 自动恢复场景
 

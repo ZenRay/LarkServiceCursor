@@ -351,7 +351,7 @@ CacheManager
 
 **问题**: 多个进程/线程同时请求 Token,可能导致重复刷新
 
-**解决方案**: 线程锁 + 进程锁
+**解决方案**: 线程锁 + 进程锁 + 死锁检测
 
 ```python
 # 线程锁 (同一进程内)
@@ -359,6 +359,36 @@ threading_lock = threading.Lock()
 
 # 进程锁 (跨进程)
 file_lock = filelock.FileLock("/tmp/lark_token_{app_id}_{token_type}.lock")
+
+# 锁超时机制 (FR-121)
+lock_timeout = 30.0  # 30秒超时,防止死锁
+
+# 死锁检测与告警
+try:
+    with file_lock.acquire(timeout=lock_timeout):
+        # Token 刷新逻辑
+        pass
+except Timeout:
+    # 锁超时,记录ERROR日志并告警
+    logger.error(
+        "Lock acquisition timeout - potential deadlock",
+        extra={
+            "app_id": app_id,
+            "token_type": token_type,
+            "lock_duration": lock_timeout,
+            "timeout_threshold": 30.0
+        }
+    )
+    # 触发告警通知运维团队
+    alert_ops_team("lock_timeout", app_id, token_type)
+    raise LockAcquisitionError(f"Failed to acquire lock after {lock_timeout}s")
+```
+
+**死锁防护机制 (FR-121)**:
+1. **超时释放**: 锁持有时间超过30秒自动释放
+2. **日志记录**: 锁超时时记录app_id、token_type、持锁时长
+3. **告警触发**: 锁超时触发运维告警,排查性能问题
+4. **重试策略**: 锁超时后不重试,直接返回错误给调用方
 
 with threading_lock:
     with file_lock.acquire(timeout=30):

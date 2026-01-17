@@ -32,6 +32,12 @@ docker run -d \
 
 # 初始化扩展
 docker exec -it lark-postgres psql -U lark -d lark_service -c "CREATE EXTENSION IF NOT EXISTS pgcrypto;"
+
+# 配置连接池 (FR-120)
+# 在 postgresql.conf 或环境变量中配置:
+# - max_connections = 100
+# - shared_buffers = 256MB
+# - effective_cache_size = 1GB
 ```
 
 #### 生产环境 (云服务)
@@ -43,11 +49,117 @@ docker exec -it lark-postgres psql -U lark -d lark_service -c "CREATE EXTENSION 
 - **GCP**: Cloud SQL for PostgreSQL
 - **阿里云**: RDS PostgreSQL
 
-**配置要求**:
-- PostgreSQL 15+
+**配置要求** (FR-120):
+- PostgreSQL ≥ 13 (推荐15+,支持pg_crypto扩展)
 - 启用 `pgcrypto` 扩展
+- 连接池大小: 5-20 个连接 (通过环境变量 DB_POOL_SIZE 配置)
+- 连接超时: 30秒 (通过环境变量 DB_POOL_TIMEOUT 配置)
+- 连接最大生命周期: 3600秒 (1小时)
 - 至少 2GB 内存
 - SSD 存储
+
+#### 数据备份与恢复 (FR-118) ⭐ NEW
+
+**备份策略**:
+- **备份频率**: 每日一次 (建议凌晨2-4点业务低峰期)
+- **备份类型**: 全量备份(每周日) + 增量备份(每日)
+- **RTO**: ≤ 4小时 (恢复时间目标)
+- **RPO**: ≤ 24小时 (恢复点目标,最多丢失24小时数据)
+- **备份加密**: 使用独立加密密钥
+- **备份演练**: 每季度演练一次,验证备份可用性
+
+**自动备份脚本**:
+
+```bash
+#!/bin/bash
+# /opt/lark-service/scripts/backup-postgres.sh
+
+# 配置
+BACKUP_DIR="/backup/lark-service/postgres"
+DB_NAME="lark_service"
+DB_USER="lark"
+RETENTION_DAYS=30  # 保留30天
+
+# 创建备份目录
+mkdir -p $BACKUP_DIR
+
+# 生成备份文件名 (时间戳)
+BACKUP_FILE="$BACKUP_DIR/lark_service_$(date +%Y%m%d_%H%M%S).sql.gz"
+
+# 执行备份 (使用 pg_dump)
+PGPASSWORD=$DB_PASSWORD pg_dump -h localhost -U $DB_USER -d $DB_NAME \
+  | gzip > $BACKUP_FILE
+
+# 加密备份文件
+gpg --symmetric --cipher-algo AES256 --output $BACKUP_FILE.gpg $BACKUP_FILE
+rm $BACKUP_FILE  # 删除明文备份
+
+# 清理过期备份
+find $BACKUP_DIR -name "*.gpg" -mtime +$RETENTION_DAYS -delete
+
+# 记录备份日志
+echo "[$(date)] Backup completed: $BACKUP_FILE.gpg" >> /var/log/lark-backup.log
+```
+
+**定时任务 (Crontab)**:
+
+```bash
+# 每天凌晨2点执行备份
+0 2 * * * /opt/lark-service/scripts/backup-postgres.sh
+
+# 每周日执行全量备份
+0 3 * * 0 /opt/lark-service/scripts/backup-postgres-full.sh
+```
+
+**恢复流程**:
+
+```bash
+# 1. 解密备份文件
+gpg --decrypt backup_file.sql.gz.gpg > backup_file.sql.gz
+
+# 2. 解压
+gunzip backup_file.sql.gz
+
+# 3. 停止应用服务 (避免写入冲突)
+systemctl stop lark-service
+
+# 4. 删除现有数据库
+psql -U postgres -c "DROP DATABASE IF EXISTS lark_service;"
+psql -U postgres -c "CREATE DATABASE lark_service OWNER lark;"
+
+# 5. 恢复数据
+psql -U lark -d lark_service < backup_file.sql
+
+# 6. 验证数据完整性
+psql -U lark -d lark_service -c "SELECT COUNT(*) FROM tokens;"
+psql -U lark -d lark_service -c "SELECT COUNT(*) FROM user_cache;"
+
+# 7. 启动应用服务
+systemctl start lark-service
+
+# 8. 记录恢复日志
+echo "[$(date)] Database restored from backup" >> /var/log/lark-restore.log
+```
+
+**备份验证**:
+
+```bash
+# 每季度执行恢复演练 (测试环境)
+# 1. 下载最新备份到测试环境
+# 2. 执行完整恢复流程
+# 3. 验证数据完整性和应用功能
+# 4. 记录演练结果和耗时
+```
+
+**监控告警**:
+
+```bash
+# 监控备份状态
+- 备份文件大小异常 (< 10MB 或 > 10GB)
+- 备份失败 (检查日志中的错误)
+- 备份时间过长 (> 30分钟)
+- 备份文件缺失 (连续2天无新备份)
+```
 - 自动备份
 
 **连接示例**:
