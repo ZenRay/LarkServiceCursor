@@ -1,7 +1,7 @@
 # 下一步行动路线图
 
-**更新日期**: 2026-01-15  
-**当前状态**: Phase 4 核心功能完成  
+**更新日期**: 2026-01-15
+**当前状态**: Phase 4 核心功能完成
 **版本**: v0.4.0
 
 ---
@@ -47,8 +47,8 @@
 - 运行 Contact 批量测试 (1 个)
 - 验证缓存命中率和性能
 
-**优先级**: ⭐⭐⭐⭐⭐ (最高)  
-**工作量**: 30 分钟  
+**优先级**: ⭐⭐⭐⭐⭐ (最高)
+**工作量**: 30 分钟
 **价值**: 验证缓存功能完整性
 
 **命令:**
@@ -77,8 +77,8 @@ pytest tests/integration/test_contact_e2e.py::TestContactBatchOperations -v
 - `get_chat_group()` - 获取群组信息
 - `get_chat_members()` - 获取群组成员
 
-**优先级**: ⭐⭐⭐ (中)  
-**工作量**: 2-3 小时  
+**优先级**: ⭐⭐⭐ (中)
+**工作量**: 2-3 小时
 **价值**: 完整的通讯录功能
 
 **技术难度**: 低 (与 get_user 类似)
@@ -89,8 +89,8 @@ pytest tests/integration/test_contact_e2e.py::TestContactBatchOperations -v
 - `BitableClient.list_records()` - 查询记录
 - `SheetClient.read_range()` - 读取范围
 
-**优先级**: ⭐⭐ (低)  
-**工作量**: 3-4 小时  
+**优先级**: ⭐⭐ (低)
+**工作量**: 3-4 小时
 **价值**: 基础的云文档读操作
 
 **技术难度**: 中 (需要处理复杂的数据结构)
@@ -102,8 +102,8 @@ pytest tests/integration/test_contact_e2e.py::TestContactBatchOperations -v
 - 响应时间测试
 - 并发测试 (10-50 并发)
 
-**优先级**: ⭐⭐⭐⭐ (高)  
-**工作量**: 1-2 小时  
+**优先级**: ⭐⭐⭐⭐ (高)
+**工作量**: 1-2 小时
 **价值**: 量化性能指标
 
 ---
@@ -124,7 +124,7 @@ pytest tests/integration/test_contact_e2e.py::TestContactBatchOperations -v
 
 **总工作量**: 2-3 天
 
-**优先级**: ⭐⭐⭐ (中)  
+**优先级**: ⭐⭐⭐ (中)
 **价值**: 高级集成功能,扩展应用场景
 
 **前置要求:**
@@ -159,7 +159,7 @@ pytest tests/integration/test_contact_e2e.py::TestContactBatchOperations -v
 
 **总工作量**: 2 天
 
-**优先级**: ⭐⭐⭐⭐ (高)  
+**优先级**: ⭐⭐⭐⭐ (高)
 **价值**: 生产就绪,可部署
 
 **前置要求:**
@@ -310,29 +310,29 @@ def test_cache_hit_rate(contact_client, test_config):
     start = time.time()
     user1 = contact_client.get_user_by_email(app_id, email)
     cold_time = time.time() - start
-    
+
     # 第二次查询 (缓存命中)
     start = time.time()
     user2 = contact_client.get_user_by_email(app_id, email)
     hot_time = time.time() - start
-    
+
     # 验证
     assert user1.union_id == user2.union_id
     assert cold_time > 1.0  # 首次查询 > 1s
     assert hot_time < 0.1   # 缓存命中 < 100ms
-    
+
     print(f"缓存加速比: {cold_time / hot_time:.1f}x")
 
 def test_concurrent_queries(contact_client, test_config):
     """测试并发查询"""
     def query():
         return contact_client.get_user_by_email(app_id, email)
-    
+
     # 50 并发查询
     with ThreadPoolExecutor(max_workers=50) as executor:
         futures = [executor.submit(query) for _ in range(50)]
         results = [f.result() for f in futures]
-    
+
     # 验证所有查询成功
     assert len(results) == 50
     assert all(r.union_id == results[0].union_id for r in results)
@@ -352,24 +352,24 @@ def test_full_workflow():
     """完整工作流测试"""
     # 1. 初始化配置
     config = Config.load_from_env()
-    
+
     # 2. 创建凭证池
     credential_pool = CredentialPool(...)
-    
+
     # 3. 查询用户
     contact_client = ContactClient(credential_pool)
     user = contact_client.get_user_by_email(app_id, email)
-    
+
     # 4. 发送消息
     messaging_client = MessagingClient(credential_pool)
     msg_id = messaging_client.send_text(
         app_id, user.open_id, "测试消息"
     )
-    
+
     # 5. 获取文档
     doc_client = DocClient(credential_pool)
     doc = doc_client.get_document(app_id, doc_id)
-    
+
     # 验证所有操作成功
     assert user.open_id
     assert msg_id
@@ -421,17 +421,17 @@ jobs:
   lint:
     - ruff check .
     - ruff format --check .
-  
+
   type-check:
     - mypy src/
-  
+
   test:
     - pytest tests/unit/ -v
     - pytest tests/integration/ -v
-  
+
   build:
     - docker build -t lark-service:latest .
-  
+
   coverage:
     - pytest --cov=src/lark_service --cov-report=xml
     - Upload to codecov
@@ -586,8 +586,8 @@ pytest tests/integration/test_contact_e2e.py -v
 
 ## 🚀 准备就绪!
 
-**Phase 4 核心功能完成!**  
-**文档完整更新!**  
+**Phase 4 核心功能完成!**
+**文档完整更新!**
 **可以开始下一步了!**
 
 **推荐行动**: 运行完整的集成测试 → 添加性能测试 → 进入 Phase 6 🎯
