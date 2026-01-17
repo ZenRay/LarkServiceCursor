@@ -17,6 +17,7 @@ from lark_service.core.storage.postgres_storage import TokenStorageService
 
 # === Mock Fixtures ===
 
+
 @pytest.fixture
 def mock_engine() -> Mock:
     """Create mock SQLAlchemy engine."""
@@ -52,54 +53,67 @@ def mock_session_factory(mock_session: Mock) -> Mock:
 @pytest.fixture
 def storage_service(mock_engine: Mock, mock_session_factory: Mock) -> TokenStorageService:
     """Create TokenStorageService with mocked dependencies."""
-    with patch("lark_service.core.storage.postgres_storage.create_engine", return_value=mock_engine):
-        with patch("lark_service.core.storage.postgres_storage.sessionmaker", return_value=mock_session_factory):
-            with patch("lark_service.core.storage.postgres_storage.Base.metadata.create_all"):
-                service = TokenStorageService(
-                    postgres_url="postgresql://test:test@localhost/test_db",
-                    pool_size=5,
-                    max_overflow=10,
-                    pool_timeout=20,
-                )
-                return service
+    with (
+        patch("lark_service.core.storage.postgres_storage.create_engine", return_value=mock_engine),
+        patch(
+            "lark_service.core.storage.postgres_storage.sessionmaker",
+            return_value=mock_session_factory,
+        ),
+        patch("lark_service.core.storage.postgres_storage.Base.metadata.create_all"),
+    ):
+        service = TokenStorageService(
+            postgres_url="postgresql://test:test@localhost/test_db",
+            pool_size=5,
+            max_overflow=10,
+            pool_timeout=20,
+        )
+        return service
 
 
 # === Initialization Tests ===
+
 
 class TestTokenStorageServiceInitialization:
     """Test service initialization and configuration."""
 
     def test_init_success(self) -> None:
         """Test successful initialization with connection pool."""
-        with patch("lark_service.core.storage.postgres_storage.create_engine") as mock_create_engine:
-            with patch("lark_service.core.storage.postgres_storage.sessionmaker"):
-                with patch("lark_service.core.storage.postgres_storage.Base.metadata.create_all"):
-                    mock_engine = Mock()
-                    mock_create_engine.return_value = mock_engine
+        with (
+            patch("lark_service.core.storage.postgres_storage.create_engine") as mock_create_engine,
+            patch("lark_service.core.storage.postgres_storage.sessionmaker"),
+            patch("lark_service.core.storage.postgres_storage.Base.metadata.create_all"),
+        ):
+            mock_engine = Mock()
+            mock_create_engine.return_value = mock_engine
 
-                    service = TokenStorageService(
-                        postgres_url="postgresql://user:pass@localhost/db",
-                        pool_size=15,
-                        max_overflow=25,
-                        pool_timeout=35,
-                    )
+            service = TokenStorageService(
+                postgres_url="postgresql://user:pass@localhost/db",
+                pool_size=15,
+                max_overflow=25,
+                pool_timeout=35,
+            )
 
-                    assert service.postgres_url == "postgresql://user:pass@localhost/db"
-                    assert service.engine == mock_engine
+            assert service.postgres_url == "postgresql://user:pass@localhost/db"
+            assert service.engine == mock_engine
 
-                    # Verify create_engine was called with correct pool params
-                    mock_create_engine.assert_called_once()
-                    call_kwargs = mock_create_engine.call_args.kwargs
-                    assert call_kwargs["pool_size"] == 15
-                    assert call_kwargs["max_overflow"] == 25
-                    assert call_kwargs["pool_timeout"] == 35
-                    assert call_kwargs["pool_pre_ping"] is True
+            # Verify create_engine was called with correct pool params
+            mock_create_engine.assert_called_once()
+            call_kwargs = mock_create_engine.call_args.kwargs
+            assert call_kwargs["pool_size"] == 15
+            assert call_kwargs["max_overflow"] == 25
+            assert call_kwargs["pool_timeout"] == 35
+            assert call_kwargs["pool_pre_ping"] is True
 
     def test_init_database_error(self) -> None:
         """Test initialization failure with database connection error."""
-        with patch("lark_service.core.storage.postgres_storage.create_engine", side_effect=OperationalError("Connection failed", None, None)):
-            with pytest.raises(StorageError, match="Failed to initialize TokenStorageService"):
-                TokenStorageService("postgresql://bad:connection@localhost/db")
+        with (
+            patch(
+                "lark_service.core.storage.postgres_storage.create_engine",
+                side_effect=OperationalError("Connection failed", None, None),
+            ),
+            pytest.raises(StorageError, match="Failed to initialize TokenStorageService"),
+        ):
+            TokenStorageService("postgresql://bad:connection@localhost/db")
 
     def test_get_session(self, storage_service: TokenStorageService, mock_session: Mock) -> None:
         """Test session retrieval from pool."""
@@ -108,6 +122,7 @@ class TestTokenStorageServiceInitialization:
 
 
 # === set_token Tests ===
+
 
 class TestSetToken:
     """Test set_token method (FR-012: PostgreSQL persistence)."""
@@ -245,6 +260,7 @@ class TestSetToken:
 
 # === get_token Tests ===
 
+
 class TestGetToken:
     """Test get_token method."""
 
@@ -317,6 +333,7 @@ class TestGetToken:
 
 # === delete_token Tests ===
 
+
 class TestDeleteToken:
     """Test delete_token method."""
 
@@ -378,6 +395,7 @@ class TestDeleteToken:
 
 
 # === list_tokens Tests ===
+
 
 class TestListTokens:
     """Test list_tokens method."""
@@ -454,6 +472,7 @@ class TestListTokens:
 
 # === cleanup_expired_tokens Tests ===
 
+
 class TestCleanupExpiredTokens:
     """Test cleanup_expired_tokens method."""
 
@@ -512,6 +531,7 @@ class TestCleanupExpiredTokens:
 
 
 # === get_tokens_needing_refresh Tests ===
+
 
 class TestGetTokensNeedingRefresh:
     """Test get_tokens_needing_refresh method."""
@@ -575,6 +595,7 @@ class TestGetTokensNeedingRefresh:
 
 # === close Tests ===
 
+
 class TestClose:
     """Test close method (FR-120: Connection pool cleanup)."""
 
@@ -590,6 +611,7 @@ class TestClose:
 
 
 # === Edge Cases and Error Scenarios ===
+
 
 class TestEdgeCases:
     """Test edge cases and error scenarios."""

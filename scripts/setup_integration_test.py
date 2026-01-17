@@ -166,7 +166,7 @@ def main() -> int:
 # 集成测试环境变量配置
 # ============================================
 #
-# 自动生成于: {__import__('datetime').datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+# 自动生成于: {__import__("datetime").datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 #
 # ⚠️ 警告: 此文件包含真实凭证,请勿提交到 Git!
 

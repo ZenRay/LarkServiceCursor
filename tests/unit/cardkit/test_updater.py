@@ -51,9 +51,7 @@ class TestCardUpdater:
 
         assert result["success"] is True
 
-    def test_update_card_empty_content(
-        self, card_updater: CardUpdater
-    ) -> None:
+    def test_update_card_empty_content(self, card_updater: CardUpdater) -> None:
         """Test update card with empty content."""
         with pytest.raises(InvalidParameterError):
             card_updater.update_card_content(
@@ -62,9 +60,7 @@ class TestCardUpdater:
                 card_content={},
             )
 
-    def test_update_card_empty_message_id(
-        self, card_updater: CardUpdater
-    ) -> None:
+    def test_update_card_empty_message_id(self, card_updater: CardUpdater) -> None:
         """Test update card with empty message_id."""
         with pytest.raises(InvalidParameterError):
             card_updater.update_card_content(

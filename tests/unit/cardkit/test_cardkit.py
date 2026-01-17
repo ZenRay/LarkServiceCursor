@@ -13,7 +13,6 @@ from lark_service.cardkit.builder import CardBuilder
 from lark_service.cardkit.callback_handler import CallbackHandler
 from lark_service.core.exceptions import InvalidParameterError, ValidationError
 
-
 # === CardBuilder Tests ===
 
 
@@ -33,9 +32,7 @@ class TestCardBuilder:
 
     def test_build_card_success(self, card_builder: CardBuilder) -> None:
         """Test building card with elements."""
-        elements = [
-            {"tag": "div", "text": {"tag": "plain_text", "content": "Test"}}
-        ]
+        elements = [{"tag": "div", "text": {"tag": "plain_text", "content": "Test"}}]
         card = card_builder.build_card(elements=elements)
 
         assert card["elements"] == elements
@@ -68,9 +65,7 @@ class TestCardBuilder:
         assert card["header"]["title"]["content"] == "Request"
         assert len(card["elements"]) > 0
 
-    def test_build_approval_card_with_note(
-        self, card_builder: CardBuilder
-    ) -> None:
+    def test_build_approval_card_with_note(self, card_builder: CardBuilder) -> None:
         """Test building approval card with note."""
         card = card_builder.build_approval_card(
             title="Request",
@@ -83,19 +78,13 @@ class TestCardBuilder:
 
         assert "Urgent" in str(card)
 
-    def test_build_notification_card_info(
-        self, card_builder: CardBuilder
-    ) -> None:
+    def test_build_notification_card_info(self, card_builder: CardBuilder) -> None:
         """Test building info notification."""
-        card = card_builder.build_notification_card(
-            title="Notice", content="Message", level="info"
-        )
+        card = card_builder.build_notification_card(title="Notice", content="Message", level="info")
 
         assert card["header"]["template"] == "blue"
 
-    def test_build_notification_card_warning(
-        self, card_builder: CardBuilder
-    ) -> None:
+    def test_build_notification_card_warning(self, card_builder: CardBuilder) -> None:
         """Test building warning notification."""
         card = card_builder.build_notification_card(
             title="Warning", content="Alert", level="warning"
@@ -103,19 +92,13 @@ class TestCardBuilder:
 
         assert card["header"]["template"] == "orange"
 
-    def test_build_notification_card_error(
-        self, card_builder: CardBuilder
-    ) -> None:
+    def test_build_notification_card_error(self, card_builder: CardBuilder) -> None:
         """Test building error notification."""
-        card = card_builder.build_notification_card(
-            title="Error", content="Failed", level="error"
-        )
+        card = card_builder.build_notification_card(title="Error", content="Failed", level="error")
 
         assert card["header"]["template"] == "red"
 
-    def test_build_notification_card_with_action(
-        self, card_builder: CardBuilder
-    ) -> None:
+    def test_build_notification_card_with_action(self, card_builder: CardBuilder) -> None:
         """Test building notification with action."""
         card = card_builder.build_notification_card(
             title="Notice",
@@ -129,19 +112,13 @@ class TestCardBuilder:
 
     def test_build_form_card(self, card_builder: CardBuilder) -> None:
         """Test building form card."""
-        fields = [
-            {"label": "Name", "name": "name", "type": "input"}
-        ]
+        fields = [{"label": "Name", "name": "name", "type": "input"}]
 
-        card = card_builder.build_form_card(
-            title="Form", fields=fields, submit_action_id="submit"
-        )
+        card = card_builder.build_form_card(title="Form", fields=fields, submit_action_id="submit")
 
         assert card["header"]["title"]["content"] == "Form"
 
-    def test_build_form_card_with_cancel(
-        self, card_builder: CardBuilder
-    ) -> None:
+    def test_build_form_card_with_cancel(self, card_builder: CardBuilder) -> None:
         """Test building form card with cancel button."""
         fields = [{"label": "Email", "name": "email", "type": "input"}]
 
@@ -161,9 +138,7 @@ class TestCardBuilder:
 @pytest.fixture
 def callback_handler() -> CallbackHandler:
     """Create CallbackHandler with test credentials."""
-    return CallbackHandler(
-        verification_token="v_test_token", encrypt_key="test_key"
-    )
+    return CallbackHandler(verification_token="v_test_token", encrypt_key="test_key")
 
 
 @pytest.fixture
@@ -177,17 +152,13 @@ class TestCallbackHandler:
 
     def test_init(self) -> None:
         """Test initialization."""
-        handler = CallbackHandler(
-            verification_token="token", encrypt_key="key"
-        )
+        handler = CallbackHandler(verification_token="token", encrypt_key="key")
 
         assert handler.verification_token == "token"
         assert handler.encrypt_key == "key"
         assert handler.handlers == {}
 
-    def test_verify_signature_valid(
-        self, callback_handler: CallbackHandler
-    ) -> None:
+    def test_verify_signature_valid(self, callback_handler: CallbackHandler) -> None:
         """Test valid signature verification."""
         timestamp = "1234567890"
         nonce = "nonce123"
@@ -210,9 +181,7 @@ class TestCallbackHandler:
 
         assert is_valid is True
 
-    def test_verify_signature_invalid(
-        self, callback_handler: CallbackHandler
-    ) -> None:
+    def test_verify_signature_invalid(self, callback_handler: CallbackHandler) -> None:
         """Test invalid signature."""
         is_valid = callback_handler.verify_signature(
             timestamp="123",
@@ -223,9 +192,7 @@ class TestCallbackHandler:
 
         assert is_valid is False
 
-    def test_verify_signature_no_key(
-        self, callback_handler_no_key: CallbackHandler
-    ) -> None:
+    def test_verify_signature_no_key(self, callback_handler_no_key: CallbackHandler) -> None:
         """Test signature verification without encrypt key."""
         # Should return True (skips verification)
         is_valid = callback_handler_no_key.verify_signature(
@@ -237,9 +204,7 @@ class TestCallbackHandler:
 
         assert is_valid is True
 
-    def test_handle_url_verification(
-        self, callback_handler: CallbackHandler
-    ) -> None:
+    def test_handle_url_verification(self, callback_handler: CallbackHandler) -> None:
         """Test URL verification."""
         result = callback_handler.handle_url_verification(
             challenge="test_challenge",
@@ -248,9 +213,7 @@ class TestCallbackHandler:
 
         assert result["challenge"] == "test_challenge"
 
-    def test_handle_url_verification_invalid_token(
-        self, callback_handler: CallbackHandler
-    ) -> None:
+    def test_handle_url_verification_invalid_token(self, callback_handler: CallbackHandler) -> None:
         """Test URL verification with wrong token."""
         with pytest.raises(ValidationError):
             callback_handler.handle_url_verification(
@@ -258,10 +221,9 @@ class TestCallbackHandler:
                 token="wrong_token",
             )
 
-    def test_register_handler(
-        self, callback_handler: CallbackHandler
-    ) -> None:
+    def test_register_handler(self, callback_handler: CallbackHandler) -> None:
         """Test registering handler."""
+
         def test_handler(event):
             return {"ok": True}
 
@@ -269,21 +231,21 @@ class TestCallbackHandler:
 
         assert "action1" in callback_handler.handlers
 
-    def test_register_multiple_handlers(
-        self, callback_handler: CallbackHandler
-    ) -> None:
+    def test_register_multiple_handlers(self, callback_handler: CallbackHandler) -> None:
         """Test registering multiple handlers."""
-        handler1 = lambda e: {"a": 1}
-        handler2 = lambda e: {"b": 2}
+
+        def handler1(e):
+            return {"a": 1}
+
+        def handler2(e):
+            return {"b": 2}
 
         callback_handler.register_handler("action1", handler1)
         callback_handler.register_handler("action2", handler2)
 
         assert len(callback_handler.handlers) == 2
 
-    def test_handle_callback_url_verification(
-        self, callback_handler: CallbackHandler
-    ) -> None:
+    def test_handle_callback_url_verification(self, callback_handler: CallbackHandler) -> None:
         """Test handling URL verification callback."""
         data = {
             "challenge": "xyz",
@@ -295,9 +257,7 @@ class TestCallbackHandler:
 
         assert result["challenge"] == "xyz"
 
-    def test_handle_callback_with_handler(
-        self, callback_handler: CallbackHandler
-    ) -> None:
+    def test_handle_callback_with_handler(self, callback_handler: CallbackHandler) -> None:
         """Test handling callback with registered handler."""
         mock_handler = Mock(return_value={"processed": True})
         callback_handler.register_handler("btn_click", mock_handler)
@@ -313,9 +273,7 @@ class TestCallbackHandler:
 
         assert result.get("challenge") == "test"
 
-    def test_handle_callback_no_handler(
-        self, callback_handler: CallbackHandler
-    ) -> None:
+    def test_handle_callback_no_handler(self, callback_handler: CallbackHandler) -> None:
         """Test handling callback without handler."""
         data = {
             "type": "card.action.trigger",
@@ -331,9 +289,7 @@ class TestCallbackHandler:
         # Should return some default response
         assert result is not None
 
-    def test_handle_callback_invalid_token(
-        self, callback_handler: CallbackHandler
-    ) -> None:
+    def test_handle_callback_invalid_token(self, callback_handler: CallbackHandler) -> None:
         """Test callback with invalid token."""
         data = {
             "type": "url_verification",
@@ -348,10 +304,9 @@ class TestCallbackHandler:
         except ValidationError:
             pass  # Expected
 
-    def test_handle_callback_exception_in_handler(
-        self, callback_handler: CallbackHandler
-    ) -> None:
+    def test_handle_callback_exception_in_handler(self, callback_handler: CallbackHandler) -> None:
         """Test handler that raises exception."""
+
         def failing_handler(event):
             raise ValueError("Test error")
 

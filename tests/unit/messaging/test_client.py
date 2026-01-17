@@ -4,7 +4,6 @@ Tests message sending operations with mocked Lark SDK and media uploader.
 Focus on: text/rich-text/image/file/card messages, batch sending, error handling.
 """
 
-import json
 from pathlib import Path
 from unittest.mock import Mock, patch
 
@@ -13,7 +12,6 @@ import pytest
 from lark_service.core.exceptions import InvalidParameterError, RetryableError
 from lark_service.messaging.client import MessagingClient
 from lark_service.messaging.models import ImageAsset
-
 
 # === Mock Fixtures ===
 
@@ -94,13 +92,15 @@ class TestMessagingClientInitialization:
 
     def test_init_default_dependencies(self, mock_credential_pool: Mock) -> None:
         """Test initialization with default media_uploader and retry_strategy."""
-        with patch("lark_service.messaging.client.MediaUploader"):
-            with patch("lark_service.messaging.client.RetryStrategy"):
-                client = MessagingClient(credential_pool=mock_credential_pool)
+        with (
+            patch("lark_service.messaging.client.MediaUploader"),
+            patch("lark_service.messaging.client.RetryStrategy"),
+        ):
+            client = MessagingClient(credential_pool=mock_credential_pool)
 
-                assert client.credential_pool == mock_credential_pool
-                assert client.media_uploader is not None
-                assert client.retry_strategy is not None
+            assert client.credential_pool == mock_credential_pool
+            assert client.media_uploader is not None
+            assert client.retry_strategy is not None
 
 
 # === send_text_message Tests ===
@@ -129,9 +129,7 @@ class TestSendTextMessage:
         assert result["message_id"] == "om_mock1234567890abcdef"
         mock_client.im.v1.message.create.assert_called_once()
 
-    def test_send_text_message_empty_content(
-        self, messaging_client: MessagingClient
-    ) -> None:
+    def test_send_text_message_empty_content(self, messaging_client: MessagingClient) -> None:
         """Test send_text_message with empty content raises error."""
         with pytest.raises(InvalidParameterError, match="Message content cannot be empty"):
             messaging_client.send_text_message(
@@ -140,9 +138,7 @@ class TestSendTextMessage:
                 content="",
             )
 
-    def test_send_text_message_whitespace_only(
-        self, messaging_client: MessagingClient
-    ) -> None:
+    def test_send_text_message_whitespace_only(self, messaging_client: MessagingClient) -> None:
         """Test send_text_message with whitespace-only content."""
         with pytest.raises(InvalidParameterError, match="Message content cannot be empty"):
             messaging_client.send_text_message(
@@ -179,9 +175,7 @@ class TestSendTextMessage:
 class TestSendRichTextMessage:
     """Test send_rich_text_message method."""
 
-    def test_send_rich_text_message_success(
-        self, messaging_client: MessagingClient
-    ) -> None:
+    def test_send_rich_text_message_success(self, messaging_client: MessagingClient) -> None:
         """Test successful rich text message send."""
         mock_response = Mock()
         mock_response.success.return_value = True
@@ -206,13 +200,9 @@ class TestSendRichTextMessage:
 
         assert result["message_id"] == "om_rich_text_msg_123"
 
-    def test_send_rich_text_message_empty_content(
-        self, messaging_client: MessagingClient
-    ) -> None:
+    def test_send_rich_text_message_empty_content(self, messaging_client: MessagingClient) -> None:
         """Test send_rich_text_message with empty content."""
-        with pytest.raises(
-            InvalidParameterError, match="Rich text content cannot be empty"
-        ):
+        with pytest.raises(InvalidParameterError, match="Rich text content cannot be empty"):
             messaging_client.send_rich_text_message(
                 app_id="cli_test1234567890ab",
                 receiver_id="ou_receiver123456789",
@@ -226,9 +216,7 @@ class TestSendRichTextMessage:
 class TestSendImageMessage:
     """Test send_image_message method (US2.2: Image messaging)."""
 
-    def test_send_image_message_with_path(
-        self, messaging_client: MessagingClient
-    ) -> None:
+    def test_send_image_message_with_path(self, messaging_client: MessagingClient) -> None:
         """Test send_image_message with image_path (auto-upload)."""
         mock_response = Mock()
         mock_response.success.return_value = True
@@ -249,9 +237,7 @@ class TestSendImageMessage:
             "cli_test1234567890ab", "/tmp/test_image.jpg"
         )
 
-    def test_send_image_message_with_key(
-        self, messaging_client: MessagingClient
-    ) -> None:
+    def test_send_image_message_with_key(self, messaging_client: MessagingClient) -> None:
         """Test send_image_message with pre-uploaded image_key."""
         mock_response = Mock()
         mock_response.success.return_value = True
@@ -271,9 +257,7 @@ class TestSendImageMessage:
         # Should NOT call upload_image when image_key is provided
         messaging_client.media_uploader.upload_image.assert_not_called()
 
-    def test_send_image_message_no_path_or_key(
-        self, messaging_client: MessagingClient
-    ) -> None:
+    def test_send_image_message_no_path_or_key(self, messaging_client: MessagingClient) -> None:
         """Test send_image_message with neither path nor key."""
         with pytest.raises(
             InvalidParameterError,
@@ -291,9 +275,7 @@ class TestSendImageMessage:
 class TestSendFileMessage:
     """Test send_file_message method (US2.3: File messaging)."""
 
-    def test_send_file_message_with_path(
-        self, messaging_client: MessagingClient
-    ) -> None:
+    def test_send_file_message_with_path(self, messaging_client: MessagingClient) -> None:
         """Test send_file_message with file_path (auto-upload)."""
         mock_response = Mock()
         mock_response.success.return_value = True
@@ -314,9 +296,7 @@ class TestSendFileMessage:
             "cli_test1234567890ab", "/tmp/test_document.pdf"
         )
 
-    def test_send_file_message_with_key(
-        self, messaging_client: MessagingClient
-    ) -> None:
+    def test_send_file_message_with_key(self, messaging_client: MessagingClient) -> None:
         """Test send_file_message with pre-uploaded file_key."""
         mock_response = Mock()
         mock_response.success.return_value = True
@@ -335,9 +315,7 @@ class TestSendFileMessage:
         assert result["message_id"] == "om_file_msg_456"
         messaging_client.media_uploader.upload_file.assert_not_called()
 
-    def test_send_file_message_no_path_or_key(
-        self, messaging_client: MessagingClient
-    ) -> None:
+    def test_send_file_message_no_path_or_key(self, messaging_client: MessagingClient) -> None:
         """Test send_file_message with neither path nor key."""
         with pytest.raises(
             InvalidParameterError,
@@ -379,9 +357,7 @@ class TestSendCardMessage:
 
         assert result["message_id"] == "om_card_msg_123"
 
-    def test_send_card_message_empty_content(
-        self, messaging_client: MessagingClient
-    ) -> None:
+    def test_send_card_message_empty_content(self, messaging_client: MessagingClient) -> None:
         """Test send_card_message with empty card content."""
         with pytest.raises(InvalidParameterError, match="Card content cannot be empty"):
             messaging_client.send_card_message(
@@ -397,9 +373,7 @@ class TestSendCardMessage:
 class TestSendBatchMessages:
     """Test send_batch_messages method (US2.6: Batch messaging)."""
 
-    def test_send_batch_messages_all_success(
-        self, messaging_client: MessagingClient
-    ) -> None:
+    def test_send_batch_messages_all_success(self, messaging_client: MessagingClient) -> None:
         """Test batch send with all messages succeeding."""
         # Mock successful responses for all messages
         mock_response1 = Mock()
@@ -429,9 +403,7 @@ class TestSendBatchMessages:
         assert result.results[0].status == "success"
         assert result.results[0].message_id == "om_batch_msg_1"
 
-    def test_send_batch_messages_partial_failure(
-        self, messaging_client: MessagingClient
-    ) -> None:
+    def test_send_batch_messages_partial_failure(self, messaging_client: MessagingClient) -> None:
         """Test batch send with some messages failing."""
         # First succeeds, second fails
         mock_response_success = Mock()
@@ -464,13 +436,9 @@ class TestSendBatchMessages:
         assert result.results[1].status == "failed"
         assert "Invalid receiver_id" in result.results[1].error
 
-    def test_send_batch_messages_empty_list(
-        self, messaging_client: MessagingClient
-    ) -> None:
+    def test_send_batch_messages_empty_list(self, messaging_client: MessagingClient) -> None:
         """Test batch send with empty receiver list raises error."""
-        with pytest.raises(
-            InvalidParameterError, match="Receiver IDs list cannot be empty"
-        ):
+        with pytest.raises(InvalidParameterError, match="Receiver IDs list cannot be empty"):
             messaging_client.send_batch_messages(
                 app_id="cli_test1234567890ab",
                 receiver_ids=[],
@@ -521,9 +489,7 @@ class TestSendMessageErrorHandling:
 class TestEdgeCases:
     """Test edge cases and boundary conditions."""
 
-    def test_send_text_message_very_long_content(
-        self, messaging_client: MessagingClient
-    ) -> None:
+    def test_send_text_message_very_long_content(self, messaging_client: MessagingClient) -> None:
         """Test send_text_message with very long content."""
         mock_response = Mock()
         mock_response.success.return_value = True
@@ -543,9 +509,7 @@ class TestEdgeCases:
 
         assert result["message_id"] == "om_long_msg"
 
-    def test_send_image_message_with_pathlib_path(
-        self, messaging_client: MessagingClient
-    ) -> None:
+    def test_send_image_message_with_pathlib_path(self, messaging_client: MessagingClient) -> None:
         """Test send_image_message with pathlib.Path object."""
         mock_response = Mock()
         mock_response.success.return_value = True
