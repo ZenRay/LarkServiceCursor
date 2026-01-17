@@ -15,6 +15,32 @@ git commit -m "fix"      # 提交 → pre-commit hook 报格式错误 ❌
 - ❌ 在 commit 时才发现格式问题
 - ❌ pre-commit hook 自动修改文件导致循环
 - ❌ 需要反复 add → commit → 失败 → 修复
+- ❌ **暂存区（staging area）和工作区（working directory）不同步**
+
+### ⚠️ 关键问题：暂存区同步
+
+**Pre-commit hooks 只检查暂存区的文件内容！**
+
+这会导致以下问题：
+
+```bash
+# 场景 1：修改后忘记重新 add
+vim file.py              # 修改文件
+git add file.py          # 添加到暂存区
+vim file.py              # 又修改了文件 ⚠️
+git commit               # pre-commit 检查的是旧版本！
+
+# 场景 2：工具自动修改后的不一致
+git add file.py          # 添加文件
+ruff format file.py      # IDE 或工具自动格式化
+git commit               # 暂存区是旧的，工作区是新的！
+```
+
+**表现**：
+- ✅ 本地运行 `mypy src/` 通过
+- ❌ `git commit` 时 pre-commit hooks 报错
+
+**原因**：`mypy src/` 检查的是**工作区**，而 pre-commit 检查的是**暂存区**！
 
 ---
 
@@ -22,7 +48,7 @@ git commit -m "fix"      # 提交 → pre-commit hook 报格式错误 ❌
 
 ### 核心改进
 
-**3步式流程**：`Format → Add → Check`
+**3步式流程**：`Format → Add → Check`（自动同步暂存区）
 
 ```bash
 # 使用智能脚本（推荐）
@@ -34,14 +60,34 @@ git cadd src/file.py
 
 **工作原理**：
 1. **Step 1**: 自动检测格式问题并 format
-2. **Step 2**: 添加文件到 staging area
+2. **Step 2**: 添加文件到 staging area（多次同步确保一致）
 3. **Step 3**: 运行所有质量检查（ruff-format 现在是 --check 模式）
 
 **优势**：
 - ✅ 在 add 前就自动格式化（避免循环）
+- ✅ 自动同步暂存区和工作区（解决不一致问题）
 - ✅ Pre-commit hooks 只检查，不修改
 - ✅ 清晰的 3 步流程，易于理解
 - ✅ 一次命令完成所有操作
+
+### 新增命令：`git csync`
+
+**用途**：提交时自动同步暂存区，防止检查旧文件
+
+```bash
+# 传统方式（可能有问题）
+git add file.py
+# ... 编辑器自动保存 ...
+git commit -m "fix"      # ❌ 检查的是旧版本
+
+# 新方式：自动同步
+git csync -m "fix"       # ✅ 自动重新 add 暂存文件，确保最新
+```
+
+**实现**：
+- 自动重新 add 所有已暂存的文件
+- 然后运行 `git commit`
+- 确保 pre-commit hooks 检查的是最新内容
 
 ---
 
@@ -77,7 +123,10 @@ vim src/lark_service/apaas/client.py
 ./scripts/git-add-check.sh src/lark_service/apaas/client.py
 
 # 如果检查通过 ✅
-# → 直接提交
+# → 直接提交（使用 csync 确保同步）
+git csync -m "feat: add new feature"
+
+# 或者使用传统方式（如果确定没有修改文件）
 git commit -m "feat: add new feature"
 ```
 
