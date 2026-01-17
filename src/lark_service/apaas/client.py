@@ -1,4 +1,3 @@
-import urllib.parse
 from typing import Any
 
 import requests
@@ -360,28 +359,132 @@ class WorkspaceTableClient:
             logger.error(f"Network error listing table fields: {e}")
             raise APIError(f"Failed to list table fields: {e}") from e
 
-    def query_records(
+    def sql_query(
         self,
         app_id: str,
         user_access_token: str,
-        table_id: str,
-        filter_expr: str | None = None,
-        page_token: str | None = None,
-        page_size: int = 20,
-    ) -> tuple[list[TableRecord], str | None, bool]:
+        workspace_id: str,
+        sql: str,
+    ) -> list[dict[str, Any]]:
         """
-        Query records from a data table with filtering and pagination.
+        Execute SQL SELECT query on workspace tables.
 
-        Filter expression format: CurrentValue.[field_name] = "value"
-        Supports operators: =, !=, >, >=, <, <=, contains
-        Supports logical operators: && (AND), || (OR)
+        This method uses the aPaaS SQL Commands API to execute read-only
+        SQL queries. Currently only SELECT statements are fully supported.
 
         Args
         ----------
             app_id: Application ID
             user_access_token: User access token for authentication
-            table_id: Table ID, format: tbl_xxx
-            filter_expr: Filter expression string (optional)
+            workspace_id: Workspace ID to execute query in
+            sql: SQL SELECT statement
+
+        Returns
+        ----------
+            List of result records as dictionaries
+
+        Raises
+        ----------
+            InvalidParameterError: If parameters are invalid
+            PermissionDeniedError: If user lacks permission
+            APIError: If API call fails or SQL syntax error
+
+        Example
+        --------
+            >>> results = client.sql_query(
+            ...     app_id="cli_xxx",
+            ...     user_access_token="u-xxx",
+            ...     workspace_id="workspace_xxx",
+            ...     sql="SELECT id, name, stage FROM customers WHERE stage = '潜在客户' LIMIT 10"
+            ... )
+            >>> for row in results:
+            ...     print(row['name'], row['stage'])
+
+        Notes
+        -----
+            - Only SELECT queries are recommended
+            - INSERT/UPDATE/DELETE have syntax limitations
+            - SQL follows PostgreSQL syntax
+            - Refer to: https://open.feishu.cn/document/uAjLw4CM/ukTMukTMukTM/apaas-v1/workspace/sql_commands
+        """
+        validate_app_id(app_id)
+        validate_non_empty_string(user_access_token, "user_access_token")
+        validate_non_empty_string(workspace_id, "workspace_id")
+        validate_non_empty_string(sql, "sql")
+
+        logger.info(
+            "Executing SQL query",
+            extra={
+                "workspace_id": workspace_id,
+                "app_id": app_id,
+                "sql_preview": sql[:100],
+            },
+        )
+
+        try:
+            url = f"{APAAS_API_BASE}/apaas/v1/workspaces/{workspace_id}/sql_commands"
+            headers = {
+                "Authorization": f"Bearer {user_access_token}",
+                "Content-Type": "application/json",
+            }
+
+            payload = {"sql": sql}
+
+            response = requests.post(url, headers=headers, json=payload, timeout=60)
+            result = response.json()
+
+            if result.get("code") != 0:
+                self._handle_api_error(result, "sql_query")
+
+            # Parse nested JSON response
+            import json as jsonlib
+
+            data = result.get("data", {})
+            result_str = data.get("result", "[]")
+
+            # Result is a JSON string containing an array with one element (another JSON string)
+            outer_array = jsonlib.loads(result_str)
+            records: list[dict[str, Any]] = (
+                jsonlib.loads(outer_array[0]) if outer_array and len(outer_array) > 0 else []
+            )
+
+            logger.info(
+                f"Successfully executed SQL query, {len(records)} records returned",
+                extra={"workspace_id": workspace_id, "count": len(records)},
+            )
+
+            return records
+
+        except requests.RequestException as e:
+            logger.error(f"Network error executing SQL query: {e}")
+            raise APIError(f"Failed to execute SQL query: {e}") from e
+        except (ValueError, KeyError) as e:
+            logger.error(f"Failed to parse SQL query response: {e}")
+            raise APIError(f"Failed to parse SQL response: {e}") from e
+
+    def query_records(
+        self,
+        app_id: str,
+        user_access_token: str,
+        table_id: str,
+        workspace_id: str,
+        filter_expr: str | None = None,
+        page_token: str | None = None,
+        page_size: int = 20,
+    ) -> tuple[list[TableRecord], str | None, bool]:
+        """
+        Query records from a data table with pagination.
+
+        Note: Uses aPaaS GET /records endpoint. Filter expressions are not
+        supported by this API - use sql_query() for filtering.
+
+        Args
+        ----------
+            app_id: Application ID
+            user_access_token: User access token for authentication
+            table_id: Table name (e.g., "follow_ups")
+            workspace_id: Workspace ID where the table exists
+            filter_expr: Filter expression (not supported, will be ignored)
             page_token: Page token for pagination (optional)
             page_size: Number of records per page (default: 20, max: 500)
 
@@ -401,77 +504,88 @@ class WorkspaceTableClient:
             >>> records, next_token, has_more = client.query_records(
             ...     app_id="cli_xxx",
             ...     user_access_token="u-xxx",
-            ...     table_id="tbl_001",
-            ...     filter_expr='CurrentValue.[Status] = "Active"',
+            ...     table_id="follow_ups",
+            ...     workspace_id="workspace_xxx",
             ...     page_size=50
             ... )
             >>> print(f"Found {len(records)} records")
         """
-        # Note: table_id format varies, not always "tbl_" prefix
-        if not table_id:
-            raise InvalidParameterError("table_id cannot be empty")
-
-        if page_size < 1 or page_size > 500:
-            raise InvalidParameterError("page_size must be between 1 and 500")
-
         validate_app_id(app_id)
         validate_non_empty_string(user_access_token, "user_access_token")
         validate_non_empty_string(table_id, "table_id")
+        validate_non_empty_string(workspace_id, "workspace_id")
         validate_non_negative_int(page_size, "page_size", min_value=1, max_value=500)
+
+        if filter_expr:
+            logger.warning(
+                "filter_expr is not supported by aPaaS GET records API, "
+                "use sql_query() method instead for filtering"
+            )
 
         logger.info(
             "Querying table records",
             extra={
                 "table_id": table_id,
+                "workspace_id": workspace_id,
                 "app_id": app_id,
-                "has_filter": filter_expr is not None,
                 "page_size": page_size,
             },
         )
 
         try:
-            url = f"{APAAS_API_BASE}/apaas/v1/tables/{table_id}/records/query"
+            url = f"{APAAS_API_BASE}/apaas/v1/workspaces/{workspace_id}/tables/{table_id}/records"
             headers = {
                 "Authorization": f"Bearer {user_access_token}",
                 "Content-Type": "application/json",
             }
 
-            # Build request body
-            body: dict[str, Any] = {"page_size": page_size}
-
-            if filter_expr:
-                # URL encode the filter expression as per API requirements
-                body["filter"] = urllib.parse.quote(filter_expr)
-
+            # Build query parameters
+            params: dict[str, Any] = {"page_size": page_size}
             if page_token:
-                body["page_token"] = page_token
+                params["page_token"] = page_token
 
-            response = requests.post(url, headers=headers, json=body, timeout=30)
+            response = requests.get(url, headers=headers, params=params, timeout=30)
             result = response.json()
 
             if result.get("code") != 0:
                 self._handle_api_error(result, "query_records")
 
             # Parse response data
+            import json as jsonlib
+
             data = result.get("data", {})
-            records_data = data.get("records", [])
+            items = data.get("items")
+
+            # aPaaS returns items as JSON string, need to parse
+            if isinstance(items, str):
+                items = jsonlib.loads(items)
+
             next_page_token = data.get("page_token")
             has_more = data.get("has_more", False)
+            total = data.get("total", 0)
 
+            # Convert to TableRecord objects
             records = []
-            for record_data in records_data:
+            for item in items:
+                # Extract record_id (usually 'id' field)
+                record_id = item.get("id", "")
+
+                # Remove system fields and keep user fields
+                fields = {k: v for k, v in item.items() if not k.startswith("_") and k != "id"}
+
                 record = TableRecord(
-                    record_id=record_data.get("record_id", ""),
+                    record_id=record_id,
                     table_id=table_id,
-                    fields=record_data.get("fields", {}),
+                    fields=fields,
                 )
                 records.append(record)
 
             logger.info(
-                f"Successfully queried {len(records)} records",
+                f"Successfully queried {len(records)} records (total: {total})",
                 extra={
                     "table_id": table_id,
                     "count": len(records),
+                    "total": total,
                     "has_more": has_more,
                 },
             )
