@@ -1,17 +1,17 @@
 # ============================================================================
-# Docker Compose - 优化生产环境配置
+# Docker Compose - Production-optimized Configuration
 # ============================================================================
-# Docker Compose V2 规范 (无需 version 字段)
-# 功能:
-# - 多服务编排 (Lark Service + PostgreSQL + RabbitMQ)
-# - 健康检查和自动重启
-# - 网络隔离和安全配置
-# - 资源限制和日志管理
+# Docker Compose V2 specification (no version field required)
+# Features:
+# - Multi-service orchestration (Lark Service + PostgreSQL + RabbitMQ)
+# - Health checks and auto-restart
+# - Network isolation and security configuration
+# - Resource limits and log management
 # ============================================================================
 
 services:
   # ==========================================================================
-  # PostgreSQL 数据库
+  # PostgreSQL Database
   # ==========================================================================
   postgres:
     image: postgres:16-alpine
@@ -42,12 +42,12 @@ services:
     networks:
       - lark-network
 
-    # 资源限制 (Compose V2 原生支持)
+    # Resource limits (Compose V2 native support)
     cpus: 1.0
     mem_limit: 512m
     mem_reservation: 256m
 
-    # 日志配置
+    # Log configuration
     logging:
       driver: "json-file"
       options:
@@ -55,7 +55,7 @@ services:
         max-file: "3"
 
   # ==========================================================================
-  # RabbitMQ 消息队列 (可选)
+  # RabbitMQ Message Queue (optional)
   # ==========================================================================
   rabbitmq:
     image: rabbitmq:3.13-management-alpine
@@ -71,8 +71,8 @@ services:
       - rabbitmq_data:/var/lib/rabbitmq
 
     ports:
-      - "5672:5672"      # AMQP 协议端口
-      - "15672:15672"    # 管理界面端口
+      - "5672:5672"      # AMQP protocol port
+      - "15672:15672"    # Management UI port
 
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "ping"]
@@ -84,7 +84,7 @@ services:
     networks:
       - lark-network
 
-    # 资源限制 (Compose V2 原生支持)
+    # Resource limits (Compose V2 native support)
     cpus: 0.5
     mem_limit: 512m
     mem_reservation: 256m
@@ -96,7 +96,7 @@ services:
         max-file: "3"
 
   # ==========================================================================
-  # Lark Service 主应用
+  # Lark Service Main Application
   # ==========================================================================
   lark-service:
     build:
@@ -110,17 +110,17 @@ services:
     restart: unless-stopped
 
     environment:
-      # 数据库配置
+      # Database configuration
       DATABASE_URL: postgresql://lark_user:${POSTGRES_PASSWORD:-changeme}@postgres:5432/lark_service
 
-      # RabbitMQ 配置
+      # RabbitMQ configuration
       RABBITMQ_URL: amqp://lark_user:${RABBITMQ_PASSWORD:-changeme}@rabbitmq:5672/lark_vhost
 
-      # 应用配置
+      # Application configuration
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       ENVIRONMENT: ${ENVIRONMENT:-production}
 
-      # 飞书应用配置 (从 .env 文件加载)
+      # Feishu application configuration (loaded from .env file)
       APP_ID: ${APP_ID}
       APP_SECRET: ${APP_SECRET}
 
@@ -151,7 +151,7 @@ services:
     networks:
       - lark-network
 
-    # 资源限制 (Compose V2 原生支持)
+    # Resource limits (Compose V2 native support)
     cpus: 2.0
     mem_limit: 1g
     mem_reservation: 512m
@@ -163,7 +163,7 @@ services:
         max-file: "5"
 
 # ============================================================================
-# 网络配置
+# Network Configuration
 # ============================================================================
 networks:
   lark-network:
@@ -173,7 +173,7 @@ networks:
         - subnet: 172.20.0.0/16
 
 # ============================================================================
-# 数据卷
+# Data Volumes
 # ============================================================================
 volumes:
   postgres_data:
@@ -182,28 +182,28 @@ volumes:
     driver: local
 
 # ============================================================================
-# 使用说明 (Docker Compose V2):
+# Usage Instructions (Docker Compose V2):
 # ============================================================================
-# 启动所有服务:
+# Start all services:
 #   docker compose up -d
 #
-# 查看日志:
+# View logs:
 #   docker compose logs -f lark-service
 #
-# 查看服务状态:
+# Check service status:
 #   docker compose ps
 #
-# 停止服务:
+# Stop services:
 #   docker compose down
 #
-# 完全清理 (包括数据卷):
+# Complete cleanup (including volumes):
 #   docker compose down -v
 #
-# 重新构建镜像:
+# Rebuild images:
 #   docker compose build --no-cache
 #
-# 查看资源使用情况:
+# View resource usage:
 #   docker compose stats
 #
-# 注意: Docker Compose V2 使用 'docker compose' 而不是 'docker-compose'
+# Note: Docker Compose V2 uses 'docker compose' not 'docker-compose'
 # ============================================================================
