@@ -29,19 +29,19 @@
 ## 📊 测试与质量报告
 
 ### 测试覆盖率报告
-- [最终测试覆盖率报告](reports/FINAL-TEST-COVERAGE-REPORT.md) - 60.38% 覆盖率详情
-- [Phase 1 完成报告](reports/PHASE1-COMPLETE-REPORT.md) - 核心模块测试总结
-- [Task 1.1 完成报告](reports/PHASE1-TASK1.1-COMPLETE.md) - CredentialPool测试详情
-- [会话工作总结](reports/SESSION-SUMMARY.md) - 本次工作会话成果
+- [当前状态摘要](../CURRENT-STATUS.md) ⭐ - 项目当前状态(60.38%覆盖率)
+- [快速启动指南](../QUICK-START-NEXT-CHAT.md) ⭐ - 下次Chat快速开始
+- [历史报告归档](../archive/reports-2026-01/) - 详细的阶段性报告
 
 ### 检查清单
 - [生产就绪检查](../specs/001-lark-service-core/checklists/production-readiness.md) - 生产部署检查项
 - [Phase 6 最终报告](../specs/001-lark-service-core/checklists/phase6-final-report.md) - Phase 6完成状态
 
-### 其他报告
-- [测试覆盖率分析](test-coverage-analysis.md) - 覆盖率详细分析
-- [测试覆盖率BCA验证](test-coverage-bca-verification.md) - 覆盖率改进计划
-- [漏洞修复计划](vulnerability-fix-plan.md) - 依赖漏洞修复
+### 归档报告
+所有详细的阶段性报告已归档至 `../archive/reports-2026-01/`:
+- 测试覆盖率提升项目报告 (7个)
+- 测试覆盖率分析文档 (3个)
+- 漏洞修复计划 (已完成)
 
 ---
 
@@ -100,13 +100,16 @@ pytest tests/unit/ --cov=src/lark_service --cov-report=html
 # 查看: htmlcov/index.html
 ```
 
-### 查看测试报告
+### 查看当前状态
 ```bash
-# 最终测试覆盖率报告
-cat docs/reports/FINAL-TEST-COVERAGE-REPORT.md
+# 项目当前状态
+cat CURRENT-STATUS.md
 
-# Phase 1 完成报告
-cat docs/reports/PHASE1-COMPLETE-REPORT.md
+# 快速启动指南
+cat QUICK-START-NEXT-CHAT.md
+
+# 查看历史报告
+ls archive/reports-2026-01/
 ```
 
 ---
