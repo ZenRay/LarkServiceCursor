@@ -48,9 +48,9 @@ class ContentBlock(BaseModel):
         pattern=r"^[a-zA-Z0-9_-]{20,}$",
     )
 
-    block_type: Literal[
-        "paragraph", "heading", "image", "table", "code", "list", "divider"
-    ] = Field(..., description="Content type")
+    block_type: Literal["paragraph", "heading", "image", "table", "code", "list", "divider"] = (
+        Field(..., description="Content type")
+    )
 
     content: str | list[Any] | None = Field(
         ...,

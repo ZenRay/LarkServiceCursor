@@ -692,9 +692,9 @@ class ContactClient:
                                 if user_contact_info.email:
                                     user_id_map[user_contact_info.user_id] = user_contact_info.email
                                 elif user_contact_info.mobile:
-                                    user_id_map[
-                                        user_contact_info.user_id
-                                    ] = user_contact_info.mobile
+                                    user_id_map[user_contact_info.user_id] = (
+                                        user_contact_info.mobile
+                                    )
 
                     # Step 2: Get full user info for each user_id
                     for uid in user_ids_to_fetch:
