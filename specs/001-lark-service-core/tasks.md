@@ -439,8 +439,8 @@
 ### 文档完善
 
 - [ ] T081 [P] 完善 docs/architecture.md (补充完整架构图,数据流图,模块依赖关系)
-- [ ] T082 [P] 完善 docs/api_reference.md (所有模块的完整API文档,包含示例代码)
-- [ ] T083 [P] 验证 quickstart.md (按quickstart.md步骤从零搭建,验证5分钟内完成首次消息发送)
+- [x] T082 [P] 完善 docs/api_reference.md (所有模块的完整API文档,包含示例代码)
+- [x] T083 [P] 验证 quickstart.md (按quickstart.md步骤从零搭建,验证5分钟内完成首次消息发送)
 - [ ] T084 创建 CHANGELOG.md (v0.1.0版本说明,核心功能清单,已知限制)
 
 ### 阶段检查点(最终验收)
