@@ -73,3 +73,5 @@ Thumbs.db
 
 # Pre-commit
 .pre-commit-config.yaml.swp
+test.py
+production.env
