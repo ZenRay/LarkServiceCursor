@@ -3,13 +3,17 @@ name: CI/CD Production Pipeline
 
 on:
   push:
-    branches: ["main", "master", "001-lark-service-core"]
+    branches: ["main", "master"]
   pull_request:
     branches: ["main", "master"]
 
 env:
   PYTHON_VERSION: "3.12"
   UV_VERSION: "latest"
+  # 统一测试数据库凭据
+  TEST_DB_NAME: lark_service_test
+  TEST_DB_USER: lark_admin
+  TEST_DB_PASS: lark_test_pass_123
 
 jobs:
   # ==========================================================================
@@ -22,9 +26,9 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_DB: lark_service
-          POSTGRES_USER: lark
-          POSTGRES_PASSWORD: lark_password_123
+          POSTGRES_DB: ${{ env.TEST_DB_NAME }}
+          POSTGRES_USER: ${{ env.TEST_DB_USER }}
+          POSTGRES_PASSWORD: ${{ env.TEST_DB_PASS }}
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -43,39 +47,41 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
       - name: Install uv
         uses: astral-sh/setup-uv@v3
         with:
           version: ${{ env.UV_VERSION }}
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install ${{ env.PYTHON_VERSION }}
 
       - name: Install dependencies
         run: |
-          uv pip install -r requirements.txt
+          # uv 会自动寻找或创建虚拟环境
           uv pip install ruff mypy pytest pytest-cov pytest-asyncio
+          uv pip install -r requirements.txt
           uv pip install -e .
 
       - name: Run Ruff (Lint)
-        run: ruff check src/
+        run: uv run ruff check src/
 
       - name: Run Mypy (Types)
-        run: mypy src/ --config-file=pyproject.toml --no-error-summary
+        run: uv run mypy src/ --config-file=pyproject.toml --no-error-summary
 
       - name: Run Unit Tests
         env:
           POSTGRES_HOST: localhost
           POSTGRES_PORT: 5432
-          POSTGRES_DB: lark_service
-          POSTGRES_USER: lark
-          POSTGRES_PASSWORD: lark_password_123
+          POSTGRES_DB: ${{ env.TEST_DB_NAME }}
+          POSTGRES_USER: ${{ env.TEST_DB_USER }}
+          POSTGRES_PASSWORD: ${{ env.TEST_DB_PASS }}
           RABBITMQ_HOST: localhost
           RABBITMQ_PORT: 5672
+          RABBITMQ_USER: lark
+          RABBITMQ_PASSWORD: rabbitmq_password_123
         run: |
-          pytest tests/unit/ -v --cov=src/lark_service --cov-report=xml
+          uv run pytest tests/unit/ -v --cov=src/lark_service --cov-report=xml
 
   # ==========================================================================
   # 2. 自动化部署阶段 (CD)
@@ -84,8 +90,7 @@ jobs:
     name: Auto Deploy to Production
     needs: [verify]
     runs-on: ubuntu-latest
-    # 仅在非 PR 且属于指定分支时执行部署
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/001-lark-service-core')
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     environment: production
     steps:
       - name: Execute Remote Deploy Script
@@ -99,5 +104,4 @@ jobs:
             git fetch origin
             git checkout ${{ github.ref_name }}
             git pull origin ${{ github.ref_name }}
-            # 自动化执行环境更新、迁移、重启
             sudo bash deploy/scripts/deploy.sh production
