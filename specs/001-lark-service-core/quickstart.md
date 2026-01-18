@@ -1,8 +1,9 @@
 # Quick Start Guide: Lark Service 核心组件
 
-**Feature**: 001-lark-service-core  
-**Version**: 1.0.0  
-**Last Updated**: 2026-01-14
+**Feature**: 001-lark-service-core
+**Version**: 0.1.0
+**Last Updated**: 2026-01-18
+**Status**: Production Ready
 
 ## 概述
 
@@ -137,10 +138,10 @@ from lark_service import LarkServiceClient
 
 ---
 
-> 💡 **选择建议**: 
+> 💡 **选择建议**:
 > - **开发阶段**: 使用**方式 1 (子项目集成)** - 便于调试和定制
 > - **生产部署**: 可选**方式 2 (PyPI 安装)** - 标准化管理
-> 
+>
 > 详细对比请参考: [research.md § 8 服务集成方式技术调研](research.md#8-服务集成方式技术调研)
 
 ---
@@ -250,16 +251,21 @@ python -m lark_service.cli app add \
 
 ```python
 from lark_service.core.storage.sqlite_storage import ApplicationManager
+from cryptography.fernet import Fernet
+import os
 
 # 初始化应用管理器
-app_manager = ApplicationManager()
+encryption_key = os.getenv("LARK_CONFIG_ENCRYPTION_KEY").encode()
+app_manager = ApplicationManager(
+    db_path="config/applications.db",
+    encryption_key=encryption_key
+)
 
 # 添加应用配置
-app_manager.create_application(
+app_manager.add_application(
     app_id="cli_a1b2c3d4e5f6g7h8",
-    app_secret="your_app_secret_here",
-    name="我的飞书应用",
-    description="用于内部系统集成"
+    app_name="我的飞书应用",
+    app_secret="your_app_secret_here"
 )
 
 print("应用配置已添加到 SQLite 数据库!")
@@ -283,25 +289,50 @@ print("应用配置已添加到 SQLite 数据库!")
 创建测试脚本 `test_send_message.py`:
 
 ```python
-from lark_service import LarkServiceClient
+from lark_service.messaging.client import MessagingClient
+from lark_service.core.credential_pool import CredentialPool
+from lark_service.core.config import Config
+from lark_service.core.storage.sqlite_storage import ApplicationManager
+from lark_service.core.storage.postgres_storage import TokenStorageService
+from pathlib import Path
 
-# 初始化客户端(传入 app_id,组件会自动从 SQLite 加载配置)
-client = LarkServiceClient(
-    app_id="cli_a1b2c3d4e5f6g7h8",  # 使用您在步骤4.2中添加的 App ID
+# 初始化配置和服务
+config = Config()
+app_manager = ApplicationManager(config.config_db_path, config.config_encryption_key)
+token_storage = TokenStorageService(config.get_postgres_url())
+
+# 创建 Token 池
+pool = CredentialPool(
+    config=config,
+    app_manager=app_manager,
+    token_storage=token_storage,
+    lock_dir=Path("/tmp/lark_locks")
 )
 
+# 创建消息客户端
+client = MessagingClient(pool)
+
 # 发送文本消息(组件会自动获取和管理 Token)
-response = client.messaging.send_text(
-    receiver_id="ou_xxxxxxxxxxxxxxxx",  # 替换为接收者的 user_id
+app_id = "cli_a1b2c3d4e5f6g7h8"  # 使用您在步骤4.2中添加的 App ID
+receive_id = "ou_xxxxxxxxxxxxxxxx"  # 替换为接收者的 open_id
+
+result = client.send_text_message(
+    app_id=app_id,
+    receive_id=receive_id,
+    receive_id_type="open_id",
     content="Hello from Lark Service! 🚀"
 )
 
 print(f"消息发送成功!")
-print(f"Request ID: {response.request_id}")
-print(f"Message ID: {response.data['message_id']}")
+print(f"Message ID: {result['message_id']}")
+
+# 清理资源
+pool.close()
+token_storage.close()
+app_manager.close()
 ```
 
-> **工作原理**: 
+> **工作原理**:
 > 1. 组件从 SQLite 加载应用配置(App ID/Secret)
 > 2. 自动获取 `app_access_token` 并存储到 PostgreSQL
 > 3. 使用 Token 调用飞书 API 发送消息
@@ -317,7 +348,6 @@ python test_send_message.py
 
 ```
 消息发送成功!
-Request ID: req_a1b2c3d4e5f6g7h8
 Message ID: om_xxxxxxxxxxxxxxxx
 ```
 
@@ -325,148 +355,32 @@ Message ID: om_xxxxxxxxxxxxxxxx
 
 ---
 
-## 步骤 6: 验证 Token 自动刷新
-
-让我们验证组件的自动 Token 管理功能:
-
-```python
-from lark_service import LarkServiceClient
-import time
-
-client = LarkServiceClient(app_id="cli_a1b2c3d4e5f6g7h8")
-
-# 发送第一条消息(首次获取 Token)
-print("发送第一条消息...")
-client.messaging.send_text(
-    receiver_id="ou_xxxxxxxxxxxxxxxx",
-    content="测试消息 1"
-)
-print("✓ Token 自动获取成功")
-
-# 等待 1 秒后再次发送(使用缓存的 Token)
-time.sleep(1)
-print("发送第二条消息...")
-client.messaging.send_text(
-    receiver_id="ou_xxxxxxxxxxxxxxxx",
-    content="测试消息 2"
-)
-print("✓ Token 缓存命中,无需重新获取")
-
-# 查看 Token 缓存信息
-token_info = client.credential_pool.get_token_info("cli_a1b2c3d4e5f6g7h8", "tenant_access_token")
-print(f"Token 过期时间: {token_info['expires_at']}")
-print(f"Token 来源: {token_info['source']}")  # 'cache' 或 'database' 或 'fresh'
-```
-
----
-
 ## 常见功能示例
 
-### 发送图片消息
+### 发送富文本消息
 
 ```python
-# 方式 1: 先上传,再发送
-image_key = client.messaging.upload_image("path/to/image.png")
-client.messaging.send_image(
-    receiver_id="ou_xxxxxxxxxxxxxxxx",
-    image_key=image_key
-)
+from lark_service.messaging.client import MessagingClient
 
-# 方式 2: 一步到位(推荐)
-client.messaging.send_image_message(
-    receiver_id="ou_xxxxxxxxxxxxxxxx",
-    image_path="path/to/image.png"
-)
-```
-
-### 发送文件消息
-
-```python
-client.messaging.send_file_message(
-    receiver_id="ou_xxxxxxxxxxxxxxxx",
-    file_path="path/to/report.pdf"
-)
-```
-
-### 发送交互式卡片
-
-```python
-card_content = {
-    "header": {
-        "title": {
-            "tag": "plain_text",
-            "content": "审批通知"
-        }
-    },
-    "elements": [
-        {
-            "tag": "div",
-            "text": {
-                "tag": "lark_md",
-                "content": "**申请人**: 张三\n**申请事项**: 请假申请"
-            }
-        },
-        {
-            "tag": "action",
-            "actions": [
-                {
-                    "tag": "button",
-                    "text": {"tag": "plain_text", "content": "同意"},
-                    "type": "primary",
-                    "value": "approve"
-                },
-                {
-                    "tag": "button",
-                    "text": {"tag": "plain_text", "content": "拒绝"},
-                    "type": "danger",
-                    "value": "reject"
-                }
-            ]
-        }
+# 富文本: 段落 → 行 → 元素
+content = [
+    [  # 第一段
+        {"tag": "text", "text": "这是粗体文本", "style": ["bold"]},
+        {"tag": "a", "text": "点击链接", "href": "https://example.com"},
+    ],
+    [  # 第二段
+        {"tag": "text", "text": "普通文本"},
+        {"tag": "at", "user_id": "ou_user456"},  # @某人
     ]
-}
-
-# 发送卡片并注册回调处理函数
-client.messaging.send_interactive_card(
-    receiver_id="ou_xxxxxxxxxxxxxxxx",
-    card_content=card_content,
-    callback_handler=handle_approval_callback  # 自定义回调函数
-)
-
-def handle_approval_callback(event):
-    """处理用户点击卡片按钮的回调"""
-    user_id = event['user_id']
-    action = event['action']['value']  # 'approve' or 'reject'
-    
-    if action == 'approve':
-        print(f"用户 {user_id} 同意了审批")
-        # 更新业务系统状态
-    else:
-        print(f"用户 {user_id} 拒绝了审批")
-```
-
-### 批量发送消息
-
-```python
-receiver_ids = [
-    "ou_user1",
-    "ou_user2",
-    "ou_user3"
 ]
 
-response = client.messaging.batch_send(
-    receiver_ids=receiver_ids,
-    msg_type="text",
-    content="群发通知: 系统将于今晚 22:00 维护"
+result = client.send_rich_text_message(
+    app_id=app_id,
+    receive_id=receive_id,
+    receive_id_type="open_id",
+    content=content
 )
-
-print(f"总数: {response.data['total']}")
-print(f"成功: {response.data['success']}")
-print(f"失败: {response.data['failed']}")
-
-# 查看每个接收者的发送结果
-for result in response.data['results']:
-    print(f"{result['receiver_id']}: {result['status']}")
+```
 ```
 
 ---
@@ -480,27 +394,33 @@ for result in response.data['results']:
 python -m lark_service.cli app add \
   --app-id "cli_app1_xxxxxxxx" \
   --app-secret "secret1_xxxxxxxx" \
-  --name "应用1-内部系统" \
-  --description "用于内部工单系统"
+  --name "应用1-内部系统"
 
 # 添加应用 2
 python -m lark_service.cli app add \
   --app-id "cli_app2_xxxxxxxx" \
   --app-secret "secret2_xxxxxxxx" \
-  --name "应用2-外部集成" \
-  --description "用于外部合作伙伴集成"
+  --name "应用2-外部集成"
 ```
 
 代码中指定 app_id:
 
 ```python
 # 使用应用 1 发送消息
-client1 = LarkServiceClient(app_id="cli_app1_xxxxxxxx")
-client1.messaging.send_text(receiver_id="ou_xxx", content="来自应用1的消息")
+result1 = client.send_text_message(
+    app_id="cli_app1_xxxxxxxx",
+    receive_id="ou_xxx",
+    receive_id_type="open_id",
+    content="来自应用1的消息"
+)
 
 # 使用应用 2 发送消息
-client2 = LarkServiceClient(app_id="cli_app2_xxxxxxxx")
-client2.messaging.send_text(receiver_id="ou_xxx", content="来自应用2的消息")
+result2 = client.send_text_message(
+    app_id="cli_app2_xxxxxxxx",
+    receive_id="ou_xxx",
+    receive_id_type="open_id",
+    content="来自应用2的消息"
+)
 ```
 
 组件会自动按 app_id 隔离 Token 和配置,避免混用。
@@ -575,10 +495,13 @@ docker-compose logs -f rabbitmq
 
 1. **阅读完整 API 文档**: 查看 `docs/api_reference.md` 了解所有可用接口
 2. **部署到生产环境**: 查看 `docs/deployment.md` 了解生产部署最佳实践
-3. **集成更多模块**:
-   - **CloudDoc**: 操作飞书文档、Sheet、多维表格
-   - **Contact**: 查询用户和组织架构
-   - **aPaaS**: 调用 AI 能力和自动化工作流
+3. **探索架构设计**: 查看 `docs/architecture.md` 了解系统架构和设计原则
+4. **集成更多模块**:
+   - **CloudDoc**: 操作飞书文档、Sheet、多维表格 (`lark_service.clouddoc`)
+   - **Contact**: 查询用户和组织架构 (`lark_service.contact`)
+   - **aPaaS**: 数据空间操作 (`lark_service.apaas`)
+   - **CardKit**: 构建交互式卡片 (`lark_service.cardkit`)
+5. **查看测试示例**: 参考 `tests/integration/` 下的集成测试代码
 
 ---
 

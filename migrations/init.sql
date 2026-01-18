@@ -22,10 +22,10 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pgcrypto') THEN
         RAISE EXCEPTION 'pgcrypto extension not installed';
     END IF;
-    
+
     IF NOT EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'uuid-ossp') THEN
         RAISE EXCEPTION 'uuid-ossp extension not installed';
     END IF;
-    
+
     RAISE NOTICE 'PostgreSQL extensions initialized successfully';
 END $$;

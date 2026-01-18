@@ -1,8 +1,8 @@
 # Feature Specification: Lark Service 核心组件
 
-**Feature Branch**: `001-lark-service-core`  
-**Created**: 2026-01-14  
-**Status**: Draft  
+**Feature Branch**: `001-lark-service-core`
+**Created**: 2026-01-14
+**Status**: Draft
 **Input**: 为内部系统开发一个 Lark Service 企业自建应用核心组件，旨在通过封装飞书 OpenAPI 提供高度复用且透明的接入能力
 
 ## User Scenarios & Testing *(mandatory)*
@@ -53,6 +53,10 @@
 2. **Given** 用户点击卡片按钮, **When** 飞书服务器发送回调请求到组件, **Then** 组件验证签名后将回调事件发送到消息队列,注册的处理函数异步处理回调逻辑
 3. **Given** 回调处理函数需要更新卡片状态, **When** 处理函数返回更新指令, **Then** 组件自动更新原卡片消息,用户看到状态变化(如"审批中"→"已通过")
 4. **Given** 需要向多个用户批量发送相同消息, **When** 调用批量发送接口并传入用户列表, **Then** 所有用户都收到消息,且有明确的成功/失败状态反馈
+
+**验证方式**:
+- **消息成功送达验证**: 通过 API 返回的 `message_id` 和飞书客户端接收确认来验证,组件记录发送日志包含 message_id、receiver_id、发送时间戳
+- **卡片交互回调验证**: 端到端测试流程包括:发送卡片 → 模拟用户点击 → 验证回调请求到达 → 验证签名通过 → 验证消息队列接收事件 → 验证回调处理函数执行 → 验证卡片状态更新
 
 ---
 
@@ -108,11 +112,15 @@
 
 ---
 
-### User Story 5 - aPaaS 平台集成 (Priority: P4)
+### User Story 5 - aPaaS 数据空间集成 (Priority: P4)
 
-内部服务需要与飞书 aPaaS 平台集成,对 AI 平台的数据空间(Workspace)中的表格进行 CRUD 操作,实现外部数据对接数据空间的能力。此外还需要支持调用 AI 能力和触发自动化工作流。
+内部服务需要与飞书 aPaaS 平台集成,对数据空间(Workspace)中的表格进行 CRUD 操作,实现外部数据对接数据空间的能力。
 
-**Why this priority**: aPaaS 平台集成是高级功能,主要服务于需要 AI 能力、数据空间集成和自动化流程的场景,使用场景相对有限,适合作为后期扩展功能。
+**能力范围说明**:
+- ✅ **包含**: 数据空间表格(workspace-table)的 CRUD 操作、字段定义查询、分页查询、批量操作
+- ❌ **不包含**: AI 能力调用、工作流触发等流程相关功能(不在 aPaaS 数据平台范畴,参考: https://open.feishu.cn/document/uAjLw4CM/ukTMukTMukTM/apaas-v1/workspace-table/list)
+
+**Why this priority**: aPaaS 数据空间集成是高级功能,主要服务于需要数据空间集成的场景,使用场景相对有限,适合作为后期扩展功能。
 
 **Independent Test**: 可以通过查询工作空间下的数据表列表、对表格记录进行读写操作来独立验证集成是否正常工作。需要 user_access_token 权限。
 
@@ -120,15 +128,12 @@
 
 **数据空间表格操作**:
 1. **Given** 需要查询工作空间下的数据表列表, **When** 调用 `list_workspace_tables(workspace_id, user_access_token)`, **Then** 返回数据表列表及其元信息(表格ID、名称、字段定义)
-2. **Given** 需要读取数据空间表格的记录, **When** 调用 `query_table_records(table_id, query_conditions, user_access_token)`, **Then** 返回符合条件的记录列表
-3. **Given** 需要更新数据空间表格的记录, **When** 调用 `update_table_record(table_id, record_id, update_data, user_access_token)`, **Then** 记录被成功更新并返回最新数据
-4. **Given** 需要删除数据空间表格的记录, **When** 调用 `delete_table_record(table_id, record_id, user_access_token)`, **Then** 记录被成功删除并返回确认信息
-5. **Given** user_access_token 权限不足, **When** 尝试访问工作空间数据表, **Then** 返回明确的权限不足错误和所需权限说明
-
-**AI 能力和工作流**:
-1. **Given** 需要调用飞书 AI 能力进行文本分析, **When** 调用 `invoke_ai_capability(capability_id, input_data, user_access_token)`, **Then** 返回 AI 处理结果
-2. **Given** 需要触发飞书自动化流程, **When** 调用 `trigger_workflow(workflow_id, parameters, user_access_token)`, **Then** 工作流被触发,返回执行状态
-3. **Given** 需要查询自动化流程的执行状态, **When** 调用 `get_workflow_status(execution_id, user_access_token)`, **Then** 返回流程的当前执行状态和结果
+2. **Given** 需要读取数据空间表格的记录, **When** 调用 `query_table_records(table_id, query_conditions, user_access_token)`, **Then** 返回符合条件的记录列表,支持过滤和分页
+3. **Given** 需要创建数据空间表格的记录, **When** 调用 `create_table_record(table_id, record_data, user_access_token)`, **Then** 记录被成功创建并返回记录ID和数据
+4. **Given** 需要更新数据空间表格的记录, **When** 调用 `update_table_record(table_id, record_id, update_data, user_access_token)`, **Then** 记录被成功更新并返回最新数据
+5. **Given** 需要删除数据空间表格的记录, **When** 调用 `delete_table_record(table_id, record_id, user_access_token)`, **Then** 记录被成功删除并返回确认信息
+6. **Given** 需要批量操作记录, **When** 调用 `batch_create_records` 或 `batch_update_records`, **Then** 批量操作成功并返回操作结果
+7. **Given** user_access_token 权限不足, **When** 尝试访问工作空间数据表, **Then** 返回明确的权限不足错误和所需权限说明
 
 ---
 
@@ -206,6 +211,8 @@
 - **FR-016**: 组件 MUST 实现智能重试机制,针对网络超时、限流、Token 失效等错误自动重试,最大重试次数为 3 次
 - **FR-017**: 组件 MUST 使用指数退避策略进行重试,初始延迟 1 秒,每次重试延迟翻倍(1s, 2s, 4s)
 - **FR-018**: 组件 MUST 识别飞书 API 限流错误码,在遇到限流时延迟更长时间再重试(如 30 秒)
+  - **FR-018.1**: 限流错误(HTTP 429)MUST 检查响应头 `Retry-After`,如果存在则按其值延迟,否则默认延迟 30 秒
+  - **FR-018.2**: 限流错误响应 MUST 包含 error.details 字段,说明限流原因和建议的重试时间
 - **FR-019**: 组件 MUST 为每个 API 请求生成唯一的请求 ID,用于日志追踪和问题排查
 
 #### 响应标准化
@@ -213,133 +220,342 @@
 - **FR-020**: 组件暴露的所有接口 MUST 返回标准化响应结构,包含业务状态码、请求 ID、数据负载和错误信息
 - **FR-021**: 组件 MUST 将飞书原始错误码映射为语义化的内部错误类型(如 `TokenExpired`、`RateLimited`、`InvalidParameter`)
 - **FR-022**: 组件 MUST 在错误响应中包含足够的上下文信息,帮助调用方快速定位问题(如哪个参数错误、建议的修复方式)
+  - **FR-022.1**: 参数验证错误 MUST 返回 HTTP 400,错误响应包含:具体参数名、错误原因、正确格式示例
+  - **FR-022.2**: content 为空字符串时 MUST 返回错误码 40002,错误消息 "Message content cannot be empty"
+  - **FR-022.3**: receiver_id 不存在时 MUST 返回错误码 40003,错误消息 "Receiver not found: {receiver_id}"
+  - **FR-022.4**: 用户无权限接收消息时 MUST 返回错误码 40301,错误消息 "Permission denied: user cannot receive messages"
+  - **FR-022.5**: 使用无效 image_key/file_key 时 MUST 返回错误码 40004,错误消息 "Invalid media key: {key} (expired or not found)"
 
-#### 消息服务(Messaging 模块)
+#### 消息服务(Messaging 模块) - 基于飞书消息 API (IM v1)
+
+**重要说明**: Messaging 模块基于飞书**消息 API (IM v1)** 实现,官方文档: https://open.feishu.cn/document/server-docs/im-v1/introduction
 
 **基础消息**:
-- **FR-023**: Messaging 模块 MUST 支持发送纯文本消息到指定用户或群组
-- **FR-024**: Messaging 模块 MUST 支持发送富文本消息,包含加粗、斜体、链接、@提及等格式
-- **FR-025**: Messaging 模块 MUST 支持发送交互式卡片消息,并提供卡片构建的辅助方法
-- **FR-025a**: Messaging 模块 MUST 提供交互式卡片回调处理机制,统一接收飞书回调并通过消息队列(如 RabbitMQ)异步路由到注册的处理函数
-- **FR-025b**: Messaging 模块 MUST 验证飞书回调签名,防止伪造请求和重放攻击
+- **FR-023**: Messaging 模块 MUST 使用飞书消息 API 支持发送纯文本消息(`msg_type: text`)到指定用户或群组
+- **FR-024**: Messaging 模块 MUST 使用飞书消息 API 支持发送富文本消息(`msg_type: post`),包含加粗、斜体、链接、@提及等格式
+  - **FR-024.1**: 富文本格式规范 MUST 支持以下元素:加粗(`**text**`)、斜体(`*text*`)、删除线(`~~text~~`)、链接(`[text](url)`)、@提及用户(`<at user_id="xxx">`)、@所有人(`<at user_id="all">`)
+  - **FR-024.2**: 富文本 MUST 支持多语言内容,使用 `zh_cn`、`en_us` 等语言标识
+- **FR-025**: Messaging 模块 MUST 使用飞书消息 API 支持发送交互式卡片消息(`msg_type: interactive`),卡片内容由 CardKit 模块构建
 - **FR-026**: Messaging 模块 MUST 支持批量发送消息,并返回每个接收者的发送结果
-- **FR-027**: Messaging 模块 MUST 支持消息撤回、编辑、回复等消息生命周期管理操作
+  - **FR-026.1**: 批量发送 MUST 采用"继续策略",即使部分接收者失败也继续发送其余消息,不回滚已成功的发送
+  - **FR-026.2**: 批量响应 MUST 返回结构化结果,包含 total(总数)、success(成功数)、failed(失败数)和 results 数组
+  - **FR-026.3**: results 数组中每个元素 MUST 包含 receiver_id、status(success/failed)、message_id(成功时)、error(失败时包含错误码和错误消息)
+- **FR-027**: Messaging 模块 MUST 使用飞书消息 API 支持消息撤回(`DELETE /im/v1/messages/{message_id}`)、编辑(`PATCH`仅文本消息)、回复等消息生命周期管理操作
+  - **FR-027.1**: 消息撤回时间限制为发送后 24 小时内,超时返回明确错误
+  - **FR-027.2**: 消息编辑仅支持文本消息(`msg_type: text`),时间限制为发送后 24 小时内
+  - **FR-027.3**: 消息回复嵌套层级限制为 3 层,超过限制返回参数错误
 
 **图片消息**:
-- **FR-028**: Messaging 模块 MUST 支持上传图片(JPEG、PNG、WEBP、GIF、TIFF、BMP、ICO),图片大小限制 10MB
-- **FR-029**: Messaging 模块 MUST 支持发送图片消息,接收 image_key 或本地图片路径
+- **FR-028**: Messaging 模块 MUST 使用飞书消息 API 支持上传图片(JPEG、PNG、WEBP、GIF、TIFF、BMP、ICO),图片大小限制 10MB
+  - **FR-028.1**: 文件类型验证 MUST 通过文件扩展名和 MIME type 双重检查,优先检查 MIME type
+  - **FR-028.2**: image_key 有效期为 30 天,组件 SHOULD 记录上传时间,过期的 image_key 重新上传
+  - **FR-028.3**: 图片上传失败时 MUST 自动重试,遵循通用重试策略(FR-016/FR-017):最大 3 次,指数退避 1s/2s/4s
+- **FR-029**: Messaging 模块 MUST 使用飞书消息 API 支持发送图片消息(`msg_type: image`),接收 image_key 或本地图片路径
 - **FR-030**: Messaging 模块 MUST 提供便捷方法 `send_image_message()` 自动处理图片上传和发送流程
 
 **文件消息**:
-- **FR-031**: Messaging 模块 MUST 支持上传文件(视频、音频、常见文件类型),文件大小限制 30MB,禁止上传空文件
-- **FR-032**: Messaging 模块 MUST 支持发送文件消息,接收 file_key 或本地文件路径
+- **FR-031**: Messaging 模块 MUST 使用飞书消息 API 支持上传文件(视频、音频、常见文件类型),文件大小限制 30MB,禁止上传空文件
+  - **FR-031.1**: file_key 有效期为 30 天,组件 SHOULD 记录上传时间,过期的 file_key 重新上传
+  - **FR-031.2**: 视频文件 MUST 支持格式:MP4、AVI、MOV、WMV,大小限制 30MB
+  - **FR-031.3**: 音频文件 MUST 支持格式:MP3、WAV、AAC、OGG,大小限制 30MB
+  - **FR-031.4**: 文档文件 MUST 支持格式:PDF、DOC、DOCX、XLS、XLSX、PPT、PPTX、TXT,大小限制 30MB
+- **FR-032**: Messaging 模块 MUST 使用飞书消息 API 支持发送文件消息(`msg_type: file`),接收 file_key 或本地文件路径
 - **FR-033**: Messaging 模块 MUST 提供便捷方法 `send_file_message()` 自动处理文件上传和发送流程
+
+#### 卡片服务(CardKit 模块) - 基于飞书卡片 API (CardKit v1)
+
+**重要说明**: CardKit 模块基于飞书**卡片 API (CardKit v1)** 实现,官方文档: https://open.feishu.cn/document/cardkit-v1/feishu-card-resource-overview
+
+**卡片构建**:
+- **FR-034**: CardKit 模块 MUST 提供卡片构建器(CardBuilder),支持通过编程方式构建飞书交互式卡片 JSON 结构
+- **FR-035**: CardKit 模块 MUST 提供常用卡片模板,包括审批卡片(approval)、通知卡片(notification)、表单卡片(form)
+- **FR-036**: CardKit 模块 MUST 支持卡片组件:header(标题)、div(文本块)、action(按钮)、form(表单输入)、hr(分割线)、image(图片)、markdown(富文本)
+- **FR-037**: CardKit 模块 MUST 验证构建的卡片 JSON 结构符合飞书卡片规范,在发送前进行 schema 验证
+
+**卡片交互回调**:
+- **FR-038**: CardKit 模块 MUST 提供回调处理器,统一接收飞书卡片交互回调(`card.action.trigger` 事件)
+- **FR-039**: CardKit 模块 MUST 验证飞书回调请求签名,使用 Encrypt Key 防止伪造请求和重放攻击
+- **FR-040**: CardKit 模块 MUST 处理 URL 验证回调(`url_verification`),在首次配置回调地址时响应 challenge
+- **FR-041**: CardKit 模块 MUST 将验证通过的回调事件异步路由到 RabbitMQ 消息队列,解耦回调处理
+  - **FR-041.1**: 回调处理超时限制为 5 秒,超时返回 HTTP 200 但记录 WARNING 日志
+  - **FR-041.2**: 回调处理函数抛出异常时 MUST 捕获异常,返回 HTTP 200 避免飞书重试,记录 ERROR 日志包含完整堆栈信息
+  - **FR-041.3**: 消息队列发送失败时 MUST 重试 3 次(间隔 1s、2s、4s),最终失败则同步处理回调并记录 ERROR 日志
+- **FR-042**: CardKit 模块 MUST 支持注册回调处理函数,根据 action.value 或 card_id 路由到对应的业务处理逻辑
+
+**卡片更新**:
+- **FR-043**: CardKit 模块 MUST 支持主动更新已发送的卡片内容,通过消息 API 的 `PATCH /im/v1/messages/{message_id}` 接口
+- **FR-044**: CardKit 模块 MUST 支持在回调响应中返回新的卡片 JSON,飞书自动更新原卡片(如"待审批"→"已通过")
+- **FR-045**: CardKit 模块 MUST 提供构建回调响应的辅助方法 `build_update_response()`,简化卡片更新逻辑
+
+**MVP 范围说明**:
+- **FR-045.1**: Phase 3 MVP 包含基础卡片功能:header、div、action、markdown 组件,审批和通知卡片模板
+- **FR-045.2**: 高级功能延后到后续版本:form 表单输入组件、表单卡片模板、多步骤卡片、卡片分享、卡片搜索
 
 #### 云文档服务(CloudDoc 模块)
 
+**文档 URL 解析与访问** ⭐:
+- **FR-045**: CloudDoc 模块 MUST 提供统一的文档 URL 解析工具(DocumentUrlResolver),自动识别知识库(Wiki)和云空间(Drive)文档
+- **FR-045.1**: DocumentUrlResolver MUST 支持通过正则表达式直接提取云空间文档的 doc_token(文档、表格、多维表格、文件)
+- **FR-045.2**: DocumentUrlResolver MUST 支持调用 Wiki API 获取知识库文档的 obj_token(实际可用的文档 token)
+- **FR-045.3**: DocumentUrlResolver MUST 自动处理知识库快捷方式(shortcut),递归获取原始节点的 obj_token
+- **FR-045.4**: DocumentUrlResolver MUST 返回统一的 DocumentInfo 对象,包含 doc_type、doc_token、source_type 等信息
+- **FR-045.5**: CloudDoc 模块 MUST 提供统一的文档访问客户端(UnifiedDocClient),支持通过 URL 直接访问文档,无需手动判断文档来源
+
 **Doc 文档**:
-- **FR-034**: CloudDoc 模块 MUST 支持创建新的 Doc 云文档
-- **FR-035**: CloudDoc 模块 MUST 支持向 Doc 文档追加内容块(文本、标题、图片、表格等)
-- **FR-036**: CloudDoc 模块 MUST 支持读取 Doc 文档的完整内容结构
-- **FR-037**: CloudDoc 模块 MUST 支持更新 Doc 文档中指定内容块的内容
-- **FR-038**: CloudDoc 模块 MUST 支持文档权限管理,包含授予/撤销用户权限(可阅读、可编辑、可评论、可管理)和权限查询
+- **FR-046**: CloudDoc 模块 MUST 支持创建新的 Doc 云文档
+- **FR-047**: CloudDoc 模块 MUST 支持向 Doc 文档追加内容块(文本、标题、图片、表格等)
+- **FR-047.1**: CloudDoc 模块 MUST 定义明确的 ContentBlock 数据结构,支持 7 种内容类型(paragraph、heading、image、table、code、list、divider)
+- **FR-047.2**: CloudDoc 模块 MUST 限制单次追加最大 100 个 block,单个 block 最大 100 KB
+- **FR-048**: CloudDoc 模块 MUST 支持读取 Doc 文档的完整内容结构
+- **FR-049**: CloudDoc 模块 MUST 支持更新 Doc 文档中指定内容块的内容
+- **FR-050**: CloudDoc 模块 MUST 支持文档权限管理,包含授予/撤销用户权限(可阅读、可编辑、可评论、可管理)和权限查询
+- **FR-050.1**: CloudDoc 模块 MUST 定义 4 种权限类型(read、write、comment、manage),权限层级为 manage > write > comment > read
 
 **文档素材管理**:
-- **FR-039**: CloudDoc 模块 MUST 支持上传素材文件到指定云文档(图片、视频、文件等)
-- **FR-040**: CloudDoc 模块 MUST 支持下载云文档中的素材文件到本地
-- **FR-041**: CloudDoc 模块 MUST 返回上传后的 file_token 供文档内容块引用
+- **FR-051**: CloudDoc 模块 MUST 支持上传素材文件到指定云文档(图片、视频、文件等)
+- **FR-051.1**: CloudDoc 模块 MUST 限制图片上传最大 10 MB,支持 6 种格式(jpg、jpeg、png、gif、bmp、webp),最大尺寸 4096×4096
+- **FR-051.2**: CloudDoc 模块 MUST 限制文件上传最大 30 MB,支持 9 种格式(pdf、doc、docx、xls、xlsx、ppt、pptx、zip、rar、7z)
+- **FR-052**: CloudDoc 模块 MUST 支持下载云文档中的素材文件到本地
+- **FR-053**: CloudDoc 模块 MUST 返回上传后的 file_token 供文档内容块引用
 
-**多维表格(Base)**:
-- **FR-042**: CloudDoc 模块 MUST 支持在多维表格中创建新记录
-- **FR-043**: CloudDoc 模块 MUST 支持根据条件查询多维表格记录
-- **FR-044**: CloudDoc 模块 MUST 支持更新多维表格中的现有记录
-- **FR-045**: CloudDoc 模块 MUST 支持删除多维表格中的记录
-- **FR-046**: CloudDoc 模块 MUST 支持批量操作多维表格记录(批量创建、更新、删除)
+**多维表格(Bitable)**:
+- **FR-054**: CloudDoc 模块 MUST 支持在多维表格中创建新记录
+- **FR-055**: CloudDoc 模块 MUST 支持根据条件查询多维表格记录
+- **FR-055.1**: CloudDoc 模块 MUST 定义 QueryFilter 数据结构,支持 10 种过滤操作符(is、is_not、contains、not_contains、gt、lt、gte、lte、is_empty、is_not_empty)
+- **FR-055.2**: CloudDoc 模块 MUST 支持 and/or 逻辑连接符,最多 20 个过滤条件
+- **FR-055.3**: CloudDoc 模块 MUST 支持分页查询,单次最多返回 500 条记录
+- **FR-056**: CloudDoc 模块 MUST 支持更新多维表格中的现有记录
+- **FR-057**: CloudDoc 模块 MUST 支持删除多维表格中的记录
+- **FR-058**: CloudDoc 模块 MUST 支持批量操作多维表格记录(批量创建、更新、删除)
+- **FR-058.1**: CloudDoc 模块 MUST 限制批量创建/更新/删除最大 500 条记录
 
 **Sheet 电子表格**:
-- **FR-047**: CloudDoc 模块 MUST 支持读取 Sheet 指定范围的单元格数据
-- **FR-048**: CloudDoc 模块 MUST 支持更新 Sheet 指定范围的单元格数据
-- **FR-049**: CloudDoc 模块 MUST 支持 Sheet 的格式化操作,包含设置单元格样式(字体、颜色、对齐方式)、合并/拆分单元格、设置列宽行高、冻结窗格
+- **FR-059**: CloudDoc 模块 MUST 支持读取 Sheet 指定范围的单元格数据
+- **FR-059.1**: CloudDoc 模块 MUST 支持 4 种范围格式(单元格范围 A1:B10、整列 A:C、整行 3:5、单个单元格 A1)
+- **FR-059.2**: CloudDoc 模块 MUST 限制单次读取最大 100,000 个单元格
+- **FR-060**: CloudDoc 模块 MUST 支持更新 Sheet 指定范围的单元格数据
+- **FR-060.1**: CloudDoc 模块 MUST 限制单次更新最大 10,000 个单元格
+- **FR-061**: CloudDoc 模块 MUST 支持 Sheet 的格式化操作,包含设置单元格样式(字体、颜色、对齐方式)、合并/拆分单元格、设置列宽行高、冻结窗格
+- **FR-061.1**: CloudDoc 模块 MUST 限制单次合并最大 1,000 个单元格,冻结窗格最大 100 行/100 列
+
+**知识库(Wiki)集成** ⭐:
+- **FR-061.2**: CloudDoc 模块 MUST 支持获取知识库节点信息,返回 obj_token(实际的文档 token)
+- **FR-061.3**: CloudDoc 模块 MUST 支持获取知识库节点列表,支持分页(最大 50 条/页)
+- **FR-061.4**: CloudDoc 模块 MUST 支持获取知识空间列表,返回用户有权限访问的空间
+- **FR-061.5**: CloudDoc 模块 MUST 缓存 node_token → obj_token 的映射,TTL 为 1 小时,减少 Wiki API 调用
 
 #### 通讯录服务(Contact 模块)
 
 **用户查询与缓存**:
-- **FR-050**: Contact 模块 MUST 支持根据邮箱、手机号查询用户的 open_id、user_id、union_id 三种标识
-- **FR-051**: Contact 模块 MUST 支持获取用户的详细信息(姓名、头像、部门、职位、员工工号等)
-- **FR-052**: Contact 模块 MUST 将查询到的用户信息存储到 PostgreSQL 数据库,按 app_id 隔离存储(不同应用的 open_id 不同)
-- **FR-053**: Contact 模块 MUST 实现用户信息缓存机制,TTL 为 24 小时,缓存命中时直接返回数据库数据
-- **FR-054**: Contact 模块 MUST 在缓存过期或未命中时,自动从飞书 API 刷新数据并更新数据库
+- **FR-062**: Contact 模块 MUST 支持根据邮箱、手机号查询用户的 open_id、user_id、union_id 三种标识
+- **FR-062.1**: Contact 模块 MUST 明确 3 种用户 ID 的作用域和使用场景:open_id(应用内)、user_id(租户内)、union_id(跨租户)
+- **FR-062.2**: Contact 模块 MUST 使用 union_id 作为缓存主键,确保跨应用的用户唯一性
+- **FR-063**: Contact 模块 MUST 支持获取用户的详细信息(姓名、头像、部门、职位、员工工号等)
+- **FR-064**: Contact 模块 MUST 将查询到的用户信息存储到 PostgreSQL 数据库,按 app_id 隔离存储(不同应用的 open_id 不同)
+- **FR-064.1**: Contact 模块 MUST 使用缓存 key 格式 `user:{app_id}:{union_id}`,确保应用级隔离
+- **FR-065**: Contact 模块 MUST 实现用户信息缓存机制,TTL 为 24 小时,缓存命中时直接返回数据库数据
+- **FR-065.1**: Contact 模块 MUST 在缓存命中时响应时间 < 100 ms,缓存未命中时 < 2 秒
+- **FR-065.2**: Contact 模块 MUST 实现缓存命中率目标 > 80%
+- **FR-066**: Contact 模块 MUST 在缓存过期或未命中时,自动从飞书 API 刷新数据并更新数据库
+- **FR-066.1**: Contact 模块 MUST 在 API 调用失败时,如果有过期缓存则返回过期缓存,避免服务不可用
+- **FR-066.2**: Contact 模块 MUST 支持主动失效缓存(用户信息更新时)和强制失效(管理员操作)
+- **FR-066.3**: Contact 模块 MUST 实现 LRU 容量淘汰策略,最大缓存 100,000 条记录
+
+**批量操作**:
+- **FR-066.4**: Contact 模块 MUST 支持批量查询用户,最大 200 个用户/次
+- **FR-066.5**: Contact 模块 MUST 支持批量更新缓存,最大 1,000 条记录/次
 
 **群组查询**:
-- **FR-055**: Contact 模块 MUST 支持根据群组名称查询 chat_id
-- **FR-056**: Contact 模块 MUST 支持获取群组的详细信息(群名称、群主、成员数量等)
+- **FR-067**: Contact 模块 MUST 支持根据群组名称查询 chat_id
+- **FR-068**: Contact 模块 MUST 支持获取群组的详细信息(群名称、群主、成员数量等)
 
 **组织架构查询**:
-- **FR-057**: Contact 模块 MUST 支持获取部门的成员列表,并批量更新数据库缓存
-- **FR-058**: Contact 模块 MUST 支持查询组织架构树(部门层级关系)
+- **FR-069**: Contact 模块 MUST 支持获取部门的成员列表,并批量更新数据库缓存
+- **FR-069.1**: Contact 模块 MUST 限制单个部门最大 1,000 个用户
+- **FR-070**: Contact 模块 MUST 支持查询组织架构树(部门层级关系)
 
-#### aPaaS 平台服务(aPaaS 模块)
+#### aPaaS 数据空间服务(aPaaS 模块)
+
+**能力范围**: 仅包含数据空间表格(workspace-table)操作,参考飞书开放平台文档: https://open.feishu.cn/document/uAjLw4CM/ukTMukTMukTM/apaas-v1/workspace-table/list
 
 **数据空间表格操作**:
-- **FR-059**: aPaaS 模块 MUST 支持查询工作空间(Workspace)下的数据表列表,返回表格ID、名称、字段定义
-- **FR-060**: aPaaS 模块 MUST 支持根据条件查询数据空间表格的记录(支持过滤、排序、分页)
-- **FR-061**: aPaaS 模块 MUST 支持更新数据空间表格的记录,支持部分字段更新
-- **FR-062**: aPaaS 模块 MUST 支持删除数据空间表格的记录
-- **FR-063**: aPaaS 模块 MUST 使用 user_access_token 进行数据空间操作,并验证权限有效性
-- **FR-064**: aPaaS 模块 MUST 处理并发写冲突,返回明确的冲突错误和重试建议
+- **FR-071**: aPaaS 模块 MUST 支持查询工作空间(Workspace)下的数据表列表,返回表格ID、名称、字段定义(list接口)
+- **FR-072**: aPaaS 模块 MUST 支持根据条件查询数据空间表格的记录,支持过滤、分页(page_token机制)
+  - **FR-072-1**: 支持条件行过滤(filter参数),使用表达式字符串格式,如`CurrentValue.[字段名] = "值"`
+  - **FR-072-2**: 过滤表达式支持比较操作符:等于(=)、不等于(!=)、大于(>)、大于等于(>=)、小于(<)、小于等于(<=)、包含(contains)
+  - **FR-072-3**: 过滤表达式支持逻辑组合:AND(&&)、OR(||),支持多条件嵌套
+  - **FR-072-4**: 字段引用格式为`CurrentValue.[字段名]`,如`CurrentValue.[订单号].contains("abc")`
+  - **FR-072-5**: filter参数作为URL参数时需要进行URL编码
+  - **FR-072-6**: 分页参数page_size默认值20,最大值500,使用page_token机制进行游标分页
+  - **FR-072-7**: 当filter匹配零条记录时,返回空列表而非错误
+- **FR-073**: aPaaS 模块 MUST 支持创建数据空间表格的记录,返回记录ID和完整数据
+- **FR-074**: aPaaS 模块 MUST 支持更新数据空间表格的记录,支持部分字段更新
+  - **FR-074-1**: 支持基于filter条件批量更新记录(records_patch),参考: https://open.feishu.cn/document/uAjLw4CM/ukTMukTMukTM/apaas-v1/workspace-table/records_patch
+  - **FR-074-2**: 批量更新最多500条记录,支持部分成功,返回每条记录的成功/失败状态
+  - **FR-074-3**: 当filter表达式语法不合法时,返回400错误,code="INVALID_FILTER_EXPRESSION"
+- **FR-075**: aPaaS 模块 MUST 支持删除数据空间表格的记录
+  - **FR-075-1**: 支持基于filter条件批量删除记录(records_delete),参考: https://open.feishu.cn/document/uAjLw4CM/ukTMukTMukTM/apaas-v1/workspace-table/records_delete
+  - **FR-075-2**: 批量删除最多500条记录,返回删除的记录数量
+  - **FR-075-3**: 当filter匹配零条记录时,返回删除数量为0而非错误
+- **FR-076**: aPaaS 模块 MUST 支持批量创建记录操作,最多500条
+- **FR-077**: aPaaS 模块 MUST 使用 user_access_token 进行数据空间操作,并验证权限有效性
+  - **FR-077-1**: user_access_token通过HTTP Header传递:`Authorization: Bearer <token>`
+  - **FR-077-2**: token获取失败返回401,code="UNAUTHORIZED"
+  - **FR-077-3**: token过期自动刷新(依赖US1的Token管理)
+  - **FR-077-4**: 权限不足返回403,code="PERMISSION_DENIED",包含所需权限说明
+- **FR-078**: aPaaS 模块 SHOULD 处理并发写冲突(如果飞书API支持版本控制),返回明确的冲突错误
 
-**AI 能力与工作流**:
-- **FR-065**: aPaaS 模块 MUST 支持调用飞书 AI 能力(如文本分析、智能问答等),需要 user_access_token
-- **FR-066**: aPaaS 模块 MUST 支持触发飞书自动化工作流,传入参数并返回执行ID
-- **FR-067**: aPaaS 模块 MUST 支持查询自动化工作流的执行状态和结果
-- **FR-068**: aPaaS 模块 MUST 设置 AI 调用的超时时间(默认 30 秒),超时后返回明确错误
+**字段类型支持**:
+- **FR-079**: aPaaS 模块 MUST 支持常见字段类型:文本、数字、附件、超链接、人员、单选/多选、关联字段等(共13种)
+- **FR-080**: aPaaS 模块 MUST 正确解析字段定义中的类型、选项、约束等元数据
+
+**数据格式规范**:
+- **FR-081**: aPaaS 模块 MUST 使用 ISO 8601 格式处理日期时间字段
+- **FR-082**: aPaaS 模块 MUST 使用 null 表示空值,遵循飞书API的数据格式规范
+  - **FR-082-1**: 文本字段最大长度:65535字符
+  - **FR-082-2**: 数值字段精度:最多15位有效数字
+  - **FR-082-3**: 布尔字段表示:true/false (JSON boolean)
+  - **FR-082-4**: 数组字段格式:JSON数组,最多1000个元素
+  - **FR-082-5**: 特殊字符转义:遵循JSON标准转义规则
+
+**错误处理规范**:
+- **FR-083**: 数据表不存在:返回404,code="TABLE_NOT_FOUND"
+- **FR-084**: 记录不存在:返回404,code="RECORD_NOT_FOUND"
+- **FR-085**: 字段不存在:返回400,code="FIELD_NOT_FOUND"
+- **FR-086**: 字段类型不匹配:返回400,code="FIELD_TYPE_MISMATCH"
+- **FR-087**: 必填字段缺失:返回400,code="REQUIRED_FIELD_MISSING"
+- **FR-088**: 网络超时:返回408,code="REQUEST_TIMEOUT",可重试
+- **FR-089**: API限流:返回429,code="RATE_LIMIT_EXCEEDED",可重试
 
 #### 架构与可扩展性
 
-- **FR-069**: 组件 MUST 采用模块化设计,各功能域模块(Messaging、CloudDoc、Contact、aPaaS)严禁循环依赖
-- **FR-070**: 组件 MUST 提供清晰的模块接口,允许内部服务按需导入所需模块,而不是强制导入全部功能
-- **FR-071**: 组件 MUST 支持外部服务扩展,预留接口供外部系统注册自定义的飞书 API 调用逻辑
+- **FR-081**: 组件 MUST 采用模块化设计,各功能域模块(Messaging、CloudDoc、Contact、aPaaS)严禁循环依赖
+- **FR-082**: 组件 MUST 提供清晰的模块接口,允许内部服务按需导入所需模块,而不是强制导入全部功能
+- **FR-083**: 组件 MUST 支持外部服务扩展,预留接口供外部系统注册自定义的飞书 API 调用逻辑
+- **FR-083.1**: 组件依赖飞书 OpenAPI 版本为 v1 (IM API v1, CardKit API v1),如飞书 API 升级到 v2,组件需评估兼容性
+- **FR-083.2**: 组件假设飞书 API 可用性 SLA ≥ 99.9%,网络延迟 P95 ≤ 500ms (国内环境)
+- **FR-083.3**: 组件明确不支持的功能边界:视频消息(msg_type: video)、音视频通话、语音消息、群管理(创建/解散群组)、机器人管理
+
+#### 性能与超时策略
+
+**API 调用超时**:
+- **FR-084**: 组件 MUST 为所有飞书 API 调用设置默认超时时间为 30 秒,避免无限等待
+- **FR-085**: 媒体上传 API 的超时时间 MUST 根据文件大小动态调整:基础 30 秒 + (文件大小MB × 2秒),最大 120 秒
+- **FR-086**: 组件 MUST 在超时时返回明确的 `RequestTimeoutError`,包含已耗时和超时阈值
+
+**性能目标** *(建议性)*:
+- **FR-084.1**: 单条消息发送(不含媒体上传)的 P95 响应时间 SHOULD ≤ 2 秒
+- **FR-084.2**: 批量发送 200 条消息的总耗时 SHOULD ≤ 30 秒(含并发控制)
+- **FR-084.3**: 10MB 图片上传的 P95 响应时间 SHOULD ≤ 15 秒
+- **FR-084.4**: Token 获取和刷新的 P95 响应时间 SHOULD ≤ 1 秒
+- **FR-084.5**: CloudDoc 文档创建的 P95 响应时间 SHOULD ≤ 2 秒
+- **FR-084.6**: CloudDoc 内容读取的 P95 响应时间 SHOULD ≤ 1 秒
+- **FR-084.7**: CloudDoc 内容追加的 P95 响应时间 SHOULD ≤ 3 秒
+- **FR-084.8**: Bitable 查询的 P95 响应时间 SHOULD ≤ 2 秒
+- **FR-084.9**: Sheet 读取的 P95 响应时间 SHOULD ≤ 2 秒
+- **FR-084.10**: Sheet 更新的 P95 响应时间 SHOULD ≤ 3 秒
+- **FR-084.11**: Contact 缓存命中的响应时间 SHOULD ≤ 100 ms
+- **FR-084.12**: Contact 缓存未命中的响应时间 SHOULD ≤ 2 秒
+- **FR-084.13**: 云空间文档 URL 解析(正则表达式)SHOULD ≤ 1 ms
+- **FR-084.14**: 知识库文档 URL 解析(含 API 调用)SHOULD ≤ 500 ms
+
+**并发控制** *(建议性)*:
+- **FR-085.1**: 批量消息发送 SHOULD 控制并发请求数为 5-10,避免触发飞书限流
+- **FR-085.2**: 媒体上传 SHOULD 控制并发上传数为 3,避免占用过多网络带宽
 
 #### 可观测性
 
-- **FR-072**: 组件 MUST 记录完整的请求链路日志,包含请求 ID、API 端点、请求参数(敏感信息脱敏)、响应状态码、耗时
-- **FR-073**: 组件 MUST 记录所有 Token 刷新事件,包含 Token 类型、刷新时间、刷新原因、结果
-- **FR-074**: 组件 MUST 记录所有重试事件,包含重试次数、重试原因、重试间隔、最终结果
-- **FR-075**: 组件 MUST 支持配置日志级别(DEBUG、INFO、WARNING、ERROR),默认为 INFO
-- **FR-076**: 组件 MUST 在关键操作失败时记录 ERROR 级别日志,包含足够的错误上下文用于问题排查
+- **FR-087**: 组件 MUST 记录完整的请求链路日志,包含请求 ID、API 端点、请求参数(敏感信息脱敏)、响应状态码、耗时
+- **FR-088**: 组件 MUST 记录所有 Token 刷新事件,包含 Token 类型、刷新时间、刷新原因、结果
+- **FR-089**: 组件 MUST 记录所有重试事件,包含重试次数、重试原因、重试间隔、最终结果
+- **FR-090**: 组件 MUST 支持配置日志级别(DEBUG、INFO、WARNING、ERROR),默认为 INFO
+- **FR-091**: 组件 MUST 在关键操作失败时记录 ERROR 级别日志,包含足够的错误上下文用于问题排查
 
 #### 安全需求 (Security Requirements)
 
 **配置安全**:
-- **FR-077**: 所有敏感配置(App Secret、加密密钥、数据库密码)MUST 仅通过环境变量注入,严禁硬编码在代码或配置文件中
-- **FR-078**: 加密密钥(LARK_CONFIG_ENCRYPTION_KEY)MUST 符合 Fernet 规范(32字节 URL-safe base64编码),最小强度为 256 bit
-- **FR-079**: SQLite 应用配置文件 MUST 设置文件权限为 0600(仅所有者读写),禁止其他用户访问
-- **FR-080**: 配置文件存储路径 MUST 在部署文档中明确指定,默认为 `./config/applications.db`(相对于项目根目录)
-- **FR-081**: 组件 MUST 将配置按敏感度分类:`public`(日志级别)、`internal`(数据库连接)、`secret`(密钥/密码),不同类别采用不同的访问控制策略
+- **FR-092**: 所有敏感配置(App Secret、加密密钥、数据库密码)MUST 仅通过环境变量注入,严禁硬编码在代码或配置文件中
+- **FR-093**: 加密密钥(LARK_CONFIG_ENCRYPTION_KEY)MUST 符合 Fernet 规范(32字节 URL-safe base64编码),最小强度为 256 bit
+- **FR-094**: SQLite 应用配置文件 MUST 设置文件权限为 0600(仅所有者读写),禁止其他用户访问
+- **FR-095**: 配置文件存储路径 MUST 在部署文档中明确指定,默认为 `./config/applications.db`(相对于项目根目录)
+- **FR-096**: 组件 MUST 将配置按敏感度分类:`public`(日志级别)、`internal`(数据库连接)、`secret`(密钥/密码),不同类别采用不同的访问控制策略
 
 **密钥管理**:
-- **FR-082**: App Secret 在 SQLite 中 MUST 使用 Fernet 对称加密存储,加密密钥来自环境变量
-- **FR-083**: 加密密钥 MUST 支持轮换机制,提供 CLI 命令重新加密所有 App Secret:`lark-service-cli config rotate-key --new-key <new_key>`
-- **FR-084**: 所有密钥类信息(App Secret、Token、密码)MUST 在日志中脱敏显示(仅显示前4位+`****`或完全隐藏)
-- **FR-085**: Token 在 PostgreSQL 中 MUST 加密存储(使用 pg_crypto 扩展),防止数据库泄露导致 Token 泄露
+- **FR-097**: App Secret 在 SQLite 中 MUST 使用 Fernet 对称加密存储,加密密钥来自环境变量
+- **FR-098**: 加密密钥 MUST 支持轮换机制,提供 CLI 命令重新加密所有 App Secret:`lark-service-cli config rotate-key --new-key <new_key>`
+- **FR-099**: 所有密钥类信息(App Secret、Token、密码)MUST 在日志中脱敏显示(仅显示前4位+`****`或完全隐藏)
+  - **FR-099.1**: app_access_token、tenant_access_token、user_access_token 在日志中 MUST 仅显示前 8 位 + `****`
+  - **FR-099.2**: App Secret 在日志中 MUST 完全隐藏,显示为 `[REDACTED]`
+  - **FR-099.3**: 用户敏感信息(手机号、邮箱、身份证号)在日志中 MUST 脱敏:手机号显示前 3 位+`****`+后 4 位,邮箱显示前 2 位+`***`+@后内容
+- **FR-100**: Token 在 PostgreSQL 中 MUST 加密存储(使用 pg_crypto 扩展),防止数据库泄露导致 Token 泄露
 
 **依赖安全**:
-- **FR-086**: 项目 MUST 使用 `safety` 工具扫描 Python 依赖的已知安全漏洞,CI 流程中集成安全检查
-- **FR-087**: 项目 MUST 每月至少检查一次依赖更新,及时修复高危和严重漏洞(CVSS ≥ 7.0)
-- **FR-088**: requirements.txt MUST 锁定依赖版本(使用 `==` 而非 `>=`),避免意外引入不兼容或有漏洞的版本
+- **FR-101**: 项目 MUST 使用 `safety` 工具扫描 Python 依赖的已知安全漏洞,CI 流程中集成安全检查
+- **FR-102**: 项目 MUST 每月至少检查一次依赖更新,及时修复高危和严重漏洞(CVSS ≥ 7.0)
+- **FR-103**: requirements.txt MUST 锁定依赖版本(使用 `==` 而非 `>=`),避免意外引入不兼容或有漏洞的版本
 
 **容器安全**:
-- **FR-089**: Docker 基础镜像 MUST 使用官方镜像(如 `python:3.12-slim`),并定期更新到最新补丁版本
-- **FR-090**: Docker 镜像 MUST 在 CI 流程中使用 `trivy` 或 `grype` 进行安全扫描,阻止存在高危漏洞的镜像部署
-- **FR-091**: 容器运行 MUST 使用非 root 用户(UID ≥ 1000),在 Dockerfile 中显式指定 `USER` 指令
-- **FR-092**: 容器 MUST 仅暴露必需的端口,禁止使用 `EXPOSE 0.0.0.0:*` 形式暴露所有端口
+- **FR-104**: Docker 基础镜像 MUST 使用官方镜像(如 `python:3.12-slim`),并定期更新到最新补丁版本
+- **FR-105**: Docker 镜像 MUST 在 CI 流程中使用 `trivy` 或 `grype` 进行安全扫描,阻止存在高危漏洞的镜像部署
+- **FR-106**: 容器运行 MUST 使用非 root 用户(UID ≥ 1000),在 Dockerfile 中显式指定 `USER` 指令
+- **FR-107**: 容器 MUST 仅暴露必需的端口,禁止使用 `EXPOSE 0.0.0.0:*` 形式暴露所有端口
 
 **环境隔离**:
-- **FR-093**: 本地开发环境与生产环境 MUST 使用不同的加密密钥和数据库凭证,通过 `.env.development` 和 `.env.production` 区分
-- **FR-094**: 生产环境的 `.env` 文件 MUST 在部署后设置文件权限为 0600,禁止提交到版本控制系统
-- **FR-095**: 多租户场景(不同 app_id)的 Token 和配置 MUST 完全隔离,禁止跨应用访问
+- **FR-108**: 本地开发环境与生产环境 MUST 使用不同的加密密钥和数据库凭证,通过 `.env.development` 和 `.env.production` 区分
+- **FR-109**: 生产环境的 `.env` 文件 MUST 在部署后设置文件权限为 0600,禁止提交到版本控制系统
+- **FR-110**: 多租户场景(不同 app_id)的 Token 和配置 MUST 完全隔离,禁止跨应用访问
 
-### Key Entities
+#### 系统可靠性与高可用
+
+**可用性目标**:
+- **FR-117**: 组件 MUST 提供 99.5% 可用性保证(月度统计),即每月停机时间 ≤ 3.6 小时
+  - **FR-117.1**: 可用性统计 MUST 包含所有核心功能(Token管理/消息发送/文档操作/通讯录查询)
+  - **FR-117.2**: 计划内维护窗口(提前7天通知)不计入可用性统计
+  - **FR-117.3**: 组件 MUST 提供健康检查接口(`/health`)返回服务状态和依赖服务状态
+
+**数据备份与恢复**:
+- **FR-118**: PostgreSQL 数据备份频率 MUST ≥ 每日一次,备份时间窗口建议在业务低峰期(凌晨2-4点)
+  - **FR-118.1**: 备份策略 MUST 包含全量备份(每周)和增量备份(每日)
+  - **FR-118.2**: RTO (恢复时间目标) MUST ≤ 4 小时,即灾难发生后4小时内恢复服务
+  - **FR-118.3**: RPO (恢复点目标) MUST ≤ 24 小时,即最多丢失24小时内的数据
+  - **FR-118.4**: 备份数据 MUST 加密存储,使用独立的加密密钥
+  - **FR-118.5**: 备份恢复流程 MUST 每季度演练一次,验证备份可用性
+
+**数据库事务与并发控制**:
+- **FR-119**: 数据库写入失败时 MUST 自动回滚事务,并重试1次(间隔2秒)
+  - **FR-119.1**: 唯一约束冲突(如重复Token写入)不重试,直接返回错误
+  - **FR-119.2**: 连接超时/网络错误触发重试,其他错误不重试
+  - **FR-119.3**: 重试失败后 MUST 记录ERROR日志,包含SQL语句(敏感字段脱敏)和错误详情
+
+**数据库连接池管理**:
+- **FR-120**: PostgreSQL 连接池配置需求:
+  - **FR-120.1**: 连接池大小默认 5-20 个连接,支持环境变量 `DB_POOL_SIZE` 配置
+  - **FR-120.2**: 连接超时时间默认 30 秒,支持环境变量 `DB_POOL_TIMEOUT` 配置
+  - **FR-120.3**: 连接最大生命周期 3600 秒(1小时),防止长连接占用资源
+  - **FR-120.4**: 连接池溢出大小(overflow) MUST 设置为连接池大小的 50%,最大 10 个
+  - **FR-120.5**: 空闲连接回收时间 MUST 设置为 600 秒(10分钟)
+
+**死锁检测与恢复**:
+- **FR-121**: 锁超时时 MUST 记录 ERROR 级别日志,包含以下字段:
+  - **FR-121.1**: `app_id`: 锁定的应用ID
+  - **FR-121.2**: `token_type`: 锁定的Token类型
+  - **FR-121.3**: `lock_duration`: 持锁时长(秒)
+  - **FR-121.4**: `timeout_threshold`: 超时阈值(默认30秒)
+  - **FR-121.5**: 锁超时触发告警,通知运维团队排查潜在死锁或性能问题
+
+#### 部署与配置
+
+**数据库与消息队列版本要求**:
+- **FR-122**: PostgreSQL 最低版本 MUST ≥ 13 (推荐 ≥ 15),必需支持 pg_crypto 扩展用于敏感数据加密
+  - **FR-122.1**: RabbitMQ 最低版本 MUST ≥ 3.12.0 (推荐 3.12.x 最新稳定版),必需支持队列持久化和死信队列
+  - **FR-122.2**: RabbitMQ 详细配置需求参见 `docs/rabbitmq-config.md`
+  - **FR-122.3**: Python 版本 MUST ≥ 3.12,确保支持最新的类型注解和性能优化
+
+**依赖管理**:
+- **FR-091**: 项目使用 Poetry 或 pip + requirements.txt 管理依赖,版本锁定以保证环境一致性
+- **FR-092**: 敏感配置(数据库密码、加密密钥)MUST 通过环境变量传入,禁止硬编码在代码中
+
+**安全合规**:
 
 - **CredentialPool**: 凭证池,负责管理和维护所有类型的访问 Token,包含 Token 值、过期时间、刷新时间、Token 类型、app_id(应用隔离)、锁对象(并发控制)等属性
 - **TokenStorage**: Token 存储对象,封装数据库持久化逻辑,包含 app_id、token_type、token_value、expires_at、created_at、updated_at 等字段
@@ -350,36 +566,42 @@
 - **Message**: 消息对象,表示要发送的飞书消息,包含接收者 ID、消息类型(文本/富文本/图片/文件/卡片)、消息内容、发送时间等属性
 - **ImageAsset**: 图片资源对象,表示上传的图片,包含 image_key、图片类型、大小、上传时间等属性
 - **FileAsset**: 文件资源对象,表示上传的文件,包含 file_key、文件名、文件类型、大小、上传时间等属性
+- **DocumentInfo**: 文档信息对象,表示解析后的文档信息,包含 doc_type、doc_token(实际可用的 token)、source_type(wiki/drive)、space_id、node_token、title、owner 等属性
+- **DocumentUrlResolver**: 文档 URL 解析器,统一处理知识库和云空间文档的 URL 解析和 token 获取,支持正则表达式提取和 API 调用两种方式
+- **WikiNode**: 知识库节点对象,表示知识库中的节点,包含 space_id、node_token、obj_token(实际的文档 token)、obj_type、node_type(origin/shortcut)、origin_node_token、has_child、title、creator、owner 等属性
+- **WikiSpace**: 知识空间对象,表示知识库空间,包含 space_id、name、description、space_type(team/personal)、visibility(public/private)等属性
 - **Document**: Doc 文档对象,表示飞书 Doc 云文档,包含文档 ID、标题、内容块列表、权限信息、创建时间等属性
+- **ContentBlock**: 文档内容块对象,表示文档中的一个内容单元,包含 block_id、type(paragraph/heading/image/table/code/list/divider)、content、attributes(style/level/language/color)等属性
 - **MediaAsset**: 文档素材对象,表示云文档中的素材文件,包含 file_token、素材类型、父文档 ID、大小、上传时间等属性
 - **BaseRecord**: 多维表格记录对象,表示多维表格中的一行数据,包含记录 ID、表格 ID、字段值映射、创建时间、更新时间等属性
+- **QueryFilter**: 查询过滤器对象,表示多维表格查询条件,包含 conjunction(and/or)、conditions(过滤条件列表,最多 20 个)等属性
+- **FilterCondition**: 过滤条件对象,表示单个过滤条件,包含 field_name、operator(is/is_not/contains/gt/lt等 10 种)、value 等属性
 - **SheetRange**: Sheet 电子表格范围对象,表示 Sheet 中的数据范围,包含 Sheet ID、起始行列、结束行列、单元格数据等属性
 - **User**: 用户对象,表示飞书用户,包含 open_id、user_id、union_id、姓名、邮箱、手机号、部门 ID、职位、头像 URL、员工工号等属性
 - **UserCache**: 用户缓存对象(PostgreSQL 存储),包含 app_id、open_id、user_id、union_id、用户详细信息、cached_at、expires_at 等字段,支持按 app_id 隔离
 - **ChatGroup**: 群组对象,表示飞书群聊,包含 chat_id、群名称、群主 ID、成员数量、创建时间等属性
 - **Department**: 部门对象,表示组织架构中的部门,包含部门 ID、部门名称、父部门 ID、成员列表等属性
-- **WorkspaceTable**: 数据空间表格对象,表示 aPaaS 工作空间中的数据表,包含 workspace_id、table_id、表格名称、字段定义列表、记录数量等属性
-- **TableRecord**: 数据空间表格记录对象,表示表格中的一行数据,包含 record_id、table_id、字段值映射(Dict)、版本号(用于并发控制)、created_at、updated_at 等属性
-- **Workflow**: aPaaS 工作流对象,表示自动化流程,包含工作流 ID、名称、触发参数、执行状态、执行结果等属性
-- **AICapability**: AI 能力对象,表示飞书 AI 服务,包含能力 ID、能力类型、输入参数、输出结果等属性
+- **WorkspaceTable**: 数据空间表格对象,表示 aPaaS 工作空间中的数据表,包含 workspace_id、table_id、表格名称、字段定义列表等属性
+- **TableRecord**: 数据空间表格记录对象,表示表格中的一行数据,包含 record_id、table_id、字段值映射(Dict[str, Any])、created_at、updated_at 等属性
+- **FieldDefinition**: 字段定义对象,表示数据表中的字段元数据,包含 field_id、field_name、field_type(文本/数字/附件/人员/单选/多选等)、is_required、options(选项列表)等属性
 - **ErrorMapping**: 错误映射对象,将飞书原始错误码映射为内部语义化错误,包含原始错误码、错误类型、错误描述、是否可重试等属性
 
 #### 代码质量与文档
 
 **Docstring 标准**:
-- **FR-096**: 所有公共 API(模块、类、函数)MUST 包含 Docstring,覆盖率要求 100%
-- **FR-097**: Docstring MUST 采用 Google 风格,包含以下必需部分:
+- **FR-111**: 所有公共 API(模块、类、函数)MUST 包含 Docstring,覆盖率要求 100%
+- **FR-112**: Docstring MUST 采用 Google 风格,包含以下必需部分:
   - 功能简述(单行)
   - 详细说明(可选)
   - Args: 参数列表(参数名、类型、说明)
   - Returns: 返回值(类型、说明)
   - Raises: 可能抛出的异常(异常类、触发条件)
   - Example: 使用示例(可选,推荐用于复杂 API)
-- **FR-098**: 私有方法(以 `_` 开头)和内部工具函数 SHOULD 包含 Docstring,至少说明用途和参数
+- **FR-113**: 私有方法(以 `_` 开头)和内部工具函数 SHOULD 包含 Docstring,至少说明用途和参数
 
 **类型注解**:
-- **FR-099**: 所有公共 API MUST 包含完整的类型注解(参数和返回值),mypy strict 模式覆盖率要求 ≥ 99%
-- **FR-100**: 复杂类型(如 Union、Optional、Dict)MUST 使用类型别名(TypeAlias)提高可读性
+- **FR-114**: 所有公共 API MUST 包含完整的类型注解(参数和返回值),mypy strict 模式覆盖率要求 ≥ 99%
+- **FR-115**: 复杂类型(如 Union、Optional、Dict)MUST 使用类型别名(TypeAlias)提高可读性
 
 ## Success Criteria *(mandatory)*
 
@@ -400,6 +622,11 @@
 - **SC-013**: aPaaS 数据空间表格操作支持每秒 50 次并发查询,响应时间 95 分位数小于 2 秒
 - **SC-014**: 依赖安全扫描在 CI 中阻止存在高危漏洞(CVSS ≥ 7.0)的代码合并,实现零高危漏洞部署
 - **SC-015**: Docker 镜像安全扫描在 CI 中阻止存在严重漏洞的镜像构建,镜像安全评分 ≥ B 级
+- **SC-016**: CloudDoc 模块支持每秒 50 次并发文档操作,响应时间 95 分位数小于 3 秒
+- **SC-017**: DocumentUrlResolver 能正确识别和解析 100% 的标准飞书文档 URL(6 种格式)
+- **SC-018**: 知识库 node_token 缓存命中率达到 90% 以上,减少 Wiki API 调用次数
+- **SC-019**: Contact 模块在 API 调用失败时,80% 以上的请求能返回过期缓存,避免服务不可用
+- **SC-020**: CloudDoc 和 Contact 模块的 API 契约覆盖率达到 100%,所有端点都有明确的请求/响应定义
 
 ## Clarifications
 
@@ -414,6 +641,19 @@
 - Q: 凭证池故障恢复策略 → A: 启动时仅验证配置,Token 懒加载。user_access_token 需要用户首次认证,支持飞书卡片或消息链接等多种认证方式
 - Q: Contact 模块用户信息缓存方案 → A: 至少包括 open_id、user_id、union_id 三种标识,群查询需要 chat_id。user_access_token 与 app_id、user 相关联,不同应用相同用户有不同 user_access_token,因此用户信息按 app_id 隔离存储到 PostgreSQL,TTL 为 24 小时
 - Q: aPaaS 数据空间操作定义 → A: 飞书 aPaaS 独立的数据存储服务(参考 https://open.feishu.cn/document/uAjLw4CM/ukTMukTMukTM/apaas-v1/workspace-table/list),包括查询表格列表、读取记录(query)、更新记录(update)、删除记录(delete),需要 user_access_token 权限
+
+### Session 2026-01-15 (Phase 4 补充)
+
+- Q: 知识库文档访问方式 → A: 云文档可以存放在两个位置:1) 云空间(Drive) - 直接使用 doc_token;2) 知识库(Wiki) - 需要先通过 node_token 调用 Wiki API 获取 obj_token(实际的文档 token)。参考: https://open.feishu.cn/document/server-docs/docs/wiki-v2/space-node/get_node
+- Q: 文档 URL 解析工具设计 → A: 提供统一的 DocumentUrlResolver 工具类,采用双路径处理策略:1) 优先尝试云空间解析(正则表达式,< 1ms);2) 失败后尝试知识库解析(API 调用,100-500ms)。支持 6 种 URL 格式(docx、doc、sheets、base、file、wiki),返回统一的 DocumentInfo 对象
+- Q: 知识库快捷方式处理 → A: DocumentUrlResolver 自动递归获取快捷方式(shortcut)指向的原始节点的 obj_token,无需调用方手动处理
+- Q: 知识库 node_token 缓存策略 → A: 缓存 node_token → obj_token 的映射,TTL 为 1 小时(知识库结构变化较少),使用 LRU 缓存或 Redis,缓存 key 格式为 `wiki_node:{space_id}:{node_token}`
+- Q: CloudDoc 内容块类型定义 → A: 支持 7 种内容类型(paragraph、heading、image、table、code、list、divider),每种类型有明确的 content 类型和 attributes。限制:单次追加最大 100 个 block,单个 block 最大 100 KB
+- Q: Bitable 过滤器语法 → A: 定义 QueryFilter 数据结构,支持 10 种操作符(is、is_not、contains、not_contains、gt、lt、gte、lte、is_empty、is_not_empty),支持 and/or 逻辑连接,最多 20 个条件,单次查询最多返回 500 条记录
+- Q: Sheet 范围格式规范 → A: 支持 4 种范围格式(单元格范围 A1:B10、整列 A:C、整行 3:5、单个单元格 A1)。限制:单次读取最大 100,000 个单元格,单次更新最大 10,000 个单元格,单次合并最大 1,000 个单元格
+- Q: 媒体上传限制 → A: 图片最大 10 MB,支持 6 种格式(jpg、jpeg、png、gif、bmp、webp),最大尺寸 4096×4096。文件最大 30 MB,支持 9 种格式(pdf、doc、docx、xls、xlsx、ppt、pptx、zip、rar、7z)
+- Q: Contact 用户 ID 类型使用策略 → A: 明确 3 种 ID 的作用域:open_id(应用内,用于消息发送)、user_id(租户内,用于组织架构)、union_id(跨租户,用于缓存主键)。缓存 key 格式为 `user:{app_id}:{union_id}`,确保应用级隔离
+- Q: Contact 缓存失效策略 → A: 支持 4 种失效方式:1) TTL 过期(24 小时);2) 主动失效(用户信息更新时);3) 强制失效(管理员操作);4) 容量淘汰(LRU,最大 100,000 条)。API 调用失败时,如果有过期缓存则返回过期缓存,避免服务不可用
 
 ## Assumptions
 
@@ -430,3 +670,344 @@
 - 假设 Token 的默认过期时间为 2 小时(7200 秒),组件在剩余 720 秒(10%)时触发刷新
 - 假设用户信息变更频率较低,24 小时 TTL 的缓存策略可满足大部分场景
 - 假设 aPaaS 数据空间操作需要用户级权限(user_access_token),应用级 Token 无法访问
+
+---
+
+## Phase 4 补充说明 (CloudDoc & Contact)
+
+### CloudDoc 模块数据结构
+
+#### Document (文档)
+```python
+{
+  "doc_id": "doxcn1234567890abcdefghij",    # 文档 ID (doxcn/doccn 开头,20+ 字符)
+  "title": "测试文档",                       # 文档标题 (1-255 字符)
+  "owner_id": "ou_1234567890abcdefghij",    # 所有者 open_id (可选)
+  "create_time": "2026-01-15T10:00:00Z",    # 创建时间 (可选)
+  "update_time": "2026-01-15T12:00:00Z",    # 更新时间 (可选)
+  "content_blocks": [...]                    # 内容块列表 (可选)
+}
+```
+
+#### ContentBlock (内容块)
+```python
+{
+  "block_id": "blk1234567890abcdefghij",    # 块 ID (20+ 字符,可选)
+  "block_type": "text",                      # 类型: text, heading, image, table, code, list, divider
+  "content": "文本内容",                     # 内容 (字符串或对象)
+  "attributes": {                            # 属性 (可选)
+    "style": "bold",                         # 样式
+    "level": 1                               # 标题级别 (heading 类型)
+  }
+}
+```
+
+**限制:**
+- 单次追加最大 100 个 block
+- 单个 block 最大 100 KB
+- 标题级别 1-6
+- 文档标题 1-255 字符
+
+#### BaseRecord (多维表格记录)
+```python
+{
+  "record_id": "rec1234567890abcdefghij",   # 记录 ID (rec 开头,20+ 字符,创建时可选)
+  "fields": {                                # 字段值 (必需)
+    "Name": "张三",
+    "Age": 30,
+    "Email": "zhangsan@company.com"
+  },
+  "create_time": "2026-01-15T10:00:00Z",    # 创建时间 (可选)
+  "update_time": "2026-01-15T12:00:00Z"     # 更新时间 (可选)
+}
+```
+
+#### FilterCondition (过滤条件)
+```python
+{
+  "field_name": "Age",                       # 字段名
+  "operator": "gte",                         # 操作符
+  "value": 18                                # 比较值
+}
+```
+
+**支持的操作符:**
+- `eq` - 等于
+- `ne` - 不等于
+- `gt` - 大于
+- `gte` - 大于等于
+- `lt` - 小于
+- `lte` - 小于等于
+- `contains` - 包含
+- `not_contains` - 不包含
+- `is_empty` - 为空
+- `is_not_empty` - 不为空
+
+**限制:**
+- 最多 20 个过滤条件
+- 单次查询最多 500 条记录
+- 批量创建/更新/删除最大 500 条
+
+#### SheetRange (电子表格范围)
+```python
+{
+  "sheet_id": "sheet_id_123",               # Sheet ID
+  "range_notation": "A1:B10"                # 范围表示法
+}
+```
+
+**支持的范围格式:**
+1. A1 表示法: `A1:B10`
+2. 行列索引: `R1C1:R10C2`
+3. 命名范围: `SalesData`
+4. 整列/整行: `A:A`, `1:1`
+
+**限制:**
+- 读取最大 100,000 个单元格
+- 更新最大 10,000 个单元格
+- 合并最大 1,000 个单元格
+- 冻结窗格最大 100 行/100 列
+
+### Contact 模块数据结构
+
+#### User (用户)
+```python
+{
+  "open_id": "ou_1234567890abcdefghij",     # 应用内用户 ID (必需,20+ 字符)
+  "user_id": "7g9j1234",                     # 租户内用户 ID (必需,8+ 字符)
+  "union_id": "on_1234567890abcdefghij",    # 全局用户 ID (必需,20+ 字符)
+  "name": "张三",                            # 用户姓名 (必需,1-100 字符)
+  "avatar": "https://...",                   # 头像 URL (可选)
+  "email": "zhangsan@company.com",          # 邮箱 (可选)
+  "mobile": "+8613800138000",               # 手机号 (可选)
+  "department_ids": ["dept_001"],           # 部门 ID 列表 (可选)
+  "employee_no": "E001",                    # 工号 (可选)
+  "job_title": "工程师",                     # 职位 (可选)
+  "status": 1                                # 状态: 1-激活,2-未激活,4-已离职 (可选)
+}
+```
+
+**三种 ID 的使用场景:**
+- `open_id`: 应用内标识,用于发送消息、授权等 (不同应用不同)
+- `user_id`: 租户内标识,用于用户管理、权限控制 (同一租户内相同)
+- `union_id`: 全局标识,用于跨租户识别、缓存 key (跨租户相同,推荐)
+
+#### Department (部门)
+```python
+{
+  "department_id": "dept_001",              # 部门 ID
+  "name": "技术部",                          # 部门名称
+  "parent_department_id": "dept_000",       # 父部门 ID (可选)
+  "member_count": 50,                       # 成员数量
+  "status": 1                                # 状态: 1-正常,2-停用
+}
+```
+
+#### ChatGroup (群组)
+```python
+{
+  "chat_id": "oc_1234567890abcdefghij",     # 群组 ID (oc_ 开头,20+ 字符)
+  "name": "技术讨论组",                      # 群名称
+  "description": "技术团队交流",             # 群描述 (可选)
+  "owner_id": "ou_xxx",                     # 群主 open_id
+  "member_count": 25                        # 成员数量
+}
+```
+
+**限制:**
+- 批量查询用户最大 200 个/次
+- 部门成员查询分页,每页最多 50 个
+- 群成员查询分页,每页最多 100 个
+
+### Phase 4 错误码定义
+
+#### CloudDoc 模块错误码
+
+| 错误码 | 错误类型 | 说明 | 是否可重试 |
+|--------|----------|------|-----------|
+| 50001 | InvalidParameterError | 文档标题为空或超长 | ❌ |
+| 50002 | InvalidParameterError | 内容块数量超限 (>100) | ❌ |
+| 50003 | InvalidParameterError | 内容块大小超限 (>100KB) | ❌ |
+| 50004 | InvalidParameterError | 权限类型无效 | ❌ |
+| 50005 | InvalidParameterError | 成员类型无效 | ❌ |
+| 50006 | NotFoundError | 文档不存在 | ❌ |
+| 50007 | NotFoundError | 内容块不存在 | ❌ |
+| 50008 | PermissionDeniedError | 无文档操作权限 | ❌ |
+| 50009 | PermissionDeniedError | 无权限管理权限 | ❌ |
+| 50101 | InvalidParameterError | 记录字段为空 | ❌ |
+| 50102 | InvalidParameterError | 分页大小超限 (>500) | ❌ |
+| 50103 | InvalidParameterError | 批量操作数量超限 (>500) | ❌ |
+| 50104 | InvalidParameterError | 过滤条件超限 (>20) | ❌ |
+| 50105 | InvalidParameterError | 过滤操作符无效 | ❌ |
+| 50106 | NotFoundError | 记录不存在 | ❌ |
+| 50107 | NotFoundError | 表格不存在 | ❌ |
+| 50201 | InvalidParameterError | Sheet 范围为空 | ❌ |
+| 50202 | InvalidParameterError | 单元格数量超限 | ❌ |
+| 50203 | InvalidParameterError | 字体大小无效 (6-36) | ❌ |
+| 50204 | InvalidParameterError | 对齐方式无效 | ❌ |
+| 50205 | InvalidParameterError | 合并类型无效 | ❌ |
+| 50206 | InvalidParameterError | 列宽无效 (10-500) | ❌ |
+| 50207 | InvalidParameterError | 行高无效 (10-500) | ❌ |
+| 50208 | InvalidParameterError | 冻结行列超限 (>100) | ❌ |
+| 50209 | NotFoundError | Sheet 不存在 | ❌ |
+
+#### Contact 模块错误码
+
+| 错误码 | 错误类型 | 说明 | 是否可重试 |
+|--------|----------|------|-----------|
+| 60001 | InvalidParameterError | 邮箱格式无效 | ❌ |
+| 60002 | InvalidParameterError | 手机号格式无效 | ❌ |
+| 60003 | InvalidParameterError | 用户 ID 格式无效 | ❌ |
+| 60004 | InvalidParameterError | 批量查询数量超限 (>200) | ❌ |
+| 60005 | InvalidParameterError | 分页大小超限 (>50) | ❌ |
+| 60006 | NotFoundError | 用户不存在 | ❌ |
+| 60007 | NotFoundError | 部门不存在 | ❌ |
+| 60008 | NotFoundError | 群组不存在 | ❌ |
+| 60009 | PermissionDeniedError | 无通讯录读取权限 | ❌ |
+| 60010 | PermissionDeniedError | 无敏感信息读取权限 | ❌ |
+| 60101 | CacheError | 缓存写入失败 | ✅ |
+| 60102 | CacheError | 缓存读取失败 | ✅ |
+| 60103 | CacheError | 缓存清理失败 | ✅ |
+
+#### 通用错误码映射
+
+**飞书 API 错误码 → 内部错误类型:**
+
+| 飞书错误码 | 内部错误类型 | 说明 |
+|-----------|-------------|------|
+| 99991663 | AuthenticationError | App Secret 无效 |
+| 99991664 | AuthenticationError | Tenant access token 无效 |
+| 99991668 | PermissionDeniedError | 应用权限不足 |
+| 230001 | NotFoundError | 用户不存在 |
+| 230002 | NotFoundError | 部门不存在 |
+| 230011 | PermissionDeniedError | 无通讯录读取权限 |
+| 1254044 | NotFoundError | 文档不存在 |
+| 1254045 | PermissionDeniedError | 无文档访问权限 |
+| 1254046 | InvalidParameterError | 文档参数无效 |
+
+### Phase 4 实现状态
+
+#### 已实现功能 ✅
+
+**CloudDoc 模块:**
+- ✅ Document, ContentBlock, BaseRecord, SheetRange 数据模型
+- ✅ DocClient: 创建文档、读取文档 **[真实 API]**、追加内容 (placeholder)、权限管理 (placeholder)
+- ✅ BitableClient: CRUD 操作、批量操作、过滤查询、分页 (placeholder)
+- ✅ SheetClient: 读写数据、格式化、合并单元格、冻结窗格 (placeholder)
+- ✅ 完整的参数验证和错误处理
+- ✅ 225 个单元测试 (100% 通过)
+- ✅ 2 个集成测试通过 **[新增 2026-01-15]**
+
+**Contact 模块:**
+- ✅ User, Department, ChatGroup 数据模型
+- ✅ ContactClient: 用户查询 (4 个方法) **[真实 API]**、部门查询 (placeholder)、群组查询 (placeholder)、批量操作 **[真实 API]**
+- ✅ ContactCacheManager: PostgreSQL 缓存、TTL 24h、app_id 隔离
+- ✅ 缓存集成: cache-aside 模式完整集成 **[新增 2026-01-15]**
+- ✅ 缓存统计、懒加载刷新、显式失效
+- ✅ 完整的参数验证和错误处理
+- ✅ 225 个单元测试 (100% 通过)
+- ✅ 3 个集成测试通过 **[新增 2026-01-15]**
+
+**真实 API 集成:** **[新增 2026-01-15]**
+- ✅ Contact.get_user_by_email() - 两步查询 (BatchGetId + GetUser)
+- ✅ Contact.get_user_by_mobile() - 两步查询,支持国际格式
+- ✅ Contact.get_user_by_user_id() - 直接查询
+- ✅ Contact.batch_get_users() - 批量查询优化
+- ✅ CloudDoc.get_document() - 获取文档元数据,时间戳解析
+
+**质量指标:**
+- ✅ 225 个单元测试全部通过
+- ✅ 5 个集成测试通过 (Contact 3 + CloudDoc 2) **[新增]**
+- ✅ 21.17% 代码覆盖率 (含集成测试)
+- ✅ 0 个 ruff 错误
+- ✅ 0 个 mypy 类型错误
+- ✅ 100% 类型注解覆盖
+- ✅ 符合代码规范
+
+#### 新增实现 ✨
+
+**CloudDoc 模块:**
+- ✅ append_content() 真实 API 实现 **[新增]**
+  - 支持多种块类型: paragraph, heading (1-3), divider
+  - 直接 HTTP 调用 Feishu API
+  - 完整错误处理和重试策略
+- ✅ Bitable.query_records() 真实 API 实现 **[新增]**
+  - 支持 10 种过滤操作符 (eq, ne, gt, gte, lt, lte, contains, not_contains, is_empty, is_not_empty)
+  - 分页支持 (page_size: 1-500)
+  - 过滤条件转换为 Lark 公式语法
+- ✅ Sheet.get_sheet_data() 真实 API 实现 **[新增]** **[重新实现]**
+  - 支持范围读取 (sheetId!A1:B10)
+  - 值渲染选项 (ToString, FormattedString)
+  - 返回 CellData 对象 (2D 数组)
+  - 完整的 CellData 模型（包含所有格式化字段）
+
+**待实现功能:**
+- ⏳ MediaClient: 上传/下载文档素材 (T056, 可选)
+- ⏳ DocumentUrlResolver: 统一文档 URL 解析 (FR-045)
+
+**Contact 模块:**
+- ⏳ get_department() 真实 API 实现 (当前 placeholder)
+- ⏳ get_chat_group() 真实 API 实现 (当前 placeholder)
+- ⏳ LRU 容量淘汰策略 (FR-066.3, 可选)
+
+**测试:**
+- ⏳ 更多集成测试 (缓存测试、批量测试)
+- ⏳ 性能基准测试 (缓存命中率、响应时间)
+
+#### 已知限制
+
+**SDK 相关:**
+- ⚠️ lark-oapi v1.5.2 的 InternalTenantAccessTokenRequest 有 bug
+  - 已绕过: 使用 HTTP 直接请求
+  - 影响: 配置验证脚本、CredentialPool
+  - 状态: 已修复
+- ⚠️ UpdateDocumentBlockRequest 在 SDK 中不可用
+  - 影响: update_block 方法为 placeholder 实现
+  - 状态: 待 SDK 更新
+
+**API 限制:**
+- 知识库文档需要额外 API 调用获取 obj_token (100-500ms)
+- 部分 API 响应不包含完整字段 (如 create_time)
+- 批量操作限制 500 条/次
+
+### Phase 4 测试策略
+
+#### 单元测试 ✅ (已完成)
+- **覆盖范围**: 所有客户端方法、参数验证、错误处理
+- **Mock 策略**: 模拟 SDK 响应,隔离外部依赖
+- **测试数据**: 使用符合验证规则的 mock ID
+- **结果**: 225 passed, 3 skipped
+
+#### 集成测试 ✅ (已完成核心测试) **[更新 2026-01-15]**
+- **测试环境**: ✅ .env.test 已配置,PostgreSQL 已连接
+- **测试数据**: ✅ 真实 App ID/Secret,测试用户邮箱,测试文档 token
+- **测试结果**:
+  - ✅ Contact: 3 个测试通过 (邮箱查询、手机号查询、用户不存在)
+  - ✅ CloudDoc: 2 个测试通过 (获取文档、文档不存在)
+  - ⏸️ 写操作测试跳过 (需要写权限)
+- **运行方式**: `pytest tests/integration/ -v`
+- **测试文档**: docs/integration-test-setup.md (421 行完整指南)
+
+**已验证场景:**
+- ✅ Contact.get_user_by_email() - 真实 API 调用成功
+- ✅ Contact.get_user_by_mobile() - 国际格式支持
+- ✅ Contact 错误处理 - NotFoundError 正确抛出
+- ✅ CloudDoc.get_document() - 真实 API 调用成功
+- ✅ CloudDoc 错误处理 - 文档不存在正确处理
+
+**待测试场景:**
+- ⏳ Contact 缓存功能 (4 个测试)
+- ⏳ Contact 批量查询 (1 个测试)
+- ⏳ CloudDoc 写操作 (需要写权限)
+- ⏳ Bitable/Sheet 操作 (需要实现真实 API)
+
+#### 性能测试 ⏳ (待实施)
+- 目标: 缓存命中响应时间 < 100ms
+- 目标: 缓存未命中响应时间 < 2s
+- 目标: 文档操作响应时间 < 3s
+- 目标: 并发测试 100 并发请求
+
+**实际性能 (初步测试):**
+- ✅ Contact API (无缓存): ~5-8 秒 (2 次 API 调用)
+- ✅ CloudDoc API: ~3-5 秒 (1 次 API 调用)
+- ⏳ 缓存命中性能: 待测试

@@ -1,6 +1,6 @@
 # Implementation Plan: Lark Service 核心组件
 
-**Branch**: `001-lark-service-core` | **Date**: 2026-01-14 | **Spec**: [spec.md](./spec.md)  
+**Branch**: `001-lark-service-core` | **Date**: 2026-01-14 | **Spec**: [spec.md](./spec.md)
 **Input**: Feature specification from `/specs/001-lark-service-core/spec.md`
 
 ## Summary
@@ -15,8 +15,8 @@
 
 ## Technical Context
 
-**Language/Version**: Python 3.12  
-**Primary Dependencies**: 
+**Language/Version**: Python 3.12
+**Primary Dependencies**:
 - lark-oapi (官方 SDK)
 - pydantic v2 (强类型校验和数据验证)
 - SQLAlchemy 2.0 (ORM,支持 PostgreSQL)
@@ -27,26 +27,26 @@
 - pytest (测试框架)
 - pytest-asyncio (异步测试支持)
 
-**Storage**: 
+**Storage**:
 - SQLite (应用配置管理,轻量级,文件级加密)
-- PostgreSQL (Token 持久化存储,高并发,字段级加密)  
-**Message Queue**: RabbitMQ (交互式卡片回调异步处理)  
-**Testing**: pytest + pytest-cov (单元测试/集成测试/契约测试)  
-**Target Platform**: Linux server (Docker 容器化部署)  
-**Project Type**: Single library package (可作为 Python 包被内部服务导入)  
-**Performance Goals**: 
+- PostgreSQL (Token 持久化存储,高并发,字段级加密)
+**Message Queue**: RabbitMQ (交互式卡片回调异步处理)
+**Testing**: pytest + pytest-cov (单元测试/集成测试/契约测试)
+**Target Platform**: Linux server (Docker 容器化部署)
+**Project Type**: Single library package (可作为 Python 包被内部服务导入)
+**Performance Goals**:
 - 支持每秒 100 次并发 API 调用
 - Token 刷新不成为性能瓶颈
 - 99.9% 的调用无需手动处理 Token 失效
 
-**Constraints**: 
+**Constraints**:
 - Token 预刷新时间窗口: 剩余 10% 有效期时触发
 - API 重试最大次数: 3 次(指数退避 1s→2s→4s)
 - 限流重试延迟: 30 秒
 - 用户认证超时: 10 分钟
 - 并发锁超时: 30 秒
 
-**Scale/Scope**: 
+**Scale/Scope**:
 - 支持多应用场景(app_id 隔离)
 - 预期内部服务并发量: 每秒数百次调用
 - 模块数量: 5 个核心模块(凭证、消息、文档、通讯录、aPaaS)
@@ -127,7 +127,8 @@
 
 | 模块 | 职责 | 核心依赖 |
 |------|------|---------|
-| `messaging/` | 消息发送、卡片交互、媒体上传 | `credential_pool`, `retry`, `response` |
+| `messaging/` | 消息发送、媒体上传 (IM API) | `credential_pool`, `retry`, `response` |
+| `cardkit/` | 卡片构建、交互回调 (CardKit API) | `credential_pool`, `retry`, `response` |
 | `clouddoc/` | 文档/表格/多维表格操作 | `credential_pool`, `retry`, `response` |
 | `contact/` | 通讯录查询、用户缓存 | `credential_pool`, `storage`, `response` |
 | `apaas/` | 数据空间、AI、工作流 | `credential_pool`, `retry`, `response` |
@@ -215,7 +216,7 @@
 ```
 1. 环境变量 (最高优先级)
    ↓
-2. .env 文件 
+2. .env 文件
    ↓
 3. 代码默认值 (最低优先级)
 ```
@@ -238,18 +239,18 @@ from dotenv import load_dotenv
 @dataclass
 class Config:
     """Configuration with priority: ENV > .env > defaults."""
-    
+
     # 默认值 (优先级 3)
     log_level: str = "INFO"
     postgres_port: int = 5432
     token_refresh_threshold: float = 0.1
-    
+
     @classmethod
     def from_env(cls) -> "Config":
         """Load config with priority handling."""
         # 加载 .env 文件 (优先级 2)
         load_dotenv()
-        
+
         # 环境变量覆盖 (优先级 1)
         return cls(
             log_level=os.getenv("LOG_LEVEL", cls.log_level),
@@ -305,13 +306,18 @@ lark-service/
 │       │   ├── retry.py             # 重试策略(指数退避)
 │       │   ├── response.py          # 标准化响应模型
 │       │   └── exceptions.py        # 自定义异常类型
-│       ├── messaging/               # 消息服务模块
+│       ├── messaging/               # 消息服务模块 (IM API)
 │       │   ├── __init__.py
-│       │   ├── client.py            # 消息发送客户端
+│       │   ├── client.py            # 消息发送客户端 (text, post, image, file, interactive)
 │       │   ├── models.py            # 消息模型(Message, ImageAsset, FileAsset)
-│       │   ├── card_builder.py      # 交互式卡片构建器
-│       │   ├── callback_handler.py  # 卡片回调处理(RabbitMQ)
-│       │   └── media_uploader.py    # 图片/文件上传
+│       │   ├── media_uploader.py    # 图片/文件上传到飞书
+│       │   └── lifecycle.py         # 消息生命周期管理(撤回、编辑、回复)
+│       ├── cardkit/                 # 卡片服务模块 (CardKit API)
+│       │   ├── __init__.py
+│       │   ├── builder.py           # 卡片构建器 (构建交互式卡片 JSON)
+│       │   ├── models.py            # 卡片模型(CardConfig, CardElement, CallbackEvent)
+│       │   ├── callback_handler.py  # 卡片回调处理(签名验证、RabbitMQ 路由)
+│       │   └── updater.py           # 卡片更新器(主动更新卡片内容)
 │       ├── clouddoc/                # 云文档服务模块
 │       │   ├── __init__.py
 │       │   ├── doc_client.py        # Doc文档操作(CRUD,权限管理:可阅读/可编辑/可评论/可管理)
@@ -338,6 +344,7 @@ lark-service/
 │   ├── unit/                        # 单元测试
 │   │   ├── core/
 │   │   ├── messaging/
+│   │   ├── cardkit/
 │   │   ├── clouddoc/
 │   │   ├── contact/
 │   │   └── apaas/
@@ -609,7 +616,7 @@ def add(app_id, app_secret, name, description, output_json):
             name=name,
             description=description
         )
-        
+
         if output_json:
             click.echo(json.dumps({
                 "status": "success",
@@ -620,7 +627,7 @@ def add(app_id, app_secret, name, description, output_json):
             console.print(f"✓ 应用配置已成功添加", style="green")
             console.print(f"  App ID: {app_id}")
             console.print(f"  Name: {name}")
-        
+
         sys.exit(0)
     except Exception as e:
         if output_json:
@@ -636,7 +643,7 @@ def list(output_json):
     try:
         app_manager = ApplicationManager()
         apps = app_manager.list_applications()
-        
+
         if output_json:
             click.echo(json.dumps([{
                 "app_id": app.app_id,
@@ -650,13 +657,13 @@ def list(output_json):
             table.add_column("Name", style="green")
             table.add_column("Status", style="yellow")
             table.add_column("Created At", style="magenta")
-            
+
             for app in apps:
                 status = "✓ Active" if app.is_active else "✗ Disabled"
                 table.add_row(app.app_id, app.name, status, app.created_at.strftime("%Y-%m-%d %H:%M:%S"))
-            
+
             console.print(table)
-        
+
         sys.exit(0)
     except Exception as e:
         if output_json:
@@ -699,7 +706,7 @@ from lark_service.cli.app import app
 
 def test_app_add_success():
     runner = CliRunner()
-    result = runner.invoke(app, ['add', 
+    result = runner.invoke(app, ['add',
         '--app-id', 'cli_test123',
         '--app-secret', 'secret_test',
         '--name', 'Test App',
@@ -722,7 +729,7 @@ def test_app_delete_without_force_requires_confirmation():
     assert '已取消' in result.output
 ```
 
-**输出文件**: 
+**输出文件**:
 - `src/lark_service/cli/__init__.py`
 - `src/lark_service/cli/app.py`
 - `tests/unit/cli/test_app_commands.py`
@@ -822,7 +829,7 @@ jobs:
           pip install safety
           safety check --json --file requirements.txt
           # 阻止 CVSS ≥ 7.0 的漏洞
-          
+
   docker-scan:
     runs-on: ubuntu-latest
     steps:
@@ -905,20 +912,20 @@ docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
 class ApplicationManager:
     def get_app_secret(self, app_id: str, app_context: str) -> str:
         """Get app secret with access control.
-        
+
         Args:
             app_id: Application ID
             app_context: Calling context (dev/prod)
-            
+
         Raises:
             PermissionError: If cross-context access detected
         """
         app = self.get_application(app_id)
-        
+
         # 禁止跨应用访问
         if app_context not in ["dev", "prod"]:
             raise PermissionError("Invalid context")
-            
+
         return app.get_decrypted_secret(self.encryption_key)
 ```
 

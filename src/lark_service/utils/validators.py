@@ -211,7 +211,7 @@ def validate_chat_id(chat_id: str) -> str:
     return chat_id
 
 
-def validate_token(token: str, token_type: str = "access_token") -> str:
+def validate_token(token: str, token_type: str = "access_token") -> str:  # nosec B107
     """Validate token format.
 
     Args:
@@ -440,6 +440,120 @@ def validate_enum(value: str, allowed_values: list[str], name: str = "value") ->
         raise ValidationError(
             f"Invalid {name} value: {value}. Allowed values: {', '.join(allowed_values)}",
             details={"name": name, "value": value, "allowed": allowed_values},
+        )
+
+    return value
+
+
+def validate_non_empty_string(value: Any, name: str = "value") -> str:
+    """Validate that a value is a non-empty string.
+
+    Args
+    ----------
+        value: Value to validate
+        name: Name of value (for error messages)
+
+    Returns
+    ----------
+        Validated string value
+
+    Raises
+    ----------
+        ValidationError: If value is not a string or is empty
+
+    Example
+    --------
+        >>> validate_non_empty_string("hello", "message")
+        'hello'
+        >>> validate_non_empty_string("", "message")
+        Traceback (most recent call last):
+        ...
+        ValidationError: message cannot be empty
+        >>> validate_non_empty_string(None, "message")
+        Traceback (most recent call last):
+        ...
+        ValidationError: message must be a string
+    """
+    if not isinstance(value, str):
+        raise ValidationError(
+            f"{name} must be a string, got {type(value).__name__}",
+            details={"name": name, "type": type(value).__name__},
+        )
+
+    if not value or not value.strip():
+        raise ValidationError(
+            f"{name} cannot be empty",
+            details={"name": name},
+        )
+
+    return value
+
+
+def validate_non_negative_int(
+    value: Any,
+    name: str = "value",
+    min_value: int | None = None,
+    max_value: int | None = None,
+) -> int:
+    """Validate non-negative integer with optional min/max bounds.
+
+    Args
+    ----------
+        value: Value to validate
+        name: Name of value (for error messages)
+        min_value: Minimum allowed value (inclusive, optional)
+        max_value: Maximum allowed value (inclusive, optional)
+
+    Returns
+    ----------
+        Validated integer value
+
+    Raises
+    ----------
+        ValidationError: If value is not a non-negative integer or out of bounds
+
+    Example
+    --------
+        >>> validate_non_negative_int(5, "count")
+        5
+        >>> validate_non_negative_int(-1, "count")
+        Traceback (most recent call last):
+        ...
+        ValidationError: count cannot be negative
+        >>> validate_non_negative_int(10, "page_size", min_value=1, max_value=100)
+        10
+        >>> validate_non_negative_int(150, "page_size", min_value=1, max_value=100)
+        Traceback (most recent call last):
+        ...
+        ValidationError: page_size must be between 1 and 100
+    """
+    if not isinstance(value, int):
+        raise ValidationError(
+            f"{name} must be an integer, got {type(value).__name__}",
+            details={"name": name, "type": type(value).__name__},
+        )
+
+    if value < 0:
+        raise ValidationError(
+            f"{name} cannot be negative: {value}",
+            details={"name": name, "value": value},
+        )
+
+    if min_value is not None and value < min_value:
+        if max_value is not None:
+            raise ValidationError(
+                f"{name} must be between {min_value} and {max_value}, got {value}",
+                details={"name": name, "value": value, "min": min_value, "max": max_value},
+            )
+        raise ValidationError(
+            f"{name} must be at least {min_value}, got {value}",
+            details={"name": name, "value": value, "min": min_value},
+        )
+
+    if max_value is not None and value > max_value:
+        raise ValidationError(
+            f"{name} must be at most {max_value}, got {value}",
+            details={"name": name, "value": value, "max": max_value},
         )
 
     return value

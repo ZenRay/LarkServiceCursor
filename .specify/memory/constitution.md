@@ -68,20 +68,20 @@
 def function_name(arg1: Type1, arg2: Type2) -> ReturnType:
     """
     Brief description in one line.
-    
+
     Args:
     ----------
         arg1: Description of arg1
         arg2: Description of arg2
-        
+
     Returns:
     ----------
         Description of return value
-        
+
     Raises:
     ----------
         ExceptionType: When and why this exception is raised
-        
+
     Example:
     ----------
         >>> result = function_name(value1, value2)

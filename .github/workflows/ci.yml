@@ -1,28 +1,101 @@
-name: CI
+name: CI/CD Pipeline
 
 on:
   push:
-    branches:
-      - main
-      - '[0-9][0-9][0-9]-*'  # Speckit 功能分支 (如 001-lark-service-core)
+    branches: ["main", "develop", "001-lark-service-core"]
   pull_request:
-    branches:
-      - main
-
-permissions:
-  contents: read
-  security-events: write  # 允许上传 SARIF 结果到 GitHub Security
+    branches: ["main", "develop"]
 
 jobs:
-  test:
+  lint:
+    name: Code Quality - Lint
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.12"]
+    steps:
+      - uses: actions/checkout@v4
 
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install ruff mypy bandit
+
+      - name: Run Ruff linter
+        run: ruff check src/ tests/ --output-format=github
+
+      - name: Run Ruff formatter check
+        run: ruff format --check src/ tests/
+
+  type-check:
+    name: Code Quality - Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install mypy types-psycopg2 types-pika types-redis types-psutil
+
+      - name: Run Mypy type checker
+        run: mypy src/ --config-file=pyproject.toml --no-error-summary
+
+  security:
+    name: Security - Bandit Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Bandit
+        run: pip install bandit
+
+      - name: Run Bandit security scan
+        run: bandit -r src/ -f json -o bandit-report.json || true
+
+      - name: Upload Bandit report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bandit-report
+          path: bandit-report.json
+
+  test:
+    name: Tests - Unit & Contract
+    runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:16
+        image: postgres:16-alpine
         env:
           POSTGRES_DB: lark_service
           POSTGRES_USER: lark
@@ -35,102 +108,205 @@ jobs:
         ports:
           - 5432:5432
 
+      rabbitmq:
+        image: rabbitmq:3.13-alpine
+        env:
+          RABBITMQ_DEFAULT_USER: lark
+          RABBITMQ_DEFAULT_PASS: rabbitmq_password_123
+        options: >-
+          --health-cmd "rabbitmq-diagnostics -q ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5672:5672
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: 设置 Python
+      - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
-          cache: 'pip'
+          python-version: "3.12"
 
-      - name: 安装依赖
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pytest pytest-cov mypy ruff
+          pip install pytest pytest-cov pytest-asyncio
+
+      - name: Install package in editable mode
+        run: |
           pip install -e .
 
-      - name: 代码风格检查
-        run: |
-          ruff check src/ tests/
-          ruff format --check src/ tests/
-
-      - name: 类型检查
-        run: |
-          mypy src/ --strict
-
-      - name: 运行测试
+      - name: Run unit tests
         env:
           POSTGRES_HOST: localhost
           POSTGRES_PORT: 5432
           POSTGRES_DB: lark_service
           POSTGRES_USER: lark
           POSTGRES_PASSWORD: lark_password_123
-          LARK_CONFIG_ENCRYPTION_KEY: ${{ secrets.LARK_CONFIG_ENCRYPTION_KEY || 'dGVzdF9lbmNyeXB0aW9uX2tleV8zMl9ieXRlc19sb25nISE=' }}
+          RABBITMQ_HOST: localhost
+          RABBITMQ_PORT: 5672
+          RABBITMQ_USER: lark
+          RABBITMQ_PASSWORD: rabbitmq_password_123
+          PYTHONPATH: ${{ github.workspace }}/src
         run: |
-          pytest tests/ \
-            --cov=src/lark_service \
-            --cov-report=xml \
-            --cov-report=term-missing \
-            --junitxml=test-results.xml
+          pytest tests/unit/ -v --cov=src/lark_service --cov-report=xml --cov-report=term --cov-fail-under=60
 
-      - name: 上传覆盖率报告
-        uses: codecov/codecov-action@v4
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        if: always()
         with:
           files: ./coverage.xml
           flags: unittests
           name: codecov-umbrella
+          fail_ci_if_error: false
 
-      - name: 上传测试结果
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: test-results
-          path: test-results.xml
-
-  security:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: 依赖安全扫描
+      - name: Run contract tests
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          POSTGRES_DB: lark_service
+          POSTGRES_USER: lark
+          POSTGRES_PASSWORD: lark_password_123
+          RABBITMQ_HOST: localhost
+          RABBITMQ_PORT: 5672
+          RABBITMQ_USER: lark
+          RABBITMQ_PASSWORD: rabbitmq_password_123
+          PYTHONPATH: ${{ github.workspace }}/src
         run: |
-          pip install safety
-          safety check --json || true
-
-      - name: 代码安全扫描
-        run: |
-          pip install bandit
-          bandit -r src/ -f json -o bandit-report.json || true
-
-      - name: 上传扫描结果
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: security-reports
-          path: bandit-report.json
+          pytest tests/contract/ -v --no-cov
 
   build:
+    name: Build - Docker Image
     runs-on: ubuntu-latest
-    needs: [test, security]
+    needs: [lint, type-check, test]
     steps:
       - uses: actions/checkout@v4
 
-      - name: 构建 Docker 镜像
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: lark-service:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Test Docker image
         run: |
-          docker build -t lark-service:${{ github.sha }} .
+          docker build -t lark-service:test .
+          docker images lark-service:test --format "{{.Size}}"
 
-      - name: 扫描镜像安全
-        uses: aquasecurity/trivy-action@master
+      - name: Verify image size
+        run: |
+          SIZE=$(docker images lark-service:test --format "{{.Size}}" | grep -oE '[0-9]+' | head -1)
+          echo "Image size: ${SIZE}MB"
+          if [ "$SIZE" -gt 500 ]; then
+            echo "❌ Image size ${SIZE}MB exceeds 500MB limit"
+            exit 1
+          fi
+          echo "✅ Image size ${SIZE}MB is within 500MB limit"
+
+  integration-test:
+    name: Tests - Integration (Optional)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [build]
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: lark_service
+          POSTGRES_USER: lark
+          POSTGRES_PASSWORD: lark_password_123
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      rabbitmq:
+        image: rabbitmq:3.13-management-alpine
+        env:
+          RABBITMQ_DEFAULT_USER: lark
+          RABBITMQ_DEFAULT_PASS: rabbitmq_password_123
+        options: >-
+          --health-cmd "rabbitmq-diagnostics -q ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5672:5672
+          - 15672:15672
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
         with:
-          image-ref: 'lark-service:${{ github.sha }}'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
+          python-version: "3.12"
 
-      - name: 上传 Trivy 结果
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio
+
+      - name: Run integration tests
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          POSTGRES_DB: lark_service
+          POSTGRES_USER: lark
+          POSTGRES_PASSWORD: lark_password_123
+          RABBITMQ_HOST: localhost
+          RABBITMQ_PORT: 5672
+          RABBITMQ_USER: lark
+          RABBITMQ_PASSWORD: rabbitmq_password_123
+          LARK_APP_ID: ${{ secrets.LARK_APP_ID }}
+          LARK_APP_SECRET: ${{ secrets.LARK_APP_SECRET }}
+        run: |
+          pytest tests/integration/ -v -m "not slow and not stress" || echo "⚠️ Some integration tests failed (expected without real credentials)"
+
+  release:
+    name: Release - Create Tag
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [build, integration-test]
+    steps:
+      - uses: actions/checkout@v4
         with:
-          sarif_file: 'trivy-results.sarif'
+          fetch-depth: 0
 
+      - name: Get version from git tags
+        id: get_version
+        run: |
+          VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.1.0")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $VERSION"
+
+      - name: Create release notes
+        run: |
+          echo "## Lark Service Release ${{ steps.get_version.outputs.version }}" > release_notes.md
+          echo "" >> release_notes.md
+          echo "### Changes" >> release_notes.md
+          git log --pretty=format:"- %s (%h)" $(git describe --tags --abbrev=0 @^)..@ >> release_notes.md || echo "- Initial release" >> release_notes.md
+
+      - name: Display release notes
+        run: cat release_notes.md

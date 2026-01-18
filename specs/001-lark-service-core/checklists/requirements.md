@@ -1,7 +1,7 @@
 # Specification Quality Checklist: Lark Service 核心组件
 
-**Purpose**: Validate specification completeness and quality before proceeding to planning  
-**Created**: 2026-01-14  
+**Purpose**: Validate specification completeness and quality before proceeding to planning
+**Created**: 2026-01-14
 **Feature**: [spec.md](../spec.md)
 
 ## Content Quality
@@ -24,7 +24,7 @@
 - [x] Scope is clearly bounded
 - [x] Dependencies and assumptions identified
 
-**Notes**: 
+**Notes**:
 - 所有功能需求都可测试且明确(如 FR-001 到 FR-040)
 - 成功标准都是可量化的(如 SC-001 "10 分钟内完成集成", SC-006 "每秒 100 次并发")
 - 已定义 8 个边界场景(凭证失败、并发竞争、限流等)
@@ -37,7 +37,7 @@
 - [x] Feature meets measurable outcomes defined in Success Criteria
 - [x] No implementation details leak into specification
 
-**Notes**: 
+**Notes**:
 - 5 个用户故事覆盖了核心场景(凭证管理、消息、文档、通讯录、表格)
 - 每个用户故事都有独立的验收场景
 - 规范保持在业务需求层面,未涉及具体技术实现
