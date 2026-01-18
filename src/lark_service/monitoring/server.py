@@ -22,7 +22,7 @@ import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from typing import Any
 
-from lark_service.monitoring.metrics import get_metrics_collector
+from lark_service.monitoring.metrics import metrics
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ class MockDataGenerator(threading.Thread):
     def __init__(self) -> None:
         super().__init__(daemon=True)
         self.running = False
-        self.collector = get_metrics_collector()
+        self.collector = metrics
 
     def run(self) -> None:
         """Run the data generation loop."""
@@ -95,12 +95,13 @@ class MockDataGenerator(threading.Thread):
                 app_id=app_id, token_type=token_type
             ).inc()
             status = "success" if random.random() < 0.95 else "failure"
-            self.collector.token_refreshes_total.labels(
+            self.collector.token_refresh_total.labels(
                 app_id=app_id, token_type=token_type, status=status
             ).inc()
 
-        active_count = random.randint(5, 20)
-        self.collector.active_tokens.labels(app_id=app_id, token_type=token_type).set(active_count)
+        _ = random.randint(5, 20)  # nosec B311 # active_count for future use
+        # Note: active_tokens gauge not in current metrics implementation
+        # self.collector.active_tokens.labels(app_id=app_id, token_type=token_type).set(active_count)
 
     def _generate_api_metrics(self) -> None:
         """Generate API call metrics."""
@@ -141,15 +142,16 @@ class MetricsHandler(BaseHTTPRequestHandler):
     def serve_metrics(self) -> None:
         """Serve Prometheus metrics."""
         try:
-            collector = get_metrics_collector()
-            metrics = collector.generate_metrics()
-            content_type = collector.get_content_type()
+            from lark_service.monitoring.metrics import metrics as collector
+
+            metrics_data = collector.get_metrics()
+            content_type = collector.content_type
 
             self.send_response(200)
             self.send_header("Content-Type", content_type)
-            self.send_header("Content-Length", str(len(metrics)))
+            self.send_header("Content-Length", str(len(metrics_data)))
             self.end_headers()
-            self.wfile.write(metrics)
+            self.wfile.write(metrics_data)
 
         except Exception as e:
             logger.error(f"Error generating metrics: {e}")

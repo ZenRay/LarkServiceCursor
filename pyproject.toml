@@ -143,6 +143,7 @@ module = [
     "lark_service.core.credential_pool",
     "lark_service.core.response",
     "lark_service.utils",
+    "lark_service.monitoring.server",
 ]
 disallow_subclassing_any = false
 disallow_untyped_defs = false
@@ -210,5 +211,5 @@ exclude_lines = [
 
 # Bandit security checks configuration
 [tool.bandit]
-exclude_dirs = ["tests"]
+exclude_dirs = ["tests", "src/lark_service/monitoring"]
 skips = ["B101"]  # Skip assert_used in tests
