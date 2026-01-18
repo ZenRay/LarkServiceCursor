@@ -5,14 +5,9 @@ This module provides Prometheus metrics integration for monitoring application
 performance, business metrics, and system health.
 """
 
-from lark_service.monitoring.metrics import (
-    MetricsCollector,
-    get_metrics_collector,
-    metrics_middleware,
-)
+from lark_service.monitoring.metrics import LarkServiceMetrics, metrics
 
 __all__ = [
-    "MetricsCollector",
-    "get_metrics_collector",
-    "metrics_middleware",
+    "LarkServiceMetrics",
+    "metrics",
 ]

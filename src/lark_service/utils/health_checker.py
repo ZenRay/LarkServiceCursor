@@ -153,11 +153,11 @@ class HealthChecker:
     def check_redis(self) -> dict[str, Any]:
         """检查Redis连接"""
         try:
-            import redis  # type: ignore[import-untyped]
+            import redis
 
             from lark_service.core.config import Config
 
-            config = Config.from_env()  # type: ignore[attr-defined]  # type: ignore[attr-defined]
+            config = Config.from_env()  # type: ignore[attr-defined]
 
             # 连接Redis
             client = redis.Redis(

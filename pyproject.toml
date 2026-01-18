@@ -122,6 +122,10 @@ module = [
     "pika.*",
     "pythonjsonlogger.*",
     "requests",
+    "prometheus_client.*",
+    "psutil",
+    "psycopg2",
+    "redis",
 ]
 ignore_missing_imports = true
 
@@ -148,6 +152,13 @@ warn_return_any = false
 [[tool.mypy.overrides]]
 module = "tests.*"
 disallow_untyped_decorators = false
+
+# Relax checking for performance benchmark scripts
+[[tool.mypy.overrides]]
+module = "tests.performance.*"
+disallow_untyped_defs = false
+disallow_untyped_calls = false
+warn_return_any = false
 
 # Pytest 配置
 [tool.pytest.ini_options]

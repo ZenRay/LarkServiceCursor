@@ -295,4 +295,4 @@ class TestPerformance:
 
         # 1000次检查应该在1秒内完成
         assert elapsed < 1.0
-        print(f"\n1000次限流检查耗时: {elapsed:.4f}s ({1000/elapsed:.2f} ops/s)")
+        print(f"\n1000次限流检查耗时: {elapsed:.4f}s ({1000 / elapsed:.2f} ops/s)")

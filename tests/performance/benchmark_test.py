@@ -21,11 +21,11 @@ from typing import Any
 # 添加项目路径
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from lark_service.core.models.token_storage import TokenStorage
-from lark_service.core.retry import retry_on_error
-from lark_service.utils.logger import setup_logger
-from lark_service.utils.masking import mask_email, mask_mobile, mask_token
-from lark_service.utils.validators import (
+from lark_service.core.models.token_storage import TokenStorage  # noqa: E402
+from lark_service.core.retry import retry_on_error  # noqa: E402
+from lark_service.utils.logger import setup_logger  # noqa: E402
+from lark_service.utils.masking import mask_email, mask_mobile, mask_token  # noqa: E402
+from lark_service.utils.validators import (  # noqa: E402
     validate_app_id,
     validate_app_secret,
     validate_open_id,
@@ -122,15 +122,11 @@ class PerformanceBenchmark:
 def test_validator_performance(benchmark: PerformanceBenchmark):
     """测试验证器性能"""
 
-    @benchmark.benchmark(
-        "输入验证器 - App ID", "测试 validate_app_id() 性能"
-    )
+    @benchmark.benchmark("输入验证器 - App ID", "测试 validate_app_id() 性能")
     def validate_app_id_bench(iterations=10000):
         validate_app_id("cli_a1b2c3d4e5f6g7h8")
 
-    @benchmark.benchmark(
-        "输入验证器 - App Secret", "测试 validate_app_secret() 性能"
-    )
+    @benchmark.benchmark("输入验证器 - App Secret", "测试 validate_app_secret() 性能")
     def validate_app_secret_bench(iterations=10000):
         validate_app_secret("1234567890abcdef1234567890abcdef")
 
@@ -299,7 +295,9 @@ def main():
         print_summary(benchmark)
 
         # 保存结果
-        output_file = f"tests/performance/benchmark_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        output_file = (
+            f"tests/performance/benchmark_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        )
         benchmark.save_results(output_file)
 
         print(f"\n{'=' * 60}")
