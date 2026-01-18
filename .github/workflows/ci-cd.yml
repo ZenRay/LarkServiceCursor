@@ -56,8 +56,8 @@ jobs:
 
       - name: Sync dependencies
         run: |
-          # uv sync 会自动安装 Python、创建环境、安装 pyproject.toml 中的包
-          uv sync --python ${{ env.PYTHON_VERSION }}
+          # uv sync 默认不安装 optional-dependencies，需要显式指定 --all-extras
+          uv sync --all-extras --python ${{ env.PYTHON_VERSION }}
 
       - name: Run Ruff (Lint)
         run: uv run ruff check src/
