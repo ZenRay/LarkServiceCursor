@@ -22,6 +22,13 @@ fi
 
 cd "$PROJECT_ROOT"
 
+# Ensure .env exists for docker-compose env_file while keeping production config in /etc
+ln -sfn "$PROD_CONF" "$PROJECT_ROOT/.env"
+# Fallback for filesystems that don't support symlinks
+if [ ! -f "$PROJECT_ROOT/.env" ]; then
+    cp "$PROD_CONF" "$PROJECT_ROOT/.env"
+fi
+
 # 1. 启动 Docker 服务 (生产核心)
 log_info "正在通过 Docker Compose 部署服务..."
 docker compose --env-file "$PROD_CONF" up -d --build --remove-orphans
