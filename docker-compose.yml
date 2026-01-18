@@ -127,8 +127,9 @@ services:
       LARK_VERIFICATION_TOKEN: ${LARK_VERIFICATION_TOKEN:-}
       LARK_ENCRYPT_KEY: ${LARK_ENCRYPT_KEY:-}
 
-    env_file:
-      - .env
+    # env_file 已经在 deploy.sh 中通过 --env-file 参数统一注入，此处不再硬编码要求本地 .env
+    # env_file:
+    #   - .env
 
     volumes:
       - ./config:/app/config:ro
