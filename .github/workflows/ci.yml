@@ -2,9 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: ["develop", "001-lark-service-core"]
+    branches: ["develop", "001-lark-service-core", "002-websocket-user-auth"]
   pull_request:
-    branches: ["develop"]
+    branches: ["develop", "002-websocket-user-auth"]
 
 jobs:
   lint:
