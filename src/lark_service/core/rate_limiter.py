@@ -23,7 +23,7 @@ class RateLimitStrategy(str, Enum):
 
     FIXED_WINDOW = "fixed_window"  # 固定窗口
     SLIDING_WINDOW = "sliding_window"  # 滑动窗口
-    TOKEN_BUCKET = "token_bucket"  # 令牌桶  # noqa: S105
+    TOKEN_BUCKET = "token_bucket"  # nosec B105 - 这是算法名称,不是密码
 
 
 @dataclass
@@ -252,7 +252,7 @@ def rate_limit_middleware() -> Callable[[Any, Any], Any]:
 
         if not result.allowed:
             # 返回429 Too Many Requests
-            from fastapi.responses import JSONResponse  # type: ignore[import-not-found]
+            from fastapi.responses import JSONResponse
 
             logger.warning(
                 f"Rate limit exceeded for {rate_limit_key}",

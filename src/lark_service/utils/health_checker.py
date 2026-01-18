@@ -73,7 +73,7 @@ class HealthChecker:
             from lark_service.core.config import Config
 
             # 尝试加载配置
-            config = Config.from_env()
+            _ = Config.from_env()  # type: ignore[attr-defined] # 验证配置可以加载
 
             # 验证必需的配置项
             required_vars = [
@@ -105,7 +105,7 @@ class HealthChecker:
 
             from lark_service.core.config import Config
 
-            config = Config.from_env()
+            config = Config.from_env()  # type: ignore[attr-defined]
 
             # 测试连接
             conn = psycopg2.connect(
@@ -124,7 +124,8 @@ class HealthChecker:
 
             # 检查连接数
             cursor.execute("SELECT count(*) FROM pg_stat_activity")
-            conn_count = cursor.fetchone()[0]
+            result = cursor.fetchone()
+            conn_count = result[0] if result else 0
 
             cursor.close()
             conn.close()
@@ -152,11 +153,11 @@ class HealthChecker:
     def check_redis(self) -> dict[str, Any]:
         """检查Redis连接"""
         try:
-            import redis
+            import redis  # type: ignore[import-untyped]
 
             from lark_service.core.config import Config
 
-            config = Config.from_env()
+            config = Config.from_env()  # type: ignore[attr-defined]  # type: ignore[attr-defined]
 
             # 连接Redis
             client = redis.Redis(
@@ -194,7 +195,7 @@ class HealthChecker:
 
             from lark_service.core.config import Config
 
-            config = Config.from_env()
+            config = Config.from_env()  # type: ignore[attr-defined]
 
             # 连接RabbitMQ
             credentials = pika.PlainCredentials(
@@ -210,7 +211,7 @@ class HealthChecker:
             )
 
             connection = pika.BlockingConnection(parameters)
-            channel = connection.channel()
+            _ = connection.channel()  # 验证可以创建 channel
 
             # 检查连接
             if connection.is_open:
