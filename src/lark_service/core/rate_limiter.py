@@ -252,7 +252,9 @@ def rate_limit_middleware() -> Callable[[Any, Any], Any]:
 
         if not result.allowed:
             # 返回429 Too Many Requests
-            from fastapi.responses import JSONResponse
+            from fastapi.responses import (
+                JSONResponse,  # type: ignore[import-not-found,unused-ignore]
+            )
 
             logger.warning(
                 f"Rate limit exceeded for {rate_limit_key}",

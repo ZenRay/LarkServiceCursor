@@ -160,7 +160,16 @@ jobs:
           RABBITMQ_PASSWORD: rabbitmq_password_123
           PYTHONPATH: ${{ github.workspace }}/src
         run: |
-          pytest tests/unit/ -v --cov=src/lark_service --cov-report=xml --cov-report=term --cov-fail-under=55
+          pytest tests/unit/ -v --cov=src/lark_service --cov-report=xml --cov-report=term --cov-fail-under=60
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        if: always()
+        with:
+          files: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
 
       - name: Run contract tests
         env:
@@ -175,16 +184,7 @@ jobs:
           RABBITMQ_PASSWORD: rabbitmq_password_123
           PYTHONPATH: ${{ github.workspace }}/src
         run: |
-          pytest tests/contract/ -v
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        if: always()
-        with:
-          files: ./coverage.xml
-          flags: unittests
-          name: codecov-umbrella
-          fail_ci_if_error: false
+          pytest tests/contract/ -v --no-cov
 
   build:
     name: Build - Docker Image
