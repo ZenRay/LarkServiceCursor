@@ -342,12 +342,16 @@ class LarkServiceMetrics:
         Returns:
             Metrics data in Prometheus exposition format
         """
-        return generate_latest(self.registry)  # type: ignore[no-any-return]
+        from typing import cast
+
+        return cast(bytes, generate_latest(self.registry))
 
     @property
     def content_type(self) -> str:
         """Get content type for metrics response."""
-        return CONTENT_TYPE_LATEST  # type: ignore[no-any-return]
+        from typing import cast
+
+        return cast(str, CONTENT_TYPE_LATEST)
 
 
 # Global metrics instance
