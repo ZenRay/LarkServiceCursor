@@ -41,9 +41,14 @@ docker compose --env-file "$PROD_CONF" run --rm lark-service \
 # 3. 同步宿主机虚拟环境 (用于直接调用 CLI，不干扰系统)
 log_info "正在更新宿主机隔离虚拟环境 (uv)..."
 # 使用 uv 在宿主机创建/更新虚拟环境
-uv venv .venv --python $PYTHON_VERSION --quiet
-# 在虚拟环境中安装当前项目
-uv pip install -e . --index-url https://pypi.tuna.tsinghua.edu.cn/simple
+export PATH="/root/.local/bin:/root/.cargo/bin:$PATH"
+if command -v uv &> /dev/null; then
+    uv venv .venv --python $PYTHON_VERSION --quiet
+    # 在虚拟环境中安装当前项目
+    uv pip install -e . --index-url https://pypi.tuna.tsinghua.edu.cn/simple
+else
+    log_info "未检测到 uv，跳过宿主机虚拟环境同步（不影响容器运行）"
+fi
 
 log_info "✓ 部署完成！"
 log_info "提示: 如需在宿主机调用 CLI，请执行: source .venv/bin/activate"
