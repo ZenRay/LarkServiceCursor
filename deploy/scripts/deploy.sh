@@ -35,7 +35,8 @@ docker compose --env-file "$PROD_CONF" up -d --build --remove-orphans
 
 # 2. 执行数据库迁移
 log_info "正在执行数据库迁移..."
-docker compose --env-file "$PROD_CONF" run --rm lark-service alembic upgrade head
+docker compose --env-file "$PROD_CONF" run --rm lark-service \
+  alembic -c /app/alembic.ini upgrade head
 
 # 3. 同步宿主机虚拟环境 (用于直接调用 CLI，不干扰系统)
 log_info "正在更新宿主机隔离虚拟环境 (uv)..."

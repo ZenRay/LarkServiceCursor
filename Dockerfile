@@ -72,6 +72,7 @@ COPY --from=builder /usr/local /usr/local
 # Copy application code (copy last to maximize cache utilization)
 COPY src/ /app/src/
 COPY migrations/ /app/migrations/
+COPY alembic.ini /app/alembic.ini
 
 # Create necessary directories
 RUN mkdir -p /app/config /app/logs /app/data
