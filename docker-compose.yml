@@ -110,27 +110,33 @@ services:
     restart: unless-stopped
 
     environment:
-      # Database configuration
-      DATABASE_URL: postgresql://${POSTGRES_USER:-lark_user}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-lark_service}
+      # Database configuration (used by config loader)
+      POSTGRES_HOST: ${POSTGRES_HOST:-postgres}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      POSTGRES_DB: ${POSTGRES_DB:-lark_service}
+      POSTGRES_USER: ${POSTGRES_USER:-lark_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
 
-      # RabbitMQ configuration
-      RABBITMQ_URL: amqp://${RABBITMQ_USER:-lark_user}:${RABBITMQ_PASSWORD:-changeme}@rabbitmq:5672/${RABBITMQ_VHOST:-lark_vhost}
+      # RabbitMQ configuration (used by config loader)
+      RABBITMQ_HOST: ${RABBITMQ_HOST:-rabbitmq}
+      RABBITMQ_PORT: ${RABBITMQ_PORT:-5672}
+      RABBITMQ_USER: ${RABBITMQ_USER:-lark_user}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-changeme}
 
       # Application configuration
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       ENVIRONMENT: ${ENVIRONMENT:-production}
       LARK_CONFIG_ENCRYPTION_KEY: ${LARK_CONFIG_ENCRYPTION_KEY:-}
 
-      # Feishu application configuration
-      APP_ID: ${LARK_APP_ID:-}
-      APP_SECRET: ${LARK_APP_SECRET:-}
+      # Feishu application configuration (explicit, avoid ambiguous names)
+      LARK_APP_ID: ${LARK_APP_ID}
+      LARK_APP_SECRET: ${LARK_APP_SECRET}
       LARK_VERIFICATION_TOKEN: ${LARK_VERIFICATION_TOKEN:-}
       LARK_ENCRYPT_KEY: ${LARK_ENCRYPT_KEY:-}
 
-    # env_file 已经在 deploy.sh 中通过 --env-file 参数统一注入，此处不再硬编码要求本地 .env
-    # env_file:
-    #   - .env
-
+    # 开发环境使用本地 .env；生产环境由 deploy.sh 生成 .env 指向 /etc/lark-service/production.env
+    env_file:
+      - .env
     volumes:
       - ./config:/app/config:ro
       - ./logs:/app/logs
