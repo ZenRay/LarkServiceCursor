@@ -1,6 +1,6 @@
 # Lark Service 部署指南
 
-**版本**: 1.0.0  
+**版本**: 1.0.0
 **更新时间**: 2026-01-15
 
 ## 1. 部署概述
@@ -32,6 +32,12 @@ docker run -d \
 
 # 初始化扩展
 docker exec -it lark-postgres psql -U lark -d lark_service -c "CREATE EXTENSION IF NOT EXISTS pgcrypto;"
+
+# 配置连接池 (FR-120)
+# 在 postgresql.conf 或环境变量中配置:
+# - max_connections = 100
+# - shared_buffers = 256MB
+# - effective_cache_size = 1GB
 ```
 
 #### 生产环境 (云服务)
@@ -43,11 +49,117 @@ docker exec -it lark-postgres psql -U lark -d lark_service -c "CREATE EXTENSION 
 - **GCP**: Cloud SQL for PostgreSQL
 - **阿里云**: RDS PostgreSQL
 
-**配置要求**:
-- PostgreSQL 15+
+**配置要求** (FR-120):
+- PostgreSQL ≥ 13 (推荐15+,支持pg_crypto扩展)
 - 启用 `pgcrypto` 扩展
+- 连接池大小: 5-20 个连接 (通过环境变量 DB_POOL_SIZE 配置)
+- 连接超时: 30秒 (通过环境变量 DB_POOL_TIMEOUT 配置)
+- 连接最大生命周期: 3600秒 (1小时)
 - 至少 2GB 内存
 - SSD 存储
+
+#### 数据备份与恢复 (FR-118) ⭐ NEW
+
+**备份策略**:
+- **备份频率**: 每日一次 (建议凌晨2-4点业务低峰期)
+- **备份类型**: 全量备份(每周日) + 增量备份(每日)
+- **RTO**: ≤ 4小时 (恢复时间目标)
+- **RPO**: ≤ 24小时 (恢复点目标,最多丢失24小时数据)
+- **备份加密**: 使用独立加密密钥
+- **备份演练**: 每季度演练一次,验证备份可用性
+
+**自动备份脚本**:
+
+```bash
+#!/bin/bash
+# /opt/lark-service/scripts/backup-postgres.sh
+
+# 配置
+BACKUP_DIR="/backup/lark-service/postgres"
+DB_NAME="lark_service"
+DB_USER="lark"
+RETENTION_DAYS=30  # 保留30天
+
+# 创建备份目录
+mkdir -p $BACKUP_DIR
+
+# 生成备份文件名 (时间戳)
+BACKUP_FILE="$BACKUP_DIR/lark_service_$(date +%Y%m%d_%H%M%S).sql.gz"
+
+# 执行备份 (使用 pg_dump)
+PGPASSWORD=$DB_PASSWORD pg_dump -h localhost -U $DB_USER -d $DB_NAME \
+  | gzip > $BACKUP_FILE
+
+# 加密备份文件
+gpg --symmetric --cipher-algo AES256 --output $BACKUP_FILE.gpg $BACKUP_FILE
+rm $BACKUP_FILE  # 删除明文备份
+
+# 清理过期备份
+find $BACKUP_DIR -name "*.gpg" -mtime +$RETENTION_DAYS -delete
+
+# 记录备份日志
+echo "[$(date)] Backup completed: $BACKUP_FILE.gpg" >> /var/log/lark-backup.log
+```
+
+**定时任务 (Crontab)**:
+
+```bash
+# 每天凌晨2点执行备份
+0 2 * * * /opt/lark-service/scripts/backup-postgres.sh
+
+# 每周日执行全量备份
+0 3 * * 0 /opt/lark-service/scripts/backup-postgres-full.sh
+```
+
+**恢复流程**:
+
+```bash
+# 1. 解密备份文件
+gpg --decrypt backup_file.sql.gz.gpg > backup_file.sql.gz
+
+# 2. 解压
+gunzip backup_file.sql.gz
+
+# 3. 停止应用服务 (避免写入冲突)
+systemctl stop lark-service
+
+# 4. 删除现有数据库
+psql -U postgres -c "DROP DATABASE IF EXISTS lark_service;"
+psql -U postgres -c "CREATE DATABASE lark_service OWNER lark;"
+
+# 5. 恢复数据
+psql -U lark -d lark_service < backup_file.sql
+
+# 6. 验证数据完整性
+psql -U lark -d lark_service -c "SELECT COUNT(*) FROM tokens;"
+psql -U lark -d lark_service -c "SELECT COUNT(*) FROM user_cache;"
+
+# 7. 启动应用服务
+systemctl start lark-service
+
+# 8. 记录恢复日志
+echo "[$(date)] Database restored from backup" >> /var/log/lark-restore.log
+```
+
+**备份验证**:
+
+```bash
+# 每季度执行恢复演练 (测试环境)
+# 1. 下载最新备份到测试环境
+# 2. 执行完整恢复流程
+# 3. 验证数据完整性和应用功能
+# 4. 记录演练结果和耗时
+```
+
+**监控告警**:
+
+```bash
+# 监控备份状态
+- 备份文件大小异常 (< 10MB 或 > 10GB)
+- 备份失败 (检查日志中的错误)
+- 备份时间过长 (> 30分钟)
+- 备份文件缺失 (连续2天无新备份)
+```
 - 自动备份
 
 **连接示例**:
@@ -370,12 +482,12 @@ from lark_service import LarkServiceClient
 
 def send_notification(request):
     client = LarkServiceClient(app_id="cli_your_app_id")
-    
+
     response = client.messaging.send_text(
         receiver_id=request.user.lark_user_id,
         content="您有新的订单通知!"
     )
-    
+
     return JsonResponse({"message_id": response.data['message_id']})
 ```
 
@@ -416,12 +528,12 @@ app.config.from_object('config.Config')
 @app.route('/send-message', methods=['POST'])
 def send_message():
     client = LarkServiceClient(app_id="cli_your_app_id")
-    
+
     response = client.messaging.send_text(
         receiver_id="ou_xxxxxxxx",
         content="Hello from Flask!"
     )
-    
+
     return jsonify({"message_id": response.data['message_id']})
 ```
 
@@ -447,16 +559,16 @@ from lark_service import LarkServiceClient
 def load_to_lark(**context):
     """ETL 完成后将数据加载到飞书"""
     client = LarkServiceClient(app_id="cli_airflow_app")
-    
+
     # 获取 ETL 结果
     etl_result = context['task_instance'].xcom_pull(task_ids='etl_task')
-    
+
     # 发送通知
     client.messaging.send_text(
         receiver_id="ou_team_leader",
         content=f"✅ ETL 完成! 数据量: {etl_result['row_count']}"
     )
-    
+
     # 写入飞书多维表格
     for record in etl_result['data']:
         client.clouddoc.bitable.create_record(
@@ -470,7 +582,7 @@ with DAG(
     start_date=datetime(2026, 1, 1),
     schedule_interval='@daily',
 ) as dag:
-    
+
     load_task = PythonOperator(
         task_id='load_to_lark',
         python_callable=load_to_lark,
@@ -504,7 +616,7 @@ async def send_notification(user_id: str, message: str):
         receiver_id=user_id,
         content=message
     )
-    
+
     return {"message_id": response.data['message_id']}
 ```
 
@@ -854,28 +966,189 @@ engine = create_engine(
 
 ## 12. 备份和恢复
 
-### 12.1 PostgreSQL 备份
+### 12.1 备份策略概览
 
+**目标**:
+- **RPO (恢复点目标)**: 1小时
+- **RTO (恢复时间目标)**: 4小时
+- **保留期限**: 30天
+
+### 12.2 自动化备份脚本
+
+项目提供完整的备份恢复脚本:
+- **备份脚本**: `scripts/backup_database.sh`
+- **恢复脚本**: `scripts/restore_database.sh`
+- **回滚测试**: `scripts/test_migration_rollback.sh`
+
+**安装和配置**:
 ```bash
-# 备份数据库
-pg_dump -U lark -d lark_service > backup_$(date +%Y%m%d).sql
+# 1. 设置可执行权限
+chmod +x scripts/*.sh
 
-# 恢复数据库
-psql -U lark -d lark_service < backup_20260115.sql
+# 2. 配置环境变量
+export BACKUP_DIR="/backups/postgres"
+export POSTGRES_HOST="localhost"
+export POSTGRES_PORT="5432"
+export POSTGRES_DB="lark_service"
+export POSTGRES_USER="lark_user"
+export PGPASSWORD="your_password"
+
+# 3. 测试备份
+./scripts/backup_database.sh
+
+# 4. 配置定时任务 (每日凌晨2点)
+echo "0 2 * * * /path/to/scripts/backup_database.sh" | crontab -
 ```
 
-### 12.2 SQLite 备份
+### 12.3 PostgreSQL 备份
+
+**手动备份**:
+```bash
+# 完整SQL备份 (推荐)
+pg_dump -h localhost -U lark_user -d lark_service | gzip > backup_$(date +%Y%m%d_%H%M%S).sql.gz
+
+# 自定义格式备份 (快速恢复)
+pg_dump -h localhost -U lark_user -d lark_service -Fc > backup_$(date +%Y%m%d_%H%M%S).dump
+```
+
+**恢复数据库**:
+```bash
+# 方法1: 使用恢复脚本 (推荐)
+./scripts/restore_database.sh /backups/postgres/lark_service_latest.sql.gz
+
+# 方法2: 手动恢复
+gunzip -c backup_20260118.sql.gz | psql -h localhost -U lark_user -d lark_service
+
+# 方法3: 自定义格式恢复
+pg_restore -h localhost -U lark_user -d lark_service backup_20260118.dump
+```
+
+**详细文档**: 参见 [`docs/database-migration-rollback.md`](./database-migration-rollback.md)
+
+### 12.4 SQLite 配置备份
 
 ```bash
 # 备份应用配置数据库
 cp config/applications.db config/applications.db.backup_$(date +%Y%m%d)
 
+# 定时备份
+0 3 * * * cp config/applications.db /backups/sqlite/applications.db.$(date +\%Y\%m\%d)
+
+# 清理30天前备份
+find /backups/sqlite/ -name "applications.db.*" -mtime +30 -delete
+
 # 恢复
-cp config/applications.db.backup_20260115 config/applications.db
+cp config/applications.db.backup_20260118 config/applications.db
+```
+
+### 12.5 数据库迁移回滚
+
+**回滚一个版本**:
+```bash
+# 1. 备份当前数据
+./scripts/backup_database.sh
+
+# 2. 回滚迁移
+alembic downgrade -1
+
+# 3. 验证
+alembic current
+
+# 4. 重启应用
+docker compose restart app
+```
+
+**测试回滚流程**:
+```bash
+# 自动化测试脚本
+./scripts/test_migration_rollback.sh
+
+# 测试内容:
+# - 升级到最新版本
+# - 插入测试数据
+# - 执行回滚
+# - 验证表删除
+# - 重新升级
+# - 验证数据状态
+```
+
+### 12.6 备份验证
+
+**每周验证备份可恢复性**:
+```bash
+# 创建验证脚本
+cat > scripts/verify_backup.sh << 'EOF'
+#!/bin/bash
+set -e
+
+LATEST_BACKUP="/backups/postgres/lark_service_latest.sql.gz"
+TEST_DB="lark_service_verify"
+
+echo "验证备份: $LATEST_BACKUP"
+
+# 创建测试数据库
+psql -U postgres -c "DROP DATABASE IF EXISTS $TEST_DB;"
+psql -U postgres -c "CREATE DATABASE $TEST_DB;"
+
+# 恢复到测试数据库
+gunzip -c "$LATEST_BACKUP" | psql -U postgres -d "$TEST_DB"
+
+# 验证表结构
+TABLE_COUNT=$(psql -U postgres -d "$TEST_DB" -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public';")
+
+if [ "$TABLE_COUNT" -ge 3 ]; then
+    echo "✓ 备份验证成功: $TABLE_COUNT 个表已恢复"
+else
+    echo "✗ 备份验证失败"
+    exit 1
+fi
+
+# 清理测试数据库
+psql -U postgres -c "DROP DATABASE $TEST_DB;"
+echo "✓ 验证完成"
+EOF
+
+chmod +x scripts/verify_backup.sh
+
+# 配置每周验证
+echo "0 3 * * 0 /path/to/scripts/verify_backup.sh" | crontab -
+```
+
+### 12.7 灾难恢复演练
+
+**目的**: 验证备份可用性,确保团队熟悉恢复流程
+
+**频率**: 每季度
+
+**演练步骤**:
+```bash
+# 1. 在测试环境执行
+export POSTGRES_DB="lark_service_test"
+
+# 2. 使用生产备份
+BACKUP_FILE="/backups/postgres/prod_backup_latest.sql.gz"
+
+# 3. 执行恢复
+./scripts/restore_database.sh "$BACKUP_FILE"
+
+# 4. 运行集成测试
+pytest tests/integration/ -v
+
+# 5. 记录恢复时间 (目标: < 4小时)
+
+# 6. 生成演练报告
+cat > dr_report_$(date +%Y%m%d).md << EOF
+# 灾难恢复演练报告
+- 日期: $(date)
+- 备份文件: $BACKUP_FILE
+- 恢复时间: XX 分钟
+- 数据完整性: PASS
+- 应用功能: PASS
+EOF
 ```
 
 ---
 
-**维护者**: Lark Service Team  
-**最后更新**: 2026-01-15  
-**版本**: 1.0.0
+**维护者**: Lark Service Team
+**最后更新**: 2026-01-18
+**版本**: 1.1.0 (新增自动化备份恢复)

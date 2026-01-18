@@ -1,7 +1,7 @@
 # Technical Research: Lark Service 核心组件
 
-**Feature**: 001-lark-service-core  
-**Date**: 2026-01-14  
+**Feature**: 001-lark-service-core
+**Date**: 2026-01-14
 **Phase**: Phase 0 - Technical Research
 
 ## 调研目标
@@ -127,7 +127,7 @@ token_engine = create_engine(
 - 无需额外服务
 - 文件级加密
 
-✅ **Token 数据** → PostgreSQL  
+✅ **Token 数据** → PostgreSQL
 - 高并发性能
 - 原生加密支持
 - 生产级可靠性
@@ -201,27 +201,27 @@ class TokenRefreshLock:
     """
     Hybrid lock for thread and process safety.
     """
-    
+
     def __init__(self, app_id: str, token_type: str):
         self.app_id = app_id
         self.token_type = token_type
-        
+
         # Thread lock (in-memory)
         self._thread_lock = threading.Lock()
-        
+
         # Process lock (file-based)
         lock_file = f"/tmp/lark_token_{app_id}_{token_type}.lock"
         self._process_lock = FileLock(lock_file, timeout=30)
-    
+
     def __enter__(self):
         # Acquire thread lock first
         self._thread_lock.acquire()
-        
+
         # Then acquire process lock
         self._process_lock.acquire()
-        
+
         return self
-    
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         # Release in reverse order
         self._process_lock.release()
@@ -261,11 +261,11 @@ class TokenRefreshLock:
 4. 飞书回调组件的 HTTP 端点: `GET /auth/callback?code=xxx&state=session_id`
 5. 组件用 code 换取 user_access_token 并存储
 
-**优点**: 
+**优点**:
 - 标准 OAuth 流程,可靠性高
 - 用户体验清晰(浏览器授权页面)
 
-**缺点**: 
+**缺点**:
 - 需要组件暴露 HTTP 端点(增加部署复杂度)
 - 需要配置公网可访问的 redirect_uri
 
@@ -278,11 +278,11 @@ class TokenRefreshLock:
 4. 组件在回调处理函数中调用飞书 API 获取用户信息
 5. 使用 app_access_token 代为获取 user_access_token(需要应用权限)
 
-**优点**: 
+**优点**:
 - 无需暴露 HTTP 端点
 - 流程在飞书内闭环
 
-**缺点**: 
+**缺点**:
 - 依赖卡片回调机制
 - 需要应用具备"代理获取用户 Token"的权限
 
@@ -301,7 +301,7 @@ class TokenRefreshLock:
 ```python
 class UserAuthSession(Base):
     __tablename__ = "auth_sessions"
-    
+
     session_id = Column(String, primary_key=True)
     app_id = Column(String, nullable=False)
     user_id = Column(String, nullable=True)  # 认证完成后填充
@@ -324,30 +324,30 @@ class LarkClient:
     """
     Wrapper for lark-oapi SDK with multi-app support.
     """
-    
+
     def __init__(self, app_id: str, app_secret: str):
         self.app_id = app_id
         self.app_secret = app_secret
-        
+
         # SDK Client initialization
         self.client = lark.Client.builder() \
             .app_id(app_id) \
             .app_secret(app_secret) \
             .log_level(lark.LogLevel.INFO) \
             .build()
-    
+
     def get_tenant_access_token(self) -> str:
         """
         Get tenant_access_token using SDK.
         """
         request = lark.GetTenantAccessTokenRequest()
         response = self.client.auth.v3.tenant_access_token.get(request)
-        
+
         if not response.success():
             raise TokenAcquisitionError(
                 f"Failed to get token: {response.code} - {response.msg}"
             )
-        
+
         return response.data.tenant_access_token
 ```
 
@@ -364,34 +364,34 @@ class CredentialPool:
         self._clients: Dict[str, LarkClient] = {}
         self._tokens: Dict[Tuple[str, TokenType], Token] = {}
         self._locks: Dict[Tuple[str, TokenType], TokenRefreshLock] = {}
-    
+
     def get_client(self, app_id: str) -> LarkClient:
         if app_id not in self._clients:
             app_secret = os.getenv(f"LARK_APP_SECRET_{app_id}")
             self._clients[app_id] = LarkClient(app_id, app_secret)
         return self._clients[app_id]
-    
+
     def get_token(self, app_id: str, token_type: TokenType) -> str:
         # Check cache first
         key = (app_id, token_type)
         if key in self._tokens and not self._tokens[key].is_expired():
             return self._tokens[key].value
-        
+
         # Refresh with lock
         lock = self._get_lock(app_id, token_type)
         with lock:
             # Double check after acquiring lock
             if key in self._tokens and not self._tokens[key].is_expired():
                 return self._tokens[key].value
-            
+
             # Refresh token
             client = self.get_client(app_id)
             new_token = client.get_tenant_access_token()
             self._tokens[key] = Token(value=new_token, expires_at=...)
-            
+
             # Persist to database
             self._save_to_db(app_id, token_type, new_token)
-            
+
             return new_token
 ```
 
@@ -410,7 +410,7 @@ class ErrorMapper:
             if "timeout" in str(e):
                 return RetryableError("Network timeout", original=e)
             return RetryableError("API call failed", original=e)
-        
+
         if isinstance(e, lark.BusinessException):
             error_code = e.code
             if error_code == 99991663:  # Token invalid
@@ -418,7 +418,7 @@ class ErrorMapper:
             if error_code == 99991664:  # Rate limited
                 return RateLimitedError("API rate limited", original=e)
             return NonRetryableError(f"Business error: {e.msg}", original=e)
-        
+
         return UnknownError("Unexpected error", original=e)
 ```
 
@@ -481,7 +481,7 @@ VALUES (
 );
 
 -- Decrypt token on read
-SELECT 
+SELECT
     app_id,
     token_type,
     pgp_sym_decrypt(token_value::bytea, 'encryption_key') AS token_value,
@@ -690,13 +690,13 @@ def get_user_by_email(app_id: str, email: str) -> User:
         UserCache.email == email,
         UserCache.expires_at > datetime.now()
     ).first()
-    
+
     if cached:
         return User.from_cache(cached)  # 缓存命中
-    
+
     # 2. 缓存未命中或过期,调用飞书 API
     lark_user = lark_api.get_user_by_email(email)
-    
+
     # 3. 更新缓存
     db.merge(UserCache(
         app_id=app_id,
@@ -707,7 +707,7 @@ def get_user_by_email(app_id: str, email: str) -> User:
         cached_at=datetime.now(),
         expires_at=datetime.now() + timedelta(hours=24)
     ))
-    
+
     return lark_user
 ```
 
@@ -775,13 +775,13 @@ def get_user_by_email(app_id: str, email: str) -> User:
 def update_record(table_id: str, record_id: str, fields: dict, version: int):
     # 1. 读取当前记录版本
     current = lark_api.get_record(table_id, record_id)
-    
+
     # 2. 版本检查
     if current.version != version:
         raise VersionConflictError(
             f"并发写冲突,当前版本 {current.version},提供版本 {version}"
         )
-    
+
     # 3. 更新(飞书侧会自动递增版本号)
     updated = lark_api.update_record(table_id, record_id, fields)
     return updated
@@ -1044,7 +1044,7 @@ git commit -m "chore: 锁定 lark-service 到 v1.2.0"
    ```python
    # your_app/config.py
    from pathlib import Path
-   
+
    LARK_SERVICE_ROOT = Path(__file__).parent.parent / "libs" / "lark-service"
    LARK_CONFIG_DB = LARK_SERVICE_ROOT / "data" / "lark_config.db"
    ```
@@ -1186,21 +1186,21 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive  # 关键: 拉取子模块
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      
+
       - name: Install uv
         run: pip install uv
-      
+
       - name: Install dependencies
         run: |
           uv pip install -r requirements.txt
           cd libs/lark-service
           uv pip install -r requirements.txt
-      
+
       - name: Run tests
         run: pytest tests/
 ```
@@ -1235,17 +1235,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      
+
       - name: Install dependencies
         run: |
           pip install uv
           uv pip install -r requirements.txt  # 包含 lark-service
-      
+
       - name: Run tests
         run: pytest tests/
 ```

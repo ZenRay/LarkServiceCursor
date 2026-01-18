@@ -1,0 +1,95 @@
+# ============================================================================
+# .dockerignore - 排除不必要的文件,加速构建和减小镜像体积
+# ============================================================================
+
+# Git 相关
+.git
+.gitignore
+.gitattributes
+
+# Python 缓存和编译文件
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# 虚拟环境
+venv/
+env/
+ENV/
+.venv/
+
+# IDE 和编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# 测试相关
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+test-results.xml
+*.log
+
+# 文档
+docs/_build/
+*.md
+!README.md
+
+# 配置文件 (敏感信息)
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.crt
+
+# 数据库文件
+*.db
+*.sqlite
+*.sqlite3
+
+# 临时文件
+tmp/
+temp/
+*.tmp
+*.bak
+*.backup
+
+# Docker 相关
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# 规范和计划文档
+specs/
+instructions/
+
+# 开发工具配置
+.pre-commit-config.yaml
+.ruff_cache/
+.mypy_cache/
+.bandit
+pyproject.toml
+
+# 其他开发文件
+scripts/
+tests/
+examples/
+*.txt
+!requirements.txt

@@ -1,0 +1,427 @@
+# CI/CD增强 - 性能测试和多环境部署
+# 在现有ci.yml基础上添加以下jobs
+
+name: CI/CD Enhanced Pipeline
+
+on:
+  push:
+    branches: ["main", "develop", "staging"]
+  pull_request:
+    branches: ["main", "develop"]
+  schedule:
+    # 每天凌晨3点运行完整测试
+    - cron: '0 3 * * *'
+
+env:
+  PYTHON_VERSION: "3.12"
+  UV_VERSION: "latest"
+
+jobs:
+  # ... (保留原有的 lint, type-check, security, test, build jobs)
+
+  # ==========================================================================
+  # 性能测试 Job
+  # ==========================================================================
+  performance-test:
+    name: Performance - Baseline & Load Test
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'push' &&
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging') ||
+      github.event_name == 'schedule'
+    needs: [test]
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: lark_service
+          POSTGRES_USER: lark
+          POSTGRES_PASSWORD: lark_password_123
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: ${{ env.UV_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          uv pip install -r requirements.txt
+          uv pip install pytest pytest-benchmark locust
+          uv pip install -e .
+
+      - name: Run benchmark tests
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          POSTGRES_DB: lark_service
+          POSTGRES_USER: lark
+          POSTGRES_PASSWORD: lark_password_123
+        run: |
+          pytest tests/performance/benchmark_test.py \
+            --benchmark-only \
+            --benchmark-json=benchmark-results.json \
+            --benchmark-min-rounds=10
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: benchmark-results.json
+
+      - name: Compare with baseline
+        run: |
+          python scripts/compare_performance.py \
+            benchmark-results.json \
+            docs/performance-benchmark-2026-01-18.md \
+            --threshold 20
+
+      - name: Run load test (Locust)
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+        run: |
+          # 启动应用
+          python -m lark_service &
+          APP_PID=$!
+          sleep 5
+
+          # 运行负载测试 (100用户，60秒)
+          locust -f tests/performance/locustfile.py \
+            --headless \
+            --users 100 \
+            --spawn-rate 10 \
+            --run-time 60s \
+            --host http://localhost:8000 \
+            --html load-test-report.html \
+            --csv load-test
+
+          # 停止应用
+          kill $APP_PID
+
+      - name: Upload load test report
+        uses: actions/upload-artifact@v4
+        with:
+          name: load-test-report
+          path: |
+            load-test-report.html
+            load-test_*.csv
+
+      - name: Check performance regressions
+        run: |
+          python scripts/check_performance_regression.py \
+            --benchmark benchmark-results.json \
+            --load-test load-test_stats.csv \
+            --fail-on-regression
+
+  # ==========================================================================
+  # 多环境部署 Jobs
+  # ==========================================================================
+
+  deploy-staging:
+    name: Deploy - Staging Environment
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
+    needs: [build, performance-test]
+    environment:
+      name: staging
+      url: https://staging-lark-service.example.com
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (if using AWS)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-southeast-1
+
+      - name: Login to Container Registry
+        run: |
+          echo "${{ secrets.DOCKER_REGISTRY_TOKEN }}" | \
+          docker login ${{ secrets.DOCKER_REGISTRY }} -u ${{ secrets.DOCKER_REGISTRY_USER }} --password-stdin
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_REGISTRY }}/lark-service:staging-${{ github.sha }}
+            ${{ secrets.DOCKER_REGISTRY }}/lark-service:staging-latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Deploy to Staging
+        run: |
+          # 使用 kubectl 或其他部署工具
+          kubectl set image deployment/lark-service \
+            lark-service=${{ secrets.DOCKER_REGISTRY }}/lark-service:staging-${{ github.sha }} \
+            -n staging
+
+          # 或使用 Docker Compose
+          # scp docker-compose.yml staging-server:/opt/lark-service/
+          # ssh staging-server "cd /opt/lark-service && docker compose pull && docker compose up -d"
+
+      - name: Wait for deployment
+        run: |
+          kubectl rollout status deployment/lark-service -n staging --timeout=5m
+
+      - name: Run smoke tests
+        env:
+          STAGING_URL: https://staging-lark-service.example.com
+        run: |
+          # 健康检查
+          curl -f $STAGING_URL/health || exit 1
+
+          # 运行关键路径测试
+          pytest tests/smoke/ -v \
+            --base-url=$STAGING_URL \
+            --timeout=30
+
+      - name: Notify deployment
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: "Staging deployment ${{ job.status }}"
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  deploy-production:
+    name: Deploy - Production Environment
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [build, performance-test, integration-test]
+    environment:
+      name: production
+      url: https://lark-service.example.com
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify release tag
+        run: |
+          git describe --tags --exact-match || {
+            echo "❌ Production deployment requires a release tag"
+            exit 1
+          }
+
+      - name: Manual approval checkpoint
+        uses: trstringer/manual-approval@v1
+        with:
+          secret: ${{ github.TOKEN }}
+          approvers: sre-team,backend-lead
+          minimum-approvals: 2
+          issue-title: "Deploy to Production"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-southeast-1
+
+      - name: Login to Container Registry
+        run: |
+          echo "${{ secrets.DOCKER_REGISTRY_TOKEN }}" | \
+          docker login ${{ secrets.DOCKER_REGISTRY }} -u ${{ secrets.DOCKER_REGISTRY_USER }} --password-stdin
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_REGISTRY }}/lark-service:${{ github.sha }}
+            ${{ secrets.DOCKER_REGISTRY }}/lark-service:latest
+            ${{ secrets.DOCKER_REGISTRY }}/lark-service:$(git describe --tags)
+          cache-from: type=gha
+
+      - name: Create database backup
+        run: |
+          # 生产部署前备份数据库
+          ssh prod-server "cd /opt/lark-service && ./scripts/backup_database.sh"
+
+      - name: Blue-Green Deployment
+        run: |
+          # 1. 部署到green环境
+          kubectl set image deployment/lark-service-green \
+            lark-service=${{ secrets.DOCKER_REGISTRY }}/lark-service:${{ github.sha }} \
+            -n production
+
+          # 2. 等待green环境就绪
+          kubectl rollout status deployment/lark-service-green -n production --timeout=10m
+
+          # 3. 运行smoke tests
+          kubectl port-forward -n production deployment/lark-service-green 8080:8000 &
+          sleep 5
+          curl -f http://localhost:8080/health || exit 1
+
+          # 4. 切换流量到green
+          kubectl patch service lark-service -n production \
+            -p '{"spec":{"selector":{"version":"green"}}}'
+
+          # 5. 监控5分钟
+          sleep 300
+
+          # 6. 验证无错误后，更新blue为新版本
+          kubectl set image deployment/lark-service-blue \
+            lark-service=${{ secrets.DOCKER_REGISTRY }}/lark-service:${{ github.sha }} \
+            -n production
+
+      - name: Monitor deployment
+        run: |
+          # 监控关键指标15分钟
+          python scripts/monitor_deployment.py \
+            --duration 900 \
+            --error-threshold 0.05 \
+            --latency-threshold 2000
+
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          echo "❌ Deployment failed, rolling back"
+          kubectl patch service lark-service -n production \
+            -p '{"spec":{"selector":{"version":"blue"}}}'
+
+          # 恢复数据库（如果需要）
+          # ssh prod-server "cd /opt/lark-service && ./scripts/restore_database.sh latest"
+
+      - name: Update release notes
+        if: success()
+        run: |
+          gh release create $(git describe --tags) \
+            --title "Release $(git describe --tags)" \
+            --notes-file release_notes.md
+
+      - name: Notify deployment
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: |
+            Production deployment ${{ job.status }}
+            Version: $(git describe --tags)
+            Commit: ${{ github.sha }}
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  # ==========================================================================
+  # 安全扫描增强
+  # ==========================================================================
+
+  security-scan-enhanced:
+    name: Security - Comprehensive Scan
+    runs-on: ubuntu-latest
+    needs: [build]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Run SAST with Semgrep
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/security-audit
+            p/python
+            p/secrets
+
+      - name: Check for secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+
+      - name: Dependency vulnerability scan
+        run: |
+          pip install safety pip-audit
+          safety check --json --output safety-report.json
+          pip-audit --format json --output pip-audit-report.json
+
+      - name: Upload security reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-reports
+          path: |
+            trivy-results.sarif
+            safety-report.json
+            pip-audit-report.json
+
+  # ==========================================================================
+  # 文档和报告生成
+  # ==========================================================================
+
+  generate-reports:
+    name: Generate - Test & Coverage Reports
+    runs-on: ubuntu-latest
+    needs: [test, performance-test, security-scan-enhanced]
+    if: always()
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Generate consolidated report
+        run: |
+          python scripts/generate_qa_report.py \
+            --coverage coverage.xml \
+            --benchmark benchmark-results.json \
+            --security security-reports/ \
+            --output qa-report.html
+
+      - name: Upload QA report
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-report
+          path: qa-report.html
+
+      - name: Publish to GitHub Pages
+        if: github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./reports
+          destination_dir: qa-reports/${{ github.sha }}

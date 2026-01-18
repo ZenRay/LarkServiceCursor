@@ -1,7 +1,7 @@
 # 安全配置指南
 
-**最后更新**: 2026-01-15  
-**版本**: 2.0  
+**最后更新**: 2026-01-15
+**版本**: 2.0
 **状态**: Production Ready
 
 ---
@@ -259,7 +259,7 @@ def get_secret():
         vault_url="https://your-vault.vault.azure.net/",
         credential=credential
     )
-    
+
     secret = client.get_secret("lark-encryption-key")
     return secret.value
 
@@ -419,11 +419,11 @@ grep -q ".env" .gitignore && echo "✅ .env 已忽略" || echo "❌ 需要添加
 # 日志脱敏示例
 def mask_secret(value: str, prefix_len: int = 4) -> str:
     """Mask sensitive values in logs.
-    
+
     Args:
         value: Original value
         prefix_len: Number of prefix characters to show
-        
+
     Returns:
         Masked string (e.g., "cli_****")
     """
@@ -474,7 +474,7 @@ safety check --file requirements.txt --exit-code
 |                                                                              |
 +==============================================================================+
 
- REPORT 
+ REPORT
 
   Safety is using PyUp's free open-source vulnerability database.
 
@@ -621,15 +621,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.12'
-      
+
       - name: Install safety
         run: pip install safety
-      
+
       - name: Scan dependencies
         run: safety check --file requirements.txt --exit-code
 
@@ -637,10 +637,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Build Docker image
         run: docker build -t lark-service:${{ github.sha }} .
-      
+
       - name: Run Trivy scanner
         uses: aquasecurity/trivy-action@master
         with:
@@ -648,7 +648,7 @@ jobs:
           format: 'sarif'
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'
-      
+
       - name: Upload Trivy results
         uses: github/codeql-action/upload-sarif@v2
         with:

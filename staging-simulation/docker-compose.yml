@@ -1,0 +1,128 @@
+version: '3.8'
+
+services:
+  # PostgreSQL 数据库
+  postgres:
+    image: postgres:15-alpine
+    container_name: lark-staging-postgres
+    environment:
+      POSTGRES_DB: lark_service_staging
+      POSTGRES_USER: lark_staging
+      POSTGRES_PASSWORD: staging_password_local_only
+      POSTGRES_INITDB_ARGS: "-E UTF8"
+    ports:
+      - "5433:5432"  # 使用5433避免与本地PostgreSQL冲突
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lark_staging -d lark_service_staging"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - lark-staging-network
+
+  # RabbitMQ 消息队列
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: lark-staging-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: lark_staging
+      RABBITMQ_DEFAULT_PASS: staging_rabbitmq_local_only
+      RABBITMQ_DEFAULT_VHOST: /lark-staging
+    ports:
+      - "5673:5672"    # AMQP (避免冲突)
+      - "15673:15672"  # 管理界面 (避免冲突)
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - lark-staging-network
+
+  # Redis (可选，用于缓存和分布式锁)
+  redis:
+    image: redis:7-alpine
+    container_name: lark-staging-redis
+    command: redis-server --requirepass staging_redis_local_only
+    ports:
+      - "6380:6379"  # Redis (避免冲突)
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - lark-staging-network
+
+  # Prometheus (可选，用于metrics采集)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: lark-staging-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'  # 支持热重载配置
+    environment:
+      # Prometheus配置的环境变量
+      - ENVIRONMENT=${ENVIRONMENT:-staging-local}
+      - PROMETHEUS_SCRAPE_INTERVAL=${PROMETHEUS_SCRAPE_INTERVAL:-15s}
+      - PROMETHEUS_EVALUATION_INTERVAL=${PROMETHEUS_EVALUATION_INTERVAL:-15s}
+      - LARK_SERVICE_METRICS_HOST=${LARK_SERVICE_METRICS_HOST:-172.17.0.1}
+      - LARK_SERVICE_METRICS_PORT=${LARK_SERVICE_METRICS_PORT:-9091}
+      - LARK_SERVICE_SCRAPE_INTERVAL=${LARK_SERVICE_SCRAPE_INTERVAL:-10s}
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_METRICS_PORT=15692
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - lark-staging-network
+
+  # Grafana (可选，用于可视化)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: lark-staging-grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin_local_only}
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - PROMETHEUS_HOST=prometheus
+      - PROMETHEUS_PORT=9090
+      - PROMETHEUS_SCRAPE_INTERVAL=${PROMETHEUS_SCRAPE_INTERVAL:-10s}
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana-datasource.yml:/etc/grafana/provisioning/datasources/prometheus.yml
+      - ./grafana-dashboard.json:/var/lib/grafana/dashboards/lark-service.json
+    depends_on:
+      - prometheus
+    networks:
+      - lark-staging-network
+
+volumes:
+  postgres_data:
+    driver: local
+  rabbitmq_data:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+networks:
+  lark-staging-network:
+    driver: bridge

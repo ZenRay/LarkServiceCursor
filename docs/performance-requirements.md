@@ -1,7 +1,7 @@
 # 性能需求与测试规范
 
-**版本**: 1.0.0  
-**更新时间**: 2026-01-15  
+**版本**: 1.0.0
+**更新时间**: 2026-01-15
 **状态**: Draft
 
 ---
@@ -67,16 +67,16 @@ from locust import HttpUser, task, between
 
 class LarkServiceUser(HttpUser):
     wait_time = between(0.1, 0.5)
-    
+
     def on_start(self):
         """Setup test environment."""
         self.app_id = "cli_test12345678"
-    
+
     @task(5)
     def get_token(self):
         """Test token acquisition (50% of traffic)."""
         self.client.get(f"/api/token?app_id={self.app_id}")
-    
+
     @task(3)
     def send_message(self):
         """Test message sending (30% of traffic)."""
@@ -86,7 +86,7 @@ class LarkServiceUser(HttpUser):
             "msg_type": "text",
             "content": "Test message"
         })
-    
+
     @task(2)
     def get_user(self):
         """Test user query (20% of traffic)."""
@@ -182,11 +182,11 @@ class CredentialPool:
             "auto_success": 0,
             "manual_required": 0,
         }
-    
+
     def get_token(self, app_id: str, **kwargs) -> str:
         """Track success rate."""
         self.stats["total_calls"] += 1
-        
+
         try:
             token = self._get_token_with_retry(app_id, **kwargs)
             self.stats["auto_success"] += 1
@@ -194,7 +194,7 @@ class CredentialPool:
         except TokenAcquisitionError:
             self.stats["manual_required"] += 1
             raise
-    
+
     def get_success_rate(self) -> float:
         """Calculate auto-handling success rate."""
         if self.stats["total_calls"] == 0:
@@ -208,7 +208,7 @@ class CredentialPool:
 def test_token_auto_handling_success_rate():
     """Verify ≥ 99.9% auto-handling success rate."""
     pool = CredentialPool(config)
-    
+
     # 模拟 10,000 次调用
     total_calls = 10000
     for i in range(total_calls):
@@ -217,11 +217,11 @@ def test_token_auto_handling_success_rate():
         except TokenAcquisitionError:
             # 仅在 App Secret 无效时失败
             pass
-    
+
     # 验证成功率
     success_rate = pool.get_success_rate()
     assert success_rate >= 99.9, f"Success rate {success_rate}% < 99.9%"
-    
+
     # 输出统计
     print(f"""
     Token Auto-Handling Statistics:
@@ -248,16 +248,16 @@ def test_get_token_response_time(benchmark):
     """Benchmark token acquisition response time."""
     pool = CredentialPool(config)
     app_id = "cli_benchmark_test"
-    
+
     # 运行基准测试
     result = benchmark(pool.get_token, app_id)
-    
+
     # 验证 P99 响应时间
     stats = benchmark.stats
     p99_time = stats.get("p99", 0)
-    
+
     assert p99_time <= 2.0, f"P99 response time {p99_time}s > 2s"
-    
+
     print(f"""
     Response Time Statistics:
     - Min: {stats['min']:.3f}s
@@ -297,18 +297,18 @@ def test_token_refresh_performance():
     """Verify token refresh completes within 500ms."""
     pool = CredentialPool(config)
     app_id = "cli_perf_test12345"
-    
+
     # 预热: 获取初始 Token
     pool.get_token(app_id)
-    
+
     # 测试刷新性能
     start_time = time.time()
     pool.refresh_token(app_id)
     elapsed_time = time.time() - start_time
-    
+
     # 验证耗时
     assert elapsed_time <= 0.5, f"Refresh time {elapsed_time:.3f}s > 0.5s"
-    
+
     print(f"Token refresh completed in {elapsed_time:.3f}s ✅")
 ```
 
@@ -325,14 +325,14 @@ import time
 def test_database_query_performance():
     """Verify database queries complete within 50ms."""
     storage = TokenStorageService(config)
-    
+
     # 测试 Token 查询
     start_time = time.time()
     token = storage.get_token("cli_db_test", "app_access_token")
     query_time = (time.time() - start_time) * 1000  # Convert to ms
-    
+
     assert query_time <= 50, f"Query time {query_time:.1f}ms > 50ms"
-    
+
     print(f"Database query completed in {query_time:.1f}ms ✅")
 ```
 
@@ -381,7 +381,7 @@ groups:
         for: 5m
         annotations:
           summary: "API throughput below 100 req/s"
-      
+
       # P002: 成功率低于阈值
       - alert: LowSuccessRate
         expr: |
@@ -392,7 +392,7 @@ groups:
         for: 5m
         annotations:
           summary: "Success rate below 99.9%"
-      
+
       # P003: P99 响应时间超标
       - alert: HighResponseTime
         expr: histogram_quantile(0.99, api_response_time_seconds) > 2
@@ -430,7 +430,7 @@ groups:
    ```sql
    -- Token 查询索引
    CREATE INDEX idx_tokens_app_type ON tokens(app_id, token_type);
-   
+
    -- 用户缓存索引
    CREATE INDEX idx_user_cache_app_open ON user_cache(app_id, open_id);
    ```
@@ -452,7 +452,7 @@ groups:
 1. **本地内存缓存**
    ```python
    from functools import lru_cache
-   
+
    @lru_cache(maxsize=100)
    def get_cached_token(app_id: str, token_type: str) -> str:
        """LRU cache for hot tokens."""
@@ -469,5 +469,5 @@ groups:
 
 ---
 
-**维护者**: Lark Service Team  
+**维护者**: Lark Service Team
 **参考**: [performance-requirements.md](./performance-requirements.md)

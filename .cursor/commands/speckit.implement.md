@@ -105,7 +105,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 6. Execute implementation following the task plan:
    - **Phase-by-phase execution**: Complete each phase before moving to the next
-   - **Respect dependencies**: Run sequential tasks in order, parallel tasks [P] can run together  
+   - **Respect dependencies**: Run sequential tasks in order, parallel tasks [P] can run together
    - **Follow TDD approach**: Execute test tasks before their corresponding implementation tasks
    - **File-based coordination**: Tasks affecting the same files must run sequentially
    - **Validation checkpoints**: Verify each phase completion before proceeding
@@ -128,41 +128,41 @@ You **MUST** consider the user input before proceeding (if not empty).
 8.5. **Git commit workflow integration** (after completing tasks or task groups):
 
    **Automatic quality checks before commit**:
-   
+
    Following Constitution XI - Git Commit Standards, execute quality checks before committing:
 
    a. **Code formatting** (before git add):
    ```bash
    ruff format .
    ```
-   
+
    b. **Stage changes**:
    ```bash
    git add <relevant-files>
    ```
-   
+
    c. **Quality checks** (before git commit):
    ```bash
    # 1. Style check
    ruff check src/ tests/ --fix
-   
+
    # 2. Type check
    mypy src/
-   
+
    # 3. Run tests
    pytest tests/ --ignore=tests/performance -q
    ```
-   
+
    d. **Commit with Conventional Commits format**:
    ```bash
    git commit -m "<type>(<scope>): <description>"
    ```
-   
+
    **Commit message format**:
    - Type: feat, fix, docs, style, refactor, test, chore, perf
    - Scope: module name (token, storage, config, cli, core, etc.)
    - Description: clear and concise (≤50 chars preferred)
-   
+
    **Examples**:
    ```
    feat(token): implement auto-refresh mechanism
@@ -170,24 +170,24 @@ You **MUST** consider the user input before proceeding (if not empty).
    test(unit): add CredentialPool unit tests
    docs(readme): update installation guide
    ```
-   
+
    e. **Push handling**:
    - **DO NOT automatically push**
    - After completing all tasks, prompt user:
      ```
      ✅ All tasks completed
-     
+
      Code has been committed to local repository
-     
+
      Ready to push? Please execute manually:
      git push origin <branch-name>
      ```
-   
+
    **Check failure handling**:
    - If ruff/mypy/pytest fails, fix issues and re-check
    - Do not allow skipping checks with --no-verify
    - Log failure reason and provide fix suggestions
-   
+
    **Automated tool**:
    ```bash
    # Use pre-commit check script (recommended)

@@ -1,7 +1,7 @@
 # Docstring 编写标准
 
-**版本**: 1.0.0  
-**更新时间**: 2026-01-15  
+**版本**: 1.0.0
+**更新时间**: 2026-01-15
 **适用范围**: 所有 Python 代码
 
 ---
@@ -46,16 +46,16 @@ Example:
 ```python
 class CredentialPool:
     """Manages Feishu API credentials with automatic refresh.
-    
+
     The CredentialPool handles token acquisition, caching, and
     automatic refresh for multiple applications. It supports
     both app_access_token and tenant_access_token.
-    
+
     Attributes:
         config: Configuration object
         token_storage: Token persistence layer
         lock_manager: Concurrency control manager
-        
+
     Example:
         >>> pool = CredentialPool(config)
         >>> token = pool.get_token(app_id="cli_12345678")
@@ -74,11 +74,11 @@ def get_token(
     force_refresh: bool = False,
 ) -> str:
     """Get access token for specified application.
-    
+
     Retrieves token from cache if available and not expired,
     otherwise fetches new token from Feishu API. Supports
     automatic refresh when token is about to expire.
-    
+
     Args:
         app_id: Application ID (format: cli_[16-32 alphanumeric])
         token_type: Type of token to retrieve.
@@ -87,34 +87,34 @@ def get_token(
             - "tenant_access_token": Tenant access token
         force_refresh: If True, bypass cache and fetch new token.
             Default: False
-    
+
     Returns:
         Valid access token string (format: t-xxxxxx...)
-    
+
     Raises:
         ValidationError: If app_id format is invalid
         TokenAcquisitionError: If failed to fetch token from API
             after 3 retries
         ConfigError: If application not found in database
-    
+
     Example:
         >>> pool = CredentialPool(config)
-        >>> 
+        >>>
         >>> # Get app token (with auto-refresh)
         >>> token = pool.get_token("cli_12345678")
-        >>> 
+        >>>
         >>> # Force refresh
         >>> new_token = pool.get_token(
         ...     "cli_12345678",
         ...     force_refresh=True
         ... )
-        >>> 
+        >>>
         >>> # Get tenant token
         >>> tenant_token = pool.get_token(
         ...     "cli_12345678",
         ...     token_type="tenant_access_token"
         ... )
-    
+
     Note:
         - Token is cached in PostgreSQL for 2 hours
         - Automatic refresh triggered at 90% of lifetime
@@ -127,10 +127,10 @@ def get_token(
 ```python
 def validate_app_id(app_id: str) -> None:
     """Validate application ID format.
-    
+
     Args:
         app_id: Application ID to validate
-    
+
     Raises:
         ValidationError: If format is invalid
     """
@@ -141,15 +141,15 @@ def validate_app_id(app_id: str) -> None:
 ```python
 def _fetch_app_access_token(self, app_id: str) -> str:
     """Fetch app access token from Feishu API.
-    
+
     Internal method, not for public use.
-    
+
     Args:
         app_id: Application ID
-    
+
     Returns:
         Raw token string from API response
-    
+
     Raises:
         TokenAcquisitionError: If API call fails
     """
@@ -164,14 +164,14 @@ def _fetch_app_access_token(self, app_id: str) -> str:
 ```python
 def mask_secret(value: str, prefix_len: int = 4) -> str:
     """Mask sensitive string for logging.
-    
+
     Args:
         value: Original secret value
         prefix_len: Number of prefix characters to show
-    
+
     Returns:
         Masked string (e.g., "test****")
-    
+
     Example:
         >>> mask_secret("test_secret_12345")
         'test****'
@@ -184,20 +184,20 @@ def mask_secret(value: str, prefix_len: int = 4) -> str:
 @dataclass
 class Config:
     """Configuration for Lark Service.
-    
+
     Loads configuration from environment variables and provides
     validation and default values.
-    
+
     Attributes:
         config_encryption_key: Fernet key for encrypting secrets
         config_db_path: Path to SQLite configuration database
         postgres_host: PostgreSQL server hostname
         postgres_port: PostgreSQL server port (default: 5432)
         log_level: Logging level (default: "INFO")
-    
+
     Raises:
         ConfigError: If required environment variables are missing
-    
+
     Example:
         >>> config = Config.from_env()
         >>> print(config.log_level)
@@ -210,16 +210,16 @@ class Config:
 ```python
 class TokenAcquisitionError(Exception):
     """Raised when token acquisition fails.
-    
+
     This error indicates that the system failed to obtain
     a valid token from Feishu API after all retry attempts.
-    
+
     Attributes:
         message: Error description
         app_id: Application ID that failed
         token_type: Type of token being requested
         retry_count: Number of retries attempted
-    
+
     Example:
         >>> raise TokenAcquisitionError(
         ...     "Failed after 3 retries",
@@ -238,15 +238,15 @@ def iterate_tokens(
     app_id: str | None = None
 ) -> Generator[TokenStorage, None, None]:
     """Iterate over tokens in storage.
-    
+
     Yields tokens one by one, optionally filtered by app_id.
-    
+
     Args:
         app_id: Filter by application ID (optional)
-    
+
     Yields:
         TokenStorage: Token object
-    
+
     Example:
         >>> for token in storage.iterate_tokens():
         ...     print(token.token_type)
@@ -265,23 +265,23 @@ async def send_message_async(
     content: str,
 ) -> StandardResponse:
     """Send message asynchronously.
-    
+
     Non-blocking message sending using asyncio.
-    
+
     Args:
         receive_id: User or group ID
         msg_type: Message type ("text", "post", "interactive")
         content: Message content (JSON string or text)
-    
+
     Returns:
         Standard response with message ID
-    
+
     Raises:
         APIError: If message sending fails
-    
+
     Example:
         >>> import asyncio
-        >>> 
+        >>>
         >>> async def main():
         ...     response = await client.send_message_async(
         ...         "ou_xxxx",
@@ -289,7 +289,7 @@ async def send_message_async(
         ...         "Hello"
         ...     )
         ...     print(response.data["message_id"])
-        >>> 
+        >>>
         >>> asyncio.run(main())
     """
 ```
@@ -339,10 +339,10 @@ def get_token(self, app_id: str) -> str:
 ```python
 def get_token(self, app_id: str) -> str:
     """Get access token for specified application.
-    
+
     Args:
         app_id: Application ID
-    
+
     Returns:
         Access token string
     """
@@ -364,10 +364,10 @@ def validate_app_id(app_id: str) -> None:
 ```python
 def validate_app_id(app_id: str) -> None:
     """Validate application ID format.
-    
+
     Args:
         app_id: Application ID to validate
-    
+
     Raises:
         ValidationError: If format is invalid
     """
@@ -381,7 +381,7 @@ def validate_app_id(app_id: str) -> None:
 def send_message(msg: str) -> bool:
     """
     Send a message.
-    
+
     :param msg: Message content
     :return: True if success
     :raises: APIError
@@ -393,13 +393,13 @@ def send_message(msg: str) -> bool:
 ```python
 def send_message(msg: str) -> bool:
     """Send message to user.
-    
+
     Args:
         msg: Message content
-    
+
     Returns:
         True if message sent successfully
-    
+
     Raises:
         APIError: If API call fails
     """
@@ -450,5 +450,5 @@ convention = "google"
 
 ---
 
-**维护者**: Lark Service Team  
+**维护者**: Lark Service Team
 **反馈**: 如有疑问或建议,请提交 Issue

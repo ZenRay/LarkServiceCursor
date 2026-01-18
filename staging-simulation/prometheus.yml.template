@@ -1,0 +1,34 @@
+# Prometheus 配置模板
+# 用于采集 Lark Service metrics
+#
+# 使用方法:
+# 1. 设置环境变量
+# 2. 使用envsubst生成最终配置: envsubst < prometheus.yml.template > prometheus.yml
+# 3. 或在docker-compose.yml中自动处理
+
+global:
+  scrape_interval: ${PROMETHEUS_SCRAPE_INTERVAL:-15s}
+  evaluation_interval: ${PROMETHEUS_EVALUATION_INTERVAL:-15s}
+  external_labels:
+    environment: '${ENVIRONMENT:-staging-local}'
+    project: 'lark-service'
+
+# 抓取配置
+scrape_configs:
+  # Prometheus 自身
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Lark Service 应用 metrics
+  - job_name: 'lark-service'
+    static_configs:
+      - targets: ['${LARK_SERVICE_METRICS_HOST:-172.17.0.1}:${LARK_SERVICE_METRICS_PORT:-9091}']
+    metrics_path: '/metrics'
+    scrape_interval: ${LARK_SERVICE_SCRAPE_INTERVAL:-10s}
+
+  # RabbitMQ
+  - job_name: 'rabbitmq'
+    static_configs:
+      - targets: ['${RABBITMQ_HOST:-rabbitmq}:${RABBITMQ_METRICS_PORT:-15692}']
+    metrics_path: '/metrics'

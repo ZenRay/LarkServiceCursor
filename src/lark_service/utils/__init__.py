@@ -3,7 +3,10 @@
 Provides:
 - Logging: Structured logging with context support
 - Validators: Input validation utilities
+- Masking: Sensitive data masking utilities
 """
+
+from typing import Any
 
 from lark_service.utils.logger import (
     LoggerContextManager,
@@ -18,7 +21,9 @@ from lark_service.utils.validators import (
     validate_chat_id,
     validate_enum,
     validate_file_path,
+    validate_non_empty_string,
     validate_non_negative_float,
+    validate_non_negative_int,
     validate_open_id,
     validate_positive_int,
     validate_token,
@@ -34,6 +39,13 @@ __all__ = [
     "set_request_context",
     "clear_request_context",
     "LoggerContextManager",
+    # Masking (imported lazily to avoid circular imports)
+    "mask_email",
+    "mask_mobile",
+    "mask_token",
+    "mask_user_id",
+    "mask_dict",
+    "mask_log_message",
     # Validators
     "validate_app_id",
     "validate_app_secret",
@@ -46,5 +58,23 @@ __all__ = [
     "validate_file_path",
     "validate_positive_int",
     "validate_non_negative_float",
+    "validate_non_negative_int",
+    "validate_non_empty_string",
     "validate_enum",
 ]
+
+
+def __getattr__(name: str) -> Any:
+    """Lazy import for masking functions to avoid circular imports."""
+    if name in [
+        "mask_email",
+        "mask_mobile",
+        "mask_token",
+        "mask_user_id",
+        "mask_dict",
+        "mask_log_message",
+    ]:
+        from lark_service.utils import masking
+
+        return getattr(masking, name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

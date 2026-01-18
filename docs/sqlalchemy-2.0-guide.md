@@ -144,7 +144,7 @@ class Base(DeclarativeBase):
 
 class User(Base):
     """User account model.
-    
+
     Attributes
     ----------
         id: Primary key
@@ -156,41 +156,41 @@ class User(Base):
         created_at: Account creation timestamp
         updated_at: Last update timestamp
     """
-    
+
     __tablename__ = "users"
-    
+
     # Primary key
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    
+
     # Required fields
     username: Mapped[str] = mapped_column(String(50), unique=True)
     email: Mapped[str] = mapped_column(String(100), unique=True)
     full_name: Mapped[str] = mapped_column(String(100))
-    
+
     # Optional fields
     bio: Mapped[str | None] = mapped_column(Text, default=None)
     avatar_url: Mapped[str | None] = mapped_column(String(512), default=None)
-    
+
     # Status field with default
     status: Mapped[str] = mapped_column(String(16), default="active")
-    
+
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
-        default=func.now(), 
+        default=func.now(),
         onupdate=func.now()
     )
-    
+
     # Table constraints
     __table_args__ = (
         Index("idx_users_email", "email"),
         Index("idx_users_status", "status"),
     )
-    
+
     def is_active(self) -> bool:
         """Check if user account is active."""
         return self.status == "active"
-    
+
     def __repr__(self) -> str:
         """String representation."""
         return f"<User(id={self.id}, username='{self.username}')>"
@@ -235,20 +235,20 @@ from sqlalchemy.orm import relationship
 
 class Post(Base):
     __tablename__ = "posts"
-    
+
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(String(200))
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
-    
+
     # 多对一关系
     user: Mapped["User"] = relationship(back_populates="posts")
 
 class User(Base):
     __tablename__ = "users"
-    
+
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(String(50))
-    
+
     # 一对多关系
     posts: Mapped[list["Post"]] = relationship(back_populates="user")
 ```
@@ -299,7 +299,7 @@ class UserStatus(str, Enum):
 
 class User(Base):
     __tablename__ = "users"
-    
+
     id: Mapped[int] = mapped_column(primary_key=True)
     status: Mapped[str] = mapped_column(String(16), default=UserStatus.ACTIVE.value)
 ```
@@ -311,7 +311,7 @@ from sqlalchemy import JSON
 
 class Config(Base):
     __tablename__ = "configs"
-    
+
     id: Mapped[int] = mapped_column(primary_key=True)
     settings: Mapped[dict] = mapped_column(JSON)
 ```
@@ -323,10 +323,10 @@ from sqlalchemy import Text
 
 class Application(Base):
     __tablename__ = "applications"
-    
+
     id: Mapped[int] = mapped_column(primary_key=True)
     app_secret: Mapped[str] = mapped_column(Text)  # Encrypted with Fernet
-    
+
     def get_decrypted_secret(self, key: bytes) -> str:
         """Decrypt and return secret."""
         from cryptography.fernet import Fernet
@@ -341,12 +341,12 @@ from sqlalchemy import UniqueConstraint
 
 class TokenStorage(Base):
     __tablename__ = "tokens"
-    
+
     id: Mapped[int] = mapped_column(primary_key=True)
     app_id: Mapped[str] = mapped_column(String(64))
     token_type: Mapped[str] = mapped_column(String(32))
     token_value: Mapped[str] = mapped_column(Text)
-    
+
     __table_args__ = (
         UniqueConstraint("app_id", "token_type", name="uq_app_token_type"),
     )
@@ -359,12 +359,12 @@ from sqlalchemy import Index
 
 class UserCache(Base):
     __tablename__ = "user_cache"
-    
+
     id: Mapped[int] = mapped_column(primary_key=True)
     app_id: Mapped[str] = mapped_column(String(64))
     open_id: Mapped[str] = mapped_column(String(64))
     expires_at: Mapped[datetime] = mapped_column()
-    
+
     __table_args__ = (
         Index("idx_user_cache_app_open", "app_id", "open_id"),
         Index("idx_user_cache_expires", "expires_at"),
@@ -458,7 +458,7 @@ email: Mapped[Optional[str]] = mapped_column(String(100))
 ```python
 class User(Base):
     """User account model.
-    
+
     Attributes
     ----------
         id: Primary key
@@ -501,7 +501,7 @@ created_at: Mapped[datetime] = mapped_column(default=datetime.now)
 ```python
 class User(Base):
     status: Mapped[str] = mapped_column(String(16))
-    
+
     def is_active(self) -> bool:  # ✅ 有返回类型
         """Check if user is active."""
         return self.status == "active"
@@ -574,6 +574,6 @@ A: 没有。运行时性能完全相同,只是开发体验更好。
 
 ---
 
-**更新日期**: 2026-01-15  
-**SQLAlchemy 版本**: 2.0+  
+**更新日期**: 2026-01-15
+**SQLAlchemy 版本**: 2.0+
 **Python 版本**: 3.12+

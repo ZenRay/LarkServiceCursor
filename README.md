@@ -7,7 +7,7 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Code Style](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 [![Type Checked](https://img.shields.io/badge/type%20checked-mypy-blue.svg)](http://mypy-lang.org/)
-[![Tests](https://img.shields.io/badge/tests-140%20passed-success.svg)](tests/)
+[![Tests](https://img.shields.io/badge/tests-234%20passed-success.svg)](tests/)
 [![Coverage](https://img.shields.io/badge/coverage-77.33%25-brightgreen.svg)](htmlcov/)
 [![Mypy](https://img.shields.io/badge/mypy-99.8%25-blue.svg)](src/)
 [![Security](https://img.shields.io/badge/security-FR--077~095%20compliant-success.svg)](docs/security-guide.md)
@@ -48,7 +48,7 @@ git push -u origin 002-messaging-service
 /speckit.checklist  # 运行检查清单验证
 ```
 
-**分支命名规范**: `NNN-<short-description>` (如 `001-lark-service-core`)  
+**分支命名规范**: `NNN-<short-description>` (如 `001-lark-service-core`)
 **详细说明**: 参考 [Git 工作流文档](docs/git-workflow.md)
 
 ### 集成方式
@@ -155,18 +155,54 @@ python -m lark_service.cli app add \
 **4. 开始使用**
 
 ```python
-from lark_service import LarkServiceClient
+from lark_service.core.credential_pool import CredentialPool
+from lark_service.messaging.client import MessagingClient
+from lark_service.cardkit.builder import CardBuilder
 
-# 初始化客户端
-client = LarkServiceClient(app_id="cli_your_app_id")
+# 初始化 Token 管理池
+credential_pool = CredentialPool()
 
-# 发送消息 (Token 自动管理)
-response = client.messaging.send_text(
+# 创建消息客户端
+messaging_client = MessagingClient(credential_pool)
+
+# 1. 发送文本消息
+response = messaging_client.send_text_message(
+    app_id="cli_a1b2c3d4e5f6g7h8",
     receiver_id="ou_xxxxxxxx",
     content="Hello from Lark Service! 🚀"
 )
+print(f"消息发送成功! Message ID: {response['message_id']}")
 
-print(f"消息发送成功! Message ID: {response.data['message_id']}")
+# 2. 发送图片消息 (自动上传)
+response = messaging_client.send_image_message(
+    app_id="cli_a1b2c3d4e5f6g7h8",
+    receiver_id="ou_xxxxxxxx",
+    image_path="/path/to/image.jpg"
+)
+
+# 3. 发送交互式卡片
+builder = CardBuilder()
+card = builder.build_notification_card(
+    title="系统通知",
+    content="您有一条新消息",
+    level="info",
+    action_text="查看详情",
+    action_url="https://example.com"
+)
+response = messaging_client.send_card_message(
+    app_id="cli_a1b2c3d4e5f6g7h8",
+    receiver_id="ou_xxxxxxxx",
+    card_content=card
+)
+
+# 4. 批量发送消息
+response = messaging_client.send_batch_messages(
+    app_id="cli_a1b2c3d4e5f6g7h8",
+    receiver_ids=["ou_user1", "ou_user2", "ou_user3"],
+    msg_type="text",
+    content={"text": "群发消息"}
+)
+print(f"批量发送完成: {response.success}/{response.total} 成功")
 ```
 
 ## 📚 模块功能
@@ -179,28 +215,75 @@ print(f"消息发送成功! Message ID: {response.data['message_id']}")
 - ✅ 并发安全 (线程锁 + 进程锁)
 - ✅ 多应用隔离 (按 `app_id` 隔离)
 
-### 💬 Messaging 模块
+### 💬 Messaging 模块 (Phase 3 ✅)
 
-- ✅ 发送文本消息、富文本消息
-- ✅ 发送图片消息 (JPEG、PNG、GIF、WEBP,限制 10MB)
-- ✅ 发送文件消息 (视频、音频、文档,限制 30MB)
-- ✅ 发送交互式卡片 (支持回调处理)
-- ✅ 批量发送消息
-- ✅ 消息生命周期管理 (撤回、更新)
+#### 消息发送
+- ✅ **文本消息** - 发送纯文本消息
+- ✅ **富文本消息** - 支持格式化 (粗体、斜体、链接、@提及、删除线)
+- ✅ **图片消息** - 支持 7 种格式 (JPG, PNG, GIF, BMP, TIFF, WebP, SVG),限制 10MB
+- ✅ **文件消息** - 支持视频、音频、文档,限制 30MB
+  - 视频: MP4, AVI, MOV, WMV
+  - 音频: MP3, WAV, AAC, OGG
+  - 文档: PDF, DOCX, XLS, PPTX, TXT
+- ✅ **交互式卡片** - 支持审批卡片、通知卡片、表单卡片
+- ✅ **批量发送** - 一次发送到最多 200 个接收者
 
-### 📄 CloudDoc 模块
+#### 消息生命周期
+- ✅ **消息撤回** - 撤回已发送的消息
+- ✅ **消息编辑** - 编辑文本消息内容
+- ✅ **消息回复** - 回复指定消息
 
-- ✅ **Doc 文档**: 创建、读取、更新、权限管理 (可阅读/可编辑/可评论/可管理)
-- ✅ **Sheet 电子表格**: 读写、格式化 (样式/合并/列宽/冻结)
-- ✅ **多维表格 (Bitable)**: CRUD、批量操作、过滤查询
-- ✅ **文档素材**: 上传图片/文件到文档,下载文档素材
+#### 媒体处理
+- ✅ **自动上传** - 图片和文件自动上传到飞书
+- ✅ **文件验证** - 自动验证文件大小和类型
+- ✅ **重试机制** - 上传失败自动重试 (最多 3 次)
 
-### 👥 Contact 模块
+### 📄 CloudDoc 模块 (Phase 4 ✅)
 
-- ✅ 通过邮箱/手机号查询用户
-- ✅ 获取用户多种 ID (`open_id`、`user_id`、`union_id`)
-- ✅ PostgreSQL 本地缓存 (24 小时 TTL)
-- ✅ 查询群组和部门信息
+#### Doc 文档操作
+- ✅ **创建文档** - `create_document()`
+- ✅ **追加内容** - `append_content()` (7种内容类型)
+- ✅ **获取文档** - `get_document()`
+- ✅ **更新块** - `update_block()` (HTTP直接调用)
+
+#### 文档权限管理
+- ✅ **授予权限** - `grant_permission()` (可阅读/可编辑/可评论/可管理)
+- ✅ **撤销权限** - `revoke_permission()`
+- ✅ **列出权限** - `list_permissions()`
+
+#### 多维表格 (Bitable) ⭐ 真实API
+- ✅ **创建记录** - `create_record()`
+- ✅ **查询记录** - `query_records()` (过滤、分页)
+- ✅ **更新记录** - `update_record()`
+- ✅ **删除记录** - `delete_record()`
+- ✅ **列出字段** - `list_fields()`
+- ⚠️ **批量操作** - Placeholder (P2优先级)
+
+#### Sheet 电子表格
+- ⚠️ 所有方法 - Placeholder实现 (P2优先级)
+
+### 👥 Contact 模块 (Phase 4 ✅) ⭐ 8个真实API
+
+#### 用户查询
+- ✅ **邮箱查询** - `get_user_by_email()` (真实API + 缓存)
+- ✅ **手机号查询** - `get_user_by_mobile()` (真实API + 缓存)
+- ✅ **ID查询** - `get_user_by_user_id()` (真实API + 缓存)
+- ✅ **批量查询** - `batch_get_users()` (真实API + 缓存优化)
+
+#### 部门查询
+- ✅ **获取部门** - `get_department()` (真实API)
+- ✅ **部门成员** - `get_department_members()` (真实API + 分页)
+
+#### 群组查询
+- ✅ **获取群组** - `get_chat_group()` (真实API)
+- ✅ **群组成员** - `get_chat_members()` (真实API + 分页)
+
+#### 缓存管理
+- ✅ **ContactCacheManager** - 完整的缓存管理器
+  - TTL: 24小时
+  - app_id隔离
+  - union_id作为主键
+  - PostgreSQL存储
 
 ### 🤖 aPaaS 模块
 

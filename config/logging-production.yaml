@@ -1,0 +1,183 @@
+# 生产环境日志配置
+# 用于: Staging/Production 环境
+# 特性: JSON格式,结构化字段,日志脱敏,rotation,retention
+
+version: 1
+disable_existing_loggers: false
+
+# 日志格式化器
+formatters:
+  # JSON格式 - 生产环境使用
+  json:
+    class: pythonjsonlogger.jsonlogger.JsonFormatter
+    format: "%(asctime)s %(name)s %(levelname)s %(message)s %(request_id)s %(app_id)s %(duration_ms)s %(user_id)s"
+    datefmt: "%Y-%m-%dT%H:%M:%S%z"
+
+  # 紧凑格式 - 本地开发使用
+  console:
+    class: logging.Formatter
+    format: "%(asctime)s [%(levelname)-8s] %(name)-25s | %(message)s"
+    datefmt: "%Y-%m-%d %H:%M:%S"
+
+# 过滤器
+filters:
+  # 添加 request_id 和 app_id 上下文
+  context_filter:
+    (): lark_service.utils.logger.ContextFilter
+
+  # 脱敏过滤器 - 自动屏蔽敏感信息
+  masking_filter:
+    (): lark_service.utils.logger.MaskingFilter
+    patterns:
+      - "app_secret"
+      - "password"
+      - "token"
+      - "authorization"
+      - "api_key"
+      - "secret"
+
+# 日志处理器
+handlers:
+  # 控制台输出 (仅INFO及以上)
+  console:
+    class: logging.StreamHandler
+    level: INFO
+    formatter: console
+    stream: ext://sys.stdout
+    filters:
+      - context_filter
+
+  # 应用日志文件 (所有级别)
+  app_file:
+    class: logging.handlers.RotatingFileHandler
+    level: DEBUG
+    formatter: json
+    filename: /var/log/lark-service/app.log
+    maxBytes: 104857600  # 100MB
+    backupCount: 30      # 保留30个文件
+    encoding: utf8
+    filters:
+      - context_filter
+      - masking_filter
+
+  # 错误日志文件 (ERROR及以上)
+  error_file:
+    class: logging.handlers.RotatingFileHandler
+    level: ERROR
+    formatter: json
+    filename: /var/log/lark-service/error.log
+    maxBytes: 104857600  # 100MB
+    backupCount: 90      # 保留90个文件
+    encoding: utf8
+    filters:
+      - context_filter
+      - masking_filter
+
+  # 审计日志文件 (Token操作,配置变更)
+  audit_file:
+    class: logging.handlers.RotatingFileHandler
+    level: INFO
+    formatter: json
+    filename: /var/log/lark-service/audit.log
+    maxBytes: 104857600  # 100MB
+    backupCount: 365     # 保留365个文件 (1年)
+    encoding: utf8
+    filters:
+      - context_filter
+      - masking_filter
+
+  # 性能日志文件 (慢查询,API耗时)
+  performance_file:
+    class: logging.handlers.RotatingFileHandler
+    level: WARNING
+    formatter: json
+    filename: /var/log/lark-service/performance.log
+    maxBytes: 52428800   # 50MB
+    backupCount: 14      # 保留14个文件
+    encoding: utf8
+    filters:
+      - context_filter
+
+# 根日志配置
+root:
+  level: INFO
+  handlers:
+    - console
+    - app_file
+    - error_file
+
+# 模块级日志配置
+loggers:
+  # 应用主模块
+  lark_service:
+    level: INFO
+    handlers:
+      - app_file
+      - error_file
+    propagate: false
+
+  # 审计日志 (Token刷新,配置变更)
+  lark_service.core.credential_pool:
+    level: INFO
+    handlers:
+      - audit_file
+    propagate: true
+
+  # 性能日志 (慢查询)
+  lark_service.performance:
+    level: WARNING
+    handlers:
+      - performance_file
+    propagate: false
+
+  # API调用日志
+  lark_service.core.retry:
+    level: INFO
+    handlers:
+      - app_file
+    propagate: false
+
+  # 第三方库日志控制
+  urllib3:
+    level: WARNING
+  sqlalchemy.engine:
+    level: WARNING
+  alembic:
+    level: INFO
+  pika:
+    level: WARNING
+
+# 日志retention策略
+# 生产环境日志保留期限:
+# - app.log: 30天 (日常运行日志)
+# - error.log: 90天 (错误追踪需要更长时间)
+# - audit.log: 365天 (合规审计要求)
+# - performance.log: 14天 (性能分析)
+#
+# 自动清理: 使用logrotate或cron定期清理过期日志
+# 归档: 重要日志归档到S3/OSS长期存储
+
+# 日志级别说明:
+# DEBUG - 详细调试信息 (仅开发环境)
+# INFO - 正常运行信息 (API调用,Token刷新)
+# WARNING - 警告信息 (重试,降级)
+# ERROR - 错误信息 (API失败,连接错误)
+# CRITICAL - 严重错误 (系统不可用)
+
+# 结构化日志必需字段:
+# - timestamp: ISO8601格式时间戳
+# - level: 日志级别
+# - logger: 日志记录器名称
+# - message: 日志消息
+# - request_id: 请求追踪ID (可选)
+# - app_id: 应用ID (可选)
+# - duration_ms: 操作耗时毫秒 (可选)
+# - user_id: 用户ID (可选,已脱敏)
+
+# 敏感信息脱敏规则:
+# - app_secret: 保留前4位和后4位
+# - password: 完全屏蔽为 ********
+# - token: 保留前10位和后4位
+# - authorization: 保留Bearer关键字
+# - 手机号: 保留前3位和后4位
+# - 邮箱: 保留前缀首字符和域名

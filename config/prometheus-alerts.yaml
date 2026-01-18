@@ -1,0 +1,384 @@
+# Prometheus 监控告警规则
+# 用于: Lark Service 生产环境监控
+# 告警通道: Prometheus Alertmanager → 飞书群/邮件/PagerDuty
+
+groups:
+  # ==========================================================================
+  # 1. 应用健康告警 (P0 - 立即响应)
+  # ==========================================================================
+  - name: application_health
+    interval: 30s
+    rules:
+      - alert: ServiceDown
+        expr: up{job="lark-service"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          priority: P0
+          team: backend
+        annotations:
+          summary: "Lark Service 实例下线"
+          description: "实例 {{ $labels.instance }} 已下线超过1分钟"
+          runbook: "https://wiki.example.com/runbooks/service-down"
+          action: "1. 检查进程状态 2. 查看错误日志 3. 重启服务"
+
+      - alert: HighErrorRate
+        expr: rate(lark_service_requests_total{status=~"5.."}[5m]) / rate(lark_service_requests_total[5m]) > 0.05
+        for: 3m
+        labels:
+          severity: critical
+          priority: P0
+          team: backend
+        annotations:
+          summary: "错误率过高"
+          description: "5分钟内错误率 {{ $value | humanizePercentage }}, 超过5%阈值"
+          dashboard: "https://grafana.example.com/d/lark-service/error-rate"
+
+      - alert: APILatencyHigh
+        expr: histogram_quantile(0.95, rate(lark_service_request_duration_seconds_bucket[5m])) > 5
+        for: 5m
+        labels:
+          severity: warning
+          priority: P1
+          team: backend
+        annotations:
+          summary: "API响应延迟过高"
+          description: "P95延迟 {{ $value }}秒, 超过5秒阈值"
+
+  # ==========================================================================
+  # 2. 资源使用告警 (P1 - 及时处理)
+  # ==========================================================================
+  - name: resource_usage
+    interval: 1m
+    rules:
+      - alert: HighCPUUsage
+        expr: rate(process_cpu_seconds_total{job="lark-service"}[5m]) * 100 > 80
+        for: 10m
+        labels:
+          severity: warning
+          priority: P1
+          team: sre
+        annotations:
+          summary: "CPU使用率过高"
+          description: "实例 {{ $labels.instance }} CPU使用率 {{ $value }}%, 持续10分钟"
+
+      - alert: HighMemoryUsage
+        expr: (process_resident_memory_bytes{job="lark-service"} / node_memory_MemTotal_bytes) * 100 > 80
+        for: 10m
+        labels:
+          severity: warning
+          priority: P1
+          team: sre
+        annotations:
+          summary: "内存使用率过高"
+          description: "实例 {{ $labels.instance }} 内存使用率 {{ $value }}%"
+
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes{mountpoint="/var/log"} / node_filesystem_size_bytes) * 100 < 10
+        for: 5m
+        labels:
+          severity: critical
+          priority: P0
+          team: sre
+        annotations:
+          summary: "磁盘空间不足"
+          description: "日志分区可用空间低于10%: {{ $value }}%"
+          action: "清理旧日志或扩容磁盘"
+
+  # ==========================================================================
+  # 3. 数据库告警 (P1)
+  # ==========================================================================
+  - name: database
+    interval: 1m
+    rules:
+      - alert: PostgreSQLDown
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          priority: P0
+          team: dba
+        annotations:
+          summary: "PostgreSQL数据库不可用"
+          description: "数据库实例 {{ $labels.instance }} 无法连接"
+
+      - alert: DatabaseConnectionPoolExhausted
+        expr: lark_service_db_pool_active_connections / lark_service_db_pool_max_connections > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          priority: P1
+          team: backend
+        annotations:
+          summary: "数据库连接池接近耗尽"
+          description: "活跃连接 {{ $value | humanizePercentage }}, 接近上限"
+          action: "检查连接泄漏或增加连接池大小"
+
+      - alert: SlowQuery
+        expr: rate(lark_service_db_query_duration_seconds_sum[5m]) / rate(lark_service_db_query_duration_seconds_count[5m]) > 1
+        for: 10m
+        labels:
+          severity: warning
+          priority: P2
+          team: backend
+        annotations:
+          summary: "数据库查询缓慢"
+          description: "平均查询时间 {{ $value }}秒"
+
+      - alert: DatabaseReplicationLag
+        expr: pg_replication_lag_seconds > 30
+        for: 5m
+        labels:
+          severity: warning
+          priority: P1
+          team: dba
+        annotations:
+          summary: "数据库主从同步延迟"
+          description: "延迟 {{ $value }}秒, 超过30秒"
+
+  # ==========================================================================
+  # 4. Token管理告警 (P1)
+  # ==========================================================================
+  - name: token_management
+    interval: 1m
+    rules:
+      - alert: TokenRefreshFailure
+        expr: rate(lark_service_token_refresh_failures_total[10m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          priority: P1
+          team: backend
+        annotations:
+          summary: "Token刷新失败率过高"
+          description: "应用 {{ $labels.app_id }} 刷新失败率 {{ $value }}/10分钟"
+
+      - alert: TokenExpiringSoon
+        expr: (lark_service_token_expires_at_seconds - time()) < 300
+        labels:
+          severity: warning
+          priority: P2
+          team: backend
+        annotations:
+          summary: "Token即将过期"
+          description: "应用 {{ $labels.app_id }} 的 {{ $labels.token_type }} 将在5分钟内过期"
+
+      - alert: TokenStorageError
+        expr: rate(lark_service_token_storage_errors_total[5m]) > 0
+        for: 2m
+        labels:
+          severity: critical
+          priority: P1
+          team: backend
+        annotations:
+          summary: "Token存储错误"
+          description: "Token存储层出现错误,可能影响服务可用性"
+
+  # ==========================================================================
+  # 5. 飞书API调用告警 (P1)
+  # ==========================================================================
+  - name: feishu_api
+    interval: 1m
+    rules:
+      - alert: FeishuAPIHighErrorRate
+        expr: rate(lark_service_feishu_api_errors_total[5m]) / rate(lark_service_feishu_api_requests_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          priority: P1
+          team: backend
+        annotations:
+          summary: "飞书API调用错误率过高"
+          description: "错误率 {{ $value | humanizePercentage }}, 超过10%阈值"
+
+      - alert: FeishuAPIRateLimitReached
+        expr: rate(lark_service_feishu_api_rate_limit_errors_total[5m]) > 0.5
+        for: 3m
+        labels:
+          severity: warning
+          priority: P2
+          team: backend
+        annotations:
+          summary: "飞书API触发限流"
+          description: "限流错误 {{ $value }}/5分钟, 需要优化调用频率"
+
+      - alert: FeishuAPITimeout
+        expr: rate(lark_service_feishu_api_timeout_errors_total[5m]) > 0.2
+        for: 5m
+        labels:
+          severity: warning
+          priority: P1
+          team: backend
+        annotations:
+          summary: "飞书API超时频繁"
+          description: "超时错误 {{ $value }}/5分钟"
+
+  # ==========================================================================
+  # 6. 消息队列告警 (P1)
+  # ==========================================================================
+  - name: message_queue
+    interval: 1m
+    rules:
+      - alert: RabbitMQDown
+        expr: rabbitmq_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          priority: P0
+          team: sre
+        annotations:
+          summary: "RabbitMQ服务不可用"
+          description: "消息队列 {{ $labels.instance }} 无法连接"
+
+      - alert: RabbitMQQueueBacklog
+        expr: rabbitmq_queue_messages{queue!~".*dlq"} > 10000
+        for: 10m
+        labels:
+          severity: warning
+          priority: P1
+          team: backend
+        annotations:
+          summary: "消息队列积压"
+          description: "队列 {{ $labels.queue }} 消息数 {{ $value }}, 超过10000"
+
+      - alert: RabbitMQConsumerDown
+        expr: rabbitmq_queue_consumers{queue!~".*dlq"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          priority: P1
+          team: backend
+        annotations:
+          summary: "消息消费者离线"
+          description: "队列 {{ $labels.queue }} 无消费者"
+
+  # ==========================================================================
+  # 7. 缓存告警 (P2)
+  # ==========================================================================
+  - name: cache
+    interval: 1m
+    rules:
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          priority: P1
+          team: sre
+        annotations:
+          summary: "Redis服务不可用"
+          description: "Redis实例 {{ $labels.instance }} 无法连接"
+
+      - alert: RedisCacheHitRateLow
+        expr: rate(lark_service_cache_hits_total[10m]) / (rate(lark_service_cache_hits_total[10m]) + rate(lark_service_cache_misses_total[10m])) < 0.7
+        for: 15m
+        labels:
+          severity: info
+          priority: P3
+          team: backend
+        annotations:
+          summary: "缓存命中率低"
+          description: "缓存命中率 {{ $value | humanizePercentage }}, 低于70%"
+
+      - alert: RedisMemoryHigh
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          priority: P1
+          team: sre
+        annotations:
+          summary: "Redis内存使用率过高"
+          description: "内存使用 {{ $value | humanizePercentage }}"
+
+  # ==========================================================================
+  # 8. 业务指标告警 (P2)
+  # ==========================================================================
+  - name: business_metrics
+    interval: 5m
+    rules:
+      - alert: LowRequestRate
+        expr: rate(lark_service_requests_total[10m]) < 1
+        for: 30m
+        labels:
+          severity: info
+          priority: P3
+          team: business
+        annotations:
+          summary: "请求量异常低"
+          description: "30分钟内平均请求率 {{ $value }}/秒, 可能存在问题"
+
+      - alert: HighConcurrentRequests
+        expr: lark_service_concurrent_requests > 1000
+        for: 5m
+        labels:
+          severity: warning
+          priority: P2
+          team: backend
+        annotations:
+          summary: "并发请求数过高"
+          description: "当前并发请求 {{ $value }}, 接近容量上限"
+
+# ==========================================================================
+# 告警级别说明
+# ==========================================================================
+# severity:
+#   - critical: 严重,影响服务可用性
+#   - warning: 警告,需要关注
+#   - info: 信息,仅记录
+#
+# priority:
+#   - P0: 立即响应 (5分钟内), 24x7 on-call
+#   - P1: 及时处理 (30分钟内), 工作时间
+#   - P2: 计划处理 (4小时内)
+#   - P3: 延后处理 (下个迭代)
+
+# ==========================================================================
+# Alertmanager 路由配置建议
+# ==========================================================================
+# route:
+#   group_by: ['alertname', 'severity', 'instance']
+#   group_wait: 30s
+#   group_interval: 5m
+#   repeat_interval: 4h
+#   receiver: 'feishu-webhook'
+#   routes:
+#     - match:
+#         priority: P0
+#       receiver: 'pagerduty-oncall'
+#       continue: true
+#     - match:
+#         priority: P1
+#       receiver: 'feishu-ops-group'
+#     - match:
+#         priority: P2
+#       receiver: 'feishu-dev-group'
+
+# ==========================================================================
+# 监控指标暴露
+# ==========================================================================
+# 应用需要暴露以下 Prometheus metrics:
+#
+# 1. 请求指标:
+#    - lark_service_requests_total (counter)
+#    - lark_service_request_duration_seconds (histogram)
+#    - lark_service_concurrent_requests (gauge)
+#
+# 2. Token指标:
+#    - lark_service_token_refresh_total (counter)
+#    - lark_service_token_refresh_failures_total (counter)
+#    - lark_service_token_expires_at_seconds (gauge)
+#
+# 3. 数据库指标:
+#    - lark_service_db_pool_active_connections (gauge)
+#    - lark_service_db_pool_max_connections (gauge)
+#    - lark_service_db_query_duration_seconds (histogram)
+#
+# 4. 缓存指标:
+#    - lark_service_cache_hits_total (counter)
+#    - lark_service_cache_misses_total (counter)
+#
+# 5. API指标:
+#    - lark_service_feishu_api_requests_total (counter)
+#    - lark_service_feishu_api_errors_total (counter)
+#    - lark_service_feishu_api_rate_limit_errors_total (counter)

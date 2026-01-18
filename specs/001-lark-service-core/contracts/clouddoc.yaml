@@ -1,44 +1,576 @@
-openapi: 3.0.3
+openapi: 3.0.0
 info:
-  title: Lark Service - CloudDoc Module API
+  title: CloudDoc API Contract
+  version: 1.0.0
   description: |
-    云文档服务模块 API 契约,提供 Doc文档、Sheet电子表格、多维表格(Base)、文档素材管理能力。
-    
-    核心特性:
-    - Doc 文档: 创建、追加内容、读取、更新内容块、权限管理
-    - Sheet 电子表格: 读取/更新单元格数据、格式化操作 (样式/合并/列宽/冻结)
-    - 多维表格 (Base): CRUD 记录、批量操作、条件查询
-    - 文档素材: 上传/下载图片、文件等素材,获取 file_token
-  version: 0.1.0
-  contact:
-    name: Internal Platform Team
+    飞书云文档 API 契约定义
+    包含 Doc 文档、Bitable 多维表格、Sheet 电子表格、媒体管理等功能
 
 servers:
-  - url: http://localhost:8000/api/v1
-    description: Local development server
+  - url: https://open.feishu.cn/open-apis
+    description: 飞书开放平台
 
-tags:
-  - name: Doc
-    description: Doc 云文档操作
-  - name: Sheet
-    description: Sheet 电子表格操作
-  - name: Bitable
-    description: 多维表格 (Base) 操作
-  - name: Media
-    description: 文档素材管理
+components:
+  schemas:
+    # ==================== Wiki 知识库相关 ====================
+    WikiNode:
+      type: object
+      required:
+        - space_id
+        - node_token
+        - obj_token
+        - obj_type
+        - node_type
+        - has_child
+        - title
+      properties:
+        space_id:
+          type: string
+          pattern: '^[0-9]+$'
+          description: 知识空间 ID
+        node_token:
+          type: string
+          pattern: '^[a-zA-Z0-9_-]+$'
+          description: 节点 token
+        obj_token:
+          type: string
+          description: 实际的文档 token
+        obj_type:
+          type: string
+          enum: [doc, docx, sheet, mindnote, bitable, file]
+          description: 文档类型
+        parent_node_token:
+          type: string
+          description: 父节点 token
+          nullable: true
+        node_type:
+          type: string
+          enum: [origin, shortcut]
+          description: 节点类型 (原始节点或快捷方式)
+        origin_node_token:
+          type: string
+          description: 快捷方式指向的原始节点 token
+          nullable: true
+        has_child:
+          type: boolean
+          description: 是否有子节点
+        title:
+          type: string
+          description: 节点标题
+        obj_create_time:
+          type: integer
+          format: int64
+          description: 文档创建时间 (Unix timestamp)
+        obj_edit_time:
+          type: integer
+          format: int64
+          description: 文档编辑时间
+        node_create_time:
+          type: integer
+          format: int64
+          description: 节点创建时间
+        creator:
+          type: string
+          description: 创建者 open_id
+        owner:
+          type: string
+          description: 所有者 open_id
+
+    WikiSpace:
+      type: object
+      required:
+        - space_id
+        - name
+        - space_type
+        - visibility
+      properties:
+        space_id:
+          type: string
+          pattern: '^[0-9]+$'
+          description: 知识空间 ID
+        name:
+          type: string
+          description: 空间名称
+        description:
+          type: string
+          description: 空间描述
+          nullable: true
+        space_type:
+          type: string
+          enum: [team, personal]
+          description: 空间类型
+        visibility:
+          type: string
+          enum: [public, private]
+          description: 可见性
+
+    # ==================== Document 相关 ====================
+    Document:
+      type: object
+      required:
+        - doc_id
+        - title
+      properties:
+        doc_id:
+          type: string
+          pattern: '^(doxcn|doccn)[a-zA-Z0-9]{20,}$'
+          description: 文档 ID (doxcn 或 doccn 开头,后跟 20+ 字符)
+          example: doxcn1234567890abcdefghij
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: 文档标题
+        folder_id:
+          type: string
+          pattern: '^fld_[a-zA-Z0-9]{16}$'
+          description: 所属文件夹 ID
+          nullable: true
+        owner_id:
+          type: string
+          pattern: '^ou_[a-zA-Z0-9]{16,32}$'
+          description: 文档所有者 open_id
+          nullable: true
+        create_time:
+          type: string
+          format: date-time
+          description: 创建时间
+          nullable: true
+        update_time:
+          type: string
+          format: date-time
+          description: 更新时间
+          nullable: true
+        url:
+          type: string
+          format: uri
+          description: 文档访问链接
+        block_count:
+          type: integer
+          minimum: 0
+          description: 文档 block 总数
+
+    ContentBlock:
+      type: object
+      required:
+        - type
+        - content
+      properties:
+        block_id:
+          type: string
+          pattern: '^[a-zA-Z0-9_-]{20,}$'
+          description: Block ID (更新时需要,20+ 字符)
+        type:
+          type: string
+          enum: [paragraph, heading, image, table, code, list, divider]
+          description: Block 类型
+        content:
+          oneOf:
+            - type: string
+            - type: object
+          description: Block 内容 (根据 type 不同而不同)
+        attributes:
+          type: object
+          description: Block 属性
+          properties:
+            style:
+              type: string
+              enum: [normal, bold, italic, underline]
+            level:
+              type: integer
+              minimum: 1
+              maximum: 6
+              description: 标题级别 (仅 heading 类型)
+            language:
+              type: string
+              description: 代码语言 (仅 code 类型)
+
+    # ==================== Bitable 相关 ====================
+    BaseRecord:
+      type: object
+      required:
+        - fields
+      properties:
+        record_id:
+          type: string
+          pattern: '^rec[a-zA-Z0-9]{20,}$'
+          nullable: true
+          description: 记录 ID
+        fields:
+          type: object
+          additionalProperties: true
+          description: 字段键值对
+        created_by:
+          type: string
+          description: 创建者 ID
+        created_time:
+          type: integer
+          format: int64
+          description: 创建时间 (Unix timestamp)
+        last_modified_by:
+          type: string
+          description: 最后修改者 ID
+        last_modified_time:
+          type: integer
+          format: int64
+          description: 最后修改时间 (Unix timestamp)
+
+    QueryFilter:
+      type: object
+      required:
+        - conjunction
+        - conditions
+      properties:
+        conjunction:
+          type: string
+          enum: [and, or]
+          description: 多条件连接方式
+        conditions:
+          type: array
+          items:
+            $ref: '#/components/schemas/FilterCondition'
+          minItems: 1
+          maxItems: 20
+
+    FilterCondition:
+      type: object
+      required:
+        - field_name
+        - operator
+        - value
+      properties:
+        field_name:
+          type: string
+          description: 字段名称
+        operator:
+          type: string
+          enum: [is, is_not, contains, not_contains, gt, lt, gte, lte, is_empty, is_not_empty]
+          description: 操作符
+        value:
+          description: 比较值 (is_empty/is_not_empty 时可为 null)
+          nullable: true
+
+    PaginationParams:
+      type: object
+      properties:
+        page_size:
+          type: integer
+          minimum: 1
+          maximum: 500
+          default: 100
+          description: 每页记录数
+        page_token:
+          type: string
+          description: 分页标记
+        sort:
+          type: array
+          items:
+            type: object
+            required:
+              - field_name
+            properties:
+              field_name:
+                type: string
+              desc:
+                type: boolean
+                default: false
+
+    # ==================== Sheet 相关 ====================
+    SheetRange:
+      type: object
+      required:
+        - range
+      properties:
+        range:
+          type: string
+          pattern: '^([A-Z]+[0-9]+:[A-Z]+[0-9]+|[A-Z]+:[A-Z]+|[0-9]+:[0-9]+|[A-Z]+[0-9]+)$'
+          description: |
+            范围表示法:
+            - A1:B10 (单元格范围)
+            - A:C (整列)
+            - 3:5 (整行)
+            - A1 (单个单元格)
+          example: A1:B10
+        sheet_name:
+          type: string
+          description: Sheet 名称 (跨 sheet 时需要)
+
+    CellValue:
+      oneOf:
+        - type: string
+        - type: number
+        - type: boolean
+        - type: 'null'
+      description: 单元格值
+
+    CellFormat:
+      type: object
+      properties:
+        font:
+          type: object
+          properties:
+            size:
+              type: integer
+              minimum: 8
+              maximum: 72
+            bold:
+              type: boolean
+            italic:
+              type: boolean
+            color:
+              type: string
+              pattern: '^#[0-9A-Fa-f]{6}$'
+        background_color:
+          type: string
+          pattern: '^#[0-9A-Fa-f]{6}$'
+        alignment:
+          type: string
+          enum: [left, center, right, justify]
+
+    # ==================== Media 相关 ====================
+    MediaAsset:
+      type: object
+      required:
+        - file_token
+        - file_type
+        - size
+      properties:
+        file_token:
+          type: string
+          pattern: '^file_v2_[a-zA-Z0-9]{32}$'
+          description: 文件 token
+        file_name:
+          type: string
+          maxLength: 255
+          description: 文件名
+        file_type:
+          type: string
+          description: 文件类型
+        size:
+          type: integer
+          minimum: 1
+          maximum: 31457280
+          description: 文件大小 (字节)
+        url:
+          type: string
+          format: uri
+          description: 文件下载链接
+
+    # ==================== Permission 相关 ====================
+    Permission:
+      type: object
+      required:
+        - member_type
+        - permission
+      properties:
+        member_type:
+          type: string
+          enum: [user, department, group, anyone]
+          description: 成员类型
+        member_id:
+          type: string
+          description: 成员 ID (anyone 时为 null)
+          nullable: true
+        member_name:
+          type: string
+          description: 成员名称
+        permission:
+          type: string
+          enum: [read, write, comment, manage]
+          description: |
+            权限类型:
+            - read: 可阅读
+            - write: 可编辑
+            - comment: 可评论
+            - manage: 可管理
+        granted_by:
+          type: string
+          description: 授予者 ID
+        granted_at:
+          type: string
+          format: date-time
+          description: 授予时间
+
+    # ==================== Error 相关 ====================
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          description: 错误码
+        message:
+          type: string
+          description: 错误消息
+        details:
+          type: object
+          description: 错误详情
+        request_id:
+          type: string
+          description: 请求 ID
 
 paths:
-  /clouddoc/docs:
-    post:
-      summary: 创建新的 Doc 文档
+  # ==================== Wiki 知识库操作 ====================
+  /wiki/v2/spaces/{space_id}/nodes/{node_token}:
+    get:
+      summary: 获取知识库节点信息
+      operationId: getWikiNode
+      description: |
+        获取知识库节点的详细信息,包括实际的文档 token (obj_token)。
+        知识库文档需要先通过此 API 获取 obj_token,再使用对应的文档 API 访问内容。
       tags:
-        - Doc
+        - Wiki
       parameters:
-        - name: app_id
-          in: query
+        - name: space_id
+          in: path
           required: true
           schema:
             type: string
+            pattern: '^[0-9]+$'
+          description: 知识空间 ID
+        - name: node_token
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 节点 token
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 0
+                  msg:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      node:
+                        $ref: '#/components/schemas/WikiNode'
+        '404':
+          description: 节点不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 权限不足
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /wiki/v2/spaces/{space_id}/nodes:
+    get:
+      summary: 获取知识库节点列表
+      operationId: listWikiNodes
+      description: 获取知识空间下的节点列表
+      tags:
+        - Wiki
+      parameters:
+        - name: space_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: parent_node_token
+          in: query
+          schema:
+            type: string
+          description: 父节点 token (不传则获取根节点)
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+        - name: page_token
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/WikiNode'
+                      has_more:
+                        type: boolean
+                      page_token:
+                        type: string
+
+  /wiki/v2/spaces:
+    get:
+      summary: 获取知识空间列表
+      operationId: listWikiSpaces
+      description: 获取用户有权限访问的知识空间列表
+      tags:
+        - Wiki
+      parameters:
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+        - name: page_token
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/WikiSpace'
+                      has_more:
+                        type: boolean
+                      page_token:
+                        type: string
+
+  # ==================== Doc 文档操作 ====================
+  /docx/v1/documents:
+    post:
+      summary: 创建文档
+      operationId: createDocument
+      tags:
+        - Doc
       requestBody:
         required: true
         content:
@@ -50,37 +582,47 @@ paths:
               properties:
                 title:
                   type: string
-                  description: 文档标题
-                  example: "项目技术方案"
-                folder_token:
+                  minLength: 1
+                  maxLength: 255
+                folder_id:
                   type: string
-                  description: 父文件夹 token (可选)
+                  pattern: '^fld_[a-zA-Z0-9]{16}$'
       responses:
         '200':
-          description: 创建成功
+          description: 成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DocResponse'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 0
+                  msg:
+                    type: string
+                    example: success
+                  data:
+                    $ref: '#/components/schemas/Document'
+        '400':
+          description: 参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
-  /clouddoc/docs/{doc_token}/content:
+  /docx/v1/documents/{document_id}/blocks:
     post:
-      summary: 向 Doc 文档追加内容块
+      summary: 追加文档内容
+      operationId: appendContent
       tags:
         - Doc
       parameters:
-        - name: app_id
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: doc_token
+        - name: document_id
           in: path
           required: true
-          description: 文档 token
           schema:
             type: string
-            example: "doccnXXXXXXXXXXXX"
+            pattern: '^doc_[a-zA-Z0-9]{16}$'
       requestBody:
         required: true
         content:
@@ -92,58 +634,81 @@ paths:
               properties:
                 blocks:
                   type: array
-                  description: 内容块列表
                   items:
                     $ref: '#/components/schemas/ContentBlock'
+                  minItems: 1
+                  maxItems: 100
+                position:
+                  type: string
+                  enum: [start, end]
+                  default: end
       responses:
         '200':
-          description: 追加成功
+          description: 成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StandardResponse'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      block_ids:
+                        type: array
+                        items:
+                          type: string
+        '404':
+          description: 文档不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
     get:
-      summary: 读取 Doc 文档的完整内容
+      summary: 获取文档内容
+      operationId: getDocumentContent
       tags:
         - Doc
       parameters:
-        - name: app_id
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: doc_token
+        - name: document_id
           in: path
           required: true
           schema:
             type: string
       responses:
         '200':
-          description: 读取成功
+          description: 成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DocContentResponse'
-        '404':
-          description: 文档不存在
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      document:
+                        $ref: '#/components/schemas/Document'
+                      blocks:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ContentBlock'
 
-  /clouddoc/docs/{doc_token}/blocks/{block_id}:
+  /docx/v1/documents/{document_id}/blocks/{block_id}:
     patch:
-      summary: 更新 Doc 文档中指定内容块
+      summary: 更新 Block
+      operationId: updateBlock
       tags:
         - Doc
       parameters:
-        - name: app_id
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: doc_token
+        - name: document_id
           in: path
           required: true
           schema:
@@ -151,7 +716,6 @@ paths:
         - name: block_id
           in: path
           required: true
-          description: 内容块 ID
           schema:
             type: string
       requestBody:
@@ -162,30 +726,22 @@ paths:
               $ref: '#/components/schemas/ContentBlock'
       responses:
         '200':
-          description: 更新成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StandardResponse'
+          description: 成功
 
-  /clouddoc/docs/{doc_token}/permissions:
+  # ==================== Bitable 多维表格操作 ====================
+  /bitable/v1/apps/{app_token}/tables/{table_id}/records:
     post:
-      summary: 授予文档权限
-      description: |
-        授予用户对文档的访问权限,支持 4 种权限类型:
-        - readable: 可阅读
-        - editable: 可编辑
-        - commentable: 可评论
-        - manageable: 可管理 (包含权限管理)
+      summary: 创建记录
+      operationId: createRecord
       tags:
-        - Doc
+        - Bitable
       parameters:
-        - name: app_id
-          in: query
+        - name: app_token
+          in: path
           required: true
           schema:
             type: string
-        - name: doc_token
+        - name: table_id
           in: path
           required: true
           schema:
@@ -197,125 +753,197 @@ paths:
             schema:
               type: object
               required:
-                - user_id
-                - permission_type
+                - fields
               properties:
-                user_id:
-                  type: string
-                  description: 用户 open_id
-                  example: "ou_user123"
-                permission_type:
-                  type: string
-                  enum:
-                    - readable
-                    - editable
-                    - commentable
-                    - manageable
-                  example: "editable"
+                fields:
+                  type: object
+                  additionalProperties: true
       responses:
         '200':
-          description: 授权成功
+          description: 成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StandardResponse'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      record:
+                        $ref: '#/components/schemas/BaseRecord'
 
     get:
-      summary: 查询文档权限列表
+      summary: 查询记录
+      operationId: queryRecords
       tags:
-        - Doc
+        - Bitable
       parameters:
-        - name: app_id
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: doc_token
+        - name: app_token
           in: path
           required: true
           schema:
             type: string
+        - name: table_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: filter
+          in: query
+          schema:
+            type: string
+            description: JSON 格式的过滤器
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 500
+            default: 100
+        - name: page_token
+          in: query
+          schema:
+            type: string
       responses:
         '200':
-          description: 查询成功
+          description: 成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PermissionsListResponse'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      records:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/BaseRecord'
+                      has_more:
+                        type: boolean
+                      page_token:
+                        type: string
+                      total:
+                        type: integer
 
-  /clouddoc/docs/{doc_token}/permissions/{user_id}:
+  /bitable/v1/apps/{app_token}/tables/{table_id}/records/{record_id}:
+    put:
+      summary: 更新记录
+      operationId: updateRecord
+      tags:
+        - Bitable
+      parameters:
+        - name: app_token
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: table_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: record_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - fields
+              properties:
+                fields:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '200':
+          description: 成功
+
     delete:
-      summary: 撤销文档权限
+      summary: 删除记录
+      operationId: deleteRecord
       tags:
-        - Doc
+        - Bitable
       parameters:
-        - name: app_id
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: doc_token
+        - name: app_token
           in: path
           required: true
           schema:
             type: string
-        - name: user_id
+        - name: table_id
           in: path
           required: true
-          description: 用户 open_id
+          schema:
+            type: string
+        - name: record_id
+          in: path
+          required: true
           schema:
             type: string
       responses:
         '200':
-          description: 撤销成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StandardResponse'
+          description: 成功
 
-  /clouddoc/sheets/{spreadsheet_token}/ranges/{range}:
+  # ==================== Sheet 电子表格操作 ====================
+  /sheets/v2/spreadsheets/{spreadsheet_token}/values/{range}:
     get:
-      summary: 读取 Sheet 指定范围的单元格数据
+      summary: 读取 Sheet 数据
+      operationId: getSheetData
       tags:
         - Sheet
       parameters:
-        - name: app_id
-          in: query
-          required: true
-          schema:
-            type: string
         - name: spreadsheet_token
           in: path
           required: true
-          description: 电子表格 token
           schema:
             type: string
-            example: "shtcnXXXXXXXXXXXX"
         - name: range
           in: path
           required: true
-          description: 单元格范围 (如 Sheet1!A1:B10)
           schema:
             type: string
-            example: "Sheet1!A1:B10"
+          description: 范围 (如 A1:B10)
       responses:
         '200':
-          description: 读取成功
+          description: 成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SheetRangeResponse'
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      values:
+                        type: array
+                        items:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/CellValue'
 
     put:
-      summary: 更新 Sheet 指定范围的单元格数据
+      summary: 更新 Sheet 数据
+      operationId: updateSheetData
       tags:
         - Sheet
       parameters:
-        - name: app_id
-          in: query
-          required: true
-          schema:
-            type: string
         - name: spreadsheet_token
           in: path
           required: true
@@ -337,359 +965,21 @@ paths:
               properties:
                 values:
                   type: array
-                  description: 二维数组表示单元格数据
                   items:
                     type: array
                     items:
-                      oneOf:
-                        - type: string
-                        - type: number
-                        - type: boolean
-                  example:
-                    - ["姓名", "年龄"]
-                    - ["张三", 25]
-                    - ["李四", 30]
+                      $ref: '#/components/schemas/CellValue'
       responses:
         '200':
-          description: 更新成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StandardResponse'
+          description: 成功
 
-  /clouddoc/sheets/{spreadsheet_token}/format:
+  # ==================== 媒体管理 ====================
+  /drive/v1/medias/upload:
     post:
-      summary: 格式化 Sheet 单元格
-      description: |
-        支持多种格式化操作:
-        - 设置单元格样式 (字体、颜色、对齐方式)
-        - 合并/拆分单元格
-        - 设置列宽行高
-        - 冻结窗格
-      tags:
-        - Sheet
-      parameters:
-        - name: app_id
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: spreadsheet_token
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                range:
-                  type: string
-                  description: 目标范围
-                  example: "Sheet1!A1:B10"
-                style:
-                  $ref: '#/components/schemas/CellStyle'
-                merge_cells:
-                  type: boolean
-                  description: 是否合并单元格
-                column_width:
-                  type: integer
-                  description: 列宽 (像素)
-                  example: 120
-                row_height:
-                  type: integer
-                  description: 行高 (像素)
-                  example: 30
-                freeze_rows:
-                  type: integer
-                  description: 冻结前 N 行
-                  example: 1
-                freeze_columns:
-                  type: integer
-                  description: 冻结前 N 列
-                  example: 1
-      responses:
-        '200':
-          description: 格式化成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StandardResponse'
-
-  /clouddoc/bitables/{app_token}/tables/{table_id}/records:
-    post:
-      summary: 在多维表格中创建新记录
-      tags:
-        - Bitable
-      parameters:
-        - name: app_id
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: app_token
-          in: path
-          required: true
-          description: 多维表格 app token
-          schema:
-            type: string
-            example: "bascnXXXXXXXXXXXX"
-        - name: table_id
-          in: path
-          required: true
-          description: 数据表 ID
-          schema:
-            type: string
-            example: "tblXXXXXXXXXXXX"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - fields
-              properties:
-                fields:
-                  type: object
-                  description: 字段键值对
-                  additionalProperties: true
-                  example:
-                    name: "张三"
-                    age: 25
-                    status: "active"
-      responses:
-        '200':
-          description: 创建成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BitableRecordResponse'
-
-    get:
-      summary: 查询多维表格记录
-      description: |
-        支持条件过滤、排序、分页查询。
-      tags:
-        - Bitable
-      parameters:
-        - name: app_id
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: app_token
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: table_id
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: filter
-          in: query
-          description: 过滤条件 (JSON 格式)
-          schema:
-            type: string
-            example: '{"status": "active"}'
-        - name: sort
-          in: query
-          description: 排序字段
-          schema:
-            type: string
-            example: "created_time desc"
-        - name: page_size
-          in: query
-          schema:
-            type: integer
-            default: 20
-            maximum: 100
-        - name: page_token
-          in: query
-          schema:
-            type: string
-      responses:
-        '200':
-          description: 查询成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BitableRecordsResponse'
-
-  /clouddoc/bitables/{app_token}/tables/{table_id}/records/{record_id}:
-    patch:
-      summary: 更新多维表格记录
-      tags:
-        - Bitable
-      parameters:
-        - name: app_id
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: app_token
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: table_id
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: record_id
-          in: path
-          required: true
-          description: 记录 ID
-          schema:
-            type: string
-            example: "recXXXXXXXXXXXX"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - fields
-              properties:
-                fields:
-                  type: object
-                  additionalProperties: true
-                  example:
-                    status: "completed"
-                    updated_at: "2026-01-14T10:30:00Z"
-      responses:
-        '200':
-          description: 更新成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BitableRecordResponse'
-
-    delete:
-      summary: 删除多维表格记录
-      tags:
-        - Bitable
-      parameters:
-        - name: app_id
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: app_token
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: table_id
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: record_id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: 删除成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StandardResponse'
-
-  /clouddoc/bitables/{app_token}/tables/{table_id}/records/batch:
-    post:
-      summary: 批量操作多维表格记录
-      description: |
-        支持批量创建、更新、删除记录。
-      tags:
-        - Bitable
-      parameters:
-        - name: app_id
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: app_token
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: table_id
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - operation
-                - records
-              properties:
-                operation:
-                  type: string
-                  enum:
-                    - create
-                    - update
-                    - delete
-                  example: "create"
-                records:
-                  type: array
-                  description: 记录列表
-                  items:
-                    type: object
-                    properties:
-                      record_id:
-                        type: string
-                        description: 记录 ID (update/delete 需要)
-                      fields:
-                        type: object
-                        description: 字段数据
-                        additionalProperties: true
-      responses:
-        '200':
-          description: 批量操作成功
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BatchOperationResponse'
-
-  /clouddoc/media/upload:
-    post:
-      summary: 上传素材到云文档
-      description: |
-        上传图片、视频、文件等素材,获取 file_token 供文档内容块引用。
-        
-        限制:
-        - 图片: 最大 10MB, 支持 JPEG/PNG/GIF/WEBP
-        - 文件: 最大 30MB
-        - 禁止上传空文件
+      summary: 上传文档媒体
+      operationId: uploadDocMedia
       tags:
         - Media
-      parameters:
-        - name: app_id
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: doc_token
-          in: query
-          required: true
-          description: 目标文档 token
-          schema:
-            type: string
       requestBody:
         required: true
         content:
@@ -698,400 +988,129 @@ paths:
               type: object
               required:
                 - file
+                - file_name
+                - parent_type
+                - parent_node
               properties:
                 file:
                   type: string
                   format: binary
-                  description: 素材文件
-                media_type:
+                file_name:
                   type: string
-                  enum:
-                    - image
-                    - video
-                    - audio
-                    - file
-                  example: "image"
+                parent_type:
+                  type: string
+                  enum: [doc, bitable, sheet]
+                parent_node:
+                  type: string
       responses:
         '200':
-          description: 上传成功
+          description: 成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MediaUploadResponse'
-        '413':
-          description: 文件大小超限
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                code: "FILE_TOO_LARGE"
-                message: "图片大小超过 10MB 限制"
-                request_id: "req_1234567890"
-        '400':
-          description: 文件类型不支持或文件为空
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                code: "INVALID_FILE"
-                message: "禁止上传空文件或不支持的文件类型"
-                request_id: "req_1234567890"
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/MediaAsset'
 
-  /clouddoc/media/{file_token}/download:
+  /drive/v1/medias/{file_token}/download:
     get:
-      summary: 下载云文档素材
+      summary: 下载文档媒体
+      operationId: downloadDocMedia
       tags:
         - Media
       parameters:
-        - name: app_id
-          in: query
-          required: true
-          schema:
-            type: string
         - name: file_token
           in: path
           required: true
-          description: 素材 file_token
           schema:
             type: string
-            example: "boxcnXXXXXXXXXXXX"
       responses:
         '200':
-          description: 下载成功
+          description: 成功
           content:
             application/octet-stream:
               schema:
                 type: string
                 format: binary
-        '404':
-          description: 素材不存在或已删除
+
+  # ==================== 权限管理 ====================
+  /drive/v1/permissions/{token}/members:
+    post:
+      summary: 授予权限
+      operationId: grantPermission
+      tags:
+        - Permission
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Permission'
+      responses:
+        '200':
+          description: 成功
+
+    get:
+      summary: 查询权限列表
+      operationId: listPermissions
+      tags:
+        - Permission
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                code: "FILE_NOT_FOUND"
-                message: "file_token 无效或文件已被删除"
-                request_id: "req_1234567890"
-
-components:
-  schemas:
-    DocResponse:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        request_id:
-          type: string
-        data:
-          $ref: '#/components/schemas/Document'
-
-    Document:
-      type: object
-      required:
-        - doc_token
-        - title
-      properties:
-        doc_token:
-          type: string
-          example: "doccnXXXXXXXXXXXX"
-        title:
-          type: string
-        url:
-          type: string
-          format: uri
-          description: 文档访问链接
-        created_at:
-          type: string
-          format: date-time
-
-    ContentBlock:
-      type: object
-      required:
-        - type
-        - content
-      properties:
-        block_id:
-          type: string
-          description: 内容块 ID (读取时返回)
-        type:
-          type: string
-          enum:
-            - text
-            - heading1
-            - heading2
-            - heading3
-            - image
-            - table
-            - code
-          example: "text"
-        content:
-          type: object
-          description: 内容数据 (根据 type 不同而不同)
-          additionalProperties: true
-          example:
-            text: "这是一段文本"
-            style: "normal"
-
-    DocContentResponse:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        request_id:
-          type: string
-        data:
-          type: object
-          properties:
-            doc_token:
-              type: string
-            title:
-              type: string
-            blocks:
-              type: array
-              items:
-                $ref: '#/components/schemas/ContentBlock'
-
-    PermissionsListResponse:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        request_id:
-          type: string
-        data:
-          type: object
-          properties:
-            items:
-              type: array
-              items:
                 type: object
                 properties:
-                  user_id:
+                  code:
+                    type: integer
+                  msg:
                     type: string
-                  permission_type:
-                    type: string
-                    enum: [readable, editable, commentable, manageable]
-                  granted_at:
-                    type: string
-                    format: date-time
+                  data:
+                    type: object
+                    properties:
+                      permissions:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Permission'
+                      total:
+                        type: integer
 
-    SheetRangeResponse:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        request_id:
-          type: string
-        data:
-          type: object
-          properties:
-            range:
-              type: string
-              example: "Sheet1!A1:B10"
-            values:
-              type: array
-              description: 二维数组
-              items:
-                type: array
-                items:
-                  oneOf:
-                    - type: string
-                    - type: number
-                    - type: boolean
-
-    CellStyle:
-      type: object
-      properties:
-        font_family:
-          type: string
-          example: "Arial"
-        font_size:
-          type: integer
-          example: 12
-        font_color:
-          type: string
-          example: "#000000"
-        background_color:
-          type: string
-          example: "#FFFFFF"
-        bold:
-          type: boolean
-        italic:
-          type: boolean
-        underline:
-          type: boolean
-        horizontal_align:
-          type: string
-          enum: [left, center, right]
-        vertical_align:
-          type: string
-          enum: [top, middle, bottom]
-
-    BitableRecordResponse:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        request_id:
-          type: string
-        data:
-          $ref: '#/components/schemas/BitableRecord'
-
-    BitableRecordsResponse:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        request_id:
-          type: string
-        data:
-          type: object
-          properties:
-            items:
-              type: array
-              items:
-                $ref: '#/components/schemas/BitableRecord'
-            has_more:
-              type: boolean
-            page_token:
-              type: string
-            total:
-              type: integer
-
-    BitableRecord:
-      type: object
-      required:
-        - record_id
-        - fields
-      properties:
-        record_id:
-          type: string
-          example: "recXXXXXXXXXXXX"
-        fields:
-          type: object
-          additionalProperties: true
-          example:
-            name: "张三"
-            age: 25
-            status: "active"
-        created_time:
-          type: integer
-          description: 创建时间戳 (毫秒)
-        last_modified_time:
-          type: integer
-          description: 最后修改时间戳 (毫秒)
-
-    BatchOperationResponse:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        request_id:
-          type: string
-        data:
-          type: object
-          properties:
-            success_count:
-              type: integer
-              description: 成功数量
-            failed_count:
-              type: integer
-              description: 失败数量
-            results:
-              type: array
-              description: 每条记录的操作结果
-              items:
-                type: object
-                properties:
-                  record_id:
-                    type: string
-                  status:
-                    type: string
-                    enum: [success, failed]
-                  error:
-                    type: string
-                    description: 错误信息 (失败时)
-
-    MediaUploadResponse:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        request_id:
-          type: string
-        data:
-          type: object
-          properties:
-            file_token:
-              type: string
-              description: 素材 token,可用于文档内容块引用
-              example: "boxcnXXXXXXXXXXXX"
-            media_type:
-              type: string
-            file_size:
-              type: integer
-              description: 文件大小 (字节)
-            uploaded_at:
-              type: string
-              format: date-time
-
-    StandardResponse:
-      type: object
-      required:
-        - code
-        - request_id
-      properties:
-        code:
-          type: string
-          example: "OK"
-        message:
-          type: string
-          example: "操作成功"
-        request_id:
-          type: string
-
-    ErrorResponse:
-      type: object
-      required:
-        - code
-        - message
-        - request_id
-      properties:
-        code:
-          type: string
-          enum:
-            - DOC_NOT_FOUND
-            - PERMISSION_DENIED
-            - FILE_TOO_LARGE
-            - FILE_NOT_FOUND
-            - INVALID_FILE
-            - INVALID_PARAMETER
-            - TOKEN_EXPIRED
-            - RATE_LIMITED
-            - INTERNAL_ERROR
-        message:
-          type: string
-        request_id:
-          type: string
-        error_details:
-          type: object
-          additionalProperties: true
+  /drive/v1/permissions/{token}/members/{member_id}:
+    delete:
+      summary: 撤销权限
+      operationId: revokePermission
+      tags:
+        - Permission
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: member_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功

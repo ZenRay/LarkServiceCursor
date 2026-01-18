@@ -1,0 +1,49 @@
+# Prometheus 配置文件
+# 用于采集 Lark Service metrics
+#
+# 注意: Prometheus不支持环境变量默认值语法 ${VAR:-default}
+# 环境变量在docker-compose.yml中通过command参数或配置模板注入
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    environment: 'staging-local'
+    project: 'lark-service'
+
+# Alertmanager 配置 (可选)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets: ['alertmanager:9093']
+
+# 抓取配置
+scrape_configs:
+  # Prometheus 自身
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Lark Service 应用 metrics
+  # 使用Docker网桥IP访问宿主机应用
+  - job_name: 'lark-service'
+    static_configs:
+      - targets: ['172.17.0.1:9091']  # Docker网桥IP
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # PostgreSQL Exporter (可选)
+  # - job_name: 'postgres'
+  #   static_configs:
+  #     - targets: ['postgres-exporter:9187']
+
+  # RabbitMQ (内置prometheus插件)
+  - job_name: 'rabbitmq'
+    static_configs:
+      - targets: ['rabbitmq:15692']
+    metrics_path: '/metrics'
+
+  # Redis Exporter (可选)
+  # - job_name: 'redis'
+  #   static_configs:
+  #     - targets: ['redis-exporter:9121']
