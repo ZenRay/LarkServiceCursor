@@ -89,7 +89,7 @@ class TestSlidingWindowRateLimiter:
         config = RateLimitConfig(max_requests=10, window_seconds=60)
         limiter = SlidingWindowRateLimiter(config)
 
-        for i in range(10):
+        for _ in range(10):
             result = limiter.check_rate_limit("user1")
             assert result.allowed is True
 

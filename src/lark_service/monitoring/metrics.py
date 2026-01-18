@@ -13,7 +13,7 @@ import time
 from collections.abc import Callable
 from typing import Any
 
-from prometheus_client import (
+from prometheus_client import (  # type: ignore[import-not-found]
     CONTENT_TYPE_LATEST,
     CollectorRegistry,
     Counter,
