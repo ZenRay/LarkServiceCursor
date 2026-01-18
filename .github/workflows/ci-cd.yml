@@ -1,0 +1,104 @@
+# 极简生产级 CI/CD 流程 - 测试通过即部署
+name: CI/CD Production Pipeline
+
+on:
+  push:
+    branches: ["main", "master"]
+  pull_request:
+    branches: ["main", "master"]
+
+env:
+  PYTHON_VERSION: "3.12"
+  UV_VERSION: "latest"
+  # 统一测试数据库凭据
+  TEST_DB_NAME: lark_service_test
+  TEST_DB_USER: lark_admin
+  TEST_DB_PASS: lark_test_pass_123
+
+jobs:
+  # ==========================================================================
+  # 1. 验证阶段 (CI)
+  # ==========================================================================
+  verify:
+    name: Quality & Unit Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: ${{ env.TEST_DB_NAME }}
+          POSTGRES_USER: ${{ env.TEST_DB_USER }}
+          POSTGRES_PASSWORD: ${{ env.TEST_DB_PASS }}
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      rabbitmq:
+        image: rabbitmq:3.13-alpine
+        env:
+          RABBITMQ_DEFAULT_USER: lark
+          RABBITMQ_DEFAULT_PASS: rabbitmq_password_123
+        ports:
+          - 5672:5672
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+          cache-dependency-glob: "pyproject.toml"
+
+      - name: Sync dependencies
+        run: |
+          # uv sync 默认不安装 optional-dependencies，需要显式指定 --all-extras
+          uv sync --all-extras --python ${{ env.PYTHON_VERSION }}
+
+      - name: Run Ruff (Lint)
+        run: uv run ruff check src/
+
+      - name: Run Mypy (Types)
+        run: uv run mypy src/ --config-file=pyproject.toml --no-error-summary
+
+      - name: Run Unit Tests
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          POSTGRES_DB: ${{ env.TEST_DB_NAME }}
+          POSTGRES_USER: ${{ env.TEST_DB_USER }}
+          POSTGRES_PASSWORD: ${{ env.TEST_DB_PASS }}
+          RABBITMQ_HOST: localhost
+          RABBITMQ_PORT: 5672
+          RABBITMQ_USER: lark
+          RABBITMQ_PASSWORD: rabbitmq_password_123
+        run: |
+          uv run pytest tests/unit/ -v --cov=src/lark_service --cov-report=xml
+
+  # ==========================================================================
+  # 2. 自动化部署阶段 (CD)
+  # ==========================================================================
+  deploy:
+    name: Auto Deploy to Production
+    needs: [verify]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    # Manual approval is controlled by GitHub Environment settings (production -> required reviewers)
+    environment: production
+    steps:
+      - name: Execute Remote Deploy Script
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /opt/lark-service
+            git fetch origin
+            git checkout ${{ github.ref_name }}
+            git pull origin ${{ github.ref_name }}
+            sudo bash deploy/scripts/deploy.sh production

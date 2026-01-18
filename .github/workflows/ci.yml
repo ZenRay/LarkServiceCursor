@@ -2,9 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: ["main", "develop", "001-lark-service-core"]
+    branches: ["develop", "001-lark-service-core"]
   pull_request:
-    branches: ["main", "develop"]
+    branches: ["develop"]
 
 jobs:
   lint:
