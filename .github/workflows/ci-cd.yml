@@ -57,18 +57,22 @@ jobs:
       - name: Set up Python
         run: uv python install ${{ env.PYTHON_VERSION }}
 
-      - name: Install dependencies
+      - name: Create Virtual Environment & Install dependencies
         run: |
-          # uv 会自动寻找或创建虚拟环境
+          # 1. 创建虚拟环境
+          uv venv
+          # 2. 将虚拟环境 bin 目录加入 PATH (GitHub Actions 专用方式)
+          echo "$GITHUB_WORKSPACE/.venv/bin" >> $GITHUB_PATH
+          # 3. 安装依赖 (此时会自动安装进 .venv)
           uv pip install ruff mypy pytest pytest-cov pytest-asyncio
           uv pip install -r requirements.txt
           uv pip install -e .
 
       - name: Run Ruff (Lint)
-        run: uv run ruff check src/
+        run: ruff check src/
 
       - name: Run Mypy (Types)
-        run: uv run mypy src/ --config-file=pyproject.toml --no-error-summary
+        run: mypy src/ --config-file=pyproject.toml --no-error-summary
 
       - name: Run Unit Tests
         env:
@@ -82,7 +86,7 @@ jobs:
           RABBITMQ_USER: lark
           RABBITMQ_PASSWORD: rabbitmq_password_123
         run: |
-          uv run pytest tests/unit/ -v --cov=src/lark_service --cov-report=xml
+          pytest tests/unit/ -v --cov=src/lark_service --cov-report=xml
 
   # ==========================================================================
   # 2. 自动化部署阶段 (CD)
