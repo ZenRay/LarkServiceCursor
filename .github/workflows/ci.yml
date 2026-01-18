@@ -61,7 +61,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install mypy types-psycopg2 types-pika
+          pip install mypy types-psycopg2 types-pika types-redis types-psutil
 
       - name: Run Mypy type checker
         run: mypy src/ --config-file=pyproject.toml --no-error-summary
