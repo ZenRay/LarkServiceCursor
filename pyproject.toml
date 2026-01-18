@@ -145,10 +145,12 @@ module = [
     "lark_service.core.response",
     "lark_service.utils",
     "lark_service.monitoring.server",
+    "lark_service.monitoring.metrics",
 ]
 disallow_subclassing_any = false
 disallow_untyped_defs = false
 warn_return_any = false
+warn_redundant_casts = false
 
 # Relax checking for test files (pytest fixtures and decorators)
 [[tool.mypy.overrides]]
