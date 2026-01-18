@@ -61,10 +61,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install mypy
+          pip install mypy types-psycopg2 types-pika
 
       - name: Run Mypy type checker
-        run: mypy src/ --no-error-summary
+        run: mypy src/ --config-file=pyproject.toml --no-error-summary
 
   security:
     name: Security - Bandit Scan
@@ -160,7 +160,7 @@ jobs:
           RABBITMQ_PASSWORD: rabbitmq_password_123
           PYTHONPATH: ${{ github.workspace }}/src
         run: |
-          pytest tests/unit/ -v --cov=src/lark_service --cov-report=xml --cov-report=term
+          pytest tests/unit/ -v --cov=src/lark_service --cov-report=xml --cov-report=term --cov-fail-under=55
 
       - name: Run contract tests
         env:
