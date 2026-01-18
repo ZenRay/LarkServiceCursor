@@ -57,8 +57,7 @@ jobs:
       - name: Sync dependencies
         run: |
           # uv sync 会自动安装 Python、创建环境、安装 pyproject.toml 中的包
-          # --no-lock 表示如果不存在 lock 文件则不强制报错
-          uv sync --no-lock --python ${{ env.PYTHON_VERSION }}
+          uv sync --python ${{ env.PYTHON_VERSION }}
 
       - name: Run Ruff (Lint)
         run: uv run ruff check src/
