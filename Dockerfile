@@ -39,7 +39,7 @@ COPY requirements.txt ./
 # Separate production and development dependencies
 # Only install production-required dependencies
 RUN grep -v "^#" requirements.txt | grep -v "pytest\|mypy\|ruff\|types-" > requirements.prod.txt && \
-    pip install --no-cache-dir --user -r requirements.prod.txt
+    pip install --no-cache-dir -r requirements.prod.txt
 
 # ============================================================================
 # Stage 2: Runtime - Minimal runtime image
@@ -66,11 +66,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Create application directory
 WORKDIR /app
 
-# Copy installed Python packages from builder
-COPY --from=builder /root/.local /root/.local
-
-# Add user-level Python packages to PATH
-ENV PATH=/root/.local/bin:$PATH
+# Copy installed Python packages from builder (system site-packages)
+COPY --from=builder /usr/local /usr/local
 
 # Copy application code (copy last to maximize cache utilization)
 COPY src/ /app/src/
