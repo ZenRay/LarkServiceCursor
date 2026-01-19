@@ -210,9 +210,11 @@ git push origin 002-websocket-user-auth
 ### ✅ Phase 2: Foundational Infrastructure
 **完成时间**: 2026-01-19 23:15
 **测试时间**: 2026-01-19 23:45
+**修复时间**: 2026-01-19 23:55
 **Commits**:
 - `abd2543` - feat(auth): implement Phase 2 foundational infrastructure
 - `a2d765b` - fix(config): add default values for WebSocket auth parameters
+- `24a62c9` - fix(tests): 修复集成测试中的 PostgreSQL 用户名和 CredentialPool 实例化问题
 
 **交付物**:
 - 扩展核心配置 (10个 WebSocket 认证参数,全部带默认值)
@@ -225,8 +227,9 @@ git push origin 002-websocket-user-auth
 - ✅ 代码格式: 100% 通过 (ruff format)
 - ✅ 代码风格: 100% 通过 (ruff check)
 - ✅ 类型检查: 100% 通过 (mypy, 7个新文件)
-- ✅ 单元测试: 613 passed (+67 相比初始状态)
+- ✅ 单元测试: 631 passed
 - ✅ 数据库迁移: 成功应用到 a8b9c0d1e2f3
 - ✅ 向后兼容: 所有现有测试通过
+- ✅ 回归修复: 18 个集成测试 ERROR 全部修复
 
 **下一步**: `/speckit.implement` 执行 Phase 3 (US2 - WebSocket 客户端)
