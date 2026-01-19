@@ -7,6 +7,68 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 🚀 Feature: WebSocket User Authorization (2026-01-19)
+
+#### Added - Phase 2 Foundational Infrastructure
+- **WebSocket Authentication Configuration** (`src/lark_service/core/config.py`)
+  - 10 new configuration parameters for WebSocket user authorization
+  - All parameters have backward-compatible default values
+  - Configurable: reconnect retries, heartbeat interval, fallback behavior, token refresh threshold, etc.
+
+- **Auth Module** (`src/lark_service/auth/`)
+  - 8 custom exception classes following PEP 8 naming conventions
+    - `AuthError`, `AuthenticationRequiredError`, `TokenExpiredError`, `TokenRefreshFailedError`
+    - `AuthSessionNotFoundError`, `AuthSessionExpiredError`, `AuthorizationRejectedError`, `AuthorizationCodeExpiredError`
+  - 3 type definition classes with full type annotations
+    - `AuthCardOptions`, `UserInfo`, `AuthSession`
+
+- **Events Module** (`src/lark_service/events/`)
+  - 2 WebSocket-related exception classes
+    - `WebSocketError`, `WebSocketConnectionError`
+  - 2 type definition classes for WebSocket configuration and status
+    - `WebSocketConfig`, `WebSocketConnectionStatus`
+
+- **Database Schema Extension**
+  - Extended `user_auth_sessions` table with 5 new user info columns
+    - `user_id`, `union_id`, `user_name`, `mobile`, `email`
+  - Added 3 new indexes for query optimization
+    - `idx_auth_session_user`, `idx_auth_session_token_expires`, `idx_auth_session_open_id`
+  - Added 4 check constraints for data integrity
+  - Migration: `20260119_2100_a8b9c0d1e2f3_extend_auth_session_for_websocket.py`
+
+#### Fixed - Integration Tests
+- **PostgreSQL Connection Issues** (18 ERROR fixes)
+  - Updated all integration tests to use correct PostgreSQL username (`lark_user` instead of `lark`)
+  - Fixed `CredentialPool` instantiation in `test_sheet_e2e.py`
+  - Affected files: 9 integration test files
+  - Test results improved from 613 passed to 631 passed
+
+#### Documentation
+- **Phase 2 Deliverables**
+  - Data model design (`specs/002-websocket-user-auth/data-model.md`)
+  - API contracts (WebSocket events + Auth session API)
+  - 5-minute quickstart guide (`specs/002-websocket-user-auth/quickstart.md`)
+  - Comprehensive test report (`specs/002-websocket-user-auth/PHASE2-TEST-REPORT.md`)
+- **Updated Documentation**
+  - `specs/002-websocket-user-auth/README.md` - Phase 2 completion status
+  - `specs/002-websocket-user-auth/plan.md` - Implementation progress
+  - `specs/002-websocket-user-auth/tasks.md` - Task completion tracking
+  - `specs/002-websocket-user-auth/checklists/pre-implementation.md` - Quality validation
+
+#### Quality Metrics
+- ✅ Code format: 100% pass (ruff format)
+- ✅ Code style: 100% pass (ruff check)
+- ✅ Type checking: 100% pass (mypy, 7 new files)
+- ✅ Unit tests: 631 passed (+18 from Phase 1)
+- ✅ Database migration: Successfully applied
+- ✅ Backward compatibility: All existing tests pass
+
+#### Commits
+- `abd2543` - feat(auth): implement Phase 2 foundational infrastructure
+- `a2d765b` - fix(config): add default values for WebSocket auth parameters
+- `24a62c9` - fix(tests): 修复集成测试中的 PostgreSQL 用户名和 CredentialPool 实例化问题
+- `a77bc9c` - docs(002): 更新 Phase 2 文档,记录集成测试修复
+
 ### ✅ Production Readiness (2026-01-18)
 
 #### Fixed - P1 Blocking Items
