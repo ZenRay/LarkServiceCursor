@@ -135,12 +135,15 @@ class TestConcurrentAuth:
             """Handle authorization for a user."""
             user_id = f"ou_user_{user_index:03d}"
 
-            # Create mock card event
-            mock_event = Mock()
-            mock_event.event.operator.open_id = user_id
-            mock_event.event.action.value = {
-                "session_id": session.session_id,
-                "authorization_code": f"auth_code_{user_index}",
+            # Create mock card event (as dict, matching actual event structure)
+            mock_event = {
+                "operator": {"open_id": user_id},
+                "action": {
+                    "value": {
+                        "session_id": session.session_id,
+                        "authorization_code": f"auth_code_{user_index}",
+                    }
+                },
             }
 
             mock_token_response = {
@@ -149,13 +152,14 @@ class TestConcurrentAuth:
                 "expires_in": 604800,
             }
 
-            mock_user_info = {
-                "user_id": user_id,
-                "open_id": user_id,
-                "union_id": f"on_union_{user_index}",
-                "name": f"User {user_index}",
-                "email": f"user{user_index}@example.com",
-            }
+            mock_user_info = UserInfo(
+                user_id=user_id,
+                open_id=user_id,
+                union_id=f"on_union_{user_index}",
+                user_name=f"User {user_index}",
+                email=f"user{user_index}@example.com",
+                mobile=None,
+            )
 
             with (
                 patch.object(

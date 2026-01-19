@@ -282,11 +282,15 @@ class TestCompleteAuthFlow:
 
         # Simulate users authorizing
         for i, user in enumerate(users):
-            mock_event = Mock()
-            mock_event.event.operator.open_id = user["user_id"]
-            mock_event.event.action.value = {
-                "session_id": sessions[i].session_id,
-                "authorization_code": f"auth_code_{i}",
+            # Create mock card event (as dict, matching actual event structure)
+            mock_event = {
+                "operator": {"open_id": user["user_id"]},
+                "action": {
+                    "value": {
+                        "session_id": sessions[i].session_id,
+                        "authorization_code": f"auth_code_{i}",
+                    }
+                },
             }
 
             mock_token_response = {
@@ -295,13 +299,14 @@ class TestCompleteAuthFlow:
                 "expires_in": 604800,
             }
 
-            mock_user_info = {
-                "user_id": user["user_id"],
-                "open_id": user["user_id"],
-                "union_id": f"on_union_{i}",
-                "name": f"User {i}",
-                "email": f"user{i}@example.com",
-            }
+            mock_user_info = UserInfo(
+                user_id=user["user_id"],
+                open_id=user["user_id"],
+                union_id=f"on_union_{i}",
+                user_name=f"User {i}",
+                email=f"user{i}@example.com",
+                mobile=None,
+            )
 
             with (
                 patch.object(

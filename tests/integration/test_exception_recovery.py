@@ -91,12 +91,15 @@ class TestExceptionRecovery:
             app_id=app_id, user_id=user_id, auth_method="websocket_card"
         )
 
-        # Create mock card event
-        mock_event = Mock()
-        mock_event.event.operator.open_id = user_id
-        mock_event.event.action.value = {
-            "session_id": session.session_id,
-            "authorization_code": "auth_code_test",
+        # Create mock card event (as dict, matching actual event structure)
+        mock_event = {
+            "operator": {"open_id": user_id},
+            "action": {
+                "value": {
+                    "session_id": session.session_id,
+                    "authorization_code": "auth_code_test",
+                }
+            },
         }
 
         # Mock network error on first attempt, success on second
@@ -113,13 +116,14 @@ class TestExceptionRecovery:
                 "expires_in": 604800,
             }
 
-        mock_user_info = {
-            "user_id": user_id,
-            "open_id": user_id,
-            "union_id": "on_union_123",
-            "name": "Test User",
-            "email": "test@example.com",
-        }
+        mock_user_info = UserInfo(
+            user_id=user_id,
+            open_id=user_id,
+            union_id="on_union_123",
+            user_name="Test User",
+            email="test@example.com",
+            mobile=None,
+        )
 
         # Act - Mock exchange to raise ConnectionError
         with patch.object(
@@ -175,12 +179,15 @@ class TestExceptionRecovery:
             app_id=app_id, user_id=user_id, auth_method="websocket_card"
         )
 
-        # Create mock card event
-        mock_event = Mock()
-        mock_event.event.operator.open_id = user_id
-        mock_event.event.action.value = {
-            "session_id": session.session_id,
-            "authorization_code": "invalid_code",
+        # Create mock card event (as dict, matching actual event structure)
+        mock_event = {
+            "operator": {"open_id": user_id},
+            "action": {
+                "value": {
+                    "session_id": session.session_id,
+                    "authorization_code": "invalid_code",
+                }
+            },
         }
 
         # Act
@@ -217,12 +224,15 @@ class TestExceptionRecovery:
             app_id=app_id, user_id=user_id, auth_method="websocket_card"
         )
 
-        # Create mock card event
-        mock_event = Mock()
-        mock_event.event.operator.open_id = user_id
-        mock_event.event.action.value = {
-            "session_id": session.session_id,
-            "authorization_code": "auth_code_test",
+        # Create mock card event (as dict, matching actual event structure)
+        mock_event = {
+            "operator": {"open_id": user_id},
+            "action": {
+                "value": {
+                    "session_id": session.session_id,
+                    "authorization_code": "auth_code_test",
+                }
+            },
         }
 
         # Mock 500 error
@@ -284,12 +294,15 @@ class TestExceptionRecovery:
             app_id=app_id, user_id=user_id, auth_method="websocket_card"
         )
 
-        # Create mock card event
-        mock_event = Mock()
-        mock_event.event.operator.open_id = user_id
-        mock_event.event.action.value = {
-            "session_id": session.session_id,
-            "authorization_code": "auth_code_test",
+        # Create mock card event (as dict, matching actual event structure)
+        mock_event = {
+            "operator": {"open_id": user_id},
+            "action": {
+                "value": {
+                    "session_id": session.session_id,
+                    "authorization_code": "auth_code_test",
+                }
+            },
         }
 
         # Act
@@ -384,11 +397,15 @@ class TestExceptionRecovery:
         for i, session in enumerate(sessions):
             user_id = f"ou_user_{i:03d}"
 
-            mock_event = Mock()
-            mock_event.event.operator.open_id = user_id
-            mock_event.event.action.value = {
-                "session_id": session.session_id,
-                "authorization_code": f"auth_code_{i}",
+            # Create mock card event (as dict, matching actual event structure)
+            mock_event = {
+                "operator": {"open_id": user_id},
+                "action": {
+                    "value": {
+                        "session_id": session.session_id,
+                        "authorization_code": f"auth_code_{i}",
+                    }
+                },
             }
 
             # Simulate failures for some users
@@ -399,9 +416,9 @@ class TestExceptionRecovery:
                 ) as mock_exchange:
                     mock_exchange.side_effect = Exception("Simulated failure")
 
-                    try:
-                        await card_auth_handler.handle_card_auth_event(mock_event)
-                    except Exception:
+                    response = await card_auth_handler.handle_card_auth_event(mock_event)
+                    # Check if response indicates failure
+                    if response and response.get("toast", {}).get("type") == "error":
                         failure_count += 1
             else:
                 # Succeed for other requests
@@ -411,13 +428,14 @@ class TestExceptionRecovery:
                     "expires_in": 604800,
                 }
 
-                mock_user_info = {
-                    "user_id": user_id,
-                    "open_id": user_id,
-                    "union_id": f"on_union_{i}",
-                    "name": f"User {i}",
-                    "email": f"user{i}@example.com",
-                }
+                mock_user_info = UserInfo(
+                    user_id=user_id,
+                    open_id=user_id,
+                    union_id=f"on_union_{i}",
+                    user_name=f"User {i}",
+                    email=f"user{i}@example.com",
+                    mobile=None,
+                )
 
                 with (
                     patch.object(
