@@ -1,8 +1,8 @@
 # 002-WebSocket-User-Auth 当前进度
 
-**最后更新**: 2026-01-20 03:00
+**最后更新**: 2026-01-20 04:30
 **分支**: `002-websocket-user-auth`
-**状态**: ✅ Phase 6-7 完成,准备开始 Phase 8
+**状态**: ✅ Phase 8 完成,准备开始 Phase 9
 
 ---
 
@@ -18,11 +18,12 @@
 | **Phase 5** | 卡片授权处理器 (T038-T055) | ✅ 完成 | 2026-01-20 02:00 | 10 passed, 24 total |
 | **Phase 6** | aPaaS 集成 (T056-T063) | ✅ 完成 | 2026-01-20 03:00 | 10 passed |
 | **Phase 7** | Token 生命周期 (T064-T075) | ✅ 完成 | 2026-01-20 03:00 | 9 passed |
-| **Phase 8+** | 集成测试 + 监控 + 文档 (T076-T100) | ⏸️ 未开始 | - | - |
+| **Phase 8** | 集成测试 + 手动测试 (T076-T083) | ✅ 完成 | 2026-01-20 04:30 | 8 tasks |
+| **Phase 9+** | 监控 + 文档 (T084-T100) | ⏸️ 未开始 | - | - |
 
 **总任务数**: 100 tasks
-**已完成**: 66 tasks (66%)
-**预计剩余时间**: 2-3 天
+**已完成**: 75 tasks (75%)
+**预计剩余时间**: 1-2 天
 
 ---
 
@@ -302,27 +303,86 @@ abd2543 - feat(auth): implement Phase 2 foundational infrastructure
 
 ---
 
-## 🚀 下一步: Phase 8 - 集成测试
+## ✅ Phase 8 完成交付物
 
-### 任务范围 (T038-T055, 18 tasks)
+### 1. 集成测试实现
 
-**目标**: 实现授权卡片发送和回调事件处理,完成 Token 换取
+#### 完整授权流程测试 (`tests/integration/test_websocket_auth_flow.py`)
+- **test_complete_auth_flow_from_card_to_token**: 端到端授权流程
+  - 会话创建 → Token 交换 → 用户信息存储 → Token 检索
+- **test_auth_flow_with_missing_token_raises_error**: 缺失 Token 错误处理
+- **test_auth_flow_with_expired_token_raises_error**: 过期 Token 错误处理
+- **test_auth_flow_with_rejected_authorization**: 授权拒绝场景
+- **test_auth_flow_with_multiple_users**: 多用户并发授权
+
+#### WebSocket 降级测试 (`tests/integration/test_websocket_fallback.py`)
+- **test_fallback_after_max_reconnect_failures**: 重连失败后降级
+- **test_fallback_disabled_continues_retrying**: 禁用降级继续重试
+- **test_successful_connection_resets_reconnect_count**: 成功连接重置计数器
+- **test_fallback_with_cached_token_continues_operation**: 缓存 Token 继续运行
+- **test_reconnect_exponential_backoff_timing**: 指数退避重连策略
+
+#### 并发授权测试 (`tests/integration/test_concurrent_auth.py`)
+- **test_concurrent_auth_sessions_creation**: 100 个会话并发创建
+- **test_concurrent_token_exchange**: 50 个用户并发 Token 交换
+- **test_concurrent_token_retrieval**: 100 个用户并发 Token 检索
+- **test_concurrent_session_cleanup**: 并发会话清理
+- **test_concurrent_auth_with_rate_limiting**: 限流下的并发授权
+- **test_concurrent_auth_database_integrity**: 数据库完整性验证
+
+#### 异常恢复测试 (`tests/integration/test_exception_recovery.py`)
+- **test_recovery_from_network_error_during_token_exchange**: 网络错误恢复
+- **test_recovery_from_api_4xx_error**: API 4xx 错误处理
+- **test_recovery_from_api_5xx_error**: API 5xx 错误处理
+- **test_recovery_from_database_connection_error**: 数据库连接错误
+- **test_recovery_from_timeout_error**: 超时错误处理
+- **test_recovery_from_token_refresh_failure**: Token 刷新失败恢复
+- **test_system_continues_after_partial_failure**: 部分失败后系统继续运行
+- **test_graceful_degradation_under_high_error_rate**: 高错误率下优雅降级
+
+### 2. 手动测试工具
+
+#### 交互式测试脚本 (`tests/manual/interactive_auth_test.py`)
+- 完整的命令行交互式测试工具
+- 支持 WebSocket 和手动两种模式
+- 详细的步骤输出和进度显示
+- 完善的错误处理和故障排查
+
+#### 测试文档 (`tests/manual/README.md`)
+- 515 行完整测试指南
+- 前置条件和环境配置说明
+- 10 个详细测试步骤说明
+- 5 个常见问题解答
+- 数据库验证 SQL 示例
+- 安全注意事项和清理指南
+
+### 3. 质量验证
+
+| 检查项 | 结果 | 说明 |
+|--------|------|------|
+| **代码格式** | ✅ 100% | ruff format |
+| **代码风格** | ✅ 100% | ruff check |
+| **类型检查** | ✅ 100% | mypy (4 files) |
+| **集成测试** | ✅ 创建 | 4 个测试文件,20+ 测试用例 |
+| **手动测试** | ✅ 就绪 | 完整测试脚本和文档 |
+
+---
+
+## 🚀 下一步: Phase 9 - 监控和配置
+
+### 任务范围 (T084-T091, 8 tasks)
+
+**目标**: 实现生产就绪的监控指标和配置管理
 
 #### 核心任务
-1. **T038-T044**: 卡片授权处理器单元测试 (TDD RED)
-2. **T045-T054**: 卡片授权处理器实现 (TDD GREEN/REFACTOR)
-3. **T055**: 限流保护
-
-#### 关键文件
-- `src/lark_service/auth/card_auth_handler.py`
-- `tests/unit/auth/test_card_auth_handler.py`
-- `tests/contract/test_card_events.py`
-- `tests/integration/test_websocket_auth_flow.py`
+1. **T084-T086**: Prometheus 监控指标
+2. **T087-T088**: 结构化日志和脱敏
+3. **T089-T091**: Grafana 仪表板和告警规则
 
 #### 预计工作量
-- **开发**: 1.5 天
-- **测试**: 1 天
-- **总计**: 2.5 天
+- **开发**: 0.5 天
+- **测试**: 0.5 天
+- **总计**: 1 天
 
 ---
 
