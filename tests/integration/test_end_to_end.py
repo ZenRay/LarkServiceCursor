@@ -39,7 +39,7 @@ def e2e_config(tmp_path_factory: pytest.TempPathFactory) -> Config:
         postgres_host=os.getenv("POSTGRES_HOST", "localhost"),
         postgres_port=int(os.getenv("POSTGRES_PORT", "5432")),
         postgres_db=os.getenv("POSTGRES_DB", "lark_service"),
-        postgres_user=os.getenv("POSTGRES_USER", "lark"),
+        postgres_user=os.getenv("POSTGRES_USER", "lark_user"),
         postgres_password=os.getenv("POSTGRES_PASSWORD", "lark_password_123"),
         rabbitmq_host=os.getenv("RABBITMQ_HOST", "localhost"),
         rabbitmq_port=int(os.getenv("RABBITMQ_PORT", "5672")),
