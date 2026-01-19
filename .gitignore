@@ -75,3 +75,5 @@ Thumbs.db
 .pre-commit-config.yaml.swp
 test.py
 production.env
+coverage.xml
+htmlcov/
