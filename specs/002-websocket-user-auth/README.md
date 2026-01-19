@@ -148,31 +148,31 @@ def handle_auth(data: P2CardActionTrigger):
 | Phase 3 | WebSocket 客户端 | 2-3 天 | ⏸️ 待开始 (T011-T024) |
 | Phase 4-10 | 其他功能模块 | 7-9 天 | ⏸️ 待开始 (T025-T100) |
 
-**当前进度**: 5/100 任务完成 (5%)
+**当前进度**: 10/100 任务完成 (10%)
 **预计发布**: v0.2.0 (1-1.5 周后)
 
 ---
 
 ## 🎯 下一步
 
-**当前阶段**: Phase 1 已完成 ✅
+**当前阶段**: Phase 2 已完成 ✅
 
 **下一步选项**:
 
-### 选项 A: 继续实施 Phase 2 (推荐) ⭐
+### 选项 A: 继续实施 Phase 3 (推荐) ⭐
 ```bash
-/speckit.implement 执行 phase2 的任务
+/speckit.implement 执行 phase3 的任务
 ```
-**Phase 2 任务** (T006-T010):
-- 扩展核心配置 (WebSocket 认证设置)
-- 创建 auth 模块异常和类型定义
-- 创建 events 模块类型定义
-- 应用数据库迁移
+**Phase 3 任务** (T011-T024, US2 - WebSocket 长连接):
+- 编写 WebSocket 客户端单元测试 (TDD RED)
+- 实现 WebSocket 连接、重连、心跳机制 (TDD GREEN)
+- 添加日志和监控 (TDD REFACTOR)
 
-### 选项 B: 查看 Phase 1 交付物
-- 数据模型: `cat specs/002-websocket-user-auth/data-model.md`
-- WebSocket 契约: `cat specs/002-websocket-user-auth/contracts/websocket_events.yaml`
-- 快速开始: `cat specs/002-websocket-user-auth/quickstart.md`
+### 选项 B: 查看 Phase 2 交付物
+- 核心配置: `cat src/lark_service/core/config.py`
+- Auth 异常: `cat src/lark_service/auth/exceptions.py`
+- Auth 类型: `cat src/lark_service/auth/types.py`
+- Events 类型: `cat src/lark_service/events/types.py`
 
 ### 选项 C: Push 到远程
 ```bash
@@ -186,6 +186,8 @@ git push origin 002-websocket-user-auth
 **新创建**:
 - `specs/002-websocket-user-auth/spec.md`
 - `specs/002-websocket-user-auth/checklists/requirements.md`
+- `src/lark_service/auth/` - 用户认证模块
+- `src/lark_service/events/` - WebSocket 事件模块
 
 **现有参考**:
 - `example.py` - WebSocket 示例代码
@@ -194,6 +196,24 @@ git push origin 002-websocket-user-auth
 
 ---
 
-**Phase 1 完成**: 2026-01-19 22:26
+## 📋 Phase 完成记录
+
+### ✅ Phase 1: Setup & Prerequisites
+**完成时间**: 2026-01-19 22:26
 **Commit**: `2a5e483` - feat(spec): complete Phase 1 setup
-**下一步**: `/speckit.implement` 执行 Phase 2 (基础设施)
+**交付物**:
+- data-model.md (ERD + 字段定义)
+- contracts/ (WebSocket 事件 + Session API)
+- quickstart.md (5分钟快速开始)
+- Alembic 迁移脚本
+
+### ✅ Phase 2: Foundational Infrastructure
+**完成时间**: 2026-01-19 23:15
+**Commit**: `abd2543` - feat(auth): implement Phase 2 foundational infrastructure
+**交付物**:
+- 扩展核心配置 (8个 WebSocket 认证参数)
+- auth 模块 (8个异常类 + 3个类型)
+- events 模块 (2个异常类 + 2个类型)
+- 完整的类型安全和文档注释
+
+**下一步**: `/speckit.implement` 执行 Phase 3 (US2 - WebSocket 客户端)
