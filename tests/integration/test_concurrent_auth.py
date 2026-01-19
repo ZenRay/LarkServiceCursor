@@ -22,6 +22,7 @@ from sqlalchemy.orm import sessionmaker
 
 from lark_service.auth.card_auth_handler import CardAuthHandler
 from lark_service.auth.session_manager import AuthSessionManager
+from lark_service.auth.types import UserInfo
 from lark_service.core.models.auth_session import Base, UserAuthSession
 
 
@@ -215,13 +216,13 @@ class TestConcurrentAuth:
                 session_id=session.session_id,
                 user_access_token=f"u-token_{i}",
                 token_expires_at=datetime.now(UTC) + timedelta(days=7),
-                user_info={
-                    "user_id": user_id,
-                    "open_id": user_id,
-                    "union_id": f"on_union_{i}",
-                    "name": f"User {i}",
-                    "email": f"user{i}@example.com",
-                },
+                user_info=UserInfo(
+                    user_id=user_id,
+                    open_id=user_id,
+                    union_id=f"on_union_{i}",
+                    user_name=f"User {i}",
+                    email=f"user{i}@example.com",
+                ),
             )
 
         async def get_token_for_user(user_index: int):
@@ -364,13 +365,13 @@ class TestConcurrentAuth:
                         session_id=session.session_id,
                         user_access_token=f"u-token_{op_index}",
                         token_expires_at=datetime.now(UTC) + timedelta(days=7),
-                        user_info={
-                            "user_id": user_id,
-                            "open_id": user_id,
-                            "union_id": f"on_union_{op_index}",
-                            "name": f"User {op_index}",
-                            "email": f"user{op_index}@example.com",
-                        },
+                        user_info=UserInfo(
+                            user_id=user_id,
+                            open_id=user_id,
+                            union_id=f"on_union_{op_index}",
+                            user_name=f"User {op_index}",
+                            email=f"user{op_index}@example.com",
+                        ),
                     )
                     return ("complete", session.session_id)
                 except Exception as e:

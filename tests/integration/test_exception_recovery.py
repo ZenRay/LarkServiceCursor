@@ -24,6 +24,7 @@ from lark_service.auth.exceptions import (
     TokenRefreshFailedError,
 )
 from lark_service.auth.session_manager import AuthSessionManager
+from lark_service.auth.types import UserInfo
 from lark_service.core.models.auth_session import Base
 
 
@@ -120,31 +121,41 @@ class TestExceptionRecovery:
             "email": "test@example.com",
         }
 
-        # Act - First attempt fails, but handler should retry
+        # Act - Mock exchange to raise ConnectionError
         with patch.object(
             card_auth_handler, "_exchange_token", new_callable=AsyncMock
         ) as mock_exchange:
-            mock_exchange.side_effect = mock_exchange_with_retry
+            # First call raises error, second call succeeds
+            mock_exchange.side_effect = [
+                ConnectionError("Network error"),
+                {
+                    "access_token": "u-token_success",
+                    "token_type": "Bearer",
+                    "expires_in": 604800,
+                },
+            ]
 
             with patch.object(
                 card_auth_handler, "_fetch_user_info", new_callable=AsyncMock
             ) as mock_fetch_user:
                 mock_fetch_user.return_value = mock_user_info
 
-                # First attempt should fail
-                with pytest.raises(ConnectionError):
-                    await card_auth_handler.handle_card_auth_event(mock_event)
-
-                # Reset call count for retry
-                call_count = 0
-                mock_exchange.side_effect = mock_exchange_with_retry
+                # First attempt should fail with ConnectionError
+                # Note: handle_card_auth_event catches exceptions and returns error response
+                response = await card_auth_handler.handle_card_auth_event(mock_event)
+                # Verify error response
+                assert response is not None
+                # Session should still be pending after error
+                session_after_error = auth_manager.get_session(session.session_id)
+                assert session_after_error.state == "pending"
 
                 # Second attempt should succeed
-                await card_auth_handler.handle_card_auth_event(mock_event)
+                response = await card_auth_handler.handle_card_auth_event(mock_event)
+                assert response is not None
 
-        # Assert
-        # Note: In real implementation, retry logic would be automatic
-        # This test demonstrates the pattern
+        # Assert - Session should now be completed
+        updated_session = auth_manager.get_session(session.session_id)
+        assert updated_session.state == "completed"
 
     async def test_recovery_from_api_4xx_error(self, test_db, auth_manager, card_auth_handler):
         """Test recovery from API 4xx error (e.g., invalid authorization code).
@@ -316,19 +327,22 @@ class TestExceptionRecovery:
             session_id=session.session_id,
             user_access_token="u-old_token",
             token_expires_at=datetime.now(UTC) + timedelta(hours=1),
-            user_info={
-                "user_id": user_id,
-                "open_id": user_id,
-                "union_id": "on_union_123",
-                "name": "Test User",
-                "email": "test@example.com",
-            },
+            user_info=UserInfo(
+                user_id=user_id,
+                open_id=user_id,
+                union_id="on_union_123",
+                user_name="Test User",
+                email="test@example.com",
+            ),
         )
 
         # Act - Simulate refresh failure
-        with patch.object(
-            auth_manager, "refresh_token", side_effect=TokenRefreshFailedError("Refresh failed")
-        ), pytest.raises(TokenRefreshFailedError):
+        with (
+            patch.object(
+                auth_manager, "refresh_token", side_effect=TokenRefreshFailedError("Refresh failed")
+            ),
+            pytest.raises(TokenRefreshFailedError),
+        ):
             auth_manager.refresh_token(app_id=app_id, user_id=user_id)
 
         # Assert - User should be able to create new session
@@ -469,13 +483,13 @@ class TestExceptionRecovery:
                         session_id=session.session_id,
                         user_access_token=f"u-token_{i}",
                         token_expires_at=datetime.now(UTC) + timedelta(days=7),
-                        user_info={
-                            "user_id": user_id,
-                            "open_id": user_id,
-                            "union_id": f"on_union_{i}",
-                            "name": f"User {i}",
-                            "email": f"user{i}@example.com",
-                        },
+                        user_info=UserInfo(
+                            user_id=user_id,
+                            open_id=user_id,
+                            union_id=f"on_union_{i}",
+                            user_name=f"User {i}",
+                            email=f"user{i}@example.com",
+                        ),
                     )
                     success_count += 1
             except Exception:
