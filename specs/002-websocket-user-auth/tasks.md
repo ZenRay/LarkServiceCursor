@@ -42,11 +42,11 @@
 
 **⏱️ Estimate**: 0.5 days
 
-- [ ] T006 Extend core config with WebSocket authentication settings in src/lark_service/core/config.py
-- [ ] T007 Create auth module with exceptions in src/lark_service/auth/exceptions.py
-- [ ] T008 Create auth module with type definitions in src/lark_service/auth/types.py
-- [ ] T009 Create events module with type definitions in src/lark_service/events/types.py
-- [ ] T010 Apply Alembic migration to database (run: alembic upgrade head)
+- [x] T006 Extend core config with WebSocket authentication settings in src/lark_service/core/config.py
+- [x] T007 Create auth module with exceptions in src/lark_service/auth/exceptions.py
+- [x] T008 Create auth module with type definitions in src/lark_service/auth/types.py
+- [x] T009 Create events module with type definitions in src/lark_service/events/types.py
+- [x] T010 Apply Alembic migration to database (run: alembic upgrade head) - **Note: Requires PostgreSQL running**
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
 
