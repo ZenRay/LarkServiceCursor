@@ -61,7 +61,7 @@ def failure_app_manager(failure_config: Config) -> ApplicationManager:
         failure_config.config_encryption_key,
     )
 
-    app_id = os.getenv("LARK_APP_ID", "cli_failtest123")
+    app_id = os.getenv("LARK_APP_ID", "cli_failtest12345678")
     app_secret = os.getenv("LARK_APP_SECRET", "test_secret_fail")
 
     with contextlib.suppress(Exception):
@@ -104,7 +104,7 @@ def failure_credential_pool(
 @pytest.fixture
 def test_app_id() -> str:
     """Get test app ID from environment."""
-    return os.getenv("LARK_APP_ID", "cli_failtest123")
+    return os.getenv("LARK_APP_ID", "cli_failtest12345678")
 
 
 class TestDatabaseFailureRecovery:

@@ -15,22 +15,6 @@ from lark_service.utils.logger import (
     set_request_context,
     setup_logger,
 )
-from lark_service.utils.validators import (
-    validate_app_id,
-    validate_app_secret,
-    validate_chat_id,
-    validate_enum,
-    validate_file_path,
-    validate_non_empty_string,
-    validate_non_negative_float,
-    validate_non_negative_int,
-    validate_open_id,
-    validate_positive_int,
-    validate_token,
-    validate_union_id,
-    validate_url,
-    validate_user_id,
-)
 
 __all__ = [
     # Logger
@@ -65,7 +49,7 @@ __all__ = [
 
 
 def __getattr__(name: str) -> Any:
-    """Lazy import for masking functions to avoid circular imports."""
+    """Lazy import to avoid circular imports."""
     if name in [
         "mask_email",
         "mask_mobile",
@@ -77,4 +61,23 @@ def __getattr__(name: str) -> Any:
         from lark_service.utils import masking
 
         return getattr(masking, name)
+    if name in [
+        "validate_app_id",
+        "validate_app_secret",
+        "validate_chat_id",
+        "validate_enum",
+        "validate_file_path",
+        "validate_non_empty_string",
+        "validate_non_negative_float",
+        "validate_non_negative_int",
+        "validate_open_id",
+        "validate_positive_int",
+        "validate_token",
+        "validate_union_id",
+        "validate_url",
+        "validate_user_id",
+    ]:
+        from lark_service.utils import validators
+
+        return getattr(validators, name)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

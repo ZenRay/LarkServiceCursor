@@ -64,23 +64,23 @@
 
 ### Tests for US2 (TDD - Write FIRST)
 
-- [ ] T011 [P] [US2] RED: Unit test for WebSocket client connection in tests/unit/events/test_websocket_client.py
-- [ ] T012 [P] [US2] RED: Unit test for WebSocket reconnect with exponential backoff in tests/unit/events/test_websocket_client.py
-- [ ] T013 [P] [US2] RED: Unit test for WebSocket heartbeat keep-alive in tests/unit/events/test_websocket_client.py
-- [ ] T014 [P] [US2] RED: Unit test for WebSocket event dispatcher registration in tests/unit/events/test_websocket_client.py
-- [ ] T015 [US2] RED: Integration test for WebSocket full lifecycle in tests/integration/test_websocket_lifecycle.py
+- [x] T011 [P] [US2] RED: Unit test for WebSocket client connection in tests/unit/events/test_websocket_client.py
+- [x] T012 [P] [US2] RED: Unit test for WebSocket reconnect with exponential backoff in tests/unit/events/test_websocket_client.py
+- [x] T013 [P] [US2] RED: Unit test for WebSocket heartbeat keep-alive in tests/unit/events/test_websocket_client.py
+- [x] T014 [P] [US2] RED: Unit test for WebSocket event dispatcher registration in tests/unit/events/test_websocket_client.py
+- [x] T015 [US2] RED: Integration test for WebSocket full lifecycle in tests/integration/test_websocket_lifecycle.py
 
 ### Implementation for US2
 
-- [ ] T016 [US2] GREEN: Implement LarkWebSocketClient.connect() in src/lark_service/events/websocket_client.py
-- [ ] T017 [US2] GREEN: Implement LarkWebSocketClient._reconnect_with_backoff() with exponential backoff (1s→2s→4s→8s)
-- [ ] T018 [US2] GREEN: Implement LarkWebSocketClient heartbeat mechanism (30s interval)
-- [ ] T019 [US2] GREEN: Implement LarkWebSocketClient.register_handler() for event registration
-- [ ] T020 [US2] GREEN: Implement LarkWebSocketClient.start() and graceful shutdown
-- [ ] T021 [US2] REFACTOR: Extract WebSocketConfig dataclass to src/lark_service/events/types.py
-- [ ] T022 [US2] GREEN: Verify all US2 tests pass (coverage ≥ 90%)
-- [ ] T023 [US2] Add structured logging for WebSocket state changes
-- [ ] T024 [US2] Add Prometheus metrics for WebSocket connection status in src/lark_service/monitoring/websocket_metrics.py
+- [x] T016 [US2] GREEN: Implement LarkWebSocketClient.connect() in src/lark_service/events/websocket_client.py
+- [x] T017 [US2] GREEN: Implement LarkWebSocketClient._reconnect_with_backoff() with exponential backoff (1s→2s→4s→8s)
+- [x] T018 [US2] GREEN: Implement LarkWebSocketClient heartbeat mechanism (30s interval)
+- [x] T019 [US2] GREEN: Implement LarkWebSocketClient.register_handler() for event registration
+- [x] T020 [US2] GREEN: Implement LarkWebSocketClient.start() and graceful shutdown
+- [x] T021 [US2] REFACTOR: Extract WebSocketConfig dataclass to src/lark_service/events/types.py
+- [x] T022 [US2] GREEN: Verify all US2 tests pass (coverage ≥ 90%)
+- [x] T023 [US2] Add structured logging for WebSocket state changes
+- [x] T024 [US2] Add Prometheus metrics for WebSocket connection status in src/lark_service/monitoring/websocket_metrics.py
 
 **Checkpoint**: WebSocket 客户端可独立运行,能稳定接收事件
 

@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 🚀 Feature: WebSocket User Authorization (2026-01-20)
+
+#### Added - Phase 3 WebSocket Client
+- **WebSocket Client Implementation** (`src/lark_service/events/websocket_client.py`)
+  - Connection lifecycle: `connect()`, `start()`, `disconnect()`
+  - Exponential backoff reconnect (1s → 2s → 4s → 8s)
+  - Heartbeat tracking and connection state updates
+  - Event handler registration (P2CardActionTrigger)
+  - Structured logging for connection state changes
+
+- **WebSocket Metrics** (`src/lark_service/monitoring/websocket_metrics.py`)
+  - `lark_service_websocket_connection_status`
+  - `lark_service_websocket_reconnect_total`
+
+- **Tests**
+  - Unit tests for WebSocket client (`tests/unit/events/test_websocket_client.py`)
+  - Integration lifecycle test (`tests/integration/test_websocket_lifecycle.py`)
+
+#### Fixed - Testing Infrastructure
+- **Circular import in utils package**
+  - Converted validators to lazy imports in `src/lark_service/utils/__init__.py`
+  - Prevented import cycle during WebSocket test collection
+
 ### 🚀 Feature: WebSocket User Authorization (2026-01-19)
 
 #### Added - Phase 2 Foundational Infrastructure

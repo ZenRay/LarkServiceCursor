@@ -32,7 +32,7 @@ class TestBitableClientValidation:
         """Test create record fails with empty fields."""
         with pytest.raises(InvalidParameterError, match="Fields cannot be empty"):
             client.create_record(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 app_token="bascn123",
                 table_id="tbl123",
                 fields={},
@@ -43,7 +43,7 @@ class TestBitableClientValidation:
         # Test page_size < 1
         with pytest.raises(InvalidParameterError, match="Invalid page_size"):
             client.query_records(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 app_token="bascn123",
                 table_id="tbl123",
                 page_size=0,
@@ -52,7 +52,7 @@ class TestBitableClientValidation:
         # Test page_size > 500
         with pytest.raises(InvalidParameterError, match="Invalid page_size"):
             client.query_records(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 app_token="bascn123",
                 table_id="tbl123",
                 page_size=501,
@@ -62,7 +62,7 @@ class TestBitableClientValidation:
         """Test update record fails with empty fields."""
         with pytest.raises(InvalidParameterError, match="Fields cannot be empty"):
             client.update_record(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 app_token="bascn123",
                 table_id="tbl123",
                 record_id="rec1234567890abcdefghij",
@@ -73,7 +73,7 @@ class TestBitableClientValidation:
         """Test batch create fails with empty records."""
         with pytest.raises(InvalidParameterError, match="Records cannot be empty"):
             client.batch_create_records(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 app_token="bascn123",
                 table_id="tbl123",
                 records=[],
@@ -84,7 +84,7 @@ class TestBitableClientValidation:
         records = [{"Name": f"User {i}"} for i in range(501)]
         with pytest.raises(InvalidParameterError, match="Too many records"):
             client.batch_create_records(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 app_token="bascn123",
                 table_id="tbl123",
                 records=records,
@@ -94,7 +94,7 @@ class TestBitableClientValidation:
         """Test batch update fails with empty records."""
         with pytest.raises(InvalidParameterError, match="Records cannot be empty"):
             client.batch_update_records(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 app_token="bascn123",
                 table_id="tbl123",
                 records=[],
@@ -105,7 +105,7 @@ class TestBitableClientValidation:
         records = [(f"rec{i}", {"Age": 30}) for i in range(501)]
         with pytest.raises(InvalidParameterError, match="Too many records"):
             client.batch_update_records(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 app_token="bascn123",
                 table_id="tbl123",
                 records=records,
@@ -115,7 +115,7 @@ class TestBitableClientValidation:
         """Test batch delete fails with empty record IDs."""
         with pytest.raises(InvalidParameterError, match="Record IDs cannot be empty"):
             client.batch_delete_records(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 app_token="bascn123",
                 table_id="tbl123",
                 record_ids=[],
@@ -126,7 +126,7 @@ class TestBitableClientValidation:
         record_ids = [f"rec{i}" for i in range(501)]
         with pytest.raises(InvalidParameterError, match="Too many record IDs"):
             client.batch_delete_records(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 app_token="bascn123",
                 table_id="tbl123",
                 record_ids=record_ids,
@@ -156,7 +156,7 @@ class TestBitableClientOperations:
         """Test create record succeeds."""
         fields = {"Name": "John Doe", "Age": 30, "Active": True}
         record = client.create_record(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             app_token="bascn123",
             table_id="tbl123",
             fields=fields,
@@ -182,7 +182,7 @@ class TestBitableClientOperations:
         ]
 
         records, next_token = client.query_records(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             app_token="bascn123",
             table_id="tbl123",
             filter_conditions=filters,
@@ -197,7 +197,7 @@ class TestBitableClientOperations:
         """Test query records with pagination."""
         # First page
         records, next_token = client.query_records(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             app_token="bascn123",
             table_id="tbl123",
             page_size=100,
@@ -210,7 +210,7 @@ class TestBitableClientOperations:
         """Test update record succeeds."""
         fields = {"Age": 31}
         record = client.update_record(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             app_token="bascn123",
             table_id="tbl123",
             record_id="rec1234567890abcdefghij",
@@ -224,7 +224,7 @@ class TestBitableClientOperations:
     def test_delete_record_success(self, client):
         """Test delete record succeeds."""
         result = client.delete_record(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             app_token="bascn123",
             table_id="tbl123",
             record_id="rec1234567890abcdefghij",
@@ -242,7 +242,7 @@ class TestBitableClientOperations:
         ]
 
         created = client.batch_create_records(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             app_token="bascn123",
             table_id="tbl123",
             records=records,
@@ -262,7 +262,7 @@ class TestBitableClientOperations:
         ]
 
         updated = client.batch_update_records(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             app_token="bascn123",
             table_id="tbl123",
             records=updates,
@@ -283,7 +283,7 @@ class TestBitableClientOperations:
         ]
 
         result = client.batch_delete_records(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             app_token="bascn123",
             table_id="tbl123",
             record_ids=record_ids,
@@ -295,7 +295,7 @@ class TestBitableClientOperations:
     def test_list_fields_success(self, client):
         """Test list fields succeeds."""
         fields = client.list_fields(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             app_token="bascn123",
             table_id="tbl123",
         )
@@ -336,7 +336,7 @@ class TestBitableClientFilters:
 
             # Should not raise
             records, _ = client.query_records(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 app_token="bascn123",
                 table_id="tbl123",
                 filter_conditions=filters,
@@ -353,7 +353,7 @@ class TestBitableClientFilters:
         ]
 
         records, _ = client.query_records(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             app_token="bascn123",
             table_id="tbl123",
             filter_conditions=filters,

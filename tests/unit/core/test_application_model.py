@@ -32,27 +32,31 @@ class TestApplicationModel:
     def test_application_creation(self) -> None:
         """Test basic application creation."""
         app = Application(
-            app_id="cli_test123456789",
+            app_id="cli_test1234567890ab",
             app_name="Test App",
             status="active",
         )
-        assert app.app_id == "cli_test123456789"
+        assert app.app_id == "cli_test1234567890ab"
         assert app.app_name == "Test App"
         assert app.status == "active"
         assert app.is_active() is True
 
     def test_is_active_status(self) -> None:
         """Test is_active() method with different statuses."""
-        active_app = Application(app_id="cli_test1", app_name="Active", status="active")
+        active_app = Application(
+            app_id="cli_test10000000000001", app_name="Active", status="active"
+        )
         assert active_app.is_active() is True
 
-        disabled_app = Application(app_id="cli_test2", app_name="Disabled", status="disabled")
+        disabled_app = Application(
+            app_id="cli_test20000000000002", app_name="Disabled", status="disabled"
+        )
         assert disabled_app.is_active() is False
 
     def test_encrypt_decrypt_secret(self, encryption_key: bytes) -> None:
         """Test secret encryption and decryption."""
         app = Application(
-            app_id="cli_test123456789",
+            app_id="cli_test1234567890ab",
             app_name="Test App",
             status="active",
         )
@@ -70,7 +74,7 @@ class TestApplicationModel:
     def test_decrypt_with_wrong_key(self, encryption_key: bytes) -> None:
         """Test decryption fails with wrong key."""
         app = Application(
-            app_id="cli_test123456789",
+            app_id="cli_test1234567890ab",
             app_name="Test App",
             status="active",
         )
@@ -91,7 +95,7 @@ class TestApplicationModel:
     def test_timestamps_auto_set(self) -> None:
         """Test that timestamps are automatically set."""
         app = Application(
-            app_id="cli_test123456789",
+            app_id="cli_test1234567890ab",
             app_name="Test App",
             status="active",
         )
@@ -103,7 +107,7 @@ class TestApplicationModel:
     def test_permissions_field(self) -> None:
         """Test permissions field can store JSON string."""
         app = Application(
-            app_id="cli_test123456789",
+            app_id="cli_test1234567890ab",
             app_name="Test App",
             status="active",
             permissions='["im:message", "contact:user.base:readonly"]',
@@ -114,7 +118,7 @@ class TestApplicationModel:
     def test_created_by_field(self) -> None:
         """Test created_by field for audit trail."""
         app = Application(
-            app_id="cli_test123456789",
+            app_id="cli_test1234567890ab",
             app_name="Test App",
             status="active",
             created_by="admin_user",

@@ -126,18 +126,18 @@ class TestGetSDKClient:
         """Test SDK client creation for new app_id."""
         # Mock application
         mock_app = Mock(spec=Application)
-        mock_app.app_id = "cli_test123"
+        mock_app.app_id = "cli_test1234567890ab"
         mock_app.is_active.return_value = True
         mock_app_manager.get_application.return_value = mock_app
         mock_app_manager.get_decrypted_secret.return_value = "test_secret_123"
 
         # Get SDK client
-        client = credential_pool._get_sdk_client("cli_test12345678901")
+        client = credential_pool._get_sdk_client("cli_test1234567890ab")
 
         assert client is not None
-        assert "cli_test12345678901" in credential_pool.sdk_clients
-        mock_app_manager.get_application.assert_called_once_with("cli_test12345678901")
-        mock_app_manager.get_decrypted_secret.assert_called_once_with("cli_test12345678901")
+        assert "cli_test1234567890ab" in credential_pool.sdk_clients
+        mock_app_manager.get_application.assert_called_once_with("cli_test1234567890ab")
+        mock_app_manager.get_decrypted_secret.assert_called_once_with("cli_test1234567890ab")
 
     def test_get_sdk_client_caches_client(
         self,
@@ -147,16 +147,16 @@ class TestGetSDKClient:
         """Test SDK client is cached and reused (FR-011)."""
         # Mock application
         mock_app = Mock(spec=Application)
-        mock_app.app_id = "cli_test456"
+        mock_app.app_id = "cli_test4567890abcd12"
         mock_app.is_active.return_value = True
         mock_app_manager.get_application.return_value = mock_app
         mock_app_manager.get_decrypted_secret.return_value = "test_secret_456"
 
         # First call - should create client
-        client1 = credential_pool._get_sdk_client("cli_test456")
+        client1 = credential_pool._get_sdk_client("cli_test4567890abcd12")
 
         # Second call - should return cached client
-        client2 = credential_pool._get_sdk_client("cli_test456")
+        client2 = credential_pool._get_sdk_client("cli_test4567890abcd12")
 
         assert client1 is client2
         # get_application should only be called once
@@ -180,13 +180,13 @@ class TestGetSDKClient:
     ) -> None:
         """Test error when application is inactive."""
         mock_app = Mock(spec=Application)
-        mock_app.app_id = "cli_inactive"
+        mock_app.app_id = "cli_inactive123456789"
         mock_app.is_active.return_value = False
         mock_app.status = "inactive"
         mock_app_manager.get_application.return_value = mock_app
 
         with pytest.raises(AuthenticationError, match="not active"):
-            credential_pool._get_sdk_client("cli_inactive")
+            credential_pool._get_sdk_client("cli_inactive123456789")
 
     def test_get_sdk_client_multi_app_isolation(
         self,
@@ -227,7 +227,7 @@ class TestFetchAppAccessToken:
         """Test successful token fetch."""
         # Mock application
         mock_app = Mock(spec=Application)
-        mock_app.app_id = "cli_test789"
+        mock_app.app_id = "cli_test7890abcdef12"
         mock_app.is_active.return_value = True
         mock_app_manager.get_application.return_value = mock_app
         mock_app_manager.get_decrypted_secret.return_value = "test_secret"
@@ -246,7 +246,9 @@ class TestFetchAppAccessToken:
             mock_client.auth.v3.app_access_token.internal.return_value = mock_response
             mock_get_client.return_value = mock_client
 
-            token_value, expires_at = credential_pool._fetch_app_access_token("cli_test789")
+            token_value, expires_at = credential_pool._fetch_app_access_token(
+                "cli_test7890abcdef12"
+            )
 
             assert token_value == "t-test_token_123"
             assert isinstance(expires_at, datetime)
@@ -366,7 +368,7 @@ class TestFetchTenantAccessToken:
         mock_post.side_effect = requests.RequestException("Connection timeout")
 
         with pytest.raises(TokenAcquisitionError, match="Network error"):
-            credential_pool._fetch_tenant_access_token("cli_networkerror123")
+            credential_pool._fetch_tenant_access_token("cli_networkerror1234")
 
     @patch("lark_service.core.credential_pool.requests.post")
     def test_fetch_tenant_access_token_invalid_response(

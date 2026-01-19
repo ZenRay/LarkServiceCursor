@@ -58,7 +58,7 @@ def concurrency_app_manager(concurrency_config: Config) -> ApplicationManager:
         concurrency_config.config_encryption_key,
     )
 
-    app_id = os.getenv("LARK_APP_ID", "cli_conctest123")
+    app_id = os.getenv("LARK_APP_ID", "cli_conctest12345678")
     app_secret = os.getenv("LARK_APP_SECRET", "test_secret_conc")
 
     with contextlib.suppress(Exception):
@@ -103,7 +103,7 @@ def concurrency_credential_pool(
 @pytest.fixture(scope="module")
 def test_app_id() -> str:
     """Get test app ID from environment."""
-    return os.getenv("LARK_APP_ID", "cli_conctest123")
+    return os.getenv("LARK_APP_ID", "cli_conctest12345678")
 
 
 class TestConcurrentTokenAccess:
@@ -189,7 +189,7 @@ class TestConcurrentTokenAccess:
             concurrency_config.config_encryption_key,
         )
 
-        app_ids = [f"cli_conc_app{i}" for i in range(5)]
+        app_ids = [f"cli_concapp1234567890{i}" for i in range(5)]
         for app_id in app_ids:
             manager.add_application(
                 app_id=app_id,
