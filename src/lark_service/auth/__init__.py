@@ -3,6 +3,7 @@
 This module provides WebSocket-based user authorization using interactive cards.
 """
 
+from .card_auth_handler import CardAuthHandler
 from .exceptions import (
     AuthenticationRequiredError,
     AuthError,
@@ -26,6 +27,7 @@ __all__ = [
     "TokenExpiredError",
     "TokenRefreshFailedError",
     "AuthSessionManager",
+    "CardAuthHandler",
     "AuthCardOptions",
     "AuthSession",
     "UserInfo",
