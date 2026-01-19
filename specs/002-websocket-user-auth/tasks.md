@@ -163,17 +163,17 @@
 
 ### Tests for US4 (TDD - Write FIRST)
 
-- [ ] T056 [P] [US4] RED: Unit test for aPaaSClient._get_user_access_token() in tests/unit/apaas/test_client_auth.py
-- [ ] T057 [P] [US4] RED: Unit test for auto-sending auth card when token missing in tests/unit/apaas/test_client_auth.py
-- [ ] T058 [US4] RED: Integration test for aPaaS API call with auto token injection in tests/integration/test_apaas_with_auth.py
+- [x] T056 [P] [US4] RED: Unit test for aPaaSClient._get_user_access_token() in tests/unit/apaas/test_client_auth.py
+- [x] T057 [P] [US4] RED: Unit test for auto-sending auth card when token missing in tests/unit/apaas/test_client_auth.py
+- [x] T058 [US4] RED: Integration test for aPaaS API call with auto token injection in tests/integration/test_apaas_with_auth.py
 
 ### Implementation for US4
 
-- [ ] T059 [US4] GREEN: Extend aPaaSClient.__init__() to accept auth_manager and card_auth_handler in src/lark_service/apaas/client.py
-- [ ] T060 [US4] GREEN: Implement aPaaSClient._get_user_access_token() with auto-send auth card
-- [ ] T061 [US4] GREEN: Update aPaaSClient.call_ai_api() to auto-inject user_access_token
-- [ ] T062 [US4] GREEN: Implement AuthenticationRequired exception in src/lark_service/auth/exceptions.py
-- [ ] T063 [US4] GREEN: Verify all US4 tests pass (coverage ≥ 90%)
+- [x] T059 [US4] GREEN: Extend aPaaSClient.__init__() to accept auth_manager and card_auth_handler in src/lark_service/apaas/client.py
+- [x] T060 [US4] GREEN: Implement aPaaSClient._get_user_access_token() with auto-send auth card
+- [x] T061 [US4] GREEN: Update aPaaSClient.call_ai_api() to auto-inject user_access_token
+- [x] T062 [US4] GREEN: Implement AuthenticationRequired exception in src/lark_service/auth/exceptions.py
+- [x] T063 [US4] GREEN: Verify all US4 tests pass (coverage ≥ 90%)
 
 **Checkpoint**: aPaaS 客户端可自动管理 user_access_token,解锁 AI 能力
 
@@ -189,21 +189,21 @@
 
 ### Tests for US3 (TDD - Write FIRST)
 
-- [ ] T064 [P] [US3] RED: Unit test for refresh_token calling Feishu API in tests/unit/auth/test_session_manager.py
-- [ ] T065 [P] [US3] RED: Unit test for token expiry detection (<10% remaining) in tests/unit/auth/test_session_manager.py
-- [ ] T066 [P] [US3] RED: Unit test for sync_user_info_batch async task in tests/unit/auth/test_session_manager.py
-- [ ] T067 [US3] RED: Integration test for token auto-refresh in tests/integration/test_token_refresh.py
+- [x] T064 [P] [US3] RED: Unit test for refresh_token calling Feishu API in tests/unit/auth/test_token_refresh.py
+- [x] T065 [P] [US3] RED: Unit test for token expiry detection (<10% remaining) in tests/unit/auth/test_token_refresh.py
+- [x] T066 [P] [US3] RED: Unit test for sync_user_info_batch async task in tests/unit/auth/test_token_refresh.py
+- [x] T067 [US3] RED: Integration test for token auto-refresh in tests/integration/test_token_refresh.py
 
 ### Implementation for US3
 
-- [ ] T068 [US3] GREEN: Implement AuthSessionManager.refresh_token() in src/lark_service/auth/session_manager.py
-- [ ] T069 [US3] GREEN: Implement AuthSessionManager._is_token_expiring() check (10% threshold)
-- [ ] T070 [US3] GREEN: Update AuthSessionManager.get_active_token() to auto-refresh
-- [ ] T071 [US3] GREEN: Implement AuthSessionManager.sync_user_info_batch() for async updates
+- [x] T068 [US3] GREEN: Implement AuthSessionManager.refresh_token() in src/lark_service/auth/session_manager.py
+- [x] T069 [US3] GREEN: Implement AuthSessionManager._is_token_expiring() check (10% threshold)
+- [x] T070 [US3] GREEN: Update AuthSessionManager.get_active_token() to auto-refresh
+- [x] T071 [US3] GREEN: Implement AuthSessionManager.sync_user_info_batch() for async updates
 - [ ] T072 [US3] GREEN: Implement aPaaSClient._call_apaas_api_with_retry() for 401 handling in src/lark_service/apaas/client.py
 - [ ] T073 [US3] GREEN: Add scheduled task for sync_user_info_batch (cron: 0 2 * * *)
 - [ ] T074 [US3] GREEN: Implement token expiry UX - auto-send new auth card with friendly message
-- [ ] T075 [US3] GREEN: Verify all US3 tests pass (coverage ≥ 90%)
+- [x] T075 [US3] GREEN: Verify all US3 tests pass (coverage ≥ 90%)
 
 **Checkpoint**: Token 生命周期全自动管理,用户无需频繁重新授权
 

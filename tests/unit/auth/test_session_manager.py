@@ -246,10 +246,11 @@ class TestGetActiveToken:
         db_session.add(session)
         db_session.commit()
 
-        # Get active token
+        # Get active token (should return None for expired token)
         token = session_manager.get_active_token(
             app_id="cli_test123456789",
             user_id="ou_test_user_123",
+            raise_if_missing=False,
         )
 
         assert token is None
@@ -259,6 +260,7 @@ class TestGetActiveToken:
         token = session_manager.get_active_token(
             app_id="cli_test123456789",
             user_id="ou_nonexistent_user",
+            raise_if_missing=False,
         )
 
         assert token is None
