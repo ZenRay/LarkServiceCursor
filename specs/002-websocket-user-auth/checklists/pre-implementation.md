@@ -157,17 +157,17 @@
 
 #### 3.4 Complexity Tracking
 - [x] **研究内容**: research.md 已完成 ✅
-- [ ] **待生成**: data-model.md (Phase 1.1 - T001)
-- [ ] **待生成**: contracts/ (Phase 1.2 - T002, T003 - websocket_events.yaml + auth_session_api.yaml)
+- [x] **已生成**: data-model.md (Phase 1.1 - T001) ✅
+- [x] **已生成**: contracts/ (Phase 1.2 - T002, T003 - websocket_events.yaml + auth_session_api.yaml) ✅
 
 #### 3.5 Phase 0: Research
 - [x] **已完成**: research.md (1084行,包含方案对比/技术分析/风险评估)
 
 #### 3.6 Phase 1: Data Model & Contracts (待执行 → 已规划到 tasks.md)
-- [x] **1.1 数据模型设计**: 已规划为 T001 - 生成 data-model.md (含 ERD/字段定义/索引/迁移脚本)
-- [x] **1.2 API 契约**: 已规划为 T002, T003 - 生成 contracts/ (WebSocket 事件契约 + Session API 契约)
-- [x] **1.3 快速指南**: 已规划为 T004 - 生成 quickstart.md (5分钟完成首次授权)
-- [x] **1.4 数据库迁移**: 已规划为 T005 - 编写 Alembic 迁移脚本
+- [x] **1.1 数据模型设计**: ✅ 已完成 T001 - data-model.md 已生成 (含 ERD/字段定义/索引/迁移脚本)
+- [x] **1.2 API 契约**: ✅ 已完成 T002, T003 - contracts/ 已生成 (WebSocket 事件契约 + Session API 契约)
+- [x] **1.3 快速指南**: ✅ 已完成 T004 - quickstart.md 已生成 (5分钟完成首次授权)
+- [x] **1.4 数据库迁移**: ✅ 已完成 T005 - Alembic 迁移脚本已编写
 
 #### 3.7 Phase 2: Implementation Roadmap (TDD 优先) ⭐ 核心
 - [x] **2.1 TDD 原则**: 明确 Red-Green-Refactor 流程,强制测试先行
@@ -282,12 +282,13 @@
 4. ✅ **TDD 就绪**: 测试策略完整(单元/集成/契约/手动),所有 FR 可独立测试,mock 策略清晰
 5. ✅ **Constitution 合规**: 11 项原则全部符合,TDD 优先强制执行
 
-**待生成文件** (Phase 1 前置任务 → 已规划到 tasks.md):
-1. [ ] `data-model.md` - 数据模型详细设计 (T001)
-2. [ ] `contracts/websocket_events.yaml` - WebSocket 事件契约 (T002)
-3. [ ] `contracts/auth_session_api.yaml` - 授权会话 API 契约 (T003)
-4. [ ] `quickstart.md` - 5分钟快速开始指南 (T004)
-5. [x] `tasks.md` - 完整任务清单 ✅ (已生成 100 个任务)
+**Phase 1 文档生成状态** (✅ 全部完成):
+1. [x] `data-model.md` - 数据模型详细设计 ✅ (T001 完成)
+2. [x] `contracts/websocket_events.yaml` - WebSocket 事件契约 ✅ (T002 完成)
+3. [x] `contracts/auth_session_api.yaml` - 授权会话 API 契约 ✅ (T003 完成)
+4. [x] `quickstart.md` - 5分钟快速开始指南 ✅ (T004 完成)
+5. [x] `migrations/.../extend_auth_session_for_websocket.py` - Alembic 迁移脚本 ✅ (T005 完成)
+6. [x] `tasks.md` - 完整任务清单 ✅ (已生成 100 个任务)
 
 **待澄清项** (非阻塞):
 - 4个技术细节待验证 (实施时确认飞书 API 文档)
@@ -300,14 +301,14 @@
 ## 📋 下一步行动
 
 ### ✅ Phase 0: Tasks Generation (已完成)
-1. [x] **生成 tasks.md**: 100 个任务已规划完成,按 User Story 组织
-2. [x] **更新 pre-implementation.md**: 标记 tasks.md 生成状态
+1. [x] **生成 tasks.md**: 100 个任务已规划完成,按 User Story 组织 ✅
+2. [x] **更新 pre-implementation.md**: 标记 tasks.md 生成状态 ✅
 
-### Immediate Next Steps (Phase 1 - Setup)
-1. **执行 T001**: 生成 data-model.md (详细设计 UserAuthSession 表结构,ERD 图,索引策略)
-2. **执行 T002-T003**: 生成 contracts/ (WebSocket 事件契约 + Session API 契约)
-3. **执行 T004**: 生成 quickstart.md (5分钟快速开始指南)
-4. **执行 T005**: 编写 Alembic 迁移 (创建/扩展 user_auth_sessions 表)
+### ✅ Phase 1: Setup & Prerequisites (已完成)
+1. [x] **T001**: data-model.md 已生成 ✅ (ERD 图、字段定义、索引、约束、示例数据)
+2. [x] **T002-T003**: contracts/ 已生成 ✅ (WebSocket 事件契约 + Session API 契约)
+3. [x] **T004**: quickstart.md 已生成 ✅ (5分钟快速开始指南,含代码示例)
+4. [x] **T005**: Alembic 迁移已创建 ✅ (扩展 user_auth_sessions 表,添加 5 个新字段)
 
 ### After Phase 1 (Phase 2 - Foundational)
 1. **执行 T006-T010**: 基础设施准备 (配置、类型定义、数据库迁移)

@@ -24,11 +24,11 @@
 
 **⏱️ Estimate**: 2 days
 
-- [ ] T001 Generate data-model.md with ERD diagram and field definitions in specs/002-websocket-user-auth/data-model.md
-- [ ] T002 [P] Generate WebSocket events contract in specs/002-websocket-user-auth/contracts/websocket_events.yaml
-- [ ] T003 [P] Generate auth session API contract in specs/002-websocket-user-auth/contracts/auth_session_api.yaml
-- [ ] T004 [P] Generate 5-minute quickstart guide in specs/002-websocket-user-auth/quickstart.md
-- [ ] T005 Create Alembic migration to extend user_auth_sessions table in migrations/versions/20260119_xxxx_extend_auth_session.py
+- [x] T001 Generate data-model.md with ERD diagram and field definitions in specs/002-websocket-user-auth/data-model.md
+- [x] T002 [P] Generate WebSocket events contract in specs/002-websocket-user-auth/contracts/websocket_events.yaml
+- [x] T003 [P] Generate auth session API contract in specs/002-websocket-user-auth/contracts/auth_session_api.yaml
+- [x] T004 [P] Generate 5-minute quickstart guide in specs/002-websocket-user-auth/quickstart.md
+- [x] T005 Create Alembic migration to extend user_auth_sessions table in migrations/versions/20260119_2100_a8b9c0d1e2f3_extend_auth_session_for_websocket.py
 
 **Checkpoint**: 数据模型和契约就绪,可开始编码
 
