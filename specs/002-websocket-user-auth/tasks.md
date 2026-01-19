@@ -127,26 +127,26 @@
 
 ### Tests for US1 Part 2 (TDD - Write FIRST)
 
-- [ ] T038 [P] [US1] RED: Unit test for send_auth_card with detailed description in tests/unit/auth/test_card_auth_handler.py
-- [ ] T039 [P] [US1] RED: Unit test for send_auth_card with concise description in tests/unit/auth/test_card_auth_handler.py
-- [ ] T040 [P] [US1] RED: Unit test for handle_card_auth_event with authorization_code in tests/unit/auth/test_card_auth_handler.py
-- [ ] T041 [P] [US1] RED: Unit test for _exchange_token calling Feishu API in tests/unit/auth/test_card_auth_handler.py
-- [ ] T042 [P] [US1] RED: Unit test for _fetch_user_info calling Feishu API in tests/unit/auth/test_card_auth_handler.py
+- [x] T038 [P] [US1] RED: Unit test for send_auth_card with detailed description in tests/unit/auth/test_card_auth_handler.py
+- [x] T039 [P] [US1] RED: Unit test for send_auth_card with concise description in tests/unit/auth/test_card_auth_handler.py
+- [x] T040 [P] [US1] RED: Unit test for handle_card_auth_event with authorization_code in tests/unit/auth/test_card_auth_handler.py
+- [x] T041 [P] [US1] RED: Unit test for _exchange_token calling Feishu API in tests/unit/auth/test_card_auth_handler.py
+- [x] T042 [P] [US1] RED: Unit test for _fetch_user_info calling Feishu API in tests/unit/auth/test_card_auth_handler.py
 - [ ] T043 [US1] RED: Contract test for P2CardActionTrigger event structure in tests/contract/test_card_events.py
 - [ ] T044 [US1] RED: Integration test for complete auth flow (card send → click → token exchange → storage) in tests/integration/test_websocket_auth_flow.py
 
 ### Implementation for US1 Part 2
 
-- [ ] T045 [US1] GREEN: Implement CardAuthHandler.__init__() in src/lark_service/auth/card_auth_handler.py
-- [ ] T046 [US1] GREEN: Implement CardAuthHandler._build_auth_card() using Phase 3 CardBuilder
-- [ ] T047 [US1] GREEN: Implement CardAuthHandler.send_auth_card() with options support
-- [ ] T048 [US1] GREEN: Implement CardAuthHandler._exchange_token() calling /open-apis/authen/v1/oidc/access_token
-- [ ] T049 [US1] GREEN: Implement CardAuthHandler._fetch_user_info() calling /open-apis/contact/v3/users/:user_id
-- [ ] T050 [US1] GREEN: Implement CardAuthHandler.handle_card_auth_event() with complete flow
-- [ ] T051 [US1] GREEN: Handle authorization failure (user rejects, API fails)
-- [ ] T052 [US1] GREEN: Implement session deduplication (prevent duplicate clicks)
-- [ ] T053 [US1] REFACTOR: Extract AuthCardOptions dataclass to src/lark_service/auth/types.py
-- [ ] T054 [US1] GREEN: Verify all US1 Part 2 tests pass (coverage ≥ 90%)
+- [x] T045 [US1] GREEN: Implement CardAuthHandler.__init__() in src/lark_service/auth/card_auth_handler.py
+- [x] T046 [US1] GREEN: Implement CardAuthHandler._build_auth_card() using Phase 3 CardBuilder
+- [x] T047 [US1] GREEN: Implement CardAuthHandler.send_auth_card() with options support
+- [x] T048 [US1] GREEN: Implement CardAuthHandler._exchange_token() calling /open-apis/authen/v1/oidc/access_token
+- [x] T049 [US1] GREEN: Implement CardAuthHandler._fetch_user_info() calling /open-apis/contact/v3/users/:user_id
+- [x] T050 [US1] GREEN: Implement CardAuthHandler.handle_card_auth_event() with complete flow
+- [x] T051 [US1] GREEN: Handle authorization failure (user rejects, API fails)
+- [x] T052 [US1] GREEN: Implement session deduplication (prevent duplicate clicks)
+- [x] T053 [US1] REFACTOR: Extract AuthCardOptions dataclass to src/lark_service/auth/types.py
+- [x] T054 [US1] GREEN: Verify all US1 Part 2 tests pass (coverage ≥ 90%)
 - [ ] T055 [US1] Add rate limiting for auth requests (5 requests/minute/user)
 
 **Checkpoint**: User Story 1 完整功能可用 - 用户可通过卡片完成授权并获取 Token

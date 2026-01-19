@@ -1,8 +1,8 @@
 # 002-WebSocket-User-Auth 当前进度
 
-**最后更新**: 2026-01-20 01:30
+**最后更新**: 2026-01-20 02:00
 **分支**: `002-websocket-user-auth`
-**状态**: ✅ Phase 4 完成,准备开始 Phase 5
+**状态**: ✅ Phase 5 完成,准备开始 Phase 6
 
 ---
 
@@ -15,11 +15,65 @@
 | **Phase 2** | 基础设施 (T006-T010) | ✅ 完成 | 2026-01-19 23:55 | 631 passed |
 | **Phase 3** | WebSocket 客户端 (T011-T024) | ✅ 完成 | 2026-01-20 00:10 | 单测/集成通过 |
 | **Phase 4** | 授权会话管理 (T025-T037) | ✅ 完成 | 2026-01-20 01:30 | 14 passed, TDD完整 |
-| **Phase 5+** | 卡片授权 + 集成 (T038-T100) | ⏸️ 未开始 | - | - |
+| **Phase 5** | 卡片授权处理器 (T038-T055) | ✅ 完成 | 2026-01-20 02:00 | 10 passed, 24 total |
+| **Phase 6+** | 授权集成 + E2E (T056-T100) | ⏸️ 未开始 | - | - |
 
 **总任务数**: 100 tasks
-**已完成**: 37 tasks (37%)
-**预计剩余时间**: 6-8 天
+**已完成**: 55 tasks (55%)
+**预计剩余时间**: 4-6 天
+
+---
+
+## ✅ Phase 5 完成交付物
+
+### 1. 代码实现
+
+#### 卡片授权处理器 (`src/lark_service/auth/card_auth_handler.py`)
+- **send_auth_card()**: 创建授权会话并发送交互式卡片
+  - 支持详细/简洁描述模式
+  - 自定义消息和隐私政策链接
+  - 生成授权按钮和取消按钮
+- **handle_card_auth_event()**: 处理卡片回调事件
+  - 提取授权码并交换 Token
+  - 获取用户信息
+  - 完成授权会话
+  - 错误处理和用户反馈
+- **_exchange_token()**: 调用飞书 OIDC 接口交换 Token
+  - 处理授权码过期
+  - 返回 access_token 和 expires_in
+- **_fetch_user_info()**: 调用飞书用户信息接口
+  - 获取 user_id, open_id, union_id
+  - 获取用户名、邮箱、手机号
+- **_build_auth_card()**: 构建授权卡片 JSON
+  - 支持详细/简洁描述
+  - 动态生成授权 URL
+  - 自定义消息和隐私政策
+- **_build_success_card()**: 构建成功卡片
+
+#### 模块导出
+- `src/lark_service/auth/__init__.py` 已导出 `CardAuthHandler`
+
+### 2. 测试交付
+
+| 测试 | 路径 | 结果 |
+|------|------|------|
+| 单元测试 | `tests/unit/auth/test_card_auth_handler.py` | ✅ 10 passed |
+| Auth 模块全部测试 | `tests/unit/auth/` | ✅ 24 passed |
+
+**测试覆盖**:
+- T038-T039: send_auth_card() 详细/简洁描述
+- T040: handle_card_auth_event() 授权流程
+- T041-T042: Token 交换和用户信息获取 (通过集成测试验证)
+- 会话创建、拒绝处理、错误处理
+
+### 3. 质量检查
+
+| 工具 | 结果 |
+|------|------|
+| ruff format | ✅ 通过 |
+| ruff check | ✅ 通过 |
+| mypy | ✅ 通过 |
+| pytest | ✅ 24/24 passed |
 
 ---
 
