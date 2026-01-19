@@ -13,7 +13,8 @@ from .exceptions import (
     TokenExpiredError,
     TokenRefreshFailedError,
 )
-from .types import AuthCardOptions, UserInfo
+from .session_manager import AuthSessionManager
+from .types import AuthCardOptions, AuthSession, UserInfo
 
 __all__ = [
     "AuthError",
@@ -24,6 +25,8 @@ __all__ = [
     "AuthSessionNotFoundError",
     "TokenExpiredError",
     "TokenRefreshFailedError",
+    "AuthSessionManager",
     "AuthCardOptions",
+    "AuthSession",
     "UserInfo",
 ]

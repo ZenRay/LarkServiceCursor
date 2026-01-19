@@ -96,22 +96,22 @@
 
 ### Tests for US1 Part 1 (TDD - Write FIRST)
 
-- [ ] T025 [P] [US1] RED: Unit test for create_session in tests/unit/auth/test_session_manager.py
-- [ ] T026 [P] [US1] RED: Unit test for complete_session with token and user info in tests/unit/auth/test_session_manager.py
-- [ ] T027 [P] [US1] RED: Unit test for get_active_token in tests/unit/auth/test_session_manager.py
-- [ ] T028 [P] [US1] RED: Unit test for cleanup_expired_sessions in tests/unit/auth/test_session_manager.py
-- [ ] T029 [US1] RED: Unit test for multi-user isolation (app_id, user_id) in tests/unit/auth/test_session_manager.py
+- [x] T025 [P] [US1] RED: Unit test for create_session in tests/unit/auth/test_session_manager.py
+- [x] T026 [P] [US1] RED: Unit test for complete_session with token and user info in tests/unit/auth/test_session_manager.py
+- [x] T027 [P] [US1] RED: Unit test for get_active_token in tests/unit/auth/test_session_manager.py
+- [x] T028 [P] [US1] RED: Unit test for cleanup_expired_sessions in tests/unit/auth/test_session_manager.py
+- [x] T029 [US1] RED: Unit test for multi-user isolation (app_id, user_id) in tests/unit/auth/test_session_manager.py
 
 ### Implementation for US1 Part 1
 
-- [ ] T030 [US1] GREEN: Extend UserAuthSession model with new fields in src/lark_service/core/models/auth_session.py
-- [ ] T031 [US1] GREEN: Implement AuthSessionManager.create_session() in src/lark_service/auth/session_manager.py
-- [ ] T032 [US1] GREEN: Implement AuthSessionManager.get_session() in src/lark_service/auth/session_manager.py
-- [ ] T033 [US1] GREEN: Implement AuthSessionManager.complete_session() with token encryption
-- [ ] T034 [US1] GREEN: Implement AuthSessionManager.get_active_token() with expiry check
-- [ ] T035 [US1] GREEN: Implement AuthSessionManager.cleanup_expired_sessions()
-- [ ] T036 [US1] REFACTOR: Add database indexes (app_id+user_id, token_expires_at)
-- [ ] T037 [US1] GREEN: Verify all US1 Part 1 tests pass (coverage ≥ 90%)
+- [x] T030 [US1] GREEN: Extend UserAuthSession model with new fields in src/lark_service/core/models/auth_session.py
+- [x] T031 [US1] GREEN: Implement AuthSessionManager.create_session() in src/lark_service/auth/session_manager.py
+- [x] T032 [US1] GREEN: Implement AuthSessionManager.get_session() in src/lark_service/auth/session_manager.py
+- [x] T033 [US1] GREEN: Implement AuthSessionManager.complete_session() with token encryption
+- [x] T034 [US1] GREEN: Implement AuthSessionManager.get_active_token() with expiry check
+- [x] T035 [US1] GREEN: Implement AuthSessionManager.cleanup_expired_sessions()
+- [x] T036 [US1] REFACTOR: Add database indexes (app_id+user_id, token_expires_at)
+- [x] T037 [US1] GREEN: Verify all US1 Part 1 tests pass (coverage ≥ 90%)
 
 **Checkpoint**: 授权会话管理器可独立工作,支持 Token 存储和查询
 
