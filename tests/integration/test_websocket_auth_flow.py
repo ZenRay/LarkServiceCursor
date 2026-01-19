@@ -128,11 +128,14 @@ class TestCompleteAuthFlow:
             },
         }
 
-        with patch.object(
-            card_auth_handler, "_exchange_token", new_callable=AsyncMock
-        ) as mock_exchange, patch.object(
-            card_auth_handler, "_fetch_user_info", new_callable=AsyncMock
-        ) as mock_fetch_user:
+        with (
+            patch.object(
+                card_auth_handler, "_exchange_token", new_callable=AsyncMock
+            ) as mock_exchange,
+            patch.object(
+                card_auth_handler, "_fetch_user_info", new_callable=AsyncMock
+            ) as mock_fetch_user,
+        ):
             mock_exchange.return_value = mock_token_response
             mock_fetch_user.return_value = mock_user_info
 
@@ -300,11 +303,14 @@ class TestCompleteAuthFlow:
                 "email": f"user{i}@example.com",
             }
 
-            with patch.object(
-                card_auth_handler, "_exchange_token", new_callable=AsyncMock
-            ) as mock_exchange, patch.object(
-                card_auth_handler, "_fetch_user_info", new_callable=AsyncMock
-            ) as mock_fetch_user:
+            with (
+                patch.object(
+                    card_auth_handler, "_exchange_token", new_callable=AsyncMock
+                ) as mock_exchange,
+                patch.object(
+                    card_auth_handler, "_fetch_user_info", new_callable=AsyncMock
+                ) as mock_fetch_user,
+            ):
                 mock_exchange.return_value = mock_token_response
                 mock_fetch_user.return_value = mock_user_info
 
