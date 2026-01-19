@@ -215,13 +215,13 @@
 
 **⏱️ Estimate**: 1 day
 
-- [ ] T076 [P] Integration test: Complete auth flow from card to API call in tests/integration/test_websocket_auth_flow.py
-- [ ] T077 [P] Integration test: WebSocket fallback after 10 reconnect failures in tests/integration/test_websocket_fallback.py
-- [ ] T078 [P] Integration test: Concurrent authorization (100 users) in tests/integration/test_concurrent_auth.py
+- [X] T076 [P] Integration test: Complete auth flow from card to API call in tests/integration/test_websocket_auth_flow.py
+- [X] T077 [P] Integration test: WebSocket fallback after 10 reconnect failures in tests/integration/test_websocket_fallback.py
+- [X] T078 [P] Integration test: Concurrent authorization (100 users) in tests/integration/test_concurrent_auth.py
 - [ ] T079 [P] Integration test: Token refresh on 401 error in tests/integration/test_token_refresh.py
-- [ ] T080 Integration test: Exception recovery (network errors, API failures) in tests/integration/test_exception_recovery.py
-- [ ] T081 Create manual interactive test script in tests/manual/interactive_auth_test.py
-- [ ] T082 Create manual test documentation in tests/manual/README.md
+- [X] T080 Integration test: Exception recovery (network errors, API failures) in tests/integration/test_exception_recovery.py
+- [X] T081 Create manual interactive test script in tests/manual/interactive_auth_test.py
+- [X] T082 Create manual test documentation in tests/manual/README.md
 - [ ] T083 Run manual interactive test with real Feishu account (at least 1 successful auth)
 
 **Checkpoint**: 所有集成测试通过,手动测试验证真实授权流程
