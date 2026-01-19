@@ -76,16 +76,16 @@ class Config:
     token_refresh_threshold: float
 
     # WebSocket Authentication
-    websocket_max_reconnect_retries: int
-    websocket_heartbeat_interval: int
-    websocket_fallback_to_http: bool
-    auth_card_include_description: bool
-    auth_card_template_id: str | None
-    auth_token_refresh_threshold: float
-    auth_session_expiry_seconds: int
-    auth_request_rate_limit: int
-    user_info_sync_enabled: bool
-    user_info_sync_schedule: str
+    websocket_max_reconnect_retries: int = 10
+    websocket_heartbeat_interval: int = 30
+    websocket_fallback_to_http: bool = True
+    auth_card_include_description: bool = True
+    auth_card_template_id: str | None = None
+    auth_token_refresh_threshold: float = 0.8
+    auth_session_expiry_seconds: int = 600
+    auth_request_rate_limit: int = 5
+    user_info_sync_enabled: bool = False
+    user_info_sync_schedule: str = "0 2 * * *"
 
     @classmethod
     def load_from_env(cls, env_file: Path | None = None) -> "Config":
