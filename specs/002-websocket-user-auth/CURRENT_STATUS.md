@@ -1,8 +1,8 @@
 # 002-WebSocket-User-Auth 当前进度
 
-**最后更新**: 2026-01-20 04:30
+**最后更新**: 2026-01-20 05:30
 **分支**: `002-websocket-user-auth`
-**状态**: ✅ Phase 8 完成,准备开始 Phase 9
+**状态**: ✅ Phase 9 完成,准备开始 Phase 10
 
 ---
 
@@ -19,11 +19,12 @@
 | **Phase 6** | aPaaS 集成 (T056-T063) | ✅ 完成 | 2026-01-20 03:00 | 10 passed |
 | **Phase 7** | Token 生命周期 (T064-T075) | ✅ 完成 | 2026-01-20 03:00 | 9 passed |
 | **Phase 8** | 集成测试 + 手动测试 (T076-T083) | ✅ 完成 | 2026-01-20 04:30 | 8 tasks |
-| **Phase 9+** | 监控 + 文档 (T084-T100) | ⏸️ 未开始 | - | - |
+| **Phase 9** | 监控和配置 (T084-T091) | ✅ 完成 | 2026-01-20 05:30 | 8 tasks |
+| **Phase 10** | 文档更新 (T092-T100) | ⏸️ 未开始 | - | - |
 
 **总任务数**: 100 tasks
-**已完成**: 75 tasks (75%)
-**预计剩余时间**: 1-2 天
+**已完成**: 83 tasks (83%)
+**预计剩余时间**: 0.5-1 天
 
 ---
 
@@ -368,21 +369,124 @@ abd2543 - feat(auth): implement Phase 2 foundational infrastructure
 
 ---
 
-## 🚀 下一步: Phase 9 - 监控和配置
+## ✅ Phase 9 完成交付物
 
-### 任务范围 (T084-T091, 8 tasks)
+### 1. Prometheus 监控指标
 
-**目标**: 实现生产就绪的监控指标和配置管理
+#### 扩展指标 (`src/lark_service/monitoring/websocket_metrics.py`)
+- **auth_session_total**: 创建的授权会话总数 (按 app_id, auth_method)
+- **auth_session_active**: 活跃授权会话数量 (按 app_id)
+- **auth_session_expired_total**: 已清理的过期会话总数 (按 app_id)
+- **auth_success_total**: 授权成功总数 (按 app_id, auth_method)
+- **auth_failure_total**: 授权失败总数 (按 app_id, auth_method, reason)
+- **auth_duration_seconds**: 授权完成时长直方图 (按 app_id, auth_method)
+- **token_refresh_total**: Token 刷新总数 (按 app_id, outcome)
+- **token_active_count**: 活跃 Token 数量 (按 app_id)
+
+#### 指标集成
+- ✅ **AuthSessionManager**: 在会话创建、完成、清理时更新指标
+- ✅ **CardAuthHandler**: 在授权失败时记录失败原因
+- ✅ **监控模块导出**: 所有指标已导出到 `__init__.py`
+
+### 2. 结构化日志增强
+
+#### 日志上下文扩展 (`src/lark_service/utils/logger.py`)
+- ✅ **session_id 支持**: 新增 session_id 上下文字段
+- ✅ **ContextFilter 更新**: 支持 request_id, app_id, session_id 三个维度
+- ✅ **日志格式更新**: 控制台和 JSON 格式都包含 session_id
+- ✅ **上下文管理器**: LoggerContextManager 支持 session_id 参数
+
+#### 日志脱敏功能
+- ✅ **sanitize_log_data()**: 新增日志脱敏工具函数
+  - 自动识别敏感字段: access_token, refresh_token, app_secret, authorization_code, password 等
+  - 保留前缀显示(如 "u-abc***")以便调试
+  - 递归处理嵌套字典和列表
+  - 支持各种 Token 类型格式
+
+### 3. Grafana 仪表板
+
+#### 仪表板配置 (`docs/monitoring/grafana-dashboard.json`)
+- **8 个监控面板**:
+  1. WebSocket Connection Status (连接状态时序图)
+  2. WebSocket Reconnect Rate (重连速率)
+  3. Active Auth Sessions (活跃会话仪表盘)
+  4. Active Tokens (活跃 Token 仪表盘)
+  5. Auth Success Rate (授权成功率)
+  6. Auth Failure Rate by Reason (失败原因分析)
+  7. Auth Duration (p95) (授权时长 p95 百分位)
+  8. Token Refresh Rate (Token 刷新速率)
+
+### 4. 告警规则
+
+#### Prometheus 告警 (`docs/monitoring/alert-rules.yaml`)
+- **WebSocket 告警组**:
+  - WebSocketConnectionDown (连接断开 > 5分钟)
+  - WebSocketHighReconnectRate (重连失败率 > 0.1/sec)
+
+- **认证告警组**:
+  - AuthSuccessRateLow (成功率 < 95%)
+  - AuthFailureRateHigh (失败率 > 0.5/sec)
+  - AuthDurationHigh (p95 > 15秒)
+  - TooManyActiveSessions (活跃会话 > 100)
+
+- **Token 告警组**:
+  - TokenRefreshFailureRateHigh (刷新失败率 > 10%)
+  - NoActiveTokens (无活跃 Token)
+
+- **系统告警组**:
+  - SessionCleanupNotRunning (清理任务未运行)
+  - AuthSessionTableGrowth (表数据增长过快)
+
+### 5. 环境变量文档
+
+#### 更新配置 (`.env.example`)
+- ✅ **WebSocket 配置**:
+  - WEBSOCKET_MAX_RECONNECT_RETRIES (默认: 10)
+  - WEBSOCKET_HEARTBEAT_INTERVAL (默认: 30秒)
+  - WEBSOCKET_FALLBACK_TO_HTTP (默认: true)
+
+- ✅ **用户授权配置**:
+  - AUTH_CARD_INCLUDE_DESCRIPTION (默认: true)
+  - AUTH_CARD_TEMPLATE_ID (可选)
+  - AUTH_TOKEN_REFRESH_THRESHOLD (默认: 0.8)
+  - AUTH_SESSION_EXPIRY_SECONDS (默认: 600秒)
+  - AUTH_REQUEST_RATE_LIMIT (默认: 5次/分钟)
+
+- ✅ **用户信息同步配置**:
+  - USER_INFO_SYNC_ENABLED (默认: false)
+  - USER_INFO_SYNC_SCHEDULE (默认: "0 2 * * *")
+
+- ✅ **监控配置**:
+  - PROMETHEUS_PORT (默认: 8000)
+  - LOG_JSON_FORMAT (默认: false)
+
+### 6. 质量验证
+
+|| 检查项 | 结果 | 说明 |
+||--------|------|------|
+|| **代码格式** | ✅ 100% | ruff format (2 files reformatted) |
+|| **代码风格** | ✅ 100% | ruff check (2 errors fixed) |
+|| **类型检查** | ✅ 100% | mypy (5 files) |
+|| **指标集成** | ✅ 完成 | 8 个新指标已集成到业务逻辑 |
+|| **文档完整性** | ✅ 100% | Grafana 仪表板 + 告警规则 + 环境变量 |
+
+---
+
+## 🚀 下一步: Phase 10 - 文档更新
+
+### 任务范围 (T092-T100, 9 tasks)
+
+**目标**: 完善项目文档,确保可维护性
 
 #### 核心任务
-1. **T084-T086**: Prometheus 监控指标
-2. **T087-T088**: 结构化日志和脱敏
-3. **T089-T091**: Grafana 仪表板和告警规则
+1. **T092-T094**: 更新 README 和快速开始指南
+2. **T095-T097**: 更新 API 文档和变更日志
+3. **T098-T100**: 部署指南和故障排查文档
 
 #### 预计工作量
-- **开发**: 0.5 天
-- **测试**: 0.5 天
-- **总计**: 1 天
+- **文档编写**: 0.3 天
+- **审核校对**: 0.2 天
+- **总计**: 0.5 天
 
 ---
 
@@ -506,6 +610,6 @@ docker-compose ps
 
 ---
 
-**状态**: ✅ Phase 4 完成,所有交付物就绪,准备开始 Phase 5
-**下一步**: 实施卡片授权处理 (T038-T055)
-**预计完成**: Phase 5 需 2.5 天,MVP (Phase 1-6) 需 7-9 天
+**状态**: ✅ Phase 9 完成,监控和配置就绪,准备开始 Phase 10
+**下一步**: 完善项目文档 (T092-T100)
+**预计完成**: Phase 10 需 0.5 天,全部功能预计 0.5 天内完成

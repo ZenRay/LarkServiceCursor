@@ -1,0 +1,134 @@
+# Prometheus Alert Rules for Lark Service WebSocket Authentication
+#
+# These alert rules monitor the health and performance of WebSocket connections
+# and user authentication flows.
+
+groups:
+  - name: lark_service_websocket_alerts
+    interval: 30s
+    rules:
+      # WebSocket Connection Alerts
+      - alert: WebSocketConnectionDown
+        expr: lark_service_websocket_connection_status == 0
+        for: 5m
+        labels:
+          severity: critical
+          component: websocket
+        annotations:
+          summary: "WebSocket connection is down for {{ $labels.app_id }}"
+          description: "WebSocket connection has been disconnected for more than 5 minutes for app {{ $labels.app_id }}. This will prevent receiving card authorization events."
+
+      - alert: WebSocketHighReconnectRate
+        expr: rate(lark_service_websocket_reconnect_total{outcome="failure"}[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          component: websocket
+        annotations:
+          summary: "High WebSocket reconnect failure rate for {{ $labels.app_id }}"
+          description: "WebSocket is experiencing frequent reconnection failures (>0.1/sec) for app {{ $labels.app_id }}. This may indicate network issues or API problems."
+
+  - name: lark_service_auth_alerts
+    interval: 30s
+    rules:
+      # Authentication Alerts
+      - alert: AuthSuccessRateLow
+        expr: |
+          (
+            sum(rate(lark_service_auth_success_total[5m]))
+            /
+            (sum(rate(lark_service_auth_success_total[5m])) + sum(rate(lark_service_auth_failure_total[5m])))
+          ) < 0.95
+        for: 10m
+        labels:
+          severity: warning
+          component: authentication
+        annotations:
+          summary: "Low authentication success rate"
+          description: "Authentication success rate has been below 95% for the last 10 minutes. Current rate: {{ $value | humanizePercentage }}. Check auth failure reasons."
+
+      - alert: AuthFailureRateHigh
+        expr: rate(lark_service_auth_failure_total[5m]) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          component: authentication
+        annotations:
+          summary: "High authentication failure rate"
+          description: "Authentication failures are occurring at >0.5/sec. Reason: {{ $labels.reason }}. This may indicate issues with authorization code exchange or user info retrieval."
+
+      - alert: AuthDurationHigh
+        expr: histogram_quantile(0.95, sum(rate(lark_service_auth_duration_seconds_bucket[5m])) by (le)) > 15
+        for: 5m
+        labels:
+          severity: warning
+          component: authentication
+        annotations:
+          summary: "High authentication duration (p95)"
+          description: "95th percentile of authentication duration is above 15 seconds ({{ $value }}s). Users are experiencing slow authorization flows."
+
+      - alert: TooManyActiveSessions
+        expr: sum(lark_service_auth_session_active) > 100
+        for: 5m
+        labels:
+          severity: info
+          component: authentication
+        annotations:
+          summary: "High number of active auth sessions"
+          description: "There are {{ $value }} active (pending) auth sessions. This is higher than normal and may indicate users are not completing authorization or sessions are not being cleaned up properly."
+
+  - name: lark_service_token_alerts
+    interval: 30s
+    rules:
+      # Token Management Alerts
+      - alert: TokenRefreshFailureRateHigh
+        expr: |
+          (
+            rate(lark_service_token_refresh_total{outcome="failure"}[5m])
+            /
+            (rate(lark_service_token_refresh_total{outcome="success"}[5m]) + rate(lark_service_token_refresh_total{outcome="failure"}[5m]))
+          ) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          component: token
+        annotations:
+          summary: "High token refresh failure rate for {{ $labels.app_id }}"
+          description: "Token refresh failures exceed 10% for app {{ $labels.app_id }}. This may cause users to need to re-authorize frequently."
+
+      - alert: NoActiveTokens
+        expr: sum(lark_service_token_active_count) by (app_id) == 0
+        for: 10m
+        labels:
+          severity: info
+          component: token
+        annotations:
+          summary: "No active tokens for {{ $labels.app_id }}"
+          description: "There are no active (non-expired) tokens for app {{ $labels.app_id }}. Users will need to authorize to use aPaaS features."
+
+  - name: lark_service_system_alerts
+    interval: 30s
+    rules:
+      # System Health Alerts
+      - alert: SessionCleanupNotRunning
+        expr: increase(lark_service_auth_session_expired_total[1h]) == 0
+        for: 2h
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "Session cleanup may not be running"
+          description: "No expired sessions have been cleaned up in the last 2 hours. The cleanup job may not be running or there are no expired sessions (which is unusual)."
+
+      - alert: AuthSessionTableGrowth
+        expr: |
+          (
+            sum(lark_service_auth_session_active) + sum(lark_service_token_active_count)
+          ) > 10000
+        for: 30m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "Auth session table growing large"
+          description: "The total number of sessions and tokens ({{ $value }}) is growing large. Consider reviewing cleanup policies and archiving old data."

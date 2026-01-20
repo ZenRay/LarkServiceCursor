@@ -234,14 +234,14 @@
 
 **⏱️ Estimate**: 1 day
 
-- [ ] T084 [P] Implement Prometheus metrics for WebSocket status in src/lark_service/monitoring/websocket_metrics.py
-- [ ] T085 [P] Implement Prometheus metrics for auth sessions in src/lark_service/monitoring/websocket_metrics.py
-- [ ] T086 [P] Implement Prometheus metrics for auth success rate in src/lark_service/monitoring/websocket_metrics.py
-- [ ] T087 [P] Add structured logging with session_id and request_id
-- [ ] T088 Add log sanitization for tokens and secrets (mask sensitive data)
-- [ ] T089 Create Grafana dashboard JSON for WebSocket monitoring in docs/monitoring/grafana-dashboard.json
-- [ ] T090 Configure alert rules for connection failures (5min threshold) in docs/monitoring/alert-rules.yaml
-- [ ] T091 Update environment variable documentation in .env.example
+- [X] T084 [P] Implement Prometheus metrics for WebSocket status in src/lark_service/monitoring/websocket_metrics.py
+- [X] T085 [P] Implement Prometheus metrics for auth sessions in src/lark_service/monitoring/websocket_metrics.py
+- [X] T086 [P] Implement Prometheus metrics for auth success rate in src/lark_service/monitoring/websocket_metrics.py
+- [X] T087 [P] Add structured logging with session_id and request_id
+- [X] T088 Add log sanitization for tokens and secrets (mask sensitive data)
+- [X] T089 Create Grafana dashboard JSON for WebSocket monitoring in docs/monitoring/grafana-dashboard.json
+- [X] T090 Configure alert rules for connection failures (5min threshold) in docs/monitoring/alert-rules.yaml
+- [X] T091 Update environment variable documentation in .env.example
 
 **Checkpoint**: 监控和日志完善,生产环境可观测
 

@@ -5,6 +5,7 @@ authentication sessions, including creation, completion, token retrieval,
 token refresh, and cleanup operations.
 """
 
+import time
 import uuid
 from datetime import UTC, datetime, timedelta
 
@@ -19,6 +20,15 @@ from lark_service.auth.exceptions import (
 )
 from lark_service.auth.types import UserInfo
 from lark_service.core.models.auth_session import UserAuthSession
+from lark_service.monitoring import (
+    auth_duration_seconds,
+    auth_session_active,
+    auth_session_expired_total,
+    auth_session_total,
+    auth_success_total,
+    token_active_count,
+    token_refresh_total,
+)
 from lark_service.utils.logger import get_logger
 
 logger = get_logger()
@@ -113,6 +123,10 @@ class AuthSessionManager:
         self.db.commit()
         self.db.refresh(session)
 
+        # Update Prometheus metrics
+        auth_session_total.labels(app_id=app_id, auth_method=auth_method).inc()
+        self._update_active_sessions_gauge(app_id)
+
         return session
 
     def get_session(self, session_id: str) -> UserAuthSession | None:
@@ -140,6 +154,7 @@ class AuthSessionManager:
         user_access_token: str,
         token_expires_at: datetime,
         user_info: UserInfo,
+        start_time: float | None = None,
     ) -> UserAuthSession:
         """Complete authentication session with token and user info.
 
@@ -207,6 +222,16 @@ class AuthSessionManager:
 
         self.db.commit()
         self.db.refresh(session)
+
+        # Update Prometheus metrics
+        if start_time:
+            duration = time.time() - start_time
+            auth_duration_seconds.labels(
+                app_id=session.app_id, auth_method=session.auth_method
+            ).observe(duration)
+
+        auth_success_total.labels(app_id=session.app_id, auth_method=session.auth_method).inc()
+        self._update_token_count_gauge(session.app_id)
 
         return session
 
@@ -325,6 +350,22 @@ class AuthSessionManager:
         )
 
         self.db.commit()
+
+        # Update Prometheus metrics
+        if count > 0:
+            # Get unique app_ids from expired sessions
+            expired_sessions = (
+                self.db.query(UserAuthSession.app_id)
+                .filter(
+                    UserAuthSession.state == "expired",
+                    UserAuthSession.expires_at < now,
+                )
+                .distinct()
+                .all()
+            )
+            for (app_id,) in expired_sessions:
+                auth_session_expired_total.labels(app_id=app_id).inc(count)
+                self._update_active_sessions_gauge(app_id)
 
         return count
 
@@ -476,10 +517,15 @@ class AuthSessionManager:
                 extra={"app_id": app_id, "user_id": user_id},
             )
 
+            # Update Prometheus metrics
+            token_refresh_total.labels(app_id=app_id, outcome="success").inc()
+            self._update_token_count_gauge(app_id)
+
             return new_token
 
         except requests.RequestException as e:
             logger.error(f"Network error refreshing token: {e}")
+            token_refresh_total.labels(app_id=app_id, outcome="failure").inc()
             raise TokenRefreshFailedError(
                 f"Failed to refresh token: {e}",
                 session_id=session.session_id,
@@ -560,3 +606,39 @@ class AuthSessionManager:
         )
 
         return updated_count
+
+    def _update_active_sessions_gauge(self, app_id: str) -> None:
+        """Update Prometheus gauge for active sessions count.
+
+        Parameters
+        ----------
+            app_id: Feishu application ID
+        """
+        count = (
+            self.db.query(UserAuthSession)
+            .filter(
+                UserAuthSession.app_id == app_id,
+                UserAuthSession.state == "pending",
+            )
+            .count()
+        )
+        auth_session_active.labels(app_id=app_id).set(count)
+
+    def _update_token_count_gauge(self, app_id: str) -> None:
+        """Update Prometheus gauge for active token count.
+
+        Parameters
+        ----------
+            app_id: Feishu application ID
+        """
+        now = datetime.now(UTC).replace(tzinfo=None)
+        count = (
+            self.db.query(UserAuthSession)
+            .filter(
+                UserAuthSession.app_id == app_id,
+                UserAuthSession.state == "completed",
+                UserAuthSession.token_expires_at > now,
+            )
+            .count()
+        )
+        token_active_count.labels(app_id=app_id).set(count)

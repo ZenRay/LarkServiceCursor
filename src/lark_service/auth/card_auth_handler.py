@@ -5,6 +5,7 @@ user authorization flow, including sending authorization cards and handling
 callback events.
 """
 
+import time
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -16,6 +17,7 @@ from lark_service.auth.exceptions import (
 )
 from lark_service.auth.session_manager import AuthSessionManager
 from lark_service.auth.types import AuthCardOptions, UserInfo
+from lark_service.monitoring import auth_failure_total
 from lark_service.utils.logger import get_logger
 
 logger = get_logger()
@@ -282,6 +284,9 @@ class CardAuthHandler:
             ... }
             >>> response = await handler.handle_card_auth_event(event)
         """
+        start_time = time.time()
+        session_id = None
+
         try:
             # Extract event data
             operator = event.get("operator", {})
@@ -296,6 +301,9 @@ class CardAuthHandler:
                     f"User {open_id} rejected authorization",
                     extra={"session_id": session_id, "user_id": open_id},
                 )
+                auth_failure_total.labels(
+                    app_id=self.app_id, auth_method="websocket_card", reason="user_rejected"
+                ).inc()
                 return {
                     "toast": {
                         "type": "info",
@@ -310,6 +318,9 @@ class CardAuthHandler:
                     "No authorization code in event",
                     extra={"session_id": session_id, "event": event},
                 )
+                auth_failure_total.labels(
+                    app_id=self.app_id, auth_method="websocket_card", reason="missing_code"
+                ).inc()
                 return {
                     "toast": {
                         "type": "error",
@@ -344,6 +355,7 @@ class CardAuthHandler:
                 user_access_token=user_access_token,
                 token_expires_at=token_expires_at,
                 user_info=user_info,
+                start_time=start_time,
             )
 
             logger.info(
@@ -369,6 +381,9 @@ class CardAuthHandler:
                 "Authorization code expired",
                 extra={"session_id": session_id, "error": str(e)},
             )
+            auth_failure_total.labels(
+                app_id=self.app_id, auth_method="websocket_card", reason="code_expired"
+            ).inc()
             return {
                 "toast": {
                     "type": "error",
@@ -382,6 +397,9 @@ class CardAuthHandler:
                 extra={"session_id": session_id, "error": str(e)},
                 exc_info=True,
             )
+            auth_failure_total.labels(
+                app_id=self.app_id, auth_method="websocket_card", reason="unknown_error"
+            ).inc()
             return {
                 "toast": {
                     "type": "error",
