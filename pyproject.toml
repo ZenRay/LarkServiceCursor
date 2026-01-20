@@ -186,6 +186,7 @@ markers = [
     "stress: Stress and load tests",
 ]
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 
 # Coverage 配置
 [tool.coverage.run]
