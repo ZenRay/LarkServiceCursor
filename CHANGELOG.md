@@ -7,7 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### 🚀 Feature: WebSocket User Authorization (2026-01-20)
+### 🚀 Feature: WebSocket User Authorization - Phase 9 (2026-01-20)
+
+#### Added - Monitoring and Configuration
+- **Comprehensive Prometheus Metrics** (`src/lark_service/monitoring/websocket_metrics.py`)
+  - Auth session metrics: `auth_session_total`, `auth_session_active`, `auth_session_expired_total`
+  - Auth success/failure metrics: `auth_success_total`, `auth_failure_total` (with reason labels)
+  - Auth performance: `auth_duration_seconds` histogram (p50, p95, p99)
+  - Token metrics: `token_refresh_total`, `token_active_count`
+  - Integrated into `AuthSessionManager` and `CardAuthHandler`
+
+- **Enhanced Structured Logging** (`src/lark_service/utils/logger.py`)
+  - Added `session_id` support to `ContextFilter`
+  - Updated console and JSON log formats with session_id field
+  - New `sanitize_log_data()` function for masking sensitive data
+  - Auto-detects and masks: access_token, refresh_token, app_secret, authorization_code, password
+  - Preserves token prefixes (e.g., "u-abc***") for debugging
+
+- **Grafana Dashboard** (`docs/monitoring/grafana-dashboard.json`)
+  - 8 monitoring panels: connection status, reconnect rate, auth sessions, success rate
+  - Auth failure analysis by reason, duration p95, token refresh rate
+  - Ready-to-import JSON for Grafana 9.5+
+
+- **Prometheus Alert Rules** (`docs/monitoring/alert-rules.yaml`)
+  - 4 alert groups: WebSocket, Authentication, Token, System
+  - 10 production-ready alerts with thresholds:
+    - WebSocket connection down (>5min), high reconnect rate (>0.1/sec)
+    - Auth success rate low (<95%), failure rate high (>0.5/sec), duration high (p95 >15s)
+    - Token refresh failures (>10%), no active tokens
+    - Session cleanup issues, table growth monitoring
+
+- **Environment Variables Documentation** (`.env.example`)
+  - WebSocket configuration: max retries, heartbeat interval, fallback behavior
+  - Auth configuration: card description, template ID, token refresh threshold, session expiry, rate limiting
+  - User info sync: enable/disable, cron schedule
+  - Monitoring: Prometheus port, JSON log format
+
+#### Changed
+- **AuthSessionManager** now tracks metrics for all session lifecycle operations
+- **CardAuthHandler** records failure reasons for auth failure metrics
+
+### 🚀 Feature: WebSocket User Authorization - Phase 3-8 (2026-01-20)
 
 #### Added - Phase 3 WebSocket Client
 - **WebSocket Client Implementation** (`src/lark_service/events/websocket_client.py`)

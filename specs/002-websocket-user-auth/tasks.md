@@ -253,15 +253,15 @@
 
 **⏱️ Estimate**: 0.5 days
 
-- [ ] T092 [P] Update CHANGELOG.md with v0.2.0 WebSocket user auth feature
-- [ ] T093 [P] Update main README.md with user authentication capabilities
-- [ ] T094 [P] Validate quickstart.md guide (5-minute test)
-- [ ] T095 [P] Generate API documentation from docstrings
-- [ ] T096 Run quality gates: ruff format, ruff check, mypy, pytest
-- [ ] T097 Verify test coverage ≥ 90% (pytest --cov)
-- [ ] T098 Verify all docstrings meet standards (English, complete)
-- [ ] T099 Create deployment guide in specs/002-websocket-user-auth/deployment.md
-- [ ] T100 Code review and final refactoring
+- [X] T092 [P] Update CHANGELOG.md with v0.2.0 WebSocket user auth feature
+- [X] T093 [P] Update main README.md with user authentication capabilities
+- [X] T094 [P] Validate quickstart.md guide (5-minute test)
+- [X] T095 [P] Generate API documentation from docstrings
+- [X] T096 Run quality gates: ruff format, ruff check, mypy, pytest
+- [X] T097 Verify test coverage ≥ 90% (pytest --cov)
+- [X] T098 Verify all docstrings meet standards (English, complete)
+- [X] T099 Create deployment guide in specs/002-websocket-user-auth/deployment.md
+- [X] T100 Code review and final refactoring
 
 **Checkpoint**: 所有文档完整,代码质量达标,可交付
 
