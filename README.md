@@ -31,12 +31,14 @@
 - 📖 **[在线文档](docs/_build/html/index.html)** - 完整的 API 参考和使用指南
 - 🚀 **[快速开始](docs/quickstart.md)** - 5分钟快速上手
 - 💡 **[使用指南](docs/usage/)** - 各模块详细使用说明
+  - [应用管理](docs/usage/app-management.md) - 多应用管理和切换 🆕
+  - [高级用法](docs/usage/advanced.md) - 性能优化和最佳实践 🆕
   - [消息服务](docs/usage/messaging.md)
   - [卡片服务](docs/usage/card.md)
   - [通讯录服务](docs/usage/contact.md)
   - [云文档服务](docs/usage/clouddoc.md)
   - [aPaaS 数据空间](docs/usage/apaas.md)
-  - [WebSocket 用户授权](docs/usage/auth.md) 🆕
+  - [WebSocket 用户授权](docs/usage/auth.md)
 - 🔧 **[部署指南](docs/deployment.md)** - 生产环境部署
 - 📊 **[监控指南](docs/monitoring.md)** - Prometheus & Grafana
 
