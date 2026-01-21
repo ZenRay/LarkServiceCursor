@@ -393,7 +393,7 @@ class CardAuthHandler:
                 seconds=expires_in
             )
 
-            self.session_manager.complete_session(
+            completed_session = self.session_manager.complete_session(
                 session_id=session_id,
                 user_access_token=user_access_token,
                 token_expires_at=token_expires_at,
@@ -410,9 +410,35 @@ class CardAuthHandler:
                 },
             )
 
-            # TODO: Update the original message card to show success
-            # This requires implementing update_message in MessagingClient
-            # For now, we skip this step to avoid blocking the authorization flow
+            # Update the original message card to show success
+            # This is important for OAuth redirect flow where we can't return a card update
+            if (
+                completed_session
+                and hasattr(completed_session, "message_id")
+                and completed_session.message_id
+            ):
+                try:
+                    success_card = self._build_success_card(user_info)
+                    import json
+
+                    self.messaging_client.update_message(
+                        app_id=self.app_id,
+                        message_id=completed_session.message_id,
+                        content=json.dumps(success_card),
+                        msg_type="interactive",
+                    )
+                    logger.info(
+                        "Updated message card with success status",
+                        extra={
+                            "session_id": session_id,
+                            "message_id": completed_session.message_id,
+                        },
+                    )
+                except Exception as e:
+                    logger.warning(
+                        f"Failed to update message card: {e}",
+                        extra={"session_id": session_id},
+                    )
 
             # Return success response (for card interaction flow)
             return {
