@@ -38,12 +38,40 @@ Lark Service 文档
    api/utils
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: 部署与运维
 
+   deployment/PRODUCTION_DEPLOYMENT
    deployment
    monitoring
    troubleshooting
+
+.. toctree::
+   :maxdepth: 2
+   :caption: 架构与设计
+
+   architecture/token-refresh-mechanism
+   architecture
+
+.. toctree::
+   :maxdepth: 2
+   :caption: 功能特性
+
+   features/token-monitoring
+
+.. toctree::
+   :maxdepth: 2
+   :caption: 测试与验证
+
+   testing/INTEGRATION_VERIFICATION
+   TESTING-GUIDE
+   integration-test-guide
+
+.. toctree::
+   :maxdepth: 1
+   :caption: 发布说明
+
+   releases/v0.5.0
 
 索引与搜索
 ==========

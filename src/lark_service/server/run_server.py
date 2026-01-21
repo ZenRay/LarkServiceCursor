@@ -29,12 +29,14 @@ from sqlalchemy.orm import sessionmaker  # noqa: E402
 
 from lark_service.auth.card_auth_handler import CardAuthHandler  # noqa: E402
 from lark_service.auth.session_manager import AuthSessionManager  # noqa: E402
-from lark_service.clients.messaging import MessagingClient  # noqa: E402
-from lark_service.config import Config  # noqa: E402
-from lark_service.core.app_manager import ApplicationManager  # noqa: E402
+from lark_service.core.config import Config  # noqa: E402
 from lark_service.core.credential_pool import CredentialPool  # noqa: E402
-from lark_service.core.token_storage import TokenStorageService  # noqa: E402
-from lark_service.models.base import Base  # noqa: E402
+from lark_service.core.models.base import Base  # noqa: E402
+from lark_service.core.storage.sqlite_storage import ApplicationManager  # noqa: E402
+from lark_service.core.storage.token_storage import TokenStorageService  # noqa: E402
+from lark_service.messaging.client import MessagingClient  # noqa: E402
+from lark_service.scheduler.scheduler import SchedulerService  # noqa: E402
+from lark_service.scheduler.tasks import register_scheduled_tasks  # noqa: E402
 from lark_service.server.manager import CallbackServerManager  # noqa: E402
 from lark_service.utils.logger import get_logger  # noqa: E402
 
@@ -56,7 +58,6 @@ def init_services() -> tuple[CardAuthHandler, str, str | None]:
     app_secret = os.getenv("LARK_APP_SECRET")
     verification_token = os.getenv("LARK_VERIFICATION_TOKEN")
     encrypt_key = os.getenv("LARK_ENCRYPT_KEY")
-    encryption_key = os.getenv("LARK_CONFIG_ENCRYPTION_KEY")
 
     if not app_id or not app_secret or not verification_token:
         raise ValueError(
@@ -66,22 +67,20 @@ def init_services() -> tuple[CardAuthHandler, str, str | None]:
 
     logger.info("Initializing services...")
 
-    # Initialize configuration
-    config = Config(
-        max_retries=3,
-        retry_backoff_base=2,
-        timeout=30,
-    )
+    # Initialize configuration from environment
+    config = Config.load_from_env()
 
     # Initialize application manager
-    app_manager = ApplicationManager(encryption_key=encryption_key)
+    app_manager = ApplicationManager(
+        db_path=config.config_db_path,
+        encryption_key=config.config_encryption_key,
+    )
     try:
         app_manager.add_application(
             app_id=app_id,
             app_name=os.getenv("LARK_APP_NAME", "Lark Service"),
             app_secret=app_secret,
-            verification_token=verification_token,
-            encrypt_key=encrypt_key,
+            description="Lark Service Application",
         )
         logger.info(f"Application registered: {app_id}")
     except Exception as e:
@@ -132,9 +131,17 @@ def init_services() -> tuple[CardAuthHandler, str, str | None]:
 
 def main() -> None:
     """Main entry point."""
+    scheduler_service: SchedulerService | None = None
     try:
         # Initialize services
         card_auth_handler, verification_token, encrypt_key = init_services()
+
+        # Initialize and start scheduler
+        logger.info("Initializing scheduler...")
+        scheduler_service = SchedulerService()
+        register_scheduled_tasks(scheduler_service)
+        scheduler_service.start()
+        logger.info("Scheduler started successfully")
 
         # Create callback server manager
         manager = CallbackServerManager(
@@ -149,6 +156,9 @@ def main() -> None:
             logger.warning("=" * 70)
             logger.warning("Set CALLBACK_SERVER_ENABLED=true in .env to enable")
             logger.warning("=" * 70)
+            # Shutdown scheduler before exit
+            if scheduler_service:
+                scheduler_service.shutdown()
             sys.exit(0)
 
         # Register callback handlers
@@ -184,12 +194,29 @@ def main() -> None:
                 time.sleep(1)
         except KeyboardInterrupt:
             logger.info("\nShutting down...")
+            # Shutdown scheduler first
+            if scheduler_service:
+                scheduler_service.shutdown(wait=True)
+                logger.info("Scheduler stopped")
+            # Then stop the server
             manager.stop()
 
     except KeyboardInterrupt:
         logger.info("\nServer stopped by user")
+        # Ensure scheduler is stopped
+        import contextlib
+
+        if scheduler_service:
+            with contextlib.suppress(Exception):
+                scheduler_service.shutdown(wait=False)
     except Exception as e:
         logger.error(f"Failed to start server: {e}", exc_info=True)
+        # Ensure scheduler is stopped on error
+        import contextlib
+
+        if scheduler_service:
+            with contextlib.suppress(Exception):
+                scheduler_service.shutdown(wait=False)
         sys.exit(1)
 
 
