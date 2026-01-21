@@ -3,10 +3,16 @@
 Tests the 5-layer app_id resolution priority and context-based switching.
 """
 
+from unittest.mock import MagicMock
+
 import pytest
 
+from lark_service.apaas.client import WorkspaceTableClient
+from lark_service.clouddoc.client import DocClient
+from lark_service.contact.client import ContactClient
 from lark_service.core.base_service_client import BaseServiceClient
 from lark_service.core.exceptions import ConfigError
+from lark_service.messaging.client import MessagingClient
 
 
 class MockCredentialPool:
@@ -191,8 +197,9 @@ class TestAppSwitching:
         client1 = BaseServiceClient(pool, app_id="cli_app1test123456789012345")
         client2 = BaseServiceClient(pool, app_id="cli_app2test123456789012345")
 
-        with client1.use_app("cli_context1234567890123456"), client2.use_app(
-            "cli_context2234567890123456"
+        with (
+            client1.use_app("cli_context1234567890123456"),
+            client2.use_app("cli_context2234567890123456"),
         ):
             # Each client maintains its own context
             assert client1.get_current_app_id() == "cli_context1234567890123456"
@@ -217,3 +224,143 @@ class TestAppSwitching:
         # Context should be cleaned up
         assert client.get_current_app_id() == "cli_app1test123456789012345"
         assert len(client._context_app_stack) == 0
+
+
+class TestCloudDocClientSwitching:
+    """Integration tests for DocClient application switching."""
+
+    def test_clouddoc_app_id_resolution(self) -> None:
+        """Test that DocClient correctly resolves app_id using base class logic."""
+        # Setup mocks
+        mock_pool = MagicMock()
+        mock_app = MagicMock()
+        mock_app.is_active.return_value = True
+        mock_pool.app_manager.get_application.return_value = mock_app
+
+        # Create client with default app_id
+        client = DocClient(mock_pool, app_id="cli_clouddoc1234567890123")
+
+        # Test resolution without context
+        assert client.get_current_app_id() == "cli_clouddoc1234567890123"
+
+    def test_clouddoc_context_manager_switching(self) -> None:
+        """Test DocClient switching apps using context manager."""
+        # Setup mocks
+        mock_pool = MagicMock()
+        mock_app = MagicMock()
+        mock_app.is_active.return_value = True
+        mock_pool.app_manager.get_application.return_value = mock_app
+
+        # Create client with default app
+        client = DocClient(mock_pool, app_id="cli_app1doc1234567890123")
+
+        # Use context manager to switch app
+        with client.use_app("cli_app2doc1234567890123"):
+            assert client.get_current_app_id() == "cli_app2doc1234567890123"
+
+        # Outside context, should use default
+        assert client.get_current_app_id() == "cli_app1doc1234567890123"
+
+    def test_clouddoc_method_parameter_override(self) -> None:
+        """Test DocClient method parameter overrides all other app_id sources."""
+        # Setup mocks
+        mock_pool = MagicMock()
+        mock_app = MagicMock()
+        mock_app.is_active.return_value = True
+        mock_pool.app_manager.get_application.return_value = mock_app
+
+        # Create client with default app
+        client = DocClient(mock_pool, app_id="cli_default123456789012")
+
+        # Test _resolve_app_id with explicit parameter
+        with client.use_app("cli_context123456789012"):
+            # Method parameter should win over context
+            resolved = client._resolve_app_id("cli_override12345678901")
+            assert resolved == "cli_override12345678901"
+
+
+class TestWorkspaceTableClientSwitching:
+    """Integration tests for WorkspaceTableClient (aPaaS) application switching."""
+
+    def test_apaas_app_id_resolution(self) -> None:
+        """Test that WorkspaceTableClient correctly resolves app_id using base class logic."""
+        # Setup mocks
+        mock_pool = MagicMock()
+        mock_app = MagicMock()
+        mock_app.is_active.return_value = True
+        mock_pool.app_manager.get_application.return_value = mock_app
+
+        # Create client with default app_id
+        client = WorkspaceTableClient(mock_pool, app_id="cli_apaas123456789012345")
+
+        # Test resolution without context
+        assert client.get_current_app_id() == "cli_apaas123456789012345"
+
+    def test_apaas_context_manager_switching(self) -> None:
+        """Test WorkspaceTableClient switching apps using context manager."""
+        # Setup mocks
+        mock_pool = MagicMock()
+        mock_app = MagicMock()
+        mock_app.is_active.return_value = True
+        mock_pool.app_manager.get_application.return_value = mock_app
+
+        # Create client with default app
+        client = WorkspaceTableClient(mock_pool, app_id="cli_app1apaas123456789012")
+
+        # Use context manager to switch app
+        with client.use_app("cli_app2apaas123456789012"):
+            assert client.get_current_app_id() == "cli_app2apaas123456789012"
+
+        # Outside context, should use default
+        assert client.get_current_app_id() == "cli_app1apaas123456789012"
+
+    def test_apaas_method_parameter_override(self) -> None:
+        """Test WorkspaceTableClient method parameter overrides all other sources."""
+        # Setup mocks
+        mock_pool = MagicMock()
+        mock_app = MagicMock()
+        mock_app.is_active.return_value = True
+        mock_pool.app_manager.get_application.return_value = mock_app
+
+        # Create client with default app
+        client = WorkspaceTableClient(mock_pool, app_id="cli_default_apaas12345678")
+
+        # Test _resolve_app_id with explicit parameter
+        with client.use_app("cli_context_apaas12345678"):
+            # Method parameter should win over context
+            resolved = client._resolve_app_id("cli_override_apaas1234567")
+            assert resolved == "cli_override_apaas1234567"
+
+
+class TestMultiClientCoordination:
+    """Integration tests for coordinating multiple service clients."""
+
+    def test_multiple_clients_with_shared_pool(self) -> None:
+        """Test multiple service clients sharing the same CredentialPool."""
+        # Setup mocks
+        mock_pool = MagicMock()
+        mock_app = MagicMock()
+        mock_app.is_active.return_value = True
+        mock_pool.app_manager.get_application.return_value = mock_app
+
+        # Create clients with different default apps
+        msg_client = MessagingClient(mock_pool, app_id="cli_app1msg1234567890123")
+        contact_client = ContactClient(mock_pool, app_id="cli_app2contact123456789")
+        doc_client = DocClient(mock_pool, app_id="cli_app3doc1234567890123")
+        apaas_client = WorkspaceTableClient(mock_pool, app_id="cli_app4apaas123456789")
+
+        # Each client should maintain its own default
+        assert msg_client.get_current_app_id() == "cli_app1msg1234567890123"
+        assert contact_client.get_current_app_id() == "cli_app2contact123456789"
+        assert doc_client.get_current_app_id() == "cli_app3doc1234567890123"
+        assert apaas_client.get_current_app_id() == "cli_app4apaas123456789"
+
+        # Switch one client's context, others should be unaffected
+        with msg_client.use_app("cli_temp_msg123456789012"):
+            assert msg_client.get_current_app_id() == "cli_temp_msg123456789012"
+            assert contact_client.get_current_app_id() == "cli_app2contact123456789"
+            assert doc_client.get_current_app_id() == "cli_app3doc1234567890123"
+            assert apaas_client.get_current_app_id() == "cli_app4apaas123456789"
+
+        # After context, back to original
+        assert msg_client.get_current_app_id() == "cli_app1msg1234567890123"
