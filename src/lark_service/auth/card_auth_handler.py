@@ -5,7 +5,6 @@ user authorization flow, including sending authorization cards and handling
 callback events.
 """
 
-import json
 import time
 from datetime import UTC, datetime, timedelta
 from typing import Any
@@ -394,7 +393,7 @@ class CardAuthHandler:
                 seconds=expires_in
             )
 
-            session = self.session_manager.complete_session(
+            self.session_manager.complete_session(
                 session_id=session_id,
                 user_access_token=user_access_token,
                 token_expires_at=token_expires_at,
@@ -411,23 +410,9 @@ class CardAuthHandler:
                 },
             )
 
-            # Update the original message card to show success
-            # This is important for OAuth redirect flow where we can't return a card update
-            if session and hasattr(session, "message_id") and session.message_id:
-                try:
-                    await self._update_message_card(
-                        message_id=session.message_id,
-                        card_content=self._build_success_card(user_info),
-                    )
-                    logger.info(
-                        "Updated message card with success status",
-                        extra={"session_id": session_id, "message_id": session.message_id},
-                    )
-                except Exception as e:
-                    logger.warning(
-                        f"Failed to update message card: {e}",
-                        extra={"session_id": session_id},
-                    )
+            # TODO: Update the original message card to show success
+            # This requires implementing update_message in MessagingClient
+            # For now, we skip this step to avoid blocking the authorization flow
 
             # Return success response (for card interaction flow)
             return {
@@ -468,20 +453,6 @@ class CardAuthHandler:
                     "content": "授权失败,请重试",
                 }
             }
-
-    async def _update_message_card(self, message_id: str, card_content: dict[str, Any]) -> None:
-        """Update an existing message card.
-
-        Parameters
-        ----------
-            message_id: The message ID to update
-            card_content: New card content
-        """
-        await self.messaging_client.update_message(
-            message_id=message_id,
-            content=json.dumps(card_content),
-            msg_type="interactive",
-        )
 
     def _build_success_card(self, user_info: UserInfo) -> dict[str, Any]:
         """Build success card after authorization.
