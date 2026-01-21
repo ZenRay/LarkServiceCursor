@@ -338,20 +338,22 @@ card = builder.build_card(
 ### 设置回调服务器
 
 ```python
-from lark_service.cardkit.callback_handler import CardCallbackHandler
+from lark_service.cardkit.callback_handler import CallbackHandler
 
 # 创建回调处理器
-callback_handler = CardCallbackHandler()
+callback_handler = CallbackHandler(
+    verification_token="your_verification_token",
+    encrypt_key="your_encrypt_key"  # 可选
+)
 
 # 注册按钮点击回调
-@callback_handler.register("approve_leave")
-async def handle_approve(action_data: dict) -> dict:
+def handle_approve(event: dict) -> dict:
     """处理审批通过"""
-    user_id = action_data["user_id"]
-    message_id = action_data["message_id"]
+    user_id = event.get("open_id")
+    message_id = event.get("open_message_id")
 
     # 执行业务逻辑
-    approve_leave_request(action_data["value"])
+    approve_leave_request(event)
 
     # 返回更新后的卡片
     return {
@@ -363,8 +365,7 @@ async def handle_approve(action_data: dict) -> dict:
         )
     }
 
-@callback_handler.register("reject_leave")
-async def handle_reject(action_data: dict) -> dict:
+def handle_reject(event: dict) -> dict:
     """处理审批拒绝"""
     return {
         "toast": {"type": "info", "content": "已拒绝"},
@@ -374,6 +375,10 @@ async def handle_reject(action_data: dict) -> dict:
             level="error"
         )
     }
+
+# 注册处理器
+callback_handler.register_handler("approve_leave", handle_approve)
+callback_handler.register_handler("reject_leave", handle_reject)
 ```
 
 ### 卡片回调数据结构
@@ -401,7 +406,7 @@ async def handle_reject(action_data: dict) -> dict:
 ```python
 from lark_service.cardkit.updater import CardUpdater
 
-updater = CardUpdater(pool=pool)
+updater = CardUpdater(credential_pool=pool)
 
 # 更新已发送的卡片
 new_card = builder.build_notification_card(
@@ -410,18 +415,17 @@ new_card = builder.build_notification_card(
     level="success"
 )
 
-updater.update_card(
+updater.update_card_content(
     app_id="cli_xxx",
     message_id="om_xxx",  # 要更新的消息 ID
-    card=new_card
+    card_content=new_card
 )
 ```
 
 ### 在回调中更新卡片
 
 ```python
-@callback_handler.register("refresh_status")
-async def handle_refresh(action_data: dict) -> dict:
+def handle_refresh(event: dict) -> dict:
     """刷新卡片状态"""
     # 获取最新数据
     status = get_latest_status()
@@ -435,6 +439,9 @@ async def handle_refresh(action_data: dict) -> dict:
 
     # 返回新卡片 (会自动更新原卡片)
     return {"card": new_card}
+
+# 注册处理器
+callback_handler.register_handler("refresh_status", handle_refresh)
 ```
 
 ## 高级用法
@@ -525,10 +532,10 @@ card2 = builder.build_notification_card(
     content="任务 #123 正在处理中...",
     level="info"
 )
-updater.update_card(
+updater.update_card_content(
     app_id="cli_xxx",
     message_id=response1["message_id"],
-    card=card2
+    card_content=card2
 )
 
 # 步骤 3: 最终完成通知
@@ -537,10 +544,10 @@ card3 = builder.build_notification_card(
     content="✅ 任务 #123 已成功完成",
     level="success"
 )
-updater.update_card(
+updater.update_card_content(
     app_id="cli_xxx",
     message_id=response1["message_id"],
-    card=card3
+    card_content=card3
 )
 ```
 
@@ -577,23 +584,25 @@ except LarkAPIError as e:
 ### 3. 回调安全验证
 
 ```python
-from lark_service.cardkit.callback_handler import verify_callback
+from lark_service.cardkit.callback_handler import CallbackHandler
 
-@callback_handler.register("sensitive_action")
-async def handle_sensitive(action_data: dict) -> dict:
+callback_handler = CallbackHandler(
+    verification_token="your_verification_token",
+    encrypt_key="your_encrypt_key"
+)
+
+def handle_sensitive(event: dict) -> dict:
     """处理敏感操作"""
-    # 验证回调来源
-    if not verify_callback(action_data, app_secret):
-        return {"toast": {"type": "error", "content": "验证失败"}}
-
     # 验证用户权限
-    user_id = action_data["user_id"]
+    user_id = event.get("open_id")
     if not has_permission(user_id, "sensitive_action"):
         return {"toast": {"type": "error", "content": "权限不足"}}
 
     # 执行操作
     perform_sensitive_action()
     return {"toast": {"type": "success", "content": "操作成功"}}
+
+callback_handler.register_handler("sensitive_action", handle_sensitive)
 ```
 
 ### 4. 性能优化

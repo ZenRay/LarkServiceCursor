@@ -206,15 +206,17 @@ Examples
 
 .. code-block:: python
 
-    from lark_service.cardkit.callback_handler import CardCallbackHandler
+    from lark_service.cardkit.callback_handler import CallbackHandler
 
-    callback_handler = CardCallbackHandler()
+    callback_handler = CallbackHandler(
+        verification_token="your_verification_token",
+        encrypt_key="your_encrypt_key"
+    )
 
-    @callback_handler.register("approve_leave")
-    async def handle_approve(action_data: dict) -> dict:
+    def handle_approve(event: dict) -> dict:
         """处理审批通过"""
         # 执行业务逻辑
-        approve_request(action_data["value"])
+        approve_request(event)
 
         # 返回更新后的卡片
         return {
@@ -226,6 +228,9 @@ Examples
             )
         }
 
+    # 注册处理器
+    callback_handler.register_handler("approve_leave", handle_approve)
+
 卡片更新
 ~~~~~~~~
 
@@ -233,7 +238,7 @@ Examples
 
     from lark_service.cardkit.updater import CardUpdater
 
-    updater = CardUpdater(pool=credential_pool)
+    updater = CardUpdater(credential_pool=credential_pool)
 
     # 更新已发送的卡片
     new_card = builder.build_notification_card(
@@ -242,10 +247,10 @@ Examples
         level="success"
     )
 
-    updater.update_card(
+    updater.update_card_content(
         app_id="cli_xxx",
         message_id="om_xxx",
-        card=new_card
+        card_content=new_card
     )
 
 See Also
