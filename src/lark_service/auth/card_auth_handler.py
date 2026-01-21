@@ -540,6 +540,11 @@ class CardAuthHandler:
         ):
             data = await response.json()
 
+            logger.info(
+                f"Token exchange response: {data}",
+                extra={"response_data": data},
+            )
+
             if data.get("code") == 0:
                 return data["data"]  # type: ignore[no-any-return]
             elif data.get("code") == 10014:  # Authorization code expired
@@ -547,7 +552,9 @@ class CardAuthHandler:
                     f"Authorization code expired: {data.get('msg')}"
                 )
             else:
-                raise TokenRefreshFailedError(f"Token exchange failed: {data.get('msg')}")
+                raise TokenRefreshFailedError(
+                    f"Token exchange failed: code={data.get('code')}, msg={data.get('msg')}, data={data}"
+                )
 
     async def _fetch_user_info(self, user_access_token: str) -> UserInfo:
         """Fetch user information using user access token.
