@@ -21,6 +21,7 @@ Lark Service 文档
    usage/clouddoc
    usage/apaas
    usage/auth
+   usage/scheduler
    usage/advanced
 
 .. toctree::
@@ -34,6 +35,9 @@ Lark Service 文档
    api/clouddoc
    api/apaas
    api/events
+   api/scheduler
+   api/services
+   api/monitoring
    api/server
    api/utils
 
