@@ -97,3 +97,4 @@ archive/temp-guides/
 docs/_build/
 docs/api/*.rst
 !docs/api/.gitkeep
+production.env
