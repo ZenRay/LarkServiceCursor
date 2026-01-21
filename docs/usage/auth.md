@@ -61,9 +61,8 @@ CALLBACK_SERVER_PORT=8000
 ### 初始化组件
 
 ```python
-from lark_service.core import Config
-from lark_service.core.storage import TokenStorageService
-from lark_service.core import CredentialPool, ApplicationManager
+from lark_service.core import Config, CredentialPool
+from lark_service.core.storage import TokenStorageService, ApplicationManager
 from lark_service.auth import AuthSessionManager, CardAuthHandler
 from lark_service.messaging import MessagingClient
 from lark_service.server import CallbackServerManager
@@ -74,8 +73,11 @@ from sqlalchemy.orm import sessionmaker
 config = Config.load_from_env()
 
 # 2. 初始化核心组件
-app_manager = ApplicationManager()
-token_storage = TokenStorageService(config.postgres_url)
+app_manager = ApplicationManager(
+    db_path=config.config_db_path,
+    encryption_key=config.config_encryption_key
+)
+token_storage = TokenStorageService(config.get_postgres_url())
 credential_pool = CredentialPool(
     config=config,
     app_manager=app_manager,
