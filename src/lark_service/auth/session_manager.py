@@ -235,6 +235,41 @@ class AuthSessionManager:
 
         return session
 
+    def update_session_message_id(self, session_id: str, message_id: str) -> None:
+        """Update session with message ID for card updates.
+
+        Parameters
+        ----------
+            session_id: Session identifier
+            message_id: Feishu message ID of the authorization card
+
+        Raises
+        ----------
+            AuthSessionNotFoundError: If session not found
+
+        Example
+        ----------
+            >>> manager.update_session_message_id(
+            ...     session_id="sess_123",
+            ...     message_id="om_xxx"
+            ... )
+        """
+        session = self.get_session(session_id)
+
+        if session is None:
+            raise AuthSessionNotFoundError(
+                f"Session not found: {session_id}",
+                session_id=session_id,
+            )
+
+        session.message_id = message_id
+        self.db.commit()
+
+        logger.info(
+            f"Updated session {session_id} with message_id {message_id}",
+            extra={"session_id": session_id, "message_id": message_id},
+        )
+
     def get_active_token(
         self,
         app_id: str,

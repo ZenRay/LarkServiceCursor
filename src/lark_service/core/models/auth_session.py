@@ -37,6 +37,7 @@ class UserAuthSession(Base):
         user_name: User's display name (optional)
         mobile: User's mobile number (encrypted, optional)
         email: User's email address (optional)
+        message_id: Feishu message ID of authorization card (for updates)
         user_access_token: User access token (encrypted, set after successful auth)
         token_expires_at: Token expiration timestamp
         created_at: Session creation timestamp
@@ -72,6 +73,7 @@ class UserAuthSession(Base):
     user_name: Mapped[str | None] = mapped_column(String(128), default=None)
     mobile: Mapped[str | None] = mapped_column(String(32), default=None)
     email: Mapped[str | None] = mapped_column(String(128), default=None)
+    message_id: Mapped[str | None] = mapped_column(String(128), default=None)
     user_access_token: Mapped[str | None] = mapped_column(String(512), default=None)
     token_expires_at: Mapped[datetime | None] = mapped_column(default=None)
     created_at: Mapped[datetime] = mapped_column(default=func.now())
