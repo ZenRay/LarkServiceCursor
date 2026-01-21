@@ -72,6 +72,9 @@ LARK_ENCRYPT_KEY=xxx  # 可选，用于签名验证
 LARK_CONFIG_ENCRYPTION_KEY=xxx  # 用于加密敏感配置
 
 # === 回调服务器配置 ===
+# ⚠️ IMPORTANT: 回调服务器是可选的！
+# 只有在需要接收卡片交互回调时才需要启用
+CALLBACK_SERVER_ENABLED=false  # 设置为 true 启用回调服务器
 CALLBACK_SERVER_HOST=0.0.0.0
 CALLBACK_SERVER_PORT=8080
 
@@ -90,6 +93,24 @@ TOKEN_DB_PATH=data/config.db
 
 ## 部署方式
 
+### ⚠️ 重要提示
+
+**回调服务器是可选的！** 只有在需要接收卡片交互回调（如用户授权）时才需要启动。
+
+如果你的应用不需要：
+- ❌ 卡片交互授权
+- ❌ 其他 HTTP 回调事件
+
+那么你**不需要启动回调服务器**！
+
+### 启用回调服务器
+
+在 `.env` 文件中设置：
+
+```bash
+CALLBACK_SERVER_ENABLED=true
+```
+
 ### 方式 1：直接运行
 
 ```bash
@@ -98,9 +119,14 @@ cd /home/ray/Documents/Files/LarkServiceCursor
 # 设置 PYTHONPATH
 export PYTHONPATH=/home/ray/Documents/Files/LarkServiceCursor/src:$PYTHONPATH
 
+# 设置启用回调服务器
+export CALLBACK_SERVER_ENABLED=true
+
 # 启动服务器
 python src/lark_service/server/run_server.py
 ```
+
+如果 `CALLBACK_SERVER_ENABLED` 未设置为 `true`，服务器会显示警告并退出。
 
 ### 方式 2：使用 systemd 服务
 

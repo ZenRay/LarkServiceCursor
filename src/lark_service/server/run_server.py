@@ -3,10 +3,21 @@
 
 This script initializes all required services and starts the HTTP callback
 server for handling Feishu callbacks.
+
+IMPORTANT: This server is OPTIONAL and only needed if you want to receive
+card interaction callbacks via HTTP. If you don't need card authorization
+or other HTTP callbacks, you don't need to run this server.
+
+To enable the callback server, set in .env:
+    CALLBACK_SERVER_ENABLED=true
+
+Usage:
+    python src/lark_service/server/run_server.py
 """
 
 import os
 import sys
+import time
 from pathlib import Path
 
 # Add src to path for imports (must be before other imports)
@@ -24,8 +35,7 @@ from lark_service.core.app_manager import ApplicationManager  # noqa: E402
 from lark_service.core.credential_pool import CredentialPool  # noqa: E402
 from lark_service.core.token_storage import TokenStorageService  # noqa: E402
 from lark_service.models.base import Base  # noqa: E402
-from lark_service.server.callback_server import CallbackServer  # noqa: E402
-from lark_service.server.handlers.card_auth import create_card_auth_handler  # noqa: E402
+from lark_service.server.manager import CallbackServerManager  # noqa: E402
 from lark_service.utils.logger import get_logger  # noqa: E402
 
 logger = get_logger()
@@ -126,41 +136,55 @@ def main() -> None:
         # Initialize services
         card_auth_handler, verification_token, encrypt_key = init_services()
 
-        # Get server configuration
-        host = os.getenv("CALLBACK_SERVER_HOST", "0.0.0.0")  # nosec B104
-        port = int(os.getenv("CALLBACK_SERVER_PORT", "8080"))
-
-        # Create callback server
-        server = CallbackServer(
-            host=host,
-            port=port,
+        # Create callback server manager
+        manager = CallbackServerManager(
             verification_token=verification_token,
             encrypt_key=encrypt_key,
         )
 
+        # Check if server is enabled
+        if not manager.is_enabled():
+            logger.warning("=" * 70)
+            logger.warning("  Callback Server is DISABLED")
+            logger.warning("=" * 70)
+            logger.warning("Set CALLBACK_SERVER_ENABLED=true in .env to enable")
+            logger.warning("=" * 70)
+            sys.exit(0)
+
         # Register callback handlers
         # 1. Card authorization handler
-        card_handler = create_card_auth_handler(card_auth_handler)
-        server.register_handler("card_action_trigger", card_handler)
+        manager.register_card_auth_handler(card_auth_handler)
 
         # TODO: Add more handlers here as needed
-        # server.register_handler("message_receive", message_handler)
-        # server.register_handler("contact_update", contact_handler)
+        # manager.register_handler("message_receive", message_handler)
+        # manager.register_handler("contact_update", contact_handler)
 
+        # Display startup information
+        status = manager.get_status()
         logger.info("=" * 70)
         logger.info("  Lark Callback Server Ready")
         logger.info("=" * 70)
-        logger.info(f"Server: http://{host}:{port}")
-        logger.info(f"Health: http://{host}:{port}/health")
+        logger.info(f"Server: http://{status['host']}:{status['port']}")
+        logger.info(f"Health: http://{status['host']}:{status['port']}/health")
+        logger.info(f"Handlers: {', '.join(status['handlers'])}")
         logger.info("=" * 70)
         logger.info("\n配置飞书开放平台回调地址:")
         logger.info("  → https://your-domain.com/callback")
         logger.info("\n本地测试可使用 ngrok 暴露端口:")
-        logger.info(f"  → ngrok http {port}")
+        logger.info(f"  → ngrok http {status['port']}")
         logger.info("=" * 70)
 
         # Start server
-        server.start()
+        manager.start()
+
+        # Keep main thread alive
+        logger.info("\nPress Ctrl+C to stop...")
+        try:
+            while manager.is_running():
+                time.sleep(1)
+        except KeyboardInterrupt:
+            logger.info("\nShutting down...")
+            manager.stop()
 
     except KeyboardInterrupt:
         logger.info("\nServer stopped by user")
