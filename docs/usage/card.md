@@ -150,31 +150,22 @@ response = messaging_client.send_card_message(
 ```python
 card = builder.build_form_card(
     title="问卷调查",
-    description="请填写您的反馈意见",
     fields=[
         {
-            "type": "input",
-            "name": "name",
             "label": "姓名",
-            "placeholder": "请输入您的姓名",
-            "required": True
+            "name": "name",
+            "type": "input",
+            "placeholder": "请输入您的姓名"
         },
         {
-            "type": "textarea",
-            "name": "feedback",
             "label": "反馈内容",
-            "placeholder": "请输入您的建议或意见",
-            "required": True
-        },
-        {
-            "type": "select",
-            "name": "rating",
-            "label": "满意度评分",
-            "options": ["非常满意", "满意", "一般", "不满意"],
-            "required": True
+            "name": "feedback",
+            "type": "textarea",
+            "placeholder": "请输入您的建议或意见"
         }
     ],
-    submit_action_id="submit_survey"
+    submit_action_id="submit_survey",
+    cancel_action_id="cancel_survey"
 )
 ```
 
