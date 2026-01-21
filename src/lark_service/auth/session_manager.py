@@ -64,14 +64,20 @@ class AuthSessionManager:
         ... )
     """
 
-    def __init__(self, db: Session) -> None:
+    def __init__(
+        self,
+        db: Session,
+        feishu_api_base_url: str = "https://open.feishu.cn",
+    ) -> None:
         """Initialize AuthSessionManager.
 
         Parameters
         ----------
             db: SQLAlchemy database session
+            feishu_api_base_url: Feishu API base URL (default: https://open.feishu.cn)
         """
         self.db = db
+        self.feishu_api_base_url = feishu_api_base_url
 
     def create_session(
         self,
@@ -513,7 +519,7 @@ class AuthSessionManager:
 
         # Call Feishu token refresh API
         # Note: This is a placeholder - actual API endpoint may vary
-        url = "https://open.feishu.cn/open-apis/authen/v1/refresh_access_token"
+        url = f"{self.feishu_api_base_url}/open-apis/authen/v1/refresh_access_token"
         headers = {"Content-Type": "application/json"}
         payload = {
             "grant_type": "refresh_token",
@@ -604,7 +610,7 @@ class AuthSessionManager:
         for session in sessions:
             try:
                 # Call Feishu user info API
-                url = f"https://open.feishu.cn/open-apis/contact/v3/users/{session.open_id}"
+                url = f"{self.feishu_api_base_url}/open-apis/contact/v3/users/{session.open_id}"
                 headers = {
                     "Authorization": f"Bearer {session.user_access_token}",
                     "Content-Type": "application/json",

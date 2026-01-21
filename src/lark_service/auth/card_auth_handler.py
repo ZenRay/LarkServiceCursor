@@ -62,6 +62,8 @@ class CardAuthHandler:
         messaging_client: Any,
         app_id: str,
         app_secret: str | None = None,
+        oauth_redirect_uri: str = "http://localhost:8000/callback",
+        feishu_api_base_url: str = "https://open.feishu.cn",
     ) -> None:
         """Initialize CardAuthHandler.
 
@@ -71,11 +73,15 @@ class CardAuthHandler:
             messaging_client: MessagingClient instance
             app_id: Feishu application ID
             app_secret: Feishu application secret (optional, for token exchange)
+            oauth_redirect_uri: OAuth redirect URI (default: http://localhost:8000/callback)
+            feishu_api_base_url: Feishu API base URL (default: https://open.feishu.cn)
         """
         self.session_manager = session_manager
         self.messaging_client = messaging_client
         self.app_id = app_id
         self.app_secret = app_secret
+        self.oauth_redirect_uri = oauth_redirect_uri
+        self.feishu_api_base_url = feishu_api_base_url
 
     async def send_auth_card(
         self,
@@ -218,7 +224,7 @@ class CardAuthHandler:
         #
         # 重要配置：
         # - 必须在飞书开放平台配置 HTTP 回调地址
-        # - 必须配置 redirect_uri: https://open.feishu.cn/
+        # - 必须配置 redirect_uri（通过环境变量 OAUTH_REDIRECT_URI 设置）
         # - 卡片交互事件通过 HTTP 回调，不是 WebSocket
         action_element: dict[str, Any] = {
             "tag": "action",
@@ -231,9 +237,9 @@ class CardAuthHandler:
                         "session_id": session_id,
                         "action": "authorize",
                     },
-                    "url": f"https://open.feishu.cn/open-apis/authen/v1/authorize?"
+                    "url": f"{self.feishu_api_base_url}/open-apis/authen/v1/authorize?"
                     f"app_id={self.app_id}&"
-                    f"redirect_uri=http://localhost:8000/callback&"
+                    f"redirect_uri={self.oauth_redirect_uri}&"
                     f"state={session_id}",
                 },
                 {
@@ -348,9 +354,9 @@ class CardAuthHandler:
 
                 # 构建授权 URL（需要在飞书开放平台配置 redirect_uri）
                 auth_url = (
-                    f"https://open.feishu.cn/open-apis/authen/v1/authorize?"
+                    f"{self.feishu_api_base_url}/open-apis/authen/v1/authorize?"
                     f"app_id={self.app_id}&"
-                    f"redirect_uri=http://localhost:8000/callback&"
+                    f"redirect_uri={self.oauth_redirect_uri}&"
                     f"state={session_id}"
                 )
 
@@ -528,10 +534,10 @@ class CardAuthHandler:
             AuthorizationCodeExpiredError: If authorization code expired
             TokenRefreshFailedError: If token exchange fails
         """
-        url = "https://open.feishu.cn/open-apis/authen/v1/oidc/access_token"
+        url = f"{self.feishu_api_base_url}/open-apis/authen/v1/oidc/access_token"
 
         # First, get app_access_token for authentication
-        app_token_url = "https://open.feishu.cn/open-apis/auth/v3/app_access_token/internal"  # nosec B105
+        app_token_url = f"{self.feishu_api_base_url}/open-apis/auth/v3/app_access_token/internal"  # nosec B105
         app_token_payload = {
             "app_id": self.app_id,
             "app_secret": self.app_secret,
@@ -600,7 +606,7 @@ class CardAuthHandler:
         ----------
             TokenRefreshFailedError: If user info fetch fails
         """
-        url = "https://open.feishu.cn/open-apis/authen/v1/user_info"
+        url = f"{self.feishu_api_base_url}/open-apis/authen/v1/user_info"
 
         headers = {
             "Authorization": f"Bearer {user_access_token}",
