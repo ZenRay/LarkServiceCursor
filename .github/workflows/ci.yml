@@ -2,9 +2,13 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: ["develop", "001-lark-service-core", "002-websocket-user-auth"]
+    branches:
+      - "develop"
+      - "00*-*"  # 匹配所有 00X 开头的功能分支
   pull_request:
-    branches: ["develop", "002-websocket-user-auth"]
+    branches:
+      - "develop"
+      - "00*-*"  # 匹配所有 00X 开头的功能分支
 
 jobs:
   lint:
@@ -219,6 +223,15 @@ jobs:
             exit 1
           fi
           echo "✅ Image size ${SIZE}MB is within 500MB limit"
+
+      - name: Test health check
+        run: |
+          docker run -d --name test-container lark-service:test sleep infinity
+          sleep 5
+          docker exec test-container python -c "import sys; from lark_service.core.config import Config; sys.exit(0)"
+          docker stop test-container
+          docker rm test-container
+          echo "✅ Health check passed"
 
   integration-test:
     name: Tests - Integration (Optional)

@@ -14,6 +14,7 @@ Lark Service 文档
    :maxdepth: 2
    :caption: 使用指南
 
+   usage/app-management
    usage/messaging
    usage/card
    usage/contact

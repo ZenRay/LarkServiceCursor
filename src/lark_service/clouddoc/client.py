@@ -15,6 +15,7 @@ from lark_oapi.api.docx.v1 import (
 )
 
 from lark_service.clouddoc.models import ContentBlock, Document, Permission
+from lark_service.core.base_service_client import BaseServiceClient
 from lark_service.core.credential_pool import CredentialPool
 from lark_service.core.exceptions import (
     APIError,
@@ -28,12 +29,14 @@ from lark_service.utils.logger import get_logger
 logger = get_logger()
 
 
-class DocClient:
+class DocClient(BaseServiceClient):
     """
     High-level client for Lark document operations.
 
     Provides convenient methods for creating and managing documents
     via Lark CloudDoc API, with automatic error handling and retry.
+
+    Inherits from BaseServiceClient to provide intelligent app_id management.
 
     Attributes
     ----------
@@ -44,17 +47,19 @@ class DocClient:
 
     Examples
     --------
+        >>> # Single-app scenario (auto-detection)
         >>> client = DocClient(credential_pool)
-        >>> doc = client.create_document(
-        ...     app_id="cli_xxx",
-        ...     title="My Document"
-        ... )
-        >>> print(doc.doc_id)
+        >>> doc = client.create_document(title="My Document")
+
+        >>> # Multi-app scenario (factory method)
+        >>> client = pool.create_clouddoc_client(app_id="cli_xxx")
+        >>> doc = client.create_document(title="My Document")
     """
 
     def __init__(
         self,
         credential_pool: CredentialPool,
+        app_id: str | None = None,
         retry_strategy: RetryStrategy | None = None,
     ) -> None:
         """
@@ -64,29 +69,31 @@ class DocClient:
         ----------
             credential_pool : CredentialPool
                 Credential pool for token management
+            app_id : str | None
+                Optional client-level default app_id
             retry_strategy : RetryStrategy | None
                 Retry strategy (default: creates new instance)
         """
-        self.credential_pool = credential_pool
+        super().__init__(credential_pool, app_id)
         self.retry_strategy = retry_strategy or RetryStrategy()
 
     def create_document(
         self,
-        app_id: str,
         title: str,
         folder_token: str | None = None,
+        app_id: str | None = None,
     ) -> Document:
         """
         Create a new document.
 
         Parameters
         ----------
-            app_id : str
-                Lark application ID
             title : str
                 Document title
             folder_token : str | None
                 Folder token (default: root folder)
+            app_id : str | None
+                Optional app_id (uses resolution priority if not provided)
 
         Returns
         -------
@@ -104,19 +111,19 @@ class DocClient:
 
         Examples
         --------
-            >>> doc = client.create_document(
-            ...     app_id="cli_xxx",
-            ...     title="My Document"
-            ... )
+            >>> doc = client.create_document(title="My Document")
             >>> print(doc.doc_id)
         """
         if not title or len(title) > 255:
             raise InvalidParameterError(f"Invalid title length: {len(title)} (max 255)")
 
+        # Resolve app_id
+        resolved_app_id = self._resolve_app_id(app_id)
+
         logger.info(f"Creating document: {title}")
 
         def _create() -> Document:
-            sdk_client = self.credential_pool._get_sdk_client(app_id)
+            sdk_client = self.credential_pool._get_sdk_client(resolved_app_id)
 
             request = CreateDocumentRequest.builder().build()
             request.body = CreateDocumentRequestBody.builder().title(title).build()
@@ -148,24 +155,24 @@ class DocClient:
 
     def append_content(
         self,
-        app_id: str,
         doc_id: str,
         blocks: list[ContentBlock],
         location: str = "end",
+        app_id: str | None = None,
     ) -> bool:
         """
         Append content blocks to document.
 
         Parameters
         ----------
-            app_id : str
-                Lark application ID
             doc_id : str
                 Document ID
             blocks : list[ContentBlock]
                 Content blocks to append (max 100)
             location : str
                 Append location (default: "end")
+            app_id : str | None
+                Optional app_id (uses resolution priority if not provided)
 
         Returns
         -------
@@ -186,11 +193,7 @@ class DocClient:
             >>> blocks = [
             ...     ContentBlock(block_type="paragraph", content="Hello, World!")
             ... ]
-            >>> client.append_content(
-            ...     app_id="cli_xxx",
-            ...     doc_id="doxcn123",
-            ...     blocks=blocks
-            ... )
+            >>> client.append_content(doc_id="doxcn123", blocks=blocks)
         """
         if not blocks:
             raise InvalidParameterError("Blocks cannot be empty")
@@ -198,11 +201,16 @@ class DocClient:
         if len(blocks) > 100:
             raise InvalidParameterError(f"Too many blocks: {len(blocks)} (max 100)")
 
+        # Resolve app_id
+        resolved_app_id = self._resolve_app_id(app_id)
+
         logger.info(f"Appending {len(blocks)} blocks to document {doc_id}")
 
         def _append() -> bool:
             # Get tenant access token
-            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")  # nosec B106
+            token = self.credential_pool.get_token(
+                resolved_app_id, token_type="tenant_access_token"
+            )  # nosec B106
 
             # Convert ContentBlock to Lark API format
             children: list[dict[str, Any]] = []
@@ -341,18 +349,18 @@ class DocClient:
 
     def get_document_content(
         self,
-        app_id: str,
         doc_id: str,
+        app_id: str | None = None,
     ) -> Document:
         """
         Get document content.
 
         Parameters
         ----------
-            app_id : str
-                Lark application ID
             doc_id : str
                 Document ID
+            app_id : str | None
+                Optional app_id (uses resolution priority if not provided)
 
         Returns
         -------
@@ -368,16 +376,16 @@ class DocClient:
 
         Examples
         --------
-            >>> doc = client.get_document_content(
-            ...     app_id="cli_xxx",
-            ...     doc_id="doxcn123"
-            ... )
+            >>> doc = client.get_document_content(doc_id="doxcn123")
             >>> print(len(doc.content_blocks))
         """
+        # Resolve app_id
+        resolved_app_id = self._resolve_app_id(app_id)
+
         logger.info(f"Getting document content: {doc_id}")
 
         def _get() -> Document:
-            sdk_client = self.credential_pool._get_sdk_client(app_id)
+            sdk_client = self.credential_pool._get_sdk_client(resolved_app_id)
 
             request = GetDocumentRequest.builder().document_id(doc_id).build()
 
@@ -435,18 +443,18 @@ class DocClient:
 
     def get_document(
         self,
-        app_id: str,
         doc_id: str,
+        app_id: str | None = None,
     ) -> Document:
         """
         Get document information (alias for get_document_content).
 
         Parameters
         ----------
-            app_id : str
-                Lark application ID
             doc_id : str
                 Document ID
+            app_id : str | None
+                Optional app_id (uses resolution priority if not provided)
 
         Returns
         -------
@@ -462,34 +470,31 @@ class DocClient:
 
         Examples
         --------
-            >>> doc = client.get_document(
-            ...     app_id="cli_xxx",
-            ...     doc_id="doxcn123"
-            ... )
+            >>> doc = client.get_document(doc_id="doxcn123")
             >>> print(doc.title)
         """
-        return self.get_document_content(app_id, doc_id)
+        return self.get_document_content(doc_id, app_id)
 
     def update_block(
         self,
-        app_id: str,
         doc_id: str,
         block_id: str,
         block: ContentBlock,
+        app_id: str | None = None,
     ) -> bool:
         """
         Update a content block in document.
 
         Parameters
         ----------
-            app_id : str
-                Lark application ID
             doc_id : str
                 Document ID
             block_id : str
                 Block ID to update
             block : ContentBlock
                 New block content
+            app_id : str | None
+                Optional app_id (uses resolution priority if not provided)
 
         Returns
         -------
@@ -511,18 +516,22 @@ class DocClient:
             ...     content="Updated content"
             ... )
             >>> client.update_block(
-            ...     app_id="cli_xxx",
             ...     doc_id="doxcn123",
             ...     block_id="blk123",
             ...     block=block
             ... )
         """
+        # Resolve app_id
+        resolved_app_id = self._resolve_app_id(app_id)
+
         logger.info(f"Updating block {block_id} in document {doc_id}")
 
         def _update() -> bool:
             import requests
 
-            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")  # nosec B106
+            token = self.credential_pool.get_token(
+                resolved_app_id, token_type="tenant_access_token"
+            )  # nosec B106
 
             url = f"https://open.feishu.cn/open-apis/docx/v1/documents/{doc_id}/blocks/{block_id}"
             headers = {
@@ -591,19 +600,17 @@ class DocClient:
 
     def grant_permission(
         self,
-        app_id: str,
         doc_id: str,
         member_type: str,
         member_id: str,
         permission_type: str,
+        app_id: str | None = None,
     ) -> Permission:
         """
         Grant permission to a document.
 
         Parameters
         ----------
-            app_id : str
-                Lark application ID
             doc_id : str
                 Document ID
             member_type : str
@@ -612,6 +619,8 @@ class DocClient:
                 Member ID
             permission_type : str
                 Permission type (read, write, comment, manage)
+            app_id : str | None
+                Optional app_id (uses resolution priority if not provided)
 
         Returns
         -------
@@ -630,7 +639,6 @@ class DocClient:
         Examples
         --------
             >>> perm = client.grant_permission(
-            ...     app_id="cli_xxx",
             ...     doc_id="doxcn123",
             ...     member_type="user",
             ...     member_id="ou_xxx",
@@ -646,6 +654,9 @@ class DocClient:
         if permission_type not in valid_permission_types:
             raise InvalidParameterError(f"Invalid permission_type: {permission_type}")
 
+        # Resolve app_id
+        resolved_app_id = self._resolve_app_id(app_id)
+
         logger.info(
             f"Granting {permission_type} permission to {member_type}:{member_id} for document {doc_id}"
         )
@@ -653,7 +664,9 @@ class DocClient:
         def _grant() -> Permission:
             import requests
 
-            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")  # nosec B106
+            token = self.credential_pool.get_token(
+                resolved_app_id, token_type="tenant_access_token"
+            )  # nosec B106
 
             url = f"https://open.feishu.cn/open-apis/drive/v1/permissions/{doc_id}/members"
             headers = {
@@ -730,21 +743,21 @@ class DocClient:
 
     def revoke_permission(
         self,
-        app_id: str,
         doc_id: str,
         permission_id: str,
+        app_id: str | None = None,
     ) -> bool:
         """
         Revoke a permission from document.
 
         Parameters
         ----------
-            app_id : str
-                Lark application ID
             doc_id : str
                 Document ID
             permission_id : str
                 Permission ID to revoke
+            app_id : str | None
+                Optional app_id (uses resolution priority if not provided)
 
         Returns
         -------
@@ -761,17 +774,21 @@ class DocClient:
         Examples
         --------
             >>> client.revoke_permission(
-            ...     app_id="cli_xxx",
             ...     doc_id="doxcn123",
             ...     permission_id="perm123"
             ... )
         """
+        # Resolve app_id
+        resolved_app_id = self._resolve_app_id(app_id)
+
         logger.info(f"Revoking permission {permission_id} from document {doc_id}")
 
         def _revoke() -> bool:
             import requests
 
-            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")  # nosec B106
+            token = self.credential_pool.get_token(
+                resolved_app_id, token_type="tenant_access_token"
+            )  # nosec B106
 
             url = f"https://open.feishu.cn/open-apis/drive/v1/permissions/{doc_id}/members/{permission_id}"
             headers = {
@@ -827,18 +844,18 @@ class DocClient:
 
     def list_permissions(
         self,
-        app_id: str,
         doc_id: str,
+        app_id: str | None = None,
     ) -> list[Permission]:
         """
         List all permissions of a document.
 
         Parameters
         ----------
-            app_id : str
-                Lark application ID
             doc_id : str
                 Document ID
+            app_id : str | None
+                Optional app_id (uses resolution priority if not provided)
 
         Returns
         -------
@@ -854,19 +871,21 @@ class DocClient:
 
         Examples
         --------
-            >>> perms = client.list_permissions(
-            ...     app_id="cli_xxx",
-            ...     doc_id="doxcn123"
-            ... )
+            >>> perms = client.list_permissions(doc_id="doxcn123")
             >>> for perm in perms:
             ...     print(f"{perm.member_type}: {perm.permission_type}")
         """
+        # Resolve app_id
+        resolved_app_id = self._resolve_app_id(app_id)
+
         logger.info(f"Listing permissions for document {doc_id}")
 
         def _list() -> list[Permission]:
             import requests
 
-            token = self.credential_pool.get_token(app_id, token_type="tenant_access_token")  # nosec B106
+            token = self.credential_pool.get_token(
+                resolved_app_id, token_type="tenant_access_token"
+            )  # nosec B106
 
             url = f"https://open.feishu.cn/open-apis/drive/v1/permissions/{doc_id}/members"
             headers = {

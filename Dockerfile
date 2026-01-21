@@ -48,7 +48,7 @@ FROM python:3.12-slim AS runtime
 
 # Metadata labels
 LABEL maintainer="Lark Service Team" \
-      version="0.1.0" \
+      version="0.3.0" \
       description="Lark Service - Enterprise-grade Feishu API Service"
 
 # Configure China mirror sources

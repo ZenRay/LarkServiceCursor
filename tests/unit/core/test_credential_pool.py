@@ -762,3 +762,126 @@ class TestEdgeCases:
             assert token2 == "token_for_app2"
             assert token3 == "token_for_app3"
             assert mock_refresh.call_count == 3
+
+
+class TestCredentialPoolAppManagement:
+    """Test suite for CredentialPool app_id management methods (T002)."""
+
+    def test_set_default_app_id_success(
+        self,
+        credential_pool: CredentialPool,
+        mock_app_manager: Mock,
+    ) -> None:
+        """Test setting pool-level default app_id."""
+        # Setup mock application
+        mock_app = Mock(spec=Application)
+        mock_app.is_active.return_value = True
+        mock_app_manager.get_application.return_value = mock_app
+
+        # Set default app_id
+        credential_pool.set_default_app_id("cli_abc123test12345678")
+
+        # Verify
+        assert credential_pool._default_app_id == "cli_abc123test12345678"
+        mock_app_manager.get_application.assert_called_once_with("cli_abc123test12345678")
+
+    def test_set_default_app_id_app_not_found(
+        self,
+        credential_pool: CredentialPool,
+        mock_app_manager: Mock,
+    ) -> None:
+        """Test setting default app_id with non-existent app."""
+        mock_app_manager.get_application.return_value = None
+
+        with pytest.raises(AuthenticationError) as exc_info:
+            credential_pool.set_default_app_id("cli_notfoundtest123456")
+
+        assert "Application not found" in str(exc_info.value)
+
+    def test_set_default_app_id_app_inactive(
+        self,
+        credential_pool: CredentialPool,
+        mock_app_manager: Mock,
+    ) -> None:
+        """Test setting default app_id with inactive app."""
+        mock_app = Mock(spec=Application)
+        mock_app.is_active.return_value = False
+        mock_app.status = "inactive"
+        mock_app_manager.get_application.return_value = mock_app
+
+        with pytest.raises(AuthenticationError) as exc_info:
+            credential_pool.set_default_app_id("cli_inactivetest123456")
+
+        assert "not active" in str(exc_info.value)
+
+    def test_get_default_app_id_explicitly_set(
+        self,
+        credential_pool: CredentialPool,
+        mock_app_manager: Mock,
+    ) -> None:
+        """Test getting explicitly set default app_id."""
+        # Setup mock
+        mock_app = Mock(spec=Application)
+        mock_app.is_active.return_value = True
+        mock_app_manager.get_application.return_value = mock_app
+
+        # Set and get
+        credential_pool.set_default_app_id("cli_explicit12345678901")
+        default = credential_pool.get_default_app_id()
+
+        assert default == "cli_explicit12345678901"
+
+    def test_get_default_app_id_from_manager(
+        self,
+        credential_pool: CredentialPool,
+        mock_app_manager: Mock,
+    ) -> None:
+        """Test getting default app_id from ApplicationManager."""
+        mock_app_manager.get_default_app_id.return_value = "cli_autoselecttest12345"
+
+        default = credential_pool.get_default_app_id()
+
+        assert default == "cli_autoselecttest12345"
+        mock_app_manager.get_default_app_id.assert_called_once()
+
+    def test_get_default_app_id_none(
+        self,
+        credential_pool: CredentialPool,
+        mock_app_manager: Mock,
+    ) -> None:
+        """Test getting default app_id when none available."""
+        mock_app_manager.get_default_app_id.return_value = None
+
+        default = credential_pool.get_default_app_id()
+
+        assert default is None
+
+    def test_list_app_ids(
+        self,
+        credential_pool: CredentialPool,
+        mock_app_manager: Mock,
+    ) -> None:
+        """Test listing all active application IDs."""
+        # Setup mock applications
+        mock_app1 = Mock(spec=Application)
+        mock_app1.app_id = "cli_app1test123456789012"
+        mock_app1.is_active.return_value = True
+
+        mock_app2 = Mock(spec=Application)
+        mock_app2.app_id = "cli_app2test123456789012"
+        mock_app2.is_active.return_value = True
+
+        mock_app3 = Mock(spec=Application)
+        mock_app3.app_id = "cli_app3test123456789012"
+        mock_app3.is_active.return_value = False  # Inactive
+
+        mock_app_manager.list_applications.return_value = [mock_app1, mock_app2, mock_app3]
+
+        # Get list
+        app_ids = credential_pool.list_app_ids()
+
+        # Verify only active apps returned
+        assert len(app_ids) == 2
+        assert "cli_app1test123456789012" in app_ids
+        assert "cli_app2test123456789012" in app_ids
+        assert "cli_app3test123456789012" not in app_ids

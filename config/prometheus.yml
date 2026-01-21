@@ -1,0 +1,66 @@
+# Prometheus Configuration for Lark Service
+# Official Documentation: https://prometheus.io/docs/prometheus/latest/configuration/configuration/
+
+global:
+  scrape_interval: 15s       # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 15s   # Evaluate rules every 15 seconds. The default is every 1 minute.
+  scrape_timeout: 10s        # Scrape timeout (must be less than scrape_interval)
+
+  # Attach these labels to any time series or alerts when communicating with
+  # external systems (federation, remote storage, Alertmanager).
+  external_labels:
+    monitor: 'lark-service-monitor'
+    environment: 'production'
+
+# Alertmanager configuration (optional)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets:
+#           - alertmanager:9093
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+  - "/etc/prometheus/prometheus-alerts.yaml"
+
+# A scrape configuration containing exactly one endpoint to scrape:
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  - job_name: 'lark-service'
+
+    # metrics_path defaults to '/metrics'
+    # scheme defaults to 'http'.
+
+    static_configs:
+      - targets: ['lark-service:9090']
+        labels:
+          service: 'lark-service'
+          instance: 'main'
+
+  # Scrape Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # PostgreSQL exporter (optional - requires postgres_exporter sidecar)
+  # - job_name: 'postgres'
+  #   static_configs:
+  #     - targets: ['postgres-exporter:9187']
+  #       labels:
+  #         service: 'postgres'
+
+  # RabbitMQ exporter (RabbitMQ management plugin provides metrics)
+  - job_name: 'rabbitmq'
+    static_configs:
+      - targets: ['rabbitmq:15692']
+        labels:
+          service: 'rabbitmq'
+    metrics_path: '/metrics'
+
+# Storage configuration
+# storage:
+#   tsdb:
+#     path: /prometheus
+#     retention:
+#       time: 30d
+#       size: 10GB

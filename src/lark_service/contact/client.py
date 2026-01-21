@@ -26,6 +26,7 @@ from lark_service.contact.models import (
     DepartmentUser,
     User,
 )
+from lark_service.core.base_service_client import BaseServiceClient
 from lark_service.core.credential_pool import CredentialPool
 from lark_service.core.exceptions import (
     APIError,
@@ -62,7 +63,7 @@ def _convert_lark_user_status(lark_status: object | None) -> int | None:
     return 1
 
 
-class ContactClient:
+class ContactClient(BaseServiceClient):
     """
     High-level client for Lark Contact operations.
 
@@ -102,6 +103,7 @@ class ContactClient:
     def __init__(
         self,
         credential_pool: CredentialPool,
+        app_id: str | None = None,
         retry_strategy: RetryStrategy | None = None,
         cache_manager: ContactCacheManager | None = None,
         enable_cache: bool = False,
@@ -114,6 +116,8 @@ class ContactClient:
         ----------
             credential_pool : CredentialPool
                 Credential pool for token management
+            app_id : str | None
+                Optional default app_id for this client (layer 3 in priority)
             retry_strategy : RetryStrategy | None
                 Retry strategy (default: creates new instance)
             cache_manager : ContactCacheManager | None
@@ -129,7 +133,9 @@ class ContactClient:
             - Cache is app_id isolated (different apps have different open_ids)
             - Cache uses union_id as primary key (consistent across apps)
         """
-        self.credential_pool = credential_pool
+        # Initialize base class
+        super().__init__(credential_pool, app_id)
+
         self.retry_strategy = retry_strategy or RetryStrategy()
         self.cache_manager = cache_manager
         self.enable_cache = enable_cache and cache_manager is not None
@@ -143,8 +149,8 @@ class ContactClient:
 
     def get_user_by_email(
         self,
-        app_id: str,
         email: str,
+        app_id: str | None = None,
     ) -> User:
         """
         Get user information by email.
@@ -154,10 +160,10 @@ class ContactClient:
 
         Parameters
         ----------
-            app_id : str
-                Lark application ID
             email : str
                 User email address
+            app_id : str | None
+                Optional app_id (uses resolution priority if not provided)
 
         Returns
         -------
@@ -174,7 +180,6 @@ class ContactClient:
         Examples
         --------
             >>> user = client.get_user_by_email(
-            ...     app_id="cli_xxx",
             ...     email="user@example.com"
             ... )
             >>> print(f"{user.name} ({user.open_id})")
@@ -182,9 +187,12 @@ class ContactClient:
         if not email or "@" not in email:
             raise InvalidParameterError(f"Invalid email: {email}")
 
+        # Resolve app_id
+        resolved_app_id = self._resolve_app_id(app_id)
+
         # Check cache first if enabled
         if self.enable_cache and self.cache_manager:
-            cached_user = self.cache_manager.get_user_by_email(app_id, email)
+            cached_user = self.cache_manager.get_user_by_email(resolved_app_id, email)
             if cached_user:
                 logger.debug(f"Cache hit for user email: {email}")
                 return cached_user
@@ -194,7 +202,7 @@ class ContactClient:
 
         def _get() -> User:
             # Get SDK client (handles token management internally)
-            client = self.credential_pool._get_sdk_client(app_id)
+            client = self.credential_pool._get_sdk_client(resolved_app_id)
 
             # Step 1: Get user_id from email using BatchGetId
             batch_request = (
@@ -277,25 +285,25 @@ class ContactClient:
 
         # Store in cache if enabled
         if self.enable_cache and self.cache_manager:
-            self.cache_manager.cache_user(app_id, user)
+            self.cache_manager.cache_user(resolved_app_id, user)
             logger.debug(f"Cached user: {user.union_id}")
 
         return user
 
     def get_user_by_mobile(
         self,
-        app_id: str,
         mobile: str,
+        app_id: str | None = None,
     ) -> User:
         """
         Get user information by mobile number.
 
         Parameters
         ----------
-            app_id : str
-                Lark application ID
             mobile : str
                 User mobile number (with country code, e.g., +86-13800138000)
+            app_id : str | None
+                Optional app_id (uses resolution priority if not provided)
 
         Returns
         -------
@@ -312,7 +320,6 @@ class ContactClient:
         Examples
         --------
             >>> user = client.get_user_by_mobile(
-            ...     app_id="cli_xxx",
             ...     mobile="+86-13800138000"
             ... )
             >>> print(f"{user.name} ({user.open_id})")
@@ -320,9 +327,12 @@ class ContactClient:
         if not mobile:
             raise InvalidParameterError("Mobile cannot be empty")
 
+        # Resolve app_id
+        resolved_app_id = self._resolve_app_id(app_id)
+
         # Check cache first if enabled
         if self.enable_cache and self.cache_manager:
-            cached_user = self.cache_manager.get_user_by_mobile(app_id, mobile)
+            cached_user = self.cache_manager.get_user_by_mobile(resolved_app_id, mobile)
             if cached_user:
                 logger.debug(f"Cache hit for user mobile: {mobile}")
                 return cached_user
@@ -332,7 +342,7 @@ class ContactClient:
 
         def _get() -> User:
             # Get SDK client (handles token management internally)
-            client = self.credential_pool._get_sdk_client(app_id)
+            client = self.credential_pool._get_sdk_client(resolved_app_id)
 
             # Step 1: Get user_id from mobile using BatchGetId
             batch_request = (
@@ -415,25 +425,25 @@ class ContactClient:
 
         # Store in cache if enabled
         if self.enable_cache and self.cache_manager:
-            self.cache_manager.cache_user(app_id, user)
+            self.cache_manager.cache_user(resolved_app_id, user)
             logger.debug(f"Cached user: {user.union_id}")
 
         return user
 
     def get_user_by_user_id(
         self,
-        app_id: str,
         user_id: str,
+        app_id: str | None = None,
     ) -> User:
         """
         Get user information by user_id.
 
         Parameters
         ----------
-            app_id : str
-                Lark application ID
             user_id : str
                 User ID (tenant-scoped)
+            app_id : str | None
+                Optional app_id (uses resolution priority if not provided)
 
         Returns
         -------
@@ -450,7 +460,6 @@ class ContactClient:
         Examples
         --------
             >>> user = client.get_user_by_user_id(
-            ...     app_id="cli_xxx",
             ...     user_id="4d7a3c6g"
             ... )
             >>> print(f"{user.name} ({user.open_id})")
@@ -458,9 +467,12 @@ class ContactClient:
         if not user_id:
             raise InvalidParameterError("User ID cannot be empty")
 
+        # Resolve app_id
+        resolved_app_id = self._resolve_app_id(app_id)
+
         # Check cache first if enabled
         if self.enable_cache and self.cache_manager:
-            cached_user = self.cache_manager.get_user_by_user_id(app_id, user_id)
+            cached_user = self.cache_manager.get_user_by_user_id(resolved_app_id, user_id)
             if cached_user:
                 logger.debug(f"Cache hit for user_id: {user_id}")
                 return cached_user
@@ -470,7 +482,7 @@ class ContactClient:
 
         def _get() -> User:
             # Get SDK client (handles token management internally)
-            client = self.credential_pool._get_sdk_client(app_id)
+            client = self.credential_pool._get_sdk_client(resolved_app_id)
 
             # Build request - use GetUser API with user_id
             request = GetUserRequest.builder().user_id_type("user_id").user_id(user_id).build()
@@ -521,25 +533,25 @@ class ContactClient:
 
         # Store in cache if enabled
         if self.enable_cache and self.cache_manager:
-            self.cache_manager.cache_user(app_id, user)
+            self.cache_manager.cache_user(resolved_app_id, user)
             logger.debug(f"Cached user: {user.union_id}")
 
         return user
 
     def batch_get_users(
         self,
-        app_id: str,
         queries: list[BatchUserQuery],
+        app_id: str | None = None,
     ) -> BatchUserResponse:
         """
         Batch get users by email, mobile, or user_id.
 
         Parameters
         ----------
-            app_id : str
-                Lark application ID
             queries : list[BatchUserQuery]
                 List of query conditions (max 50)
+            app_id : str | None
+                Optional app_id (uses resolution priority if not provided)
 
         Returns
         -------
@@ -559,7 +571,6 @@ class ContactClient:
             ...     BatchUserQuery(user_id="4d7a3c6g")
             ... ]
             >>> response = client.batch_get_users(
-            ...     app_id="cli_xxx",
             ...     queries=queries
             ... )
             >>> print(f"Found {response.total} users")
@@ -571,6 +582,9 @@ class ContactClient:
 
         if len(queries) > 50:
             raise InvalidParameterError(f"Too many queries: {len(queries)} (max 50)")
+
+        # Resolve app_id
+        resolved_app_id = self._resolve_app_id(app_id)
 
         logger.info(f"Batch getting {len(queries)} users")
 
@@ -586,7 +600,7 @@ class ContactClient:
 
                 if query.emails:
                     for email in query.emails:
-                        cached_user = self.cache_manager.get_user_by_email(app_id, email)
+                        cached_user = self.cache_manager.get_user_by_email(resolved_app_id, email)
                         if cached_user:
                             found_users.append(cached_user)
                             query_found = True
@@ -596,7 +610,7 @@ class ContactClient:
 
                 if query.mobiles:
                     for mobile in query.mobiles:
-                        cached_user = self.cache_manager.get_user_by_mobile(app_id, mobile)
+                        cached_user = self.cache_manager.get_user_by_mobile(resolved_app_id, mobile)
                         if cached_user:
                             found_users.append(cached_user)
                             query_found = True
@@ -606,7 +620,9 @@ class ContactClient:
 
                 if query.user_ids:
                     for user_id in query.user_ids:
-                        cached_user = self.cache_manager.get_user_by_user_id(app_id, user_id)
+                        cached_user = self.cache_manager.get_user_by_user_id(
+                            resolved_app_id, user_id
+                        )
                         if cached_user:
                             found_users.append(cached_user)
                             query_found = True
@@ -634,7 +650,7 @@ class ContactClient:
 
         def _batch_get() -> BatchUserResponse:
             # Get SDK client (handles token management internally)
-            client = self.credential_pool._get_sdk_client(app_id)
+            client = self.credential_pool._get_sdk_client(resolved_app_id)
 
             # Collect all identifiers from remaining queries
             all_emails: list[str] = []
@@ -808,7 +824,7 @@ class ContactClient:
         # Store API results in cache if enabled
         if self.enable_cache and self.cache_manager and api_response.users:
             for user in api_response.users:
-                self.cache_manager.cache_user(app_id, user)
+                self.cache_manager.cache_user(resolved_app_id, user)
                 logger.debug(f"Cached user from batch: {user.union_id}")
 
         # Combine cached and API results
@@ -827,18 +843,18 @@ class ContactClient:
 
     def get_department(
         self,
-        app_id: str,
         department_id: str,
+        app_id: str | None = None,
     ) -> Department:
         """
         Get department information.
 
         Parameters
         ----------
-            app_id : str
-                Lark application ID
             department_id : str
                 Department ID (open_department_id)
+            app_id : str | None
+                Optional app_id (uses resolution priority if not provided)
 
         Returns
         -------
@@ -855,7 +871,6 @@ class ContactClient:
         Examples
         --------
             >>> dept = client.get_department(
-            ...     app_id="cli_xxx",
             ...     department_id="od-xxx"
             ... )
             >>> print(f"{dept.name} (members: {dept.member_count})")
@@ -863,11 +878,14 @@ class ContactClient:
         if not department_id:
             raise InvalidParameterError("Department ID cannot be empty")
 
+        # Resolve app_id
+        resolved_app_id = self._resolve_app_id(app_id)
+
         logger.info(f"Getting department: {department_id}")
 
         def _get() -> Department:
             # Get SDK client (handles token management internally)
-            client = self.credential_pool._get_sdk_client(app_id)
+            client = self.credential_pool._get_sdk_client(resolved_app_id)
 
             # Build request
             request = (
@@ -928,24 +946,24 @@ class ContactClient:
 
     def get_department_members(
         self,
-        app_id: str,
         department_id: str,
         page_size: int = 50,
         page_token: str | None = None,
+        app_id: str | None = None,
     ) -> tuple[list[DepartmentUser], str | None]:
         """
         Get department members with pagination.
 
         Parameters
         ----------
-            app_id : str
-                Lark application ID
             department_id : str
                 Department ID (open_department_id)
             page_size : int
                 Page size (default: 50, max: 100)
             page_token : str | None
                 Page token for pagination
+            app_id : str | None
+                Optional app_id (uses resolution priority if not provided)
 
         Returns
         -------
@@ -962,7 +980,6 @@ class ContactClient:
         Examples
         --------
             >>> members, next_token = client.get_department_members(
-            ...     app_id="cli_xxx",
             ...     department_id="od-xxx",
             ...     page_size=20
             ... )
@@ -975,11 +992,14 @@ class ContactClient:
         if page_size < 1 or page_size > 100:
             raise InvalidParameterError(f"Invalid page_size: {page_size} (1-100)")
 
+        # Resolve app_id
+        resolved_app_id = self._resolve_app_id(app_id)
+
         logger.info(f"Getting members of department {department_id}, page_size={page_size}")
 
         def _get_members() -> tuple[list[DepartmentUser], str | None]:
             # Get SDK client (handles token management internally)
-            client = self.credential_pool._get_sdk_client(app_id)
+            client = self.credential_pool._get_sdk_client(resolved_app_id)
 
             # Build request
             request_builder = (
@@ -1048,18 +1068,18 @@ class ContactClient:
 
     def get_chat_group(
         self,
-        app_id: str,
         chat_id: str,
+        app_id: str | None = None,
     ) -> ChatGroup:
         """
         Get chat group information.
 
         Parameters
         ----------
-            app_id : str
-                Lark application ID
             chat_id : str
                 Chat ID
+            app_id : str | None
+                Optional app_id (uses resolution priority if not provided)
 
         Returns
         -------
@@ -1076,7 +1096,6 @@ class ContactClient:
         Examples
         --------
             >>> group = client.get_chat_group(
-            ...     app_id="cli_xxx",
             ...     chat_id="oc_xxx"
             ... )
             >>> print(f"{group.name} (members: {group.member_count})")
@@ -1084,11 +1103,14 @@ class ContactClient:
         if not chat_id:
             raise InvalidParameterError("Chat ID cannot be empty")
 
+        # Resolve app_id
+        resolved_app_id = self._resolve_app_id(app_id)
+
         logger.info(f"Getting chat group: {chat_id}")
 
         def _get() -> ChatGroup:
             # Get SDK client (handles token management internally)
-            client = self.credential_pool._get_sdk_client(app_id)
+            client = self.credential_pool._get_sdk_client(resolved_app_id)
 
             # Build request
             request = GetChatRequest.builder().chat_id(chat_id).build()
@@ -1143,24 +1165,24 @@ class ContactClient:
 
     def get_chat_members(
         self,
-        app_id: str,
         chat_id: str,
         page_size: int = 50,
         page_token: str | None = None,
+        app_id: str | None = None,
     ) -> tuple[list[ChatMember], str | None]:
         """
         Get chat group members with pagination.
 
         Parameters
         ----------
-            app_id : str
-                Lark application ID
             chat_id : str
                 Chat ID
             page_size : int
                 Page size (default: 50, max: 100)
             page_token : str | None
                 Page token for pagination
+            app_id : str | None
+                Optional app_id (uses resolution priority if not provided)
 
         Returns
         -------
@@ -1177,7 +1199,6 @@ class ContactClient:
         Examples
         --------
             >>> members, next_token = client.get_chat_members(
-            ...     app_id="cli_xxx",
             ...     chat_id="oc_xxx",
             ...     page_size=20
             ... )
@@ -1190,11 +1211,14 @@ class ContactClient:
         if page_size < 1 or page_size > 100:
             raise InvalidParameterError(f"Invalid page_size: {page_size} (1-100)")
 
+        # Resolve app_id
+        resolved_app_id = self._resolve_app_id(app_id)
+
         logger.info(f"Getting members of chat {chat_id}, page_size={page_size}")
 
         def _get_members() -> tuple[list[ChatMember], str | None]:
             # Get SDK client (handles token management internally)
-            client = self.credential_pool._get_sdk_client(app_id)
+            client = self.credential_pool._get_sdk_client(resolved_app_id)
 
             # Build request
             request_builder = (
