@@ -4,13 +4,28 @@
 
 ## 🚀 一键测试（3 步）
 
-### 第 1 步：启动 ngrok（终端 1）
+### 第 1 步：启动内网穿透工具（终端 1）
 
+**选项 A：使用 ngrok**
 ```bash
 ngrok http 8000
 ```
 
-**记下显示的公网 URL**，例如：`https://abc123.ngrok.io`
+**选项 B：使用 localtunnel（无需注册）**
+```bash
+npm install -g localtunnel
+lt --port 8000
+```
+
+**选项 C：使用 Cloudflare Tunnel（免费）**
+```bash
+cloudflared tunnel --url http://localhost:8000
+```
+
+**记下显示的公网 URL**，例如：
+- ngrok: `https://abc123.ngrok.io`
+- localtunnel: `https://funny-cat-12.loca.lt`
+- cloudflare: `https://random-name.trycloudflare.com`
 
 ### 第 2 步：配置飞书（浏览器）
 
@@ -84,6 +99,29 @@ which ngrok  # 应该显示 ngrok 路径
 ---
 
 ## ❓ 常见问题
+
+### Q: 没有 ngrok 怎么办？
+
+**A:** 使用其他免费工具：
+
+**Localtunnel（最简单，无需注册）：**
+```bash
+npm install -g localtunnel
+lt --port 8000
+```
+
+**Cloudflare Tunnel（稳定）：**
+```bash
+# 安装
+wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
+chmod +x cloudflared-linux-amd64
+sudo mv cloudflared-linux-amd64 /usr/local/bin/cloudflared
+
+# 使用
+cloudflared tunnel --url http://localhost:8000
+```
+
+详见：[无 ngrok 测试指南](./docs/local-testing-without-ngrok.md)
 
 ### Q: ngrok 显示 "ERR_NGROK_108"
 
