@@ -49,10 +49,11 @@ lark-service-cli app add \
 ## 步骤 5: 发送第一条消息
 
 ```python
-from lark_service.core import Config
-from lark_service.core.storage import TokenStorageService, ApplicationManager
-from lark_service.core import CredentialPool
-from lark_service.messaging import MessagingClient
+from lark_service.core.config import Config
+from lark_service.core.storage.sqlite_storage import ApplicationManager
+from lark_service.core.storage.token_storage import TokenStorageService
+from lark_service.core.credential_pool import CredentialPool
+from lark_service.messaging.client import MessagingClient
 
 # 1. 加载配置
 config = Config.load_from_env()
@@ -62,7 +63,7 @@ app_manager = ApplicationManager(
     db_path=config.config_db_path,
     encryption_key=config.config_encryption_key
 )
-token_storage = TokenStorageService(config.get_postgres_url())
+token_storage = TokenStorageService(db_path=config.config_db_path)
 credential_pool = CredentialPool(
     config=config,
     app_manager=app_manager,
@@ -70,7 +71,7 @@ credential_pool = CredentialPool(
 )
 
 # 3. 创建消息客户端
-messaging_client = MessagingClient(credential_pool=credential_pool)
+messaging_client = MessagingClient(pool=credential_pool)
 
 # 4. 发送文本消息
 response = messaging_client.send_text_message(
@@ -85,7 +86,7 @@ print(f"✅ 消息发送成功！message_id: {response['message_id']}")
 ## 步骤 6: 发送交互式卡片
 
 ```python
-from lark_service.cardkit import CardBuilder
+from lark_service.cardkit.builder import CardBuilder
 
 # 创建卡片
 card = CardBuilder() \
@@ -121,9 +122,9 @@ print(f"✅ 卡片发送成功！message_id: {response['message_id']}")
 ### Q: 如何获取用户的 open_id？
 
 ```python
-from lark_service.contact import ContactClient
+from lark_service.contact.client import ContactClient
 
-contact_client = ContactClient(credential_pool=credential_pool)
+contact_client = ContactClient(pool=credential_pool)
 
 # 通过邮箱查询
 user = contact_client.get_user_by_email(
