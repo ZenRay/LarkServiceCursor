@@ -70,7 +70,7 @@ def credential_pool(test_config, tmp_path_factory):
         postgres_host=os.getenv("POSTGRES_HOST", "localhost"),
         postgres_port=int(os.getenv("POSTGRES_PORT", "5432")),
         postgres_db=os.getenv("POSTGRES_DB", "lark_service"),
-        postgres_user=os.getenv("POSTGRES_USER", "lark"),
+        postgres_user=os.getenv("POSTGRES_USER", "lark_user"),
         postgres_password=os.getenv("POSTGRES_PASSWORD", "lark_password_123"),
         rabbitmq_host=os.getenv("RABBITMQ_HOST", "localhost"),
         rabbitmq_port=int(os.getenv("RABBITMQ_PORT", "5672")),
@@ -339,6 +339,7 @@ class TestBitableQueryOperations:
         if not text_field:
             pytest.skip("'文本' field not found in test table")
 
+        assert text_field is not None  # For mypy
         field_name = text_field["field_name"]
         print(f"   Using field: {field_name} ({text_field['field_id']})")
 
@@ -364,9 +365,11 @@ class TestBitableQueryOperations:
         # Verify results
         assert isinstance(records, list)
         print(f"✅ Retrieved {len(records)} filtered records")
+        assert text_field is not None  # For mypy
         print(f"   Filter: {text_field['field_name']} = 'Active'")
 
         if records:
+            assert text_field is not None  # For mypy
             print(f"   First record: {records[0].fields.get(text_field['field_name'])}")
 
     def test_query_records_pagination(self, bitable_client, test_config):

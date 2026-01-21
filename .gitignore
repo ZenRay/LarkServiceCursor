@@ -74,4 +74,27 @@ Thumbs.db
 # Pre-commit
 .pre-commit-config.yaml.swp
 test.py
+test_simple.py
+test_websocket_auth.py
+test_auth_flow.py
+start_callback_server.py
+websocket_config_helper.py
+quick_test.py
+RETEST_STEPS.md
+SIMPLE_TEST.md
+TESTING_GUIDE.md
+debug_contact.py
+production.env
+coverage.xml
+htmlcov/
+archive/temp-reports/coverage.json
+
+# Archived temporary files
+archive/temp-reports/PROJECT_SUMMARY.md
+archive/temp-guides/
+
+# Sphinx documentation
+docs/_build/
+docs/api/*.rst
+!docs/api/.gitkeep
 production.env

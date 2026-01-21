@@ -342,12 +342,16 @@ class LarkServiceMetrics:
         Returns:
             Metrics data in Prometheus exposition format
         """
-        return generate_latest(self.registry)  # type: ignore[no-any-return]
+        result = generate_latest(self.registry)
+        assert isinstance(result, bytes)
+        return result
 
     @property
     def content_type(self) -> str:
         """Get content type for metrics response."""
-        return CONTENT_TYPE_LATEST  # type: ignore[no-any-return]
+        result = CONTENT_TYPE_LATEST
+        assert isinstance(result, str)
+        return result
 
 
 # Global metrics instance

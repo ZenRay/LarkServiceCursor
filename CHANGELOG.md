@@ -7,6 +7,131 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 🚀 Feature: WebSocket User Authorization - Phase 9 (2026-01-20)
+
+#### Added - Monitoring and Configuration
+- **Comprehensive Prometheus Metrics** (`src/lark_service/monitoring/websocket_metrics.py`)
+  - Auth session metrics: `auth_session_total`, `auth_session_active`, `auth_session_expired_total`
+  - Auth success/failure metrics: `auth_success_total`, `auth_failure_total` (with reason labels)
+  - Auth performance: `auth_duration_seconds` histogram (p50, p95, p99)
+  - Token metrics: `token_refresh_total`, `token_active_count`
+  - Integrated into `AuthSessionManager` and `CardAuthHandler`
+
+- **Enhanced Structured Logging** (`src/lark_service/utils/logger.py`)
+  - Added `session_id` support to `ContextFilter`
+  - Updated console and JSON log formats with session_id field
+  - New `sanitize_log_data()` function for masking sensitive data
+  - Auto-detects and masks: access_token, refresh_token, app_secret, authorization_code, password
+  - Preserves token prefixes (e.g., "u-abc***") for debugging
+
+- **Grafana Dashboard** (`docs/monitoring/grafana-dashboard.json`)
+  - 8 monitoring panels: connection status, reconnect rate, auth sessions, success rate
+  - Auth failure analysis by reason, duration p95, token refresh rate
+  - Ready-to-import JSON for Grafana 9.5+
+
+- **Prometheus Alert Rules** (`docs/monitoring/alert-rules.yaml`)
+  - 4 alert groups: WebSocket, Authentication, Token, System
+  - 10 production-ready alerts with thresholds:
+    - WebSocket connection down (>5min), high reconnect rate (>0.1/sec)
+    - Auth success rate low (<95%), failure rate high (>0.5/sec), duration high (p95 >15s)
+    - Token refresh failures (>10%), no active tokens
+    - Session cleanup issues, table growth monitoring
+
+- **Environment Variables Documentation** (`.env.example`)
+  - WebSocket configuration: max retries, heartbeat interval, fallback behavior
+  - Auth configuration: card description, template ID, token refresh threshold, session expiry, rate limiting
+  - User info sync: enable/disable, cron schedule
+  - Monitoring: Prometheus port, JSON log format
+
+#### Changed
+- **AuthSessionManager** now tracks metrics for all session lifecycle operations
+- **CardAuthHandler** records failure reasons for auth failure metrics
+
+### 🚀 Feature: WebSocket User Authorization - Phase 3-8 (2026-01-20)
+
+#### Added - Phase 3 WebSocket Client
+- **WebSocket Client Implementation** (`src/lark_service/events/websocket_client.py`)
+  - Connection lifecycle: `connect()`, `start()`, `disconnect()`
+  - Exponential backoff reconnect (1s → 2s → 4s → 8s)
+  - Heartbeat tracking and connection state updates
+  - Event handler registration (P2CardActionTrigger)
+  - Structured logging for connection state changes
+
+- **WebSocket Metrics** (`src/lark_service/monitoring/websocket_metrics.py`)
+  - `lark_service_websocket_connection_status`
+  - `lark_service_websocket_reconnect_total`
+
+- **Tests**
+  - Unit tests for WebSocket client (`tests/unit/events/test_websocket_client.py`)
+  - Integration lifecycle test (`tests/integration/test_websocket_lifecycle.py`)
+
+#### Fixed - Testing Infrastructure
+- **Circular import in utils package**
+  - Converted validators to lazy imports in `src/lark_service/utils/__init__.py`
+  - Prevented import cycle during WebSocket test collection
+
+### 🚀 Feature: WebSocket User Authorization (2026-01-19)
+
+#### Added - Phase 2 Foundational Infrastructure
+- **WebSocket Authentication Configuration** (`src/lark_service/core/config.py`)
+  - 10 new configuration parameters for WebSocket user authorization
+  - All parameters have backward-compatible default values
+  - Configurable: reconnect retries, heartbeat interval, fallback behavior, token refresh threshold, etc.
+
+- **Auth Module** (`src/lark_service/auth/`)
+  - 8 custom exception classes following PEP 8 naming conventions
+    - `AuthError`, `AuthenticationRequiredError`, `TokenExpiredError`, `TokenRefreshFailedError`
+    - `AuthSessionNotFoundError`, `AuthSessionExpiredError`, `AuthorizationRejectedError`, `AuthorizationCodeExpiredError`
+  - 3 type definition classes with full type annotations
+    - `AuthCardOptions`, `UserInfo`, `AuthSession`
+
+- **Events Module** (`src/lark_service/events/`)
+  - 2 WebSocket-related exception classes
+    - `WebSocketError`, `WebSocketConnectionError`
+  - 2 type definition classes for WebSocket configuration and status
+    - `WebSocketConfig`, `WebSocketConnectionStatus`
+
+- **Database Schema Extension**
+  - Extended `user_auth_sessions` table with 5 new user info columns
+    - `user_id`, `union_id`, `user_name`, `mobile`, `email`
+  - Added 3 new indexes for query optimization
+    - `idx_auth_session_user`, `idx_auth_session_token_expires`, `idx_auth_session_open_id`
+  - Added 4 check constraints for data integrity
+  - Migration: `20260119_2100_a8b9c0d1e2f3_extend_auth_session_for_websocket.py`
+
+#### Fixed - Integration Tests
+- **PostgreSQL Connection Issues** (18 ERROR fixes)
+  - Updated all integration tests to use correct PostgreSQL username (`lark_user` instead of `lark`)
+  - Fixed `CredentialPool` instantiation in `test_sheet_e2e.py`
+  - Affected files: 9 integration test files
+  - Test results improved from 613 passed to 631 passed
+
+#### Documentation
+- **Phase 2 Deliverables**
+  - Data model design (`specs/002-websocket-user-auth/data-model.md`)
+  - API contracts (WebSocket events + Auth session API)
+  - 5-minute quickstart guide (`specs/002-websocket-user-auth/quickstart.md`)
+  - Comprehensive test report (`specs/002-websocket-user-auth/PHASE2-TEST-REPORT.md`)
+- **Updated Documentation**
+  - `specs/002-websocket-user-auth/README.md` - Phase 2 completion status
+  - `specs/002-websocket-user-auth/plan.md` - Implementation progress
+  - `specs/002-websocket-user-auth/tasks.md` - Task completion tracking
+  - `specs/002-websocket-user-auth/checklists/pre-implementation.md` - Quality validation
+
+#### Quality Metrics
+- ✅ Code format: 100% pass (ruff format)
+- ✅ Code style: 100% pass (ruff check)
+- ✅ Type checking: 100% pass (mypy, 7 new files)
+- ✅ Unit tests: 631 passed (+18 from Phase 1)
+- ✅ Database migration: Successfully applied
+- ✅ Backward compatibility: All existing tests pass
+
+#### Commits
+- `abd2543` - feat(auth): implement Phase 2 foundational infrastructure
+- `a2d765b` - fix(config): add default values for WebSocket auth parameters
+- `24a62c9` - fix(tests): 修复集成测试中的 PostgreSQL 用户名和 CredentialPool 实例化问题
+- `a77bc9c` - docs(002): 更新 Phase 2 文档,记录集成测试修复
+
 ### ✅ Production Readiness (2026-01-18)
 
 #### Fixed - P1 Blocking Items

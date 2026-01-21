@@ -25,7 +25,7 @@ class TestTokenRefreshLock:
     def test_acquire_and_release(self, tmp_path: Path) -> None:
         """Test basic lock acquisition and release."""
         lock_manager = TokenRefreshLock(tmp_path / "locks")
-        app_id = "cli_test123"
+        app_id = "cli_test1234567890ab"
 
         # Acquire locks
         thread_lock, file_lock = lock_manager.acquire(app_id)
@@ -40,7 +40,7 @@ class TestTokenRefreshLock:
     def test_concurrent_thread_access(self, tmp_path: Path) -> None:
         """Test that thread lock prevents concurrent access."""
         lock_manager = TokenRefreshLock(tmp_path / "locks", default_timeout=2.0)
-        app_id = "cli_concurrent_test"
+        app_id = "cli_concurrenttest1234"
         results = []
 
         def worker(worker_id: int) -> None:
@@ -74,7 +74,7 @@ class TestTokenRefreshLock:
     def test_timeout_behavior(self, tmp_path: Path) -> None:
         """Test lock acquisition timeout."""
         lock_manager = TokenRefreshLock(tmp_path / "locks")
-        app_id = "cli_timeout_test"
+        app_id = "cli_timeouttest123456"
 
         # Acquire lock in main thread
         thread_lock, file_lock = lock_manager.acquire(app_id)
@@ -89,7 +89,7 @@ class TestTokenRefreshLock:
     def test_non_blocking_acquire(self, tmp_path: Path) -> None:
         """Test non-blocking lock acquisition."""
         lock_manager = TokenRefreshLock(tmp_path / "locks")
-        app_id = "cli_nonblocking_test"
+        app_id = "cli_nonblockingtest1234"
 
         # Acquire lock
         thread_lock1, file_lock1 = lock_manager.acquire(app_id)
@@ -104,8 +104,8 @@ class TestTokenRefreshLock:
     def test_multiple_app_ids(self, tmp_path: Path) -> None:
         """Test that different app_ids can acquire locks simultaneously."""
         lock_manager = TokenRefreshLock(tmp_path / "locks")
-        app_id1 = "cli_app1"
-        app_id2 = "cli_app2"
+        app_id1 = "cli_app1test123456789"
+        app_id2 = "cli_app2test123456789"
 
         # Acquire locks for different apps
         thread_lock1, file_lock1 = lock_manager.acquire(app_id1)
@@ -124,7 +124,7 @@ class TestTokenRefreshLock:
     def test_lock_file_creation(self, tmp_path: Path) -> None:
         """Test that lock files are created."""
         lock_manager = TokenRefreshLock(tmp_path / "locks")
-        app_id = "cli_file_test"
+        app_id = "cli_filetest12345678"
 
         thread_lock, file_lock = lock_manager.acquire(app_id)
 
@@ -141,7 +141,7 @@ class TestRefreshLockContext:
     def test_context_manager_basic(self, tmp_path: Path) -> None:
         """Test basic context manager usage."""
         lock_manager = TokenRefreshLock(tmp_path / "locks")
-        app_id = "cli_context_test"
+        app_id = "cli_contexttest123456"
 
         with RefreshLockContext(lock_manager, app_id):  # noqa: SIM117
             # Locks should be acquired
@@ -157,7 +157,7 @@ class TestRefreshLockContext:
     def test_context_manager_with_exception(self, tmp_path: Path) -> None:
         """Test that locks are released even if exception occurs."""
         lock_manager = TokenRefreshLock(tmp_path / "locks")
-        app_id = "cli_exception_test"
+        app_id = "cli_exceptiontest12345"
 
         try:
             with RefreshLockContext(lock_manager, app_id):
@@ -172,7 +172,7 @@ class TestRefreshLockContext:
     def test_context_manager_timeout(self, tmp_path: Path) -> None:
         """Test context manager with custom timeout."""
         lock_manager = TokenRefreshLock(tmp_path / "locks")
-        app_id = "cli_timeout_context_test"
+        app_id = "cli_timeoutcontext1234"
 
         # Acquire lock first
         thread_lock1, file_lock1 = lock_manager.acquire(app_id)
@@ -190,8 +190,8 @@ class TestRefreshLockContext:
     def test_nested_context_different_apps(self, tmp_path: Path) -> None:
         """Test nested context managers with different app_ids."""
         lock_manager = TokenRefreshLock(tmp_path / "locks")
-        app_id1 = "cli_nested1"
-        app_id2 = "cli_nested2"
+        app_id1 = "cli_nested1test1234567"
+        app_id2 = "cli_nested2test1234567"
 
         with RefreshLockContext(lock_manager, app_id1), RefreshLockContext(lock_manager, app_id2):
             # Both locks should be held

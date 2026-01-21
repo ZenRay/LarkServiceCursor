@@ -1,0 +1,212 @@
+# WebSocket Events Contract
+# Feature: 002-websocket-user-auth
+# Purpose: Define WebSocket event structures for card authorization
+# Created: 2026-01-19
+
+asyncapi: 2.6.0
+info:
+  title: Lark Service WebSocket Events API
+  version: 0.2.0
+  description: |
+    WebSocket event contracts for receiving Feishu (Lark) card callback events
+    used in user authorization flow.
+
+    This contract defines:
+    - P2CardActionTrigger: Card button click events
+    - Authorization flow event payloads
+    - Event validation rules
+
+  contact:
+    name: Lark Service Team
+    email: support@example.com
+
+servers:
+  feishu-websocket:
+    url: wss://open.feishu.cn/ws
+    protocol: wss
+    description: Feishu WebSocket server for event subscription
+
+channels:
+  card/action/trigger:
+    description: Card action trigger events (P2 card protocol)
+    subscribe:
+      summary: Receive card button click events
+      operationId: onCardActionTrigger
+      message:
+        $ref: '#/components/messages/P2CardActionTrigger'
+
+components:
+  messages:
+    P2CardActionTrigger:
+      name: P2CardActionTrigger
+      title: Card Action Trigger Event
+      summary: Event triggered when user clicks a button on an interactive card
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/P2CardActionTriggerPayload'
+
+  schemas:
+    P2CardActionTriggerPayload:
+      type: object
+      required:
+        - event
+      properties:
+        schema:
+          type: string
+          description: Event schema version
+          example: "2.0"
+        header:
+          $ref: '#/components/schemas/EventHeader'
+        event:
+          $ref: '#/components/schemas/CardActionEvent'
+
+    EventHeader:
+      type: object
+      required:
+        - event_id
+        - event_type
+        - create_time
+        - token
+        - app_id
+      properties:
+        event_id:
+          type: string
+          description: Unique event identifier
+          example: "5e3702a84e847582fcf4ea1bdcb8fb2e"
+        event_type:
+          type: string
+          description: Event type identifier
+          const: "card.action.trigger"
+        create_time:
+          type: string
+          description: Event creation timestamp (milliseconds)
+          example: "1737292800000"
+        token:
+          type: string
+          description: Verification token
+          example: "abc123def456"
+        app_id:
+          type: string
+          description: Feishu application ID
+          pattern: "^cli_[a-zA-Z0-9]{16}$"
+          example: "cli_a1b2c3d4e5f6g7h8"
+        tenant_key:
+          type: string
+          description: Tenant key (optional)
+          example: "2d520a3c7b6e1d06"
+
+    CardActionEvent:
+      type: object
+      required:
+        - operator
+        - action
+      properties:
+        operator:
+          $ref: '#/components/schemas/EventOperator'
+        token:
+          type: string
+          description: Message token (optional)
+          example: "c-7dCz4T..."
+        action:
+          $ref: '#/components/schemas/CardAction'
+        context:
+          $ref: '#/components/schemas/EventContext'
+
+    EventOperator:
+      type: object
+      required:
+        - open_id
+      properties:
+        open_id:
+          type: string
+          description: User OpenID (who clicked the button)
+          pattern: "^ou_[a-zA-Z0-9]{20,24}$"
+          example: "ou_7dab8a3d3cdcc08c560abcd"
+        user_id:
+          type: string
+          description: User ID (optional)
+          pattern: "^[0-9]{18,20}$"
+          example: "7123456789012345678"
+        union_id:
+          type: string
+          description: Union ID (cross-app unique, optional)
+          pattern: "^on_[a-zA-Z0-9]{20,24}$"
+          example: "on_8e89a9c0d4e5f6a7b8c9d0e1"
+        tenant_key:
+          type: string
+          description: Tenant key (optional)
+          example: "2d520a3c7b6e1d06"
+
+    CardAction:
+      type: object
+      required:
+        - value
+      properties:
+        tag:
+          type: string
+          description: Action tag (button type)
+          example: "button"
+        option:
+          type: string
+          description: Option value (for select/checkbox)
+          example: ""
+        timezone:
+          type: string
+          description: User timezone (for datetime picker)
+          example: "Asia/Shanghai"
+        value:
+          type: object
+          description: Button action value (custom data)
+          required:
+            - action_type
+            - session_id
+          properties:
+            action_type:
+              type: string
+              description: Action type identifier
+              enum:
+                - user_auth
+                - user_auth_cancel
+              example: "user_auth"
+            session_id:
+              type: string
+              description: Authorization session ID (UUID)
+              format: uuid
+              example: "550e8400-e29b-41d4-a716-446655440000"
+            authorization_code:
+              type: string
+              description: Temporary authorization code (present after auth)
+              pattern: "^auth_[a-zA-Z0-9_-]{32,64}$"
+              example: "auth_7dCz4T1Bx9..."
+            timestamp:
+              type: integer
+              description: Action timestamp (milliseconds)
+              example: 1737292805000
+
+    EventContext:
+      type: object
+      description: Event context information
+      properties:
+        open_message_id:
+          type: string
+          description: Message ID where the card is displayed
+          pattern: "^om_[a-zA-Z0-9]{20,32}$"
+          example: "om_7dCz4T1Bx9Ky2Lm3Np4Qr5St6Uv"
+        open_chat_id:
+          type: string
+          description: Chat ID where the card is displayed
+          pattern: "^oc_[a-zA-Z0-9]{20,32}$"
+          example: "oc_7dCz4T1Bx9Ky2Lm3Np4Qr5St6Uv"
+        host:
+          type: string
+          description: Host URL
+          example: "https://applink.feishu.cn"
+
+  securitySchemes:
+    EventSignature:
+      type: httpApiKey
+      name: X-Lark-Signature
+      in: header
+      description: |
+        Event signature for verification.
+        Signature = SHA256(timestamp + nonce + encrypt_key + body)

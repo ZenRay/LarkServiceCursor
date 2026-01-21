@@ -34,6 +34,16 @@ class Config:
         max_retries: Maximum number of API retry attempts
         retry_backoff_base: Base delay for exponential backoff (seconds)
         token_refresh_threshold: Token refresh threshold (0.0-1.0)
+        websocket_max_reconnect_retries: Maximum WebSocket reconnection attempts
+        websocket_heartbeat_interval: WebSocket heartbeat interval (seconds)
+        websocket_fallback_to_http: Enable fallback to HTTP callback on failure
+        auth_card_include_description: Include detailed description in auth cards
+        auth_card_template_id: Custom auth card template ID (optional)
+        auth_token_refresh_threshold: Threshold for user access token refresh (0.0-1.0)
+        auth_session_expiry_seconds: Auth session expiry time (seconds)
+        auth_request_rate_limit: Max auth requests per user per minute
+        user_info_sync_enabled: Enable user info synchronization
+        user_info_sync_schedule: User info sync cron schedule
 
     Example
     ----------
@@ -64,6 +74,24 @@ class Config:
     max_retries: int
     retry_backoff_base: float
     token_refresh_threshold: float
+
+    # WebSocket Authentication
+    websocket_max_reconnect_retries: int = 10
+    websocket_heartbeat_interval: int = 30
+    websocket_fallback_to_http: bool = True
+    auth_card_include_description: bool = True
+    auth_card_template_id: str | None = None
+    auth_token_refresh_threshold: float = 0.8
+    auth_session_expiry_seconds: int = 600
+    auth_request_rate_limit: int = 5
+    user_info_sync_enabled: bool = False
+    user_info_sync_schedule: str = "0 2 * * *"
+
+    # OAuth Configuration
+    oauth_redirect_uri: str = (
+        "http://localhost:8000/callback"  # Default for dev, override in production
+    )
+    feishu_api_base_url: str = "https://open.feishu.cn"  # Feishu API base URL
 
     @classmethod
     def load_from_env(cls, env_file: Path | None = None) -> "Config":
@@ -128,6 +156,15 @@ class Config:
         except ValueError as e:
             raise ValueError(f"Invalid TOKEN_REFRESH_THRESHOLD: {e}") from e
 
+        # Parse auth token refresh threshold
+        auth_threshold_str = os.getenv("AUTH_TOKEN_REFRESH_THRESHOLD", "0.8")
+        try:
+            auth_threshold = float(auth_threshold_str)
+            if not 0.0 <= auth_threshold <= 1.0:
+                raise ValueError("AUTH_TOKEN_REFRESH_THRESHOLD must be between 0.0 and 1.0")
+        except ValueError as e:
+            raise ValueError(f"Invalid AUTH_TOKEN_REFRESH_THRESHOLD: {e}") from e
+
         return cls(
             # PostgreSQL
             postgres_host=os.getenv("POSTGRES_HOST", "localhost"),
@@ -148,6 +185,22 @@ class Config:
             max_retries=int(os.getenv("MAX_RETRIES", "3")),
             retry_backoff_base=float(os.getenv("RETRY_BACKOFF_BASE", "1.0")),
             token_refresh_threshold=threshold,
+            # WebSocket Authentication
+            websocket_max_reconnect_retries=int(os.getenv("WEBSOCKET_MAX_RECONNECT_RETRIES", "10")),
+            websocket_heartbeat_interval=int(os.getenv("WEBSOCKET_HEARTBEAT_INTERVAL", "30")),
+            websocket_fallback_to_http=os.getenv("WEBSOCKET_FALLBACK_TO_HTTP", "true").lower()
+            == "true",
+            auth_card_include_description=os.getenv("AUTH_CARD_INCLUDE_DESCRIPTION", "true").lower()
+            == "true",
+            auth_card_template_id=os.getenv("AUTH_CARD_TEMPLATE_ID") or None,
+            auth_token_refresh_threshold=auth_threshold,
+            auth_session_expiry_seconds=int(os.getenv("AUTH_SESSION_EXPIRY_SECONDS", "600")),
+            auth_request_rate_limit=int(os.getenv("AUTH_REQUEST_RATE_LIMIT", "5")),
+            user_info_sync_enabled=os.getenv("USER_INFO_SYNC_ENABLED", "false").lower() == "true",
+            user_info_sync_schedule=os.getenv("USER_INFO_SYNC_SCHEDULE", "0 2 * * *"),
+            # OAuth
+            oauth_redirect_uri=os.getenv("OAUTH_REDIRECT_URI", "http://localhost:8000/callback"),
+            feishu_api_base_url=os.getenv("FEISHU_API_BASE_URL", "https://open.feishu.cn"),
         )
 
     def get_postgres_url(self) -> str:
