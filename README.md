@@ -23,6 +23,36 @@
 - 🧪 **测试驱动**: 99%+ 代码覆盖率,TDD 开发流程
 - 📊 **生产就绪监控**: Prometheus 指标、Grafana 仪表板、告警规则
 
+## 📚 文档
+
+完整的使用文档请查看：
+
+- 📖 **[在线文档](docs/_build/html/index.html)** - 完整的 API 参考和使用指南
+- 🚀 **[快速开始](docs/quickstart.md)** - 5分钟快速上手
+- 💡 **[使用指南](docs/usage/)** - 各模块详细使用说明
+  - [消息服务](docs/usage/messaging.md)
+  - [卡片服务](docs/usage/card.md)
+  - [通讯录服务](docs/usage/contact.md)
+  - [云文档服务](docs/usage/clouddoc.md)
+  - [aPaaS 数据空间](docs/usage/apaas.md)
+  - [WebSocket 用户授权](docs/usage/auth.md) 🆕
+- 🔧 **[部署指南](docs/deployment.md)** - 生产环境部署
+- 📊 **[监控指南](docs/monitoring.md)** - Prometheus & Grafana
+
+### 构建文档
+
+```bash
+# 使用 Makefile
+make docs
+
+# 或使用脚本
+./scripts/build_docs.sh
+
+# 查看文档
+cd docs/_build/html && python -m http.server 8080
+# 访问 http://localhost:8080
+```
+
 ## 📋 快速开始
 
 ### 开发者工作流 (Speckit)

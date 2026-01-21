@@ -92,3 +92,8 @@ archive/temp-reports/coverage.json
 # Archived temporary files
 archive/temp-reports/PROJECT_SUMMARY.md
 archive/temp-guides/
+
+# Sphinx documentation
+docs/_build/
+docs/api/*.rst
+!docs/api/.gitkeep
