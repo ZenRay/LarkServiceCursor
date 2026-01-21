@@ -143,32 +143,25 @@ Examples
 
 .. code-block:: python
 
-    # 问卷调查表单
+    # 反馈表单
     card = builder.build_form_card(
-        title="问卷调查",
-        description="请填写您的反馈意见",
+        title="用户反馈",
         fields=[
             {
-                "type": "input",
-                "name": "name",
                 "label": "姓名",
-                "required": True
+                "name": "name",
+                "type": "input",
+                "placeholder": "请输入您的姓名"
             },
             {
-                "type": "textarea",
-                "name": "feedback",
                 "label": "反馈内容",
-                "required": True
-            },
-            {
-                "type": "select",
-                "name": "rating",
-                "label": "满意度评分",
-                "options": ["非常满意", "满意", "一般", "不满意"],
-                "required": True
+                "name": "feedback",
+                "type": "textarea",
+                "placeholder": "请输入您的反馈"
             }
         ],
-        submit_action_id="submit_survey"
+        submit_action_id="submit_feedback",
+        cancel_action_id="cancel_feedback"
     )
 
 自定义卡片
