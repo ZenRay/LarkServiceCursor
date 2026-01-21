@@ -8,6 +8,7 @@ from lark_service.apaas.models import (
     TableRecord,
     WorkspaceTable,
 )
+from lark_service.core.base_service_client import BaseServiceClient
 from lark_service.core.credential_pool import CredentialPool
 from lark_service.core.exceptions import (
     APIError,
@@ -48,12 +49,14 @@ FIELD_TYPE_MAP = {
 }
 
 
-class WorkspaceTableClient:
+class WorkspaceTableClient(BaseServiceClient):
     """
     High-level client for Lark aPaaS workspace table operations.
 
     Provides convenient methods for workspace table CRUD operations via Lark aPaaS API,
     with automatic error handling and retry. All operations require user_access_token.
+
+    Inherits from BaseServiceClient to provide intelligent app_id management.
 
     Capability Scope:
     - ✅ Included: Data space table CRUD operations
@@ -71,19 +74,21 @@ class WorkspaceTableClient:
 
     Examples
     --------
+        >>> # Single-app scenario
         >>> client = WorkspaceTableClient(credential_pool)
         >>> tables = client.list_workspace_tables(
-        ...     app_id="cli_xxx",
         ...     user_access_token="u-xxx",
         ...     workspace_id="ws_001"
         ... )
-        >>> for table in tables:
-        ...     print(table.name)
+
+        >>> # Multi-app scenario
+        >>> client = pool.create_workspace_table_client(app_id="cli_xxx")
     """
 
     def __init__(
         self,
         credential_pool: CredentialPool,
+        app_id: str | None = None,
         retry_strategy: RetryStrategy | None = None,
     ) -> None:
         """
@@ -92,9 +97,10 @@ class WorkspaceTableClient:
         Args
         ----------
             credential_pool: Credential pool for token management
+            app_id: Optional client-level default app_id
             retry_strategy: Retry strategy for API calls (optional)
         """
-        self.credential_pool = credential_pool
+        super().__init__(credential_pool, app_id)
         self.retry_strategy = retry_strategy or RetryStrategy()
 
     def _handle_api_error(self, result: dict[str, Any], method_name: str) -> None:
@@ -199,18 +205,18 @@ class WorkspaceTableClient:
 
     def list_workspace_tables(
         self,
-        app_id: str,
         user_access_token: str,
         workspace_id: str,
+        app_id: str | None = None,
     ) -> list[WorkspaceTable]:
         """
         List all data tables in a workspace.
 
         Args
         ----------
-            app_id: Application ID
             user_access_token: User access token for authentication
             workspace_id: Workspace ID, format: ws_xxx
+            app_id: Optional app_id (uses resolution priority if not provided)
 
         Returns
         ----------
@@ -226,7 +232,6 @@ class WorkspaceTableClient:
         Example
         --------
             >>> tables = client.list_workspace_tables(
-            ...     app_id="cli_xxx",
             ...     user_access_token="u-xxx",
             ...     workspace_id="ws_001"
             ... )
@@ -236,13 +241,16 @@ class WorkspaceTableClient:
         if not workspace_id:
             raise InvalidParameterError("workspace_id cannot be empty")
 
-        validate_app_id(app_id)
+        # Resolve app_id
+        resolved_app_id = self._resolve_app_id(app_id)
+
+        validate_app_id(resolved_app_id)
         validate_non_empty_string(user_access_token, "user_access_token")
         validate_non_empty_string(workspace_id, "workspace_id")
 
         logger.info(
             "Listing workspace tables",
-            extra={"workspace_id": workspace_id, "app_id": app_id},
+            extra={"workspace_id": workspace_id, "app_id": resolved_app_id},
         )
 
         try:
@@ -285,10 +293,10 @@ class WorkspaceTableClient:
 
     def list_fields(
         self,
-        app_id: str,
         user_access_token: str,
         table_id: str,
         workspace_id: str,
+        app_id: str | None = None,
     ) -> list[FieldDefinition]:
         """
         Get field definitions for a data table.
@@ -298,10 +306,10 @@ class WorkspaceTableClient:
 
         Args
         ----------
-            app_id: Application ID
             user_access_token: User access token for authentication
             table_id: Table name (e.g., "follow_ups")
             workspace_id: Workspace ID where the table exists
+            app_id: Optional app_id (uses resolution priority if not provided)
 
         Returns
         ----------
@@ -317,7 +325,6 @@ class WorkspaceTableClient:
         Example
         --------
             >>> fields = client.list_fields(
-            ...     app_id="cli_xxx",
             ...     user_access_token="u-xxx",
             ...     table_id="follow_ups",
             ...     workspace_id="workspace_xxx"
@@ -329,13 +336,16 @@ class WorkspaceTableClient:
         if not table_id:
             raise InvalidParameterError("table_id cannot be empty")
 
-        validate_app_id(app_id)
+        # Resolve app_id
+        resolved_app_id = self._resolve_app_id(app_id)
+
+        validate_app_id(resolved_app_id)
         validate_non_empty_string(user_access_token, "user_access_token")
         validate_non_empty_string(table_id, "table_id")
 
         logger.info(
             "Listing table fields",
-            extra={"table_id": table_id, "app_id": app_id},
+            extra={"table_id": table_id, "app_id": resolved_app_id},
         )
 
         try:
@@ -395,10 +405,10 @@ class WorkspaceTableClient:
 
     def sql_query(
         self,
-        app_id: str,
         user_access_token: str,
         workspace_id: str,
         sql: str,
+        app_id: str | None = None,
     ) -> list[dict[str, Any]]:
         """
         Execute SQL SELECT query on workspace tables.
@@ -408,10 +418,11 @@ class WorkspaceTableClient:
 
         Args
         ----------
-            app_id: Application ID
             user_access_token: User access token for authentication
             workspace_id: Workspace ID to execute query in
             sql: SQL SELECT statement
+
+                    app_id: Optional app_id (uses resolution priority if not provided)
 
         Returns
         ----------
@@ -426,7 +437,6 @@ class WorkspaceTableClient:
         Example
         --------
             >>> results = client.sql_query(
-            ...     app_id="cli_xxx",
             ...     user_access_token="u-xxx",
             ...     workspace_id="workspace_xxx",
             ...     sql="SELECT id, name, stage FROM customers WHERE stage = '潜在客户' LIMIT 10"
@@ -441,7 +451,10 @@ class WorkspaceTableClient:
             - SQL follows PostgreSQL syntax
             - Refer to: https://open.feishu.cn/document/uAjLw4CM/ukTMukTMukTM/apaas-v1/workspace/sql_commands
         """
-        validate_app_id(app_id)
+        # Resolve app_id
+        resolved_app_id = self._resolve_app_id(app_id)
+
+        validate_app_id(resolved_app_id)
         validate_non_empty_string(user_access_token, "user_access_token")
         validate_non_empty_string(workspace_id, "workspace_id")
         validate_non_empty_string(sql, "sql")
@@ -498,13 +511,13 @@ class WorkspaceTableClient:
 
     def query_records(
         self,
-        app_id: str,
         user_access_token: str,
         table_id: str,
         workspace_id: str,
         filter_expr: str | None = None,
         page_token: str | None = None,
         page_size: int = 20,
+        app_id: str | None = None,
     ) -> tuple[list[TableRecord], str | None, bool]:
         """
         Query records from a data table with pagination.
@@ -514,13 +527,14 @@ class WorkspaceTableClient:
 
         Args
         ----------
-            app_id: Application ID
             user_access_token: User access token for authentication
             table_id: Table name (e.g., "follow_ups")
             workspace_id: Workspace ID where the table exists
             filter_expr: Filter expression (not supported, will be ignored)
             page_token: Page token for pagination (optional)
             page_size: Number of records per page (default: 20, max: 500)
+
+                    app_id: Optional app_id (uses resolution priority if not provided)
 
         Returns
         ----------
@@ -536,7 +550,6 @@ class WorkspaceTableClient:
         Example
         --------
             >>> records, next_token, has_more = client.query_records(
-            ...     app_id="cli_xxx",
             ...     user_access_token="u-xxx",
             ...     table_id="follow_ups",
             ...     workspace_id="workspace_xxx",
@@ -544,7 +557,10 @@ class WorkspaceTableClient:
             ... )
             >>> print(f"Found {len(records)} records")
         """
-        validate_app_id(app_id)
+        # Resolve app_id
+        resolved_app_id = self._resolve_app_id(app_id)
+
+        validate_app_id(resolved_app_id)
         validate_non_empty_string(user_access_token, "user_access_token")
         validate_non_empty_string(table_id, "table_id")
         validate_non_empty_string(workspace_id, "workspace_id")
@@ -632,11 +648,11 @@ class WorkspaceTableClient:
 
     def create_record(
         self,
-        app_id: str,
         user_access_token: str,
         table_id: str,
         workspace_id: str,
         fields: dict[str, Any],
+        app_id: str | None = None,
     ) -> str:
         """
         Create a new record in a data table using SQL INSERT.
@@ -646,11 +662,12 @@ class WorkspaceTableClient:
 
         Args
         ----------
-            app_id: Application ID
             user_access_token: User access token for authentication
             table_id: Table name (e.g., "follow_ups")
             workspace_id: Workspace ID where the table exists
             fields: Field values mapping (field_name -> value)
+
+                    app_id: Optional app_id (uses resolution priority if not provided)
 
         Returns
         ----------
@@ -666,7 +683,6 @@ class WorkspaceTableClient:
         Example
         --------
             >>> record_id = client.create_record(
-            ...     app_id="cli_xxx",
             ...     user_access_token="u-xxx",
             ...     table_id="follow_ups",
             ...     workspace_id="workspace_xxx",
@@ -679,7 +695,10 @@ class WorkspaceTableClient:
             ... )
             >>> print(f"Created record: {record_id}")
         """
-        validate_app_id(app_id)
+        # Resolve app_id
+        resolved_app_id = self._resolve_app_id(app_id)
+
+        validate_app_id(resolved_app_id)
         validate_non_empty_string(user_access_token, "user_access_token")
         validate_non_empty_string(table_id, "table_id")
         validate_non_empty_string(workspace_id, "workspace_id")
@@ -731,12 +750,12 @@ class WorkspaceTableClient:
 
     def update_record(
         self,
-        app_id: str,
         user_access_token: str,
         table_id: str,
         workspace_id: str,
         record_id: str,
         fields: dict[str, Any],
+        app_id: str | None = None,
     ) -> bool:
         """
         Update an existing record using SQL UPDATE.
@@ -745,7 +764,6 @@ class WorkspaceTableClient:
 
         Args
         ----------
-            app_id: Application ID
             user_access_token: User access token for authentication
             table_id: Table name (e.g., "follow_ups")
             workspace_id: Workspace ID where the table exists
@@ -766,7 +784,6 @@ class WorkspaceTableClient:
         Example
         --------
             >>> success = client.update_record(
-            ...     app_id="cli_xxx",
             ...     user_access_token="u-xxx",
             ...     table_id="follow_ups",
             ...     workspace_id="workspace_xxx",
@@ -775,7 +792,10 @@ class WorkspaceTableClient:
             ... )
             >>> print(f"Update successful: {success}")
         """
-        validate_app_id(app_id)
+        # Resolve app_id
+        resolved_app_id = self._resolve_app_id(app_id)
+
+        validate_app_id(resolved_app_id)
         validate_non_empty_string(user_access_token, "user_access_token")
         validate_non_empty_string(table_id, "table_id")
         validate_non_empty_string(workspace_id, "workspace_id")
@@ -830,11 +850,11 @@ class WorkspaceTableClient:
 
     def delete_record(
         self,
-        app_id: str,
         user_access_token: str,
         table_id: str,
         workspace_id: str,
         record_id: str,
+        app_id: str | None = None,
     ) -> bool:
         """
         Delete a record from a data table using SQL DELETE.
@@ -843,7 +863,6 @@ class WorkspaceTableClient:
 
         Args
         ----------
-            app_id: Application ID
             user_access_token: User access token for authentication
             table_id: Table name (e.g., "follow_ups")
             workspace_id: Workspace ID where the table exists
@@ -863,7 +882,6 @@ class WorkspaceTableClient:
         Example
         --------
             >>> success = client.delete_record(
-            ...     app_id="cli_xxx",
             ...     user_access_token="u-xxx",
             ...     table_id="follow_ups",
             ...     workspace_id="workspace_xxx",
@@ -871,7 +889,10 @@ class WorkspaceTableClient:
             ... )
             >>> print(f"Delete successful: {success}")
         """
-        validate_app_id(app_id)
+        # Resolve app_id
+        resolved_app_id = self._resolve_app_id(app_id)
+
+        validate_app_id(resolved_app_id)
         validate_non_empty_string(user_access_token, "user_access_token")
         validate_non_empty_string(table_id, "table_id")
         validate_non_empty_string(workspace_id, "workspace_id")
@@ -912,12 +933,12 @@ class WorkspaceTableClient:
 
     def batch_create_records(
         self,
-        app_id: str,
         user_access_token: str,
         table_id: str,
         workspace_id: str,
         records: list[dict[str, Any]],
         batch_size: int = 500,
+        app_id: str | None = None,
     ) -> list[str]:
         """
         Batch create multiple records using SQL INSERT.
@@ -926,12 +947,13 @@ class WorkspaceTableClient:
 
         Args
         ----------
-            app_id: Application ID
             user_access_token: User access token for authentication
             table_id: Table name (e.g., "follow_ups")
             workspace_id: Workspace ID where the table exists
             records: List of field value mappings
             batch_size: Maximum records per batch (default: 500)
+
+                    app_id: Optional app_id (uses resolution priority if not provided)
 
         Returns
         ----------
@@ -947,7 +969,6 @@ class WorkspaceTableClient:
         Example
         --------
             >>> record_ids = client.batch_create_records(
-            ...     app_id="cli_xxx",
             ...     user_access_token="u-xxx",
             ...     table_id="follow_ups",
             ...     workspace_id="workspace_xxx",
@@ -958,7 +979,10 @@ class WorkspaceTableClient:
             ... )
             >>> print(f"Created {len(record_ids)} records")
         """
-        validate_app_id(app_id)
+        # Resolve app_id
+        resolved_app_id = self._resolve_app_id(app_id)
+
+        validate_app_id(resolved_app_id)
         validate_non_empty_string(user_access_token, "user_access_token")
         validate_non_empty_string(table_id, "table_id")
         validate_non_empty_string(workspace_id, "workspace_id")
@@ -1038,12 +1062,12 @@ class WorkspaceTableClient:
 
     def batch_update_records(
         self,
-        app_id: str,
         user_access_token: str,
         table_id: str,
         workspace_id: str,
         records: list[tuple[str, dict[str, Any]]],
         batch_size: int = 500,
+        app_id: str | None = None,
     ) -> int:
         """
         Batch update multiple records using SQL UPDATE.
@@ -1052,12 +1076,13 @@ class WorkspaceTableClient:
 
         Args
         ----------
-            app_id: Application ID
             user_access_token: User access token for authentication
             table_id: Table name (e.g., "follow_ups")
             workspace_id: Workspace ID where the table exists
             records: List of (record_id, fields) tuples
             batch_size: Maximum records per batch (default: 500)
+
+                    app_id: Optional app_id (uses resolution priority if not provided)
 
         Returns
         ----------
@@ -1073,7 +1098,6 @@ class WorkspaceTableClient:
         Example
         --------
             >>> count = client.batch_update_records(
-            ...     app_id="cli_xxx",
             ...     user_access_token="u-xxx",
             ...     table_id="follow_ups",
             ...     workspace_id="workspace_xxx",
@@ -1084,7 +1108,10 @@ class WorkspaceTableClient:
             ... )
             >>> print(f"Updated {count} records")
         """
-        validate_app_id(app_id)
+        # Resolve app_id
+        resolved_app_id = self._resolve_app_id(app_id)
+
+        validate_app_id(resolved_app_id)
         validate_non_empty_string(user_access_token, "user_access_token")
         validate_non_empty_string(table_id, "table_id")
         validate_non_empty_string(workspace_id, "workspace_id")
@@ -1173,12 +1200,12 @@ class WorkspaceTableClient:
 
     def batch_delete_records(
         self,
-        app_id: str,
         user_access_token: str,
         table_id: str,
         workspace_id: str,
         record_ids: list[str],
         batch_size: int = 500,
+        app_id: str | None = None,
     ) -> int:
         """
         Batch delete multiple records using SQL DELETE.
@@ -1187,12 +1214,13 @@ class WorkspaceTableClient:
 
         Args
         ----------
-            app_id: Application ID
             user_access_token: User access token for authentication
             table_id: Table name (e.g., "follow_ups")
             workspace_id: Workspace ID where the table exists
             record_ids: List of record IDs to delete
             batch_size: Maximum records per batch (default: 500)
+
+                    app_id: Optional app_id (uses resolution priority if not provided)
 
         Returns
         ----------
@@ -1208,7 +1236,6 @@ class WorkspaceTableClient:
         Example
         --------
             >>> count = client.batch_delete_records(
-            ...     app_id="cli_xxx",
             ...     user_access_token="u-xxx",
             ...     table_id="follow_ups",
             ...     workspace_id="workspace_xxx",
@@ -1216,7 +1243,10 @@ class WorkspaceTableClient:
             ... )
             >>> print(f"Deleted {count} records")
         """
-        validate_app_id(app_id)
+        # Resolve app_id
+        resolved_app_id = self._resolve_app_id(app_id)
+
+        validate_app_id(resolved_app_id)
         validate_non_empty_string(user_access_token, "user_access_token")
         validate_non_empty_string(table_id, "table_id")
         validate_non_empty_string(workspace_id, "workspace_id")

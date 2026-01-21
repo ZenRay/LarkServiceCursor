@@ -1,7 +1,7 @@
 repos:
   # Ruff - 代码格式化和 Linting
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.1.9
+    rev: v0.14.13
     hooks:
       - id: ruff
         # 移除 --exit-non-zero-on-fix 以避免循环问题
