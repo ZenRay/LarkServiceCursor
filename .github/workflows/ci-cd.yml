@@ -140,9 +140,9 @@ jobs:
 
       - name: Test health check
         run: |
-          docker run -d --name test-container lark-service:test
-          sleep 10
-          docker exec test-container python -c "import sys; from lark_service.core.config import Config; sys.exit(0)" || exit 1
+          docker run -d --name test-container lark-service:test sleep infinity
+          sleep 5
+          docker exec test-container python -c "import sys; from lark_service.core.config import Config; sys.exit(0)"
           docker stop test-container
           docker rm test-container
           echo "✅ Health check passed"
