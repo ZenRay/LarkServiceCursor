@@ -1,7 +1,5 @@
 # 消息服务
 
-TODO: 待补充完整的消息服务使用指南
-
 ## 基本用法
 
 ```python
@@ -16,8 +14,6 @@ response = messaging_client.send_text_message(
     content="Hello, Lark!"
 )
 ```
-
-详细文档开发中...
 
 ## 应用管理
 
