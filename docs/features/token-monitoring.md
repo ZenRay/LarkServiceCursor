@@ -6,15 +6,23 @@
 
 ### Token 类型说明
 
-飞书有两种主要的 Token 类型:
+飞书有三种主要的 Token 类型:
 
 1. **App Access Token (应用级 Token)**
+   - 适用于**自建应用**(企业内部使用)
    - 通过 `app_id` + `app_secret` 获取
    - **可以自动刷新** - 无需用户干预
    - 默认有效期: 2 小时
    - 刷新机制: SDK 自动管理,无需监控
 
-2. **User Access Token (用户级 Token)**
+2. **Tenant Access Token (租户级 Token)**
+   - 适用于**商店应用**(ISV 应用,服务多租户)
+   - 通过 `app_id` + `app_secret` 获取
+   - **可以自动刷新** - 无需用户干预
+   - 默认有效期: 2 小时
+   - 与 App Token 处理方式完全相同,无需监控
+
+3. **User Access Token (用户级 Token)**
    - 通过 OAuth 授权流程获取
    - 包含 `access_token` 和 `refresh_token`
    - **`access_token` 可自动刷新** - 使用 `refresh_token`
@@ -42,6 +50,7 @@ Token 过期监控是一个主动式的 UX 优化功能,专注于监控 **Refres
 
 **重要**:
 - ✅ App Access Token 会自动刷新,**无需监控和通知**
+- ✅ Tenant Access Token 会自动刷新,**无需监控和通知**
 - ⚠️ 监控的是 User Access Token 的 **Refresh Token**
 - 🔄 Access Token 本身过期不是问题,只要 Refresh Token 有效就能自动刷新
 
@@ -153,6 +162,13 @@ monitor.check_token_expiry(
     app_id="cli_abc123",
     token_expires_at=app_token_expires_at,
     token_type=TokenType.APP_ACCESS_TOKEN,  # 应用级 Token,自动刷新
+)
+
+# Tenant Access Token 同样不需要监控(会自动跳过通知)
+monitor.check_token_expiry(
+    app_id="cli_abc123",
+    token_expires_at=tenant_token_expires_at,
+    token_type=TokenType.TENANT_ACCESS_TOKEN,  # 租户级 Token,自动刷新
 )
 ```
 

@@ -22,6 +22,7 @@ class TokenType(Enum):
     """Token type enumeration."""
 
     APP_ACCESS_TOKEN = "app_access_token"  # 应用级 Token,可自动刷新  # nosec B105
+    TENANT_ACCESS_TOKEN = "tenant_access_token"  # 租户级 Token,可自动刷新  # nosec B105
     USER_ACCESS_TOKEN = "user_access_token"  # 用户级 Token,需要 refresh_token  # nosec B105
 
 
@@ -104,10 +105,10 @@ class TokenExpiryMonitor:
         # Update Prometheus metric
         TOKEN_DAYS_TO_EXPIRY.labels(app_id=app_id, token_type=token_type.value).set(days_to_expiry)
 
-        # App Access Tokens can auto-refresh, no need to notify
-        if token_type == TokenType.APP_ACCESS_TOKEN:
+        # App Access Tokens and Tenant Access Tokens can auto-refresh, no need to notify
+        if token_type in (TokenType.APP_ACCESS_TOKEN, TokenType.TENANT_ACCESS_TOKEN):
             logger.debug(
-                f"App Access Token for {app_id} expires in {days_to_expiry} days "
+                f"{token_type.value} for {app_id} expires in {days_to_expiry} days "
                 "(will auto-refresh)"
             )
             return

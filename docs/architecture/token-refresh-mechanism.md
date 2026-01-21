@@ -6,6 +6,12 @@
 
 ## 🔑 Token 类型
 
+飞书开放平台提供三种主要的 Token 类型:
+
+1. **App Access Token** - 应用级访问令牌(自建应用)
+2. **Tenant Access Token** - 租户级访问令牌(商店应用/ISV应用)
+3. **User Access Token** - 用户级访问令牌(需要用户授权)
+
 ### 1. App Access Token (应用级访问令牌)
 
 **用途**: 应用级别的 API 调用,不涉及特定用户身份
@@ -41,7 +47,65 @@ token = await credential_pool.get_app_access_token(app_id)
 
 ---
 
-### 2. User Access Token (用户级访问令牌)
+### 2. Tenant Access Token (租户级访问令牌)
+
+**用途**:
+- 用于**商店应用**(ISV 应用)访问租户数据
+- 代表应用在特定租户下的访问权限
+- 与 App Access Token 类似,但多了租户维度
+
+**应用场景**:
+- 你的应用发布到飞书应用商店
+- 多个租户(企业)安装了你的应用
+- 需要区分不同租户的数据和权限
+
+**获取方式**:
+```python
+# 使用 app_id + app_secret + tenant_key(可选)
+POST https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal
+{
+  "app_id": "cli_xxxxx",
+  "app_secret": "yyyyy"
+}
+```
+
+**与 App Access Token 的区别**:
+| 特性 | App Access Token | Tenant Access Token |
+|------|-----------------|-------------------|
+| 应用类型 | 自建应用 | 商店应用/ISV应用 |
+| 作用范围 | 单个企业 | 多租户环境 |
+| 获取方式 | app_id + app_secret | app_id + app_secret (自动识别租户) |
+| 刷新机制 | ✅ 自动刷新 | ✅ 自动刷新 |
+| Token 标识 | `t-` 开头 | `t-` 开头 |
+
+**刷新机制**:
+- ✅ **可以自动刷新**
+- 只要 `app_secret` 有效,就能无限次获取新的 Token
+- 不需要用户干预
+- 不需要 OAuth 授权流程
+
+**有效期**: 默认 2 小时
+
+**LarkService 处理**:
+```python
+# CredentialPool 会自动管理 Tenant Access Token
+# 在 Token 过期前自动刷新
+token = await credential_pool.get_tenant_access_token(app_id, tenant_key)
+```
+
+**监控策略**: ❌ **无需监控 Tenant Access Token 过期**
+- 系统会自动刷新,与 App Access Token 处理方式相同
+- 监控重点应该是 `app_secret` 的有效性
+
+**何时使用**:
+- ✅ 你的应用要发布到飞书应用商店
+- ✅ 你需要服务多个企业租户
+- ✅ 你需要区分不同租户的数据隔离
+- ❌ 自建应用(企业内部使用) → 使用 App Access Token
+
+---
+
+### 3. User Access Token (用户级访问令牌)
 
 **用途**: 代表特定用户身份的 API 调用,访问用户个人数据
 
@@ -112,6 +176,20 @@ monitor.check_token_expiry(
 
 ---
 
+## 🔄 Token 类型对比总结
+
+| Token 类型 | 应用场景 | 刷新机制 | 需要监控? | 过期影响 |
+|-----------|---------|---------|----------|---------|
+| **App Access Token** | 自建应用,应用级API调用 | ✅ 自动刷新 | ❌ 不需要 | 无影响,自动续期 |
+| **Tenant Access Token** | 商店应用,多租户环境 | ✅ 自动刷新 | ❌ 不需要 | 无影响,自动续期 |
+| **User Access Token** | 代表用户身份,访问用户数据 | ⚠️ Access Token可刷新 | ✅ 监控Refresh Token | Refresh Token过期需重新授权 |
+
+**关键要点**:
+- 🟢 **App/Tenant Token**: 只要 `app_secret` 有效,永远可以刷新
+- 🔴 **User Token**: Refresh Token 过期后,必须用户重新授权
+
+---
+
 ## 🚨 常见误区
 
 ### ❌ 误区 1: Token 过期就需要重新生成 app_secret
@@ -133,6 +211,7 @@ monitor.check_token_expiry(
 
 **正确理解**:
 - **App Access Token**: ❌ 无需监控,系统自动刷新
+- **Tenant Access Token**: ❌ 无需监控,系统自动刷新
 - **User Access Token**: ❌ 无需监控 Access Token,会自动刷新
 - **Refresh Token**: ✅ **必须监控**,过期需要用户重新授权
 
@@ -154,21 +233,28 @@ monitor.check_token_expiry(
 
 ## 📊 监控和通知策略
 
-### App Access Token
+### App Access Token / Tenant Access Token
 
 ```python
-# ❌ 不要这样做
+# ❌ 不要这样做 - 会发送不必要的通知
 monitor.check_token_expiry(
     app_id="cli_xxxxx",
     token_expires_at=app_token_expires,
     token_type=TokenType.APP_ACCESS_TOKEN,
-    admin_user_id="ou_xxxxx",  # 会发送不必要的通知!
+    admin_user_id="ou_xxxxx",
 )
 
-# ✅ 正确做法: 不监控 App Token,或者监控但不发通知
+# ✅ 正确做法: 不监控 App/Tenant Token,或者监控但不发通知
 # TokenExpiryMonitor 已经内置了逻辑:
-# - 如果是 APP_ACCESS_TOKEN,自动跳过通知
-# - 只记录日志: "App Access Token will auto-refresh"
+# - 如果是 APP_ACCESS_TOKEN 或 TENANT_ACCESS_TOKEN,自动跳过通知
+# - 只记录日志: "app_access_token/tenant_access_token will auto-refresh"
+
+# Tenant Token 同样处理
+monitor.check_token_expiry(
+    app_id="cli_xxxxx",
+    token_expires_at=tenant_token_expires,
+    token_type=TokenType.TENANT_ACCESS_TOKEN,  # 也会自动跳过通知
+)
 ```
 
 ### User Access Token

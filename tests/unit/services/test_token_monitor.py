@@ -47,6 +47,20 @@ class TestTokenExpiryMonitor:
         # No message should be sent for app tokens
         mock_messaging_client.send_text_message.assert_not_called()
 
+    def test_no_notification_for_tenant_token(self, monitor, mock_messaging_client):
+        """Test that no notification is sent for Tenant Access Tokens (auto-refresh)."""
+        expires_at = datetime.utcnow() + timedelta(days=1)
+
+        monitor.check_token_expiry(
+            app_id="test_app",
+            token_expires_at=expires_at,
+            token_type=TokenType.TENANT_ACCESS_TOKEN,  # Tenant tokens auto-refresh
+            admin_user_id="user123",
+        )
+
+        # No message should be sent for tenant tokens
+        mock_messaging_client.send_text_message.assert_not_called()
+
     def test_no_notification_for_valid_refresh_token(self, monitor, mock_messaging_client):
         """Test that no notification is sent for refresh tokens with > 7 days."""
         access_expires_at = datetime.utcnow() + timedelta(hours=2)
