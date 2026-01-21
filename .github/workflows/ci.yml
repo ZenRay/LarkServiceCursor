@@ -2,9 +2,13 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: ["develop", "001-lark-service-core", "002-websocket-user-auth"]
+    branches:
+      - "develop"
+      - "00*-*"  # 匹配所有 00X 开头的功能分支
   pull_request:
-    branches: ["develop", "002-websocket-user-auth"]
+    branches:
+      - "develop"
+      - "00*-*"  # 匹配所有 00X 开头的功能分支
 
 jobs:
   lint:
