@@ -5,6 +5,58 @@ All notable changes to the Lark Service project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-01-22
+
+### 🎯 版本亮点: 生产环境完整集成 ✅
+
+这是一个重要的里程碑版本,实现了生产环境的完整支持,包括 Docker 容器化、监控系统、定时任务和 Token 管理优化。
+
+### Added
+
+#### 生产环境支持
+- ✨ 完整的 Docker Compose 生产环境配置
+- ✨ 多阶段 Dockerfile 优化镜像大小
+- ✨ 健康检查端点 (`/health`)
+- ✨ 优雅关机支持 (SIGTERM/SIGINT)
+
+#### 监控与可观测性
+- ✨ Prometheus 集成 (30+ 业务指标)
+- ✨ Grafana 预配置仪表板 (3个)
+- ✨ Prometheus 告警规则 (4个)
+- ✨ 指标采集端点 (`/metrics`)
+
+#### APScheduler 定时任务
+- ✨ APScheduler 集成和服务封装
+- ✨ 4 个预配置定时任务 (用户同步、Token检查、清理、健康检查)
+
+#### Token 管理优化
+- ✨ 支持 `tenant_access_token` 监控
+- ✨ Token 类型智能区分 (App/Tenant/User)
+- ✨ Token 过期多级通知 (30天/7天/已过期)
+
+#### 文档
+- 📘 生产环境部署指南
+- 📗 Token 刷新机制说明
+- 📙 Token 监控功能文档
+- 📕 v0.5.0 发布说明
+
+### Changed
+
+- 🔄 **BREAKING**: Token 监控逻辑调整 - 仅监控 User Token 的 refresh_token
+- 🔄 重写 `__main__.py` 支持独立运行
+- 🔄 完整的类型注解和代码格式化
+
+### Fixed
+
+- 🐛 修复 Docker 容器启动失败
+- 🐛 修复 Scheduler async/await 问题
+- 🐛 修复 Token 监控重复通知
+- 🐛 修复 Prometheus 指标标签错误
+
+详见: [v0.5.0 完整发布说明](docs/releases/v0.5.0.md)
+
+---
+
 ## [Unreleased]
 
 ### 🚀 Feature: Scheduled Tasks & Token UX Optimization (v0.4.0) (2026-01-22)
