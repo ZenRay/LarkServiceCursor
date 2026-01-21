@@ -132,6 +132,9 @@ class CallbackServerManager:
     def register_card_auth_handler(self, card_auth_handler: CardAuthHandler) -> None:
         """Register card authorization callback handler.
 
+        This method registers both card action trigger and OAuth redirect handlers
+        to support the complete authorization flow.
+
         Parameters
         ----------
             card_auth_handler: CardAuthHandler instance
@@ -148,9 +151,17 @@ class CallbackServerManager:
                 encrypt_key=self.encrypt_key,
             )
 
-        handler = create_card_auth_handler(card_auth_handler)
-        self.server.register_handler("card_action_trigger", handler)
-        logger.info("Card auth handler registered")
+        # Register card action trigger handler
+        card_handler = create_card_auth_handler(card_auth_handler)
+        self.server.register_handler("card_action_trigger", card_handler)
+
+        # Register OAuth redirect handler for authorization code flow
+        from lark_service.server.handlers.oauth_redirect import create_oauth_redirect_handler
+
+        oauth_handler = create_oauth_redirect_handler(card_auth_handler)
+        self.server.register_handler("oauth_redirect", oauth_handler)
+
+        logger.info("Card auth handlers registered (card_action_trigger + oauth_redirect)")
 
     def register_handler(self, callback_type: str, handler: Any) -> None:
         """Register a custom callback handler.

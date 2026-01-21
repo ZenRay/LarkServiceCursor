@@ -29,8 +29,15 @@ class CallbackRequestHandler(BaseHTTPRequestHandler):
     lark_callback_handler: LarkCallbackHandler
 
     def do_GET(self) -> None:  # noqa: N802
-        """Handle GET requests (health check endpoint)."""
-        if self.path == "/" or self.path == "/health":
+        """Handle GET requests (health check and OAuth redirect)."""
+        from urllib.parse import parse_qs, urlparse
+
+        parsed_url = urlparse(self.path)
+        path = parsed_url.path
+        query_params = parse_qs(parsed_url.query)
+
+        # Health check endpoint
+        if path == "/" or path == "/health":
             self._send_json_response(
                 200,
                 {
@@ -39,8 +46,62 @@ class CallbackRequestHandler(BaseHTTPRequestHandler):
                     "registered_handlers": self.router.list_handlers(),
                 },
             )
-        else:
-            self._send_json_response(404, {"error": "Not found"})
+            return
+
+        # OAuth redirect callback endpoint
+        if path == "/callback":
+            # Extract authorization code and state from query parameters
+            code = query_params.get("code", [None])[0]
+            state = query_params.get("state", [None])[0]  # state = session_id
+
+            logger.info(
+                "Received OAuth redirect callback",
+                extra={
+                    "has_code": bool(code),
+                    "session_id": state,
+                },
+            )
+
+            if not code or not state:
+                self._send_html_response(
+                    400,
+                    "<h1>授权失败</h1><p>缺少必需参数</p>",
+                )
+                return
+
+            # Transform to callback format and route to handler
+            try:
+                callback_data = {
+                    "type": "oauth_redirect",
+                    "authorization_code": code,
+                    "state": state,
+                    "session_id": state,
+                }
+
+                # Route to handler
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                try:
+                    _ = loop.run_until_complete(self.router.route(callback_data))
+
+                    # Send success HTML page
+                    self._send_html_response(
+                        200,
+                        "<h1>授权成功！</h1><p>您可以关闭此页面，返回飞书查看授权状态。</p>",
+                    )
+                finally:
+                    loop.close()
+
+            except Exception as e:
+                logger.error(f"Failed to process OAuth callback: {e}", exc_info=True)
+                self._send_html_response(
+                    500,
+                    f"<h1>授权处理失败</h1><p>{str(e)}</p>",
+                )
+            return
+
+        # 404 for other paths
+        self._send_json_response(404, {"error": "Not found"})
 
     def do_POST(self) -> None:  # noqa: N802
         """Handle POST requests (callback endpoints)."""
@@ -135,6 +196,61 @@ class CallbackRequestHandler(BaseHTTPRequestHandler):
         self.send_header("Content-type", "application/json")
         self.end_headers()
         self.wfile.write(json.dumps(data).encode("utf-8"))
+
+    def _send_html_response(self, status_code: int, html: str) -> None:
+        """Send HTML response.
+
+        Parameters
+        ----------
+            status_code: HTTP status code
+            html: HTML content to send
+        """
+        self.send_response(status_code)
+        self.send_header("Content-type", "text/html; charset=utf-8")
+        self.end_headers()
+        html_page = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>飞书授权</title>
+    <style>
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }}
+        .container {{
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            text-align: center;
+            max-width: 500px;
+        }}
+        h1 {{
+            color: #333;
+            margin-bottom: 1rem;
+        }}
+        p {{
+            color: #666;
+            line-height: 1.6;
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        {html}
+    </div>
+</body>
+</html>
+        """
+        self.wfile.write(html_page.encode("utf-8"))
 
     def log_message(self, format: str, *args: Any) -> None:  # noqa: A002
         """Override to use our logger instead of stderr."""

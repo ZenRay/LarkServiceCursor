@@ -230,7 +230,7 @@ class CardAuthHandler:
                     },
                     "url": f"https://open.feishu.cn/open-apis/authen/v1/authorize?"
                     f"app_id={self.app_id}&"
-                    f"redirect_uri=https://open.feishu.cn/&"
+                    f"redirect_uri=http://localhost:8000/callback&"
                     f"state={session_id}",
                 },
                 {
@@ -347,7 +347,7 @@ class CardAuthHandler:
                 auth_url = (
                     f"https://open.feishu.cn/open-apis/authen/v1/authorize?"
                     f"app_id={self.app_id}&"
-                    f"redirect_uri=https://open.feishu.cn/&"
+                    f"redirect_uri=http://localhost:8000/callback&"
                     f"state={session_id}"
                 )
 
