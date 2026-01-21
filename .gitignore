@@ -88,3 +88,7 @@ production.env
 coverage.xml
 htmlcov/
 archive/temp-reports/coverage.json
+
+# Archived temporary files
+archive/temp-reports/PROJECT_SUMMARY.md
+archive/temp-guides/
