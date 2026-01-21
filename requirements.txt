@@ -75,6 +75,9 @@ werkzeug==3.1.5
 # Monitoring
 prometheus-client==0.21.1
 
+# Scheduling
+apscheduler==3.10.4
+
 # Documentation
 sphinx==8.1.3
 sphinx-rtd-theme==3.0.2

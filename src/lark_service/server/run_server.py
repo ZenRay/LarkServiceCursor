@@ -35,6 +35,8 @@ from lark_service.core.app_manager import ApplicationManager  # noqa: E402
 from lark_service.core.credential_pool import CredentialPool  # noqa: E402
 from lark_service.core.token_storage import TokenStorageService  # noqa: E402
 from lark_service.models.base import Base  # noqa: E402
+from lark_service.scheduler.scheduler import scheduler_service  # noqa: E402
+from lark_service.scheduler.tasks import register_scheduled_tasks  # noqa: E402
 from lark_service.server.manager import CallbackServerManager  # noqa: E402
 from lark_service.utils.logger import get_logger  # noqa: E402
 
@@ -136,6 +138,12 @@ def main() -> None:
         # Initialize services
         card_auth_handler, verification_token, encrypt_key = init_services()
 
+        # Initialize and start scheduler
+        logger.info("Initializing scheduler...")
+        register_scheduled_tasks(scheduler_service)
+        scheduler_service.start()
+        logger.info("Scheduler started successfully")
+
         # Create callback server manager
         manager = CallbackServerManager(
             verification_token=verification_token,
@@ -149,6 +157,8 @@ def main() -> None:
             logger.warning("=" * 70)
             logger.warning("Set CALLBACK_SERVER_ENABLED=true in .env to enable")
             logger.warning("=" * 70)
+            # Shutdown scheduler before exit
+            scheduler_service.shutdown()
             sys.exit(0)
 
         # Register callback handlers
@@ -184,12 +194,26 @@ def main() -> None:
                 time.sleep(1)
         except KeyboardInterrupt:
             logger.info("\nShutting down...")
+            # Shutdown scheduler first
+            scheduler_service.shutdown(wait=True)
+            logger.info("Scheduler stopped")
+            # Then stop the server
             manager.stop()
 
     except KeyboardInterrupt:
         logger.info("\nServer stopped by user")
+        # Ensure scheduler is stopped
+        import contextlib
+
+        with contextlib.suppress(Exception):
+            scheduler_service.shutdown(wait=False)
     except Exception as e:
         logger.error(f"Failed to start server: {e}", exc_info=True)
+        # Ensure scheduler is stopped on error
+        import contextlib
+
+        with contextlib.suppress(Exception):
+            scheduler_service.shutdown(wait=False)
         sys.exit(1)
 
 
