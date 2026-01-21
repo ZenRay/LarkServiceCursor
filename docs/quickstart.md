@@ -82,7 +82,7 @@ print(f"✅ 消息发送成功！message_id: {response['message_id']}")
 ## 步骤 6: 发送交互式卡片
 
 ```python
-from lark_service.messaging import CardBuilder
+from lark_service.cardkit import CardBuilder
 
 # 创建卡片
 card = CardBuilder() \
