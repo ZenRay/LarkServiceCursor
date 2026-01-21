@@ -7,7 +7,82 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### 🚀 Feature: Application Management and Code Refactoring (003-code-refactor-optimization) (2026-01-22)
+### 🚀 Feature: Production Infrastructure Enhancement (003-code-refactor-optimization Phase 2) (2026-01-22)
+
+#### Added - Monitoring and Observability
+
+- **Prometheus Integration** (`config/prometheus.yml`)
+  - Metrics collection from lark-service on port 9090
+  - 15-second scrape interval for real-time monitoring
+  - 30-day data retention
+  - Preconfigured scrape targets: lark-service, prometheus, rabbitmq
+  - Alert rules configuration support
+
+- **Grafana Dashboard** (`config/grafana/dashboards/lark-service.json`)
+  - **API Requests Rate (QPS)**: Real-time request rate per endpoint and method
+  - **API Response Time**: P95 and P99 latency percentiles
+  - **Error Rate Gauge**: 5xx error rate with color-coded thresholds
+  - **Rate Limiting Panel**: Track auth rate limit triggers
+  - **Token Refresh Status**: Monitor token refresh success/retry metrics
+  - Auto-refresh every 10 seconds
+  - 6-hour default time range
+
+- **Grafana Provisioning** (`config/grafana/provisioning/`)
+  - Auto-configured Prometheus datasource
+  - Dashboard auto-loading on startup
+  - No manual Grafana setup required
+
+#### Enhanced - Docker and Orchestration
+
+- **Docker Compose Services** (`docker-compose.yml`)
+  - **prometheus**: Metrics collection server (port 9091)
+    - Resource limits: 0.5 CPU, 512MB memory
+    - Persistent storage volume: `prometheus_data`
+    - 30-day retention policy
+  - **grafana**: Visualization dashboard (port 3000)
+    - Default admin credentials configurable via env vars
+    - Resource limits: 0.5 CPU, 512MB memory
+    - Persistent storage volume: `grafana_data`
+    - Provisioned datasources and dashboards
+  - **lark-service**: Enhanced monitoring support
+    - Exposed metrics endpoint on port 9090
+    - Environment variables: `PROMETHEUS_ENABLED`, `METRICS_PORT`
+
+- **Updated Dependencies**
+  - Added `prometheus-client==0.21.1` to requirements.txt and requirements-prod.txt
+  - Support for metric exposition and collection
+
+#### Enhanced - CI/CD Pipeline
+
+- **GitHub Actions Workflow** (`.github/workflows/ci-cd.yml`)
+  - **Build Job**: Docker image build and validation
+    - Docker Buildx setup for multi-platform support
+    - Build cache optimization (GitHub Actions cache)
+    - Image size verification (must be < 500MB)
+    - Container health check testing
+  - **Verify Job**: Enhanced test coverage reporting
+    - Codecov integration for coverage upload
+    - Coverage reports uploaded as artifacts
+  - **Deploy Job**: Now depends on both verify and build jobs
+    - Ensures Docker image passes all checks before deployment
+
+- **Quality Gates**
+  - ✅ Docker image size < 500MB (enforced in CI)
+  - ✅ Container starts successfully
+  - ✅ Health check endpoint responds within 10 seconds
+  - ✅ All tests pass before build
+
+#### Documentation
+
+- **Updated Deployment Guide**
+  - Monitoring setup instructions (Prometheus + Grafana)
+  - Dashboard access and configuration
+  - Metric endpoint documentation
+  - Production deployment checklist
+
+---
+
+### 🚀 Feature: Application Management and Code Refactoring (003-code-refactor-optimization Phase 1) (2026-01-22)
 
 #### Added - Core Application Management
 

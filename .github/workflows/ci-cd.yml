@@ -79,12 +79,80 @@ jobs:
         run: |
           uv run pytest tests/unit/ -v --cov=src/lark_service --cov-report=xml
 
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        if: always()
+        with:
+          files: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+
   # ==========================================================================
-  # 2. 自动化部署阶段 (CD)
+  # 2. Docker 构建阶段
+  # ==========================================================================
+  build:
+    name: Build Docker Image
+    needs: [verify]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: lark-service:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Test Docker image
+        run: |
+          docker build -t lark-service:test .
+          docker images lark-service:test --format "{{.Size}}"
+
+      - name: Verify image size < 500MB
+        run: |
+          SIZE_STR=$(docker images lark-service:test --format "{{.Size}}")
+          echo "Image size: $SIZE_STR"
+
+          # Extract numeric value (handles both MB and GB)
+          if [[ $SIZE_STR == *"GB"* ]]; then
+            SIZE=$(echo $SIZE_STR | grep -oE '[0-9.]+')
+            SIZE_MB=$(echo "$SIZE * 1024" | bc | cut -d. -f1)
+          else
+            SIZE_MB=$(echo $SIZE_STR | grep -oE '[0-9]+' | head -1)
+          fi
+
+          echo "Image size in MB: ${SIZE_MB}MB"
+
+          if [ "$SIZE_MB" -gt 500 ]; then
+            echo "❌ Image size ${SIZE_MB}MB exceeds 500MB limit"
+            exit 1
+          fi
+
+          echo "✅ Image size ${SIZE_MB}MB is within 500MB limit"
+
+      - name: Test health check
+        run: |
+          docker run -d --name test-container lark-service:test
+          sleep 10
+          docker exec test-container python -c "import sys; from lark_service.core.config import Config; sys.exit(0)" || exit 1
+          docker stop test-container
+          docker rm test-container
+          echo "✅ Health check passed"
+
+  # ==========================================================================
+  # 3. 自动化部署阶段 (CD)
   # ==========================================================================
   deploy:
     name: Auto Deploy to Production
-    needs: [verify]
+    needs: [verify, build]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     # Manual approval is controlled by GitHub Environment settings (production -> required reviewers)
