@@ -441,12 +441,13 @@ class CardAuthHandler:
                     )
 
             # Return success response (for card interaction flow)
+            # Note: We don't return the card here because it causes a new message
+            # Instead, we've already updated the original message card above
             return {
                 "toast": {
                     "type": "success",
                     "content": "授权成功!",
                 },
-                "card": self._build_success_card(user_info),
             }
 
         except AuthorizationCodeExpiredError as e:
