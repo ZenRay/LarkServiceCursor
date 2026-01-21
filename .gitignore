@@ -76,6 +76,8 @@ Thumbs.db
 test.py
 test_simple.py
 test_websocket_auth.py
+test_auth_flow.py
+start_callback_server.py
 websocket_config_helper.py
 debug_contact.py
 production.env
