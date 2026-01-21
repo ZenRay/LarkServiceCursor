@@ -17,10 +17,14 @@ These tests will be enabled once the real API implementation is complete.
 import os
 
 import pytest
+from cryptography.fernet import Fernet
 
 from lark_service.clouddoc.sheet.client import SheetClient
+from lark_service.core.config import Config
 from lark_service.core.credential_pool import CredentialPool
 from lark_service.core.exceptions import InvalidParameterError
+from lark_service.core.storage.postgres_storage import TokenStorageService
+from lark_service.core.storage.sqlite_storage import ApplicationManager
 
 # Check if integration test environment is configured
 INTEGRATION_TEST_ENABLED = all(
@@ -38,21 +42,66 @@ pytestmark = pytest.mark.skipif(
 
 
 @pytest.fixture(scope="module")
-def credential_pool():
+def credential_pool(tmp_path_factory):
     """Create credential pool with real credentials."""
-    pool = CredentialPool()
+    # Create temp directory for config DB
+    tmp_dir = tmp_path_factory.mktemp("sheet_integration_test")
+    config_db_path = tmp_dir / "test_config.db"
 
-    # Register test app
+    # Generate encryption key
+    encryption_key = Fernet.generate_key()
+
+    # Create config
+    config = Config(
+        postgres_host=os.getenv("POSTGRES_HOST", "localhost"),
+        postgres_port=int(os.getenv("POSTGRES_PORT", "5432")),
+        postgres_db=os.getenv("POSTGRES_DB", "lark_service"),
+        postgres_user=os.getenv("POSTGRES_USER", "lark_user"),
+        postgres_password=os.getenv("POSTGRES_PASSWORD", "lark_password_123"),
+        rabbitmq_host=os.getenv("RABBITMQ_HOST", "localhost"),
+        rabbitmq_port=int(os.getenv("RABBITMQ_PORT", "5672")),
+        rabbitmq_user=os.getenv("RABBITMQ_USER", "lark"),
+        rabbitmq_password=os.getenv("RABBITMQ_PASSWORD", "rabbitmq_password_123"),
+        config_encryption_key=encryption_key,
+        config_db_path=config_db_path,
+        log_level="INFO",
+        max_retries=3,
+        retry_backoff_base=1.0,
+        token_refresh_threshold=0.1,
+    )
+
+    # Build postgres URL
+    postgres_url = (
+        f"postgresql://{config.postgres_user}:{config.postgres_password}"
+        f"@{config.postgres_host}:{config.postgres_port}/{config.postgres_db}"
+    )
+
+    # Get test app credentials
     app_id = os.getenv("TEST_APP_ID", "")
     app_secret = os.getenv("TEST_APP_SECRET", "")
 
-    pool.register_app(
+    # Create application manager and add test app
+    app_manager = ApplicationManager(config.config_db_path, encryption_key)
+    app_manager.add_application(
         app_id=app_id,
+        app_name="Sheet Integration Test App",
         app_secret=app_secret,
-        app_type="internal",
     )
 
-    return pool
+    # Create token storage
+    token_storage = TokenStorageService(postgres_url)
+
+    # Create credential pool
+    pool = CredentialPool(
+        config=config,
+        app_manager=app_manager,
+        token_storage=token_storage,
+    )
+
+    yield pool
+
+    # Cleanup
+    app_manager.close()
 
 
 @pytest.fixture(scope="module")

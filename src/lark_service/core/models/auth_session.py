@@ -4,7 +4,7 @@ This module defines the UserAuthSession model for managing OAuth2
 authentication sessions with 10-minute timeout.
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 from sqlalchemy import Index, String, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
@@ -17,21 +17,28 @@ class Base(DeclarativeBase):
 
 
 class UserAuthSession(Base):
-    """OAuth2 authentication session tracking.
+    """User authentication session tracking.
 
     Manages user authentication sessions for obtaining user_access_token.
     Sessions expire after 10 minutes of inactivity.
+    Supports WebSocket-based authorization with user information storage.
 
     Attributes
     ----------
         id: Auto-increment primary key
         session_id: Unique session identifier (UUID)
         app_id: Lark application ID
-        state: OAuth2 state parameter for CSRF protection
-        auth_method: Authentication method (oauth/card_callback/message_link)
-        redirect_uri: OAuth2 redirect URI
+        user_id: Feishu user ID (enterprise unique)
+        state: OAuth2 state parameter or session state (pending/completed/expired)
+        auth_method: Authentication method (websocket_card/oauth/http_callback)
+        redirect_uri: OAuth2 redirect URI (optional)
         open_id: User's OpenID (set after successful auth)
-        user_access_token: User access token (set after successful auth)
+        union_id: User's UnionID (cross-app unique, optional)
+        user_name: User's display name (optional)
+        mobile: User's mobile number (encrypted, optional)
+        email: User's email address (optional)
+        message_id: Feishu message ID of authorization card (for updates)
+        user_access_token: User access token (encrypted, set after successful auth)
         token_expires_at: Token expiration timestamp
         created_at: Session creation timestamp
         expires_at: Session expiration timestamp (10 min from creation)
@@ -42,8 +49,9 @@ class UserAuthSession(Base):
         >>> session = UserAuthSession(
         ...     session_id="550e8400-e29b-41d4-a716-446655440000",
         ...     app_id="cli_a1b2c3d4e5f6g7h8",
-        ...     state="random_state_string",
-        ...     auth_method="oauth"
+        ...     user_id="ou_test_user_123",
+        ...     state="pending",
+        ...     auth_method="websocket_card"
         ... )
         >>> session.is_expired()
         False
@@ -56,10 +64,16 @@ class UserAuthSession(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     session_id: Mapped[str] = mapped_column(String(64), unique=True)
     app_id: Mapped[str] = mapped_column(String(64))
+    user_id: Mapped[str | None] = mapped_column(String(64), default=None)
     state: Mapped[str] = mapped_column(String(128))
     auth_method: Mapped[str] = mapped_column(String(32))
     redirect_uri: Mapped[str | None] = mapped_column(String(512), default=None)
     open_id: Mapped[str | None] = mapped_column(String(64), default=None)
+    union_id: Mapped[str | None] = mapped_column(String(64), default=None)
+    user_name: Mapped[str | None] = mapped_column(String(128), default=None)
+    mobile: Mapped[str | None] = mapped_column(String(32), default=None)
+    email: Mapped[str | None] = mapped_column(String(128), default=None)
+    message_id: Mapped[str | None] = mapped_column(String(128), default=None)
     user_access_token: Mapped[str | None] = mapped_column(String(512), default=None)
     token_expires_at: Mapped[datetime | None] = mapped_column(default=None)
     created_at: Mapped[datetime] = mapped_column(default=func.now())
@@ -69,6 +83,9 @@ class UserAuthSession(Base):
     __table_args__ = (
         Index("idx_auth_session_state", "state"),
         Index("idx_auth_session_expires", "expires_at"),
+        Index("idx_auth_session_user", "app_id", "user_id"),
+        Index("idx_auth_session_token_expires", "token_expires_at"),
+        Index("idx_auth_session_created", "created_at"),
     )
 
     def is_expired(self, now: datetime | None = None) -> bool:
@@ -76,14 +93,14 @@ class UserAuthSession(Base):
 
         Parameters
         ----------
-            now: Current timestamp (defaults to datetime.now())
+            now: Current timestamp (defaults to datetime.now(UTC))
 
         Returns
         ----------
             True if session is expired, False otherwise
         """
         if now is None:
-            now = datetime.now()
+            now = datetime.now(UTC)
         return self.expires_at <= now
 
     def is_completed(self) -> bool:
@@ -107,21 +124,21 @@ class UserAuthSession(Base):
         self.open_id = open_id
         self.user_access_token = user_access_token
         self.token_expires_at = token_expires_at
-        self.completed_at = datetime.now()
+        self.completed_at = datetime.now(UTC)
 
     def get_remaining_seconds(self, now: datetime | None = None) -> float:
         """Get remaining seconds until session expiration.
 
         Parameters
         ----------
-            now: Current timestamp (defaults to datetime.now())
+            now: Current timestamp (defaults to datetime.now(UTC))
 
         Returns
         ----------
             Remaining seconds (negative if expired)
         """
         if now is None:
-            now = datetime.now()
+            now = datetime.now(UTC)
         return (self.expires_at - now).total_seconds()
 
     def __repr__(self) -> str:

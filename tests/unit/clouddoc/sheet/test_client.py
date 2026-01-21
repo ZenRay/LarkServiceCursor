@@ -31,7 +31,7 @@ class TestSheetClientValidation:
         """Test get sheet data fails with empty range."""
         with pytest.raises(InvalidParameterError, match="Range string cannot be empty"):
             client.get_sheet_data(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 spreadsheet_token="shtcn123",
                 sheet_id="sheet1",
                 range_str="",
@@ -41,7 +41,7 @@ class TestSheetClientValidation:
         """Test update sheet data fails with empty range."""
         with pytest.raises(InvalidParameterError, match="Range string cannot be empty"):
             client.update_sheet_data(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 spreadsheet_token="shtcn123",
                 sheet_id="sheet1",
                 range_str="",
@@ -52,7 +52,7 @@ class TestSheetClientValidation:
         """Test update sheet data fails with empty values."""
         with pytest.raises(InvalidParameterError, match="Values cannot be empty"):
             client.update_sheet_data(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 spreadsheet_token="shtcn123",
                 sheet_id="sheet1",
                 range_str="A1:B2",
@@ -64,7 +64,7 @@ class TestSheetClientValidation:
         # Test font_size < 8
         with pytest.raises(InvalidParameterError, match="Invalid font_size"):
             client.format_cells(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 spreadsheet_token="shtcn123",
                 sheet_id="sheet1",
                 range_str="A1:B2",
@@ -74,7 +74,7 @@ class TestSheetClientValidation:
         # Test font_size > 72
         with pytest.raises(InvalidParameterError, match="Invalid font_size"):
             client.format_cells(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 spreadsheet_token="shtcn123",
                 sheet_id="sheet1",
                 range_str="A1:B2",
@@ -85,7 +85,7 @@ class TestSheetClientValidation:
         """Test format cells fails with invalid alignment."""
         with pytest.raises(InvalidParameterError, match="Invalid align"):
             client.format_cells(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 spreadsheet_token="shtcn123",
                 sheet_id="sheet1",
                 range_str="A1:B2",
@@ -96,7 +96,7 @@ class TestSheetClientValidation:
         """Test format cells fails with invalid vertical alignment."""
         with pytest.raises(InvalidParameterError, match="Invalid vertical_align"):
             client.format_cells(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 spreadsheet_token="shtcn123",
                 sheet_id="sheet1",
                 range_str="A1:B2",
@@ -107,7 +107,7 @@ class TestSheetClientValidation:
         """Test merge cells fails with invalid merge type."""
         with pytest.raises(InvalidParameterError, match="Invalid merge_type"):
             client.merge_cells(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 spreadsheet_token="shtcn123",
                 sheet_id="sheet1",
                 range_str="A1:B2",
@@ -119,7 +119,7 @@ class TestSheetClientValidation:
         # Test start_column < 0
         with pytest.raises(InvalidParameterError, match="Invalid column range"):
             client.set_column_width(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 spreadsheet_token="shtcn123",
                 sheet_id="sheet1",
                 start_column=-1,
@@ -130,7 +130,7 @@ class TestSheetClientValidation:
         # Test end_column < start_column
         with pytest.raises(InvalidParameterError, match="Invalid column range"):
             client.set_column_width(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 spreadsheet_token="shtcn123",
                 sheet_id="sheet1",
                 start_column=5,
@@ -143,7 +143,7 @@ class TestSheetClientValidation:
         # Test width < 20
         with pytest.raises(InvalidParameterError, match="Invalid width"):
             client.set_column_width(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 spreadsheet_token="shtcn123",
                 sheet_id="sheet1",
                 start_column=0,
@@ -154,7 +154,7 @@ class TestSheetClientValidation:
         # Test width > 1000
         with pytest.raises(InvalidParameterError, match="Invalid width"):
             client.set_column_width(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 spreadsheet_token="shtcn123",
                 sheet_id="sheet1",
                 start_column=0,
@@ -167,7 +167,7 @@ class TestSheetClientValidation:
         # Test start_row < 0
         with pytest.raises(InvalidParameterError, match="Invalid row range"):
             client.set_row_height(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 spreadsheet_token="shtcn123",
                 sheet_id="sheet1",
                 start_row=-1,
@@ -178,7 +178,7 @@ class TestSheetClientValidation:
         # Test end_row < start_row
         with pytest.raises(InvalidParameterError, match="Invalid row range"):
             client.set_row_height(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 spreadsheet_token="shtcn123",
                 sheet_id="sheet1",
                 start_row=5,
@@ -191,7 +191,7 @@ class TestSheetClientValidation:
         # Test height < 20
         with pytest.raises(InvalidParameterError, match="Invalid height"):
             client.set_row_height(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 spreadsheet_token="shtcn123",
                 sheet_id="sheet1",
                 start_row=0,
@@ -202,7 +202,7 @@ class TestSheetClientValidation:
         # Test height > 500
         with pytest.raises(InvalidParameterError, match="Invalid height"):
             client.set_row_height(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 spreadsheet_token="shtcn123",
                 sheet_id="sheet1",
                 start_row=0,
@@ -215,7 +215,7 @@ class TestSheetClientValidation:
         # Test freeze_row_count < 0
         with pytest.raises(InvalidParameterError, match="Invalid freeze_row_count"):
             client.freeze_panes(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 spreadsheet_token="shtcn123",
                 sheet_id="sheet1",
                 freeze_row_count=-1,
@@ -224,7 +224,7 @@ class TestSheetClientValidation:
         # Test freeze_row_count > 100
         with pytest.raises(InvalidParameterError, match="Invalid freeze_row_count"):
             client.freeze_panes(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 spreadsheet_token="shtcn123",
                 sheet_id="sheet1",
                 freeze_row_count=101,
@@ -235,7 +235,7 @@ class TestSheetClientValidation:
         # Test freeze_column_count < 0
         with pytest.raises(InvalidParameterError, match="Invalid freeze_column_count"):
             client.freeze_panes(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 spreadsheet_token="shtcn123",
                 sheet_id="sheet1",
                 freeze_column_count=-1,
@@ -244,7 +244,7 @@ class TestSheetClientValidation:
         # Test freeze_column_count > 26
         with pytest.raises(InvalidParameterError, match="Invalid freeze_column_count"):
             client.freeze_panes(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 spreadsheet_token="shtcn123",
                 sheet_id="sheet1",
                 freeze_column_count=27,
@@ -273,7 +273,7 @@ class TestSheetClientOperations:
     def test_get_sheet_data_success(self, client):
         """Test get sheet data succeeds."""
         data = client.get_sheet_data(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             spreadsheet_token="shtcn123",
             sheet_id="sheet1",
             range_str="A1:B10",
@@ -291,7 +291,7 @@ class TestSheetClientOperations:
         ]
 
         result = client.update_sheet_data(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             spreadsheet_token="shtcn123",
             sheet_id="sheet1",
             range_str="A1:B3",
@@ -304,7 +304,7 @@ class TestSheetClientOperations:
     def test_format_cells_all_options(self, client):
         """Test format cells with all formatting options."""
         result = client.format_cells(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             spreadsheet_token="shtcn123",
             sheet_id="sheet1",
             range_str="A1:B2",
@@ -324,7 +324,7 @@ class TestSheetClientOperations:
     def test_format_cells_partial_options(self, client):
         """Test format cells with partial options."""
         result = client.format_cells(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             spreadsheet_token="shtcn123",
             sheet_id="sheet1",
             range_str="A1:B2",
@@ -341,7 +341,7 @@ class TestSheetClientOperations:
 
         for merge_type in merge_types:
             result = client.merge_cells(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 spreadsheet_token="shtcn123",
                 sheet_id="sheet1",
                 range_str="A1:B2",
@@ -353,7 +353,7 @@ class TestSheetClientOperations:
     def test_unmerge_cells_success(self, client):
         """Test unmerge cells succeeds."""
         result = client.unmerge_cells(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             spreadsheet_token="shtcn123",
             sheet_id="sheet1",
             range_str="A1:B2",
@@ -365,7 +365,7 @@ class TestSheetClientOperations:
     def test_set_column_width_success(self, client):
         """Test set column width succeeds."""
         result = client.set_column_width(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             spreadsheet_token="shtcn123",
             sheet_id="sheet1",
             start_column=0,
@@ -379,7 +379,7 @@ class TestSheetClientOperations:
     def test_set_row_height_success(self, client):
         """Test set row height succeeds."""
         result = client.set_row_height(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             spreadsheet_token="shtcn123",
             sheet_id="sheet1",
             start_row=0,
@@ -393,7 +393,7 @@ class TestSheetClientOperations:
     def test_freeze_panes_success(self, client):
         """Test freeze panes succeeds."""
         result = client.freeze_panes(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             spreadsheet_token="shtcn123",
             sheet_id="sheet1",
             freeze_row_count=1,
@@ -406,7 +406,7 @@ class TestSheetClientOperations:
     def test_freeze_panes_rows_only(self, client):
         """Test freeze panes with rows only."""
         result = client.freeze_panes(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             spreadsheet_token="shtcn123",
             sheet_id="sheet1",
             freeze_row_count=2,
@@ -419,7 +419,7 @@ class TestSheetClientOperations:
     def test_freeze_panes_columns_only(self, client):
         """Test freeze panes with columns only."""
         result = client.freeze_panes(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             spreadsheet_token="shtcn123",
             sheet_id="sheet1",
             freeze_row_count=0,
@@ -431,7 +431,7 @@ class TestSheetClientOperations:
     def test_unfreeze_panes_success(self, client):
         """Test unfreeze panes succeeds."""
         result = client.unfreeze_panes(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             spreadsheet_token="shtcn123",
             sheet_id="sheet1",
         )

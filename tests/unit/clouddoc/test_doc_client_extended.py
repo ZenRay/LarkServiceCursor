@@ -59,7 +59,7 @@ class TestDocClientAppendContent:
         blocks = [ContentBlock(block_type="paragraph", content="Test paragraph")]
 
         result = client.append_content(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             doc_id="doxcn1234567890abcdefghij",
             blocks=blocks,
         )
@@ -68,7 +68,7 @@ class TestDocClientAppendContent:
         mock_post.assert_called_once()
         # Verify token was obtained
         mock_credential_pool.get_token.assert_called_once_with(
-            "cli_test", token_type="tenant_access_token"
+            "cli_test1234567890ab", token_type="tenant_access_token"
         )
 
     @patch("lark_service.clouddoc.client.requests.post")
@@ -88,7 +88,7 @@ class TestDocClientAppendContent:
         ]
 
         result = client.append_content(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             doc_id="doxcn1234567890abcdefghij",
             blocks=blocks,
         )
@@ -111,7 +111,7 @@ class TestDocClientAppendContent:
         ]
 
         result = client.append_content(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             doc_id="doxcn1234567890abcdefghij",
             blocks=blocks,
         )
@@ -129,7 +129,7 @@ class TestDocClientAppendContent:
         blocks = [ContentBlock(block_type="divider", content="")]
 
         result = client.append_content(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             doc_id="doxcn1234567890abcdefghij",
             blocks=blocks,
         )
@@ -147,7 +147,7 @@ class TestDocClientAppendContent:
         blocks = [ContentBlock(block_type="paragraph", content="Some content")]
 
         result = client.append_content(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             doc_id="doxcn1234567890abcdefghij",
             blocks=blocks,
         )
@@ -165,7 +165,7 @@ class TestDocClientAppendContent:
         blocks = [ContentBlock(block_type="paragraph", content="Plain text content")]
 
         result = client.append_content(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             doc_id="doxcn1234567890abcdefghij",
             blocks=blocks,
         )
@@ -187,7 +187,7 @@ class TestDocClientAppendContent:
 
         with pytest.raises(APIError, match="API returned error"):
             client.append_content(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 doc_id="doxcn1234567890abcdefghij",
                 blocks=blocks,
             )
@@ -208,7 +208,7 @@ class TestDocClientAppendContent:
         # NotFoundError is retryable, so it will be raised after retries
         with pytest.raises((NotFoundError, APIError)):
             client.append_content(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 doc_id="doxcn1234567890abcdefghij",
                 blocks=blocks,
             )
@@ -224,7 +224,7 @@ class TestDocClientAppendContent:
         # After all retries fail, it raises the last exception
         with pytest.raises((requests.RequestException, APIError)):
             client.append_content(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 doc_id="doxcn1234567890abcdefghij",
                 blocks=blocks,
             )
@@ -259,7 +259,7 @@ class TestDocClientGetDocument:
         mock_sdk_client.docx.v1.document.get.return_value = mock_response
 
         doc = client.get_document(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             doc_id="doxcn1234567890abcdefghij",
         )
 
@@ -281,7 +281,7 @@ class TestDocClientGetDocument:
         mock_sdk_client.docx.v1.document.get.return_value = mock_response
 
         doc = client.get_document(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             doc_id="doxcn1234567890abcdefghij",
         )
 
@@ -322,7 +322,7 @@ class TestDocClientUpdateBlock:
         )
 
         result = client.update_block(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             doc_id="doxcn1234567890abcdefghij",
             block_id="blk123",
             block=block,
@@ -346,7 +346,7 @@ class TestDocClientUpdateBlock:
         )
 
         result = client.update_block(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             doc_id="doxcn1234567890abcdefghij",
             block_id="blk123",
             block=block,
@@ -374,7 +374,7 @@ class TestDocClientUpdateBlock:
         # 400 errors are treated as InvalidParameterError (non-retryable)
         with pytest.raises((InvalidParameterError, APIError)):
             client.update_block(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 doc_id="doxcn1234567890abcdefghij",
                 block_id="blk1234567890abcdefghijk",
                 block=block,
@@ -400,7 +400,7 @@ class TestDocClientUpdateBlock:
         # NotFoundError might be retried or wrapped
         with pytest.raises((NotFoundError, APIError)):
             client.update_block(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 doc_id="doxcn1234567890abcdefghij",
                 block_id="blk1234567890abcdefghijk",
                 block=block,
@@ -421,7 +421,7 @@ class TestDocClientUpdateBlock:
         # After retries, exception is raised
         with pytest.raises((requests.RequestException, APIError)):
             client.update_block(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 doc_id="doxcn1234567890abcdefghij",
                 block_id="blk1234567890abcdefghijk",
                 block=block,
@@ -460,7 +460,7 @@ class TestDocClientPermissions:
         mock_post.return_value = mock_response
 
         perm = client.grant_permission(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             doc_id="doxcn1234567890abcdefghij",
             member_type="user",
             member_id="ou_1234567890abcdefghij",
@@ -488,7 +488,7 @@ class TestDocClientPermissions:
         mock_post.return_value = mock_response
 
         perm = client.grant_permission(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             doc_id="doxcn1234567890abcdefghij",
             member_type="department",
             member_id="od-dept1234567890abcdefghij",
@@ -512,7 +512,7 @@ class TestDocClientPermissions:
 
         for perm_type in ["read", "write", "comment", "manage"]:
             perm = client.grant_permission(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 doc_id="doxcn1234567890abcdefghij",
                 member_type="user",
                 member_id="ou_1234567890abcdefghij",
@@ -534,7 +534,7 @@ class TestDocClientPermissions:
         # 400 errors are non-retryable (InvalidParameterError)
         with pytest.raises((InvalidParameterError, APIError)):
             client.grant_permission(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 doc_id="doxcn1234567890abcdefghij",
                 member_type="user",
                 member_id="ou_1234567890abcdefghij",
@@ -550,7 +550,7 @@ class TestDocClientPermissions:
         # After retries fail, raises exception
         with pytest.raises((requests.RequestException, APIError)):
             client.grant_permission(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 doc_id="doxcn1234567890abcdefghij",
                 member_type="user",
                 member_id="ou_1234567890abcdefghij",
@@ -569,7 +569,7 @@ class TestDocClientPermissions:
         mock_delete.return_value = mock_response
 
         result = client.revoke_permission(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             doc_id="doxcn1234567890abcdefghij",
             permission_id="perm123",
         )
@@ -591,7 +591,7 @@ class TestDocClientPermissions:
         # 400 errors are non-retryable
         with pytest.raises((InvalidParameterError, APIError)):
             client.revoke_permission(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 doc_id="doxcn1234567890abcdefghij",
                 permission_id="perm123",
             )
@@ -605,7 +605,7 @@ class TestDocClientPermissions:
         # After retries, raises exception
         with pytest.raises((requests.RequestException, APIError)):
             client.revoke_permission(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 doc_id="doxcn1234567890abcdefghij",
                 permission_id="perm123",
             )
@@ -636,7 +636,7 @@ class TestDocClientPermissions:
         mock_get.return_value = mock_response
 
         perms = client.list_permissions(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             doc_id="doxcn1234567890abcdefghij",
         )
 
@@ -657,7 +657,7 @@ class TestDocClientPermissions:
         mock_get.return_value = mock_response
 
         perms = client.list_permissions(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             doc_id="doxcn1234567890abcdefghij",
         )
 
@@ -676,7 +676,7 @@ class TestDocClientPermissions:
 
         with pytest.raises(APIError):
             client.list_permissions(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 doc_id="doxcn1234567890abcdefghij",
             )
 
@@ -689,6 +689,6 @@ class TestDocClientPermissions:
         # After retries, raises exception
         with pytest.raises((requests.RequestException, APIError)):
             client.list_permissions(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 doc_id="doxcn1234567890abcdefghij",
             )

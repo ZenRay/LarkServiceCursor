@@ -39,7 +39,7 @@ def e2e_config(tmp_path_factory: pytest.TempPathFactory) -> Config:
         postgres_host=os.getenv("POSTGRES_HOST", "localhost"),
         postgres_port=int(os.getenv("POSTGRES_PORT", "5432")),
         postgres_db=os.getenv("POSTGRES_DB", "lark_service"),
-        postgres_user=os.getenv("POSTGRES_USER", "lark"),
+        postgres_user=os.getenv("POSTGRES_USER", "lark_user"),
         postgres_password=os.getenv("POSTGRES_PASSWORD", "lark_password_123"),
         rabbitmq_host=os.getenv("RABBITMQ_HOST", "localhost"),
         rabbitmq_port=int(os.getenv("RABBITMQ_PORT", "5672")),
@@ -64,7 +64,7 @@ def e2e_app_manager(e2e_config: Config) -> ApplicationManager:
     )
 
     # Add test application
-    app_id = os.getenv("LARK_APP_ID", "cli_e2etest12345678")
+    app_id = os.getenv("LARK_APP_ID", "cli_e2etest1234567890")
     app_secret = os.getenv("LARK_APP_SECRET", "test_secret_e2e")
 
     # Application might already exist
@@ -110,7 +110,7 @@ def e2e_credential_pool(
 @pytest.fixture(scope="module")
 def test_app_id() -> str:
     """Get test app ID from environment."""
-    return os.getenv("LARK_APP_ID", "cli_e2etest12345678")
+    return os.getenv("LARK_APP_ID", "cli_e2etest1234567890")
 
 
 @pytest.fixture(scope="module")
@@ -424,8 +424,8 @@ class TestEndToEndFlow:
             e2e_config.config_encryption_key,
         )
 
-        app_id_1 = f"cli_multi1_{uuid.uuid4().hex[:8]}"
-        app_id_2 = f"cli_multi2_{uuid.uuid4().hex[:8]}"
+        app_id_1 = f"climulti1{uuid.uuid4().hex[:12]}"
+        app_id_2 = f"climulti2{uuid.uuid4().hex[:12]}"
 
         manager.add_application(
             app_id=app_id_1,

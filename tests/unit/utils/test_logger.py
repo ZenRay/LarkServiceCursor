@@ -5,6 +5,7 @@ Tests structured logging with context support.
 
 import logging
 from pathlib import Path
+from typing import Any
 
 from lark_service.utils.logger import (
     LoggerContextManager,
@@ -58,13 +59,13 @@ class TestRequestContext:
     def test_set_request_context(self) -> None:
         """Test setting request context."""
         logger = setup_logger("lark_service")
-        set_request_context(request_id="req-123", app_id="cli_abc")
+        set_request_context(request_id="req-123", app_id="cli_abc1234567890def")
 
         # Verify context is set
         for filter_obj in logger.filters:
             if hasattr(filter_obj, "request_id"):
                 assert filter_obj.request_id == "req-123"
-                assert filter_obj.app_id == "cli_abc"
+                assert filter_obj.app_id == "cli_abc1234567890def"
 
         # Clean up
         clear_request_context()
@@ -72,7 +73,7 @@ class TestRequestContext:
     def test_clear_request_context(self) -> None:
         """Test clearing request context."""
         logger = setup_logger("lark_service")
-        set_request_context(request_id="req-123", app_id="cli_abc")
+        set_request_context(request_id="req-123", app_id="cli_abc1234567890def")
         clear_request_context()
 
         # Verify context is cleared
@@ -85,12 +86,12 @@ class TestRequestContext:
         """Test LoggerContextManager."""
         logger = setup_logger("lark_service")
 
-        with LoggerContextManager(request_id="req-456", app_id="cli_def"):
+        with LoggerContextManager(request_id="req-456", app_id="cli_def1234567890abc"):
             # Context should be set
             for filter_obj in logger.filters:
                 if hasattr(filter_obj, "request_id"):
                     assert filter_obj.request_id == "req-456"
-                    assert filter_obj.app_id == "cli_def"
+                    assert filter_obj.app_id == "cli_def1234567890abc"
 
         # Context should be cleared after exiting
         for filter_obj in logger.filters:
@@ -102,18 +103,18 @@ class TestRequestContext:
 class TestLogging:
     """Test actual logging functionality."""
 
-    def test_log_with_context(self, tmp_path: Path, caplog) -> None:
+    def test_log_with_context(self, tmp_path: Path, caplog: Any) -> None:
         """Test logging with request context."""
         log_file = tmp_path / "test_context.log"
         logger = setup_logger("lark_service", log_file=log_file)
 
-        with LoggerContextManager(request_id="req-789", app_id="cli_ghi"):
+        with LoggerContextManager(request_id="req-789", app_id="cli_ghi1234567890abc"):
             logger.info("Test message")
 
         # Check log file contains context
         log_content = log_file.read_text()
         assert "req-789" in log_content
-        assert "cli_ghi" in log_content
+        assert "cli_ghi1234567890abc" in log_content
 
     def test_log_without_context(self, tmp_path: Path) -> None:
         """Test logging without request context."""

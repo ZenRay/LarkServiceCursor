@@ -33,14 +33,14 @@ class TestContactClientValidation:
         # Test empty email
         with pytest.raises(InvalidParameterError, match="Invalid email"):
             client.get_user_by_email(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 email="",
             )
 
         # Test email without @
         with pytest.raises(InvalidParameterError, match="Invalid email"):
             client.get_user_by_email(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 email="invalid_email",
             )
 
@@ -48,7 +48,7 @@ class TestContactClientValidation:
         """Test get user by mobile fails with empty mobile."""
         with pytest.raises(InvalidParameterError, match="Mobile cannot be empty"):
             client.get_user_by_mobile(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 mobile="",
             )
 
@@ -56,7 +56,7 @@ class TestContactClientValidation:
         """Test get user by user_id fails with empty user_id."""
         with pytest.raises(InvalidParameterError, match="User ID cannot be empty"):
             client.get_user_by_user_id(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 user_id="",
             )
 
@@ -64,7 +64,7 @@ class TestContactClientValidation:
         """Test batch get users fails with empty queries."""
         with pytest.raises(InvalidParameterError, match="Queries cannot be empty"):
             client.batch_get_users(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 queries=[],
             )
 
@@ -73,7 +73,7 @@ class TestContactClientValidation:
         queries = [BatchUserQuery(email=f"user{i}@example.com") for i in range(51)]
         with pytest.raises(InvalidParameterError, match="Too many queries"):
             client.batch_get_users(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 queries=queries,
             )
 
@@ -81,7 +81,7 @@ class TestContactClientValidation:
         """Test get department fails with empty department_id."""
         with pytest.raises(InvalidParameterError, match="Department ID cannot be empty"):
             client.get_department(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 department_id="",
             )
 
@@ -89,7 +89,7 @@ class TestContactClientValidation:
         """Test get department members fails with empty department_id."""
         with pytest.raises(InvalidParameterError, match="Department ID cannot be empty"):
             client.get_department_members(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 department_id="",
             )
 
@@ -98,7 +98,7 @@ class TestContactClientValidation:
         # Test page_size < 1
         with pytest.raises(InvalidParameterError, match="Invalid page_size"):
             client.get_department_members(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 department_id="od-xxx",
                 page_size=0,
             )
@@ -106,7 +106,7 @@ class TestContactClientValidation:
         # Test page_size > 100
         with pytest.raises(InvalidParameterError, match="Invalid page_size"):
             client.get_department_members(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 department_id="od-xxx",
                 page_size=101,
             )
@@ -115,7 +115,7 @@ class TestContactClientValidation:
         """Test get chat group fails with empty chat_id."""
         with pytest.raises(InvalidParameterError, match="Chat ID cannot be empty"):
             client.get_chat_group(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 chat_id="",
             )
 
@@ -123,7 +123,7 @@ class TestContactClientValidation:
         """Test get chat members fails with empty chat_id."""
         with pytest.raises(InvalidParameterError, match="Chat ID cannot be empty"):
             client.get_chat_members(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 chat_id="",
             )
 
@@ -132,7 +132,7 @@ class TestContactClientValidation:
         # Test page_size < 1
         with pytest.raises(InvalidParameterError, match="Invalid page_size"):
             client.get_chat_members(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 chat_id="oc_xxx",
                 page_size=0,
             )
@@ -140,7 +140,7 @@ class TestContactClientValidation:
         # Test page_size > 100
         with pytest.raises(InvalidParameterError, match="Invalid page_size"):
             client.get_chat_members(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 chat_id="oc_xxx",
                 page_size=101,
             )
@@ -185,7 +185,7 @@ class TestContactClientUserQueries:
         """Test get user by email raises NotFoundError when user not found."""
         with pytest.raises(NotFoundError, match="User not found"):
             client.get_user_by_email(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 email="nonexistent@example.com",
             )
 
@@ -193,7 +193,7 @@ class TestContactClientUserQueries:
         """Test get user by mobile raises NotFoundError when user not found."""
         with pytest.raises(NotFoundError, match="User not found"):
             client.get_user_by_mobile(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 mobile="+86-13800138000",
             )
 
@@ -201,7 +201,7 @@ class TestContactClientUserQueries:
         """Test get user by user_id raises NotFoundError when user not found."""
         with pytest.raises(NotFoundError, match="User not found"):
             client.get_user_by_user_id(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 user_id="nonexistent_id",
             )
 
@@ -223,7 +223,7 @@ class TestContactClientUserQueries:
         ]
 
         response = client.batch_get_users(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             queries=queries,
         )
 
@@ -236,7 +236,7 @@ class TestContactClientUserQueries:
         queries = [BatchUserQuery(email=f"user{i}@example.com") for i in range(50)]
 
         response = client.batch_get_users(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             queries=queries,
         )
 
@@ -286,7 +286,7 @@ class TestContactClientDepartmentQueries:
         """Test get department raises NotFoundError when department not found."""
         with pytest.raises(NotFoundError, match="Department not found"):
             client.get_department(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 department_id="od-nonexistent",
             )
 
@@ -305,7 +305,7 @@ class TestContactClientDepartmentQueries:
         mock_sdk_client.contact.v3.user.find_by_department.return_value = mock_response
 
         members, next_token = client.get_department_members(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             department_id="od-xxx",
             page_size=50,
         )
@@ -329,7 +329,7 @@ class TestContactClientDepartmentQueries:
 
         # First page
         members, next_token = client.get_department_members(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             department_id="od-xxx",
             page_size=20,
         )
@@ -339,7 +339,7 @@ class TestContactClientDepartmentQueries:
         # Second page (if next_token exists)
         if next_token:
             members2, next_token2 = client.get_department_members(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 department_id="od-xxx",
                 page_size=20,
                 page_token=next_token,
@@ -388,7 +388,7 @@ class TestContactClientChatQueries:
         """Test get chat group raises NotFoundError when group not found."""
         with pytest.raises(NotFoundError, match="Chat group not found"):
             client.get_chat_group(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 chat_id="oc-nonexistent",
             )
 
@@ -406,7 +406,7 @@ class TestContactClientChatQueries:
         mock_sdk_client.im.v1.chat_members.get.return_value = mock_response
 
         members, next_token = client.get_chat_members(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             chat_id="oc_xxx",
             page_size=50,
         )
@@ -429,7 +429,7 @@ class TestContactClientChatQueries:
 
         # First page
         members, next_token = client.get_chat_members(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             chat_id="oc_xxx",
             page_size=30,
         )
@@ -439,7 +439,7 @@ class TestContactClientChatQueries:
         # Second page (if next_token exists)
         if next_token:
             members2, next_token2 = client.get_chat_members(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 chat_id="oc_xxx",
                 page_size=30,
                 page_token=next_token,
@@ -460,7 +460,7 @@ class TestContactClientChatQueries:
         mock_sdk_client.im.v1.chat_members.get.return_value = mock_response
 
         members, _ = client.get_chat_members(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             chat_id="oc_xxx",
             page_size=100,
         )

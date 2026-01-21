@@ -176,7 +176,7 @@ class TestCallbackHandlerIntegration:
             "action": {"action_id": "test_action", "value": {"key": "value"}},
             "signature": "test_signature",
             "timestamp": "1642512345",
-            "app_id": "cli_test_app",
+            "app_id": "cli_testapp1234567890",
         }
 
         response = callback_handler.route_callback(event_data)
@@ -192,7 +192,7 @@ class TestCallbackHandlerIntegration:
             "action": {"action_id": "unregistered_action", "value": {}},
             "signature": "test_signature",
             "timestamp": "1642512345",
-            "app_id": "cli_test_app",
+            "app_id": "cli_testapp1234567890",
         }
 
         response = callback_handler.route_callback(event_data)
@@ -229,7 +229,7 @@ class TestCallbackHandlerIntegration:
             "action": {"action_id": "test_action", "value": {}},
             "signature": "test_signature",
             "timestamp": "1642512345",
-            "app_id": "cli_test_app",
+            "app_id": "cli_testapp1234567890",
         }
 
         response = callback_handler.handle_callback(request_data)
@@ -336,7 +336,7 @@ class TestEndToEndCardScenarios:
             "action": {"action_id": "approve_action", "value": {"action": "approve"}},
             "signature": "test_signature",
             "timestamp": "1642512345",
-            "app_id": "cli_test_app",
+            "app_id": "cli_testapp1234567890",
         }
 
         # Step 3: Route callback
@@ -384,7 +384,7 @@ class TestEndToEndCardScenarios:
             },
             "signature": "test_signature",
             "timestamp": "1642512345",
-            "app_id": "cli_test_app",
+            "app_id": "cli_testapp1234567890",
         }
 
         response = callback_handler.route_callback(event_data)

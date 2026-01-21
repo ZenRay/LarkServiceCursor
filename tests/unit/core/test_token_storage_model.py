@@ -28,12 +28,12 @@ class TestTokenStorageModel:
     def test_token_creation(self) -> None:
         """Test basic token creation."""
         token = TokenStorage(
-            app_id="cli_test123456789",
+            app_id="cli_test1234567890ab",
             token_type="app_access_token",
             token_value="test_token",
             expires_at=datetime.now() + timedelta(hours=1),
         )
-        assert token.app_id == "cli_test123456789"
+        assert token.app_id == "cli_test1234567890ab"
         assert token.token_type == "app_access_token"
         assert token.token_value == "test_token"
 
@@ -44,7 +44,7 @@ class TestTokenStorageModel:
     def test_is_expired_expired_token(self) -> None:
         """Test is_expired() returns True for expired token."""
         token = TokenStorage(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             token_type="app_access_token",
             token_value="test",
             expires_at=datetime.now() - timedelta(hours=1),  # Expired 1 hour ago
@@ -68,7 +68,7 @@ class TestTokenStorageModel:
         # Token created 1h50m ago, expires in 10 minutes (2h total lifetime)
         # 10 minutes = 8.3% of 2 hours, less than 10% threshold
         token = TokenStorage(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             token_type="app_access_token",
             token_value="test",
             created_at=now - timedelta(hours=1, minutes=50),
@@ -79,7 +79,7 @@ class TestTokenStorageModel:
     def test_should_refresh_expired_token(self) -> None:
         """Test should_refresh() returns True for expired token."""
         token = TokenStorage(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             token_type="app_access_token",
             token_value="test",
             expires_at=datetime.now() - timedelta(hours=1),
@@ -96,7 +96,7 @@ class TestTokenStorageModel:
     def test_get_remaining_seconds_negative(self) -> None:
         """Test get_remaining_seconds() returns negative value for expired token."""
         token = TokenStorage(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             token_type="app_access_token",
             token_value="test",
             expires_at=datetime.now() - timedelta(hours=1),
@@ -116,7 +116,7 @@ class TestTokenStorageModel:
         types = ["app_access_token", "tenant_access_token", "user_access_token"]
         for token_type in types:
             token = TokenStorage(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 token_type=token_type,
                 token_value="test",
                 expires_at=datetime.now() + timedelta(hours=1),

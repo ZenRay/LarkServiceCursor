@@ -1,0 +1,583 @@
+# Auth Session API Contract
+# Feature: 002-websocket-user-auth
+# Purpose: Define AuthSessionManager and CardAuthHandler internal APIs
+# Created: 2026-01-19
+
+openapi: 3.1.0
+info:
+  title: Lark Service Auth Session API
+  version: 0.2.0
+  description: |
+    Internal API contract for authentication session management and
+    card-based user authorization in Lark Service.
+
+    This contract defines:
+    - AuthSessionManager methods (session lifecycle)
+    - CardAuthHandler methods (card authorization flow)
+    - Expected inputs, outputs, and error conditions
+
+  contact:
+    name: Lark Service Team
+    email: support@example.com
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+
+tags:
+  - name: AuthSessionManager
+    description: Authentication session management operations
+  - name: CardAuthHandler
+    description: Card-based authorization operations
+
+paths:
+  /internal/auth/sessions:
+    post:
+      tags:
+        - AuthSessionManager
+      summary: Create Authentication Session
+      description: |
+        Create a new authentication session for user authorization.
+        Session expires in 10 minutes if not completed.
+      operationId: createAuthSession
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSessionRequest'
+      responses:
+        '200':
+          description: Session created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSession'
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /internal/auth/sessions/{session_id}:
+    get:
+      tags:
+        - AuthSessionManager
+      summary: Get Authentication Session
+      description: Retrieve an authentication session by session_id
+      operationId: getAuthSession
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Session found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSession'
+        '404':
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    patch:
+      tags:
+        - AuthSessionManager
+      summary: Complete Authentication Session
+      description: |
+        Mark session as completed with user_access_token and user info.
+        This should be called after successful token exchange.
+      operationId: completeAuthSession
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompleteSessionRequest'
+      responses:
+        '200':
+          description: Session completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSession'
+        '400':
+          description: Invalid request or session already completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /internal/auth/tokens/{app_id}/{user_id}:
+    get:
+      tags:
+        - AuthSessionManager
+      summary: Get Active User Access Token
+      description: |
+        Get the most recent valid user_access_token for a user.
+        Returns null if no valid token exists.
+      operationId: getActiveToken
+      parameters:
+        - name: app_id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^cli_[a-zA-Z0-9]{16}$'
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^ou_[a-zA-Z0-9]{20,24}$'
+      responses:
+        '200':
+          description: Token found (or null if no valid token)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+
+    post:
+      tags:
+        - AuthSessionManager
+      summary: Refresh User Access Token
+      description: |
+        Refresh an expiring or expired user_access_token.
+        Also updates user information from Feishu API.
+      operationId: refreshToken
+      parameters:
+        - name: app_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          description: Refresh failed (no session or expired)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /internal/auth/sessions/cleanup:
+    delete:
+      tags:
+        - AuthSessionManager
+      summary: Cleanup Expired Sessions
+      description: |
+        Delete or mark expired pending sessions.
+        Should be run periodically (e.g., hourly cron job).
+      operationId: cleanupExpiredSessions
+      responses:
+        '200':
+          description: Cleanup completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cleaned_count:
+                    type: integer
+                    description: Number of sessions cleaned up
+                    example: 42
+
+  /internal/auth/cards/send:
+    post:
+      tags:
+        - CardAuthHandler
+      summary: Send Authorization Card
+      description: |
+        Send an interactive authorization card to a user.
+        Card includes "Authorize" button linked to session_id.
+      operationId: sendAuthCard
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendAuthCardRequest'
+      responses:
+        '200':
+          description: Card sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SendAuthCardResponse'
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /internal/auth/cards/callback:
+    post:
+      tags:
+        - CardAuthHandler
+      summary: Handle Card Authorization Event
+      description: |
+        Process card callback event received via WebSocket.
+        Exchanges authorization_code for user_access_token.
+      operationId: handleCardAuthEvent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CardAuthEventRequest'
+      responses:
+        '200':
+          description: Authorization processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardAuthEventResponse'
+        '400':
+          description: Invalid event or authorization failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    CreateSessionRequest:
+      type: object
+      required:
+        - app_id
+        - user_id
+      properties:
+        app_id:
+          type: string
+          pattern: '^cli_[a-zA-Z0-9]{16}$'
+          description: Feishu application ID
+          example: "cli_a1b2c3d4e5f6g7h8"
+        user_id:
+          type: string
+          pattern: '^ou_[a-zA-Z0-9]{20,24}$'
+          description: Feishu user OpenID
+          example: "ou_7dab8a3d3cdcc08c560abcd"
+        auth_method:
+          type: string
+          enum:
+            - websocket_card
+            - oauth
+            - http_callback
+          default: websocket_card
+          description: Authentication method
+
+    CompleteSessionRequest:
+      type: object
+      required:
+        - user_access_token
+        - token_expires_at
+        - user_info
+      properties:
+        user_access_token:
+          type: string
+          description: User access token (will be encrypted)
+          example: "u-7dCz4T1Bx9KyLmNpQrStUvWxYz"
+        token_expires_at:
+          type: string
+          format: date-time
+          description: Token expiration time (ISO 8601)
+          example: "2026-01-26T10:05:00Z"
+        user_info:
+          $ref: '#/components/schemas/UserInfo'
+
+    SendAuthCardRequest:
+      type: object
+      required:
+        - app_id
+        - user_id
+        - session_id
+      properties:
+        app_id:
+          type: string
+          description: Feishu application ID
+        user_id:
+          type: string
+          description: Recipient user OpenID
+        session_id:
+          type: string
+          format: uuid
+          description: Associated auth session ID
+        options:
+          $ref: '#/components/schemas/AuthCardOptions'
+
+    AuthCardOptions:
+      type: object
+      properties:
+        include_detailed_description:
+          type: boolean
+          default: true
+          description: Whether to show detailed description
+        auth_card_template_id:
+          type: string
+          nullable: true
+          description: Custom card template ID (optional)
+        custom_message:
+          type: string
+          nullable: true
+          description: Custom prompt message (optional)
+        privacy_policy_url:
+          type: string
+          format: uri
+          nullable: true
+          description: Privacy policy link (optional)
+
+    CardAuthEventRequest:
+      type: object
+      required:
+        - event
+      properties:
+        event:
+          type: object
+          description: P2CardActionTrigger event payload
+          required:
+            - operator
+            - action
+          properties:
+            operator:
+              type: object
+              required:
+                - open_id
+              properties:
+                open_id:
+                  type: string
+                user_id:
+                  type: string
+                union_id:
+                  type: string
+            action:
+              type: object
+              required:
+                - value
+              properties:
+                value:
+                  type: object
+                  required:
+                    - session_id
+                  properties:
+                    session_id:
+                      type: string
+                      format: uuid
+                    authorization_code:
+                      type: string
+                      nullable: true
+
+    AuthSession:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Database primary key
+          example: 12345
+        session_id:
+          type: string
+          format: uuid
+          description: Session unique identifier
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        app_id:
+          type: string
+          description: Feishu application ID
+        user_id:
+          type: string
+          description: Feishu user ID
+        open_id:
+          type: string
+          nullable: true
+          description: User OpenID (null until completed)
+        union_id:
+          type: string
+          nullable: true
+          description: User UnionID (null until completed)
+        user_name:
+          type: string
+          nullable: true
+          description: User display name (null until completed)
+        mobile:
+          type: string
+          nullable: true
+          description: User mobile number (encrypted, null until completed)
+        email:
+          type: string
+          nullable: true
+          description: User email (null until completed)
+        auth_method:
+          type: string
+          enum:
+            - websocket_card
+            - oauth
+            - http_callback
+          description: Authentication method used
+        state:
+          type: string
+          enum:
+            - pending
+            - completed
+            - expired
+          description: Session state
+        user_access_token:
+          type: string
+          nullable: true
+          description: Encrypted user access token (null until completed)
+        token_expires_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Token expiration time
+        created_at:
+          type: string
+          format: date-time
+          description: Session creation time
+        expires_at:
+          type: string
+          format: date-time
+          description: Session expiration time (10 minutes after creation)
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Session completion time (null until completed)
+
+    UserInfo:
+      type: object
+      required:
+        - name
+        - user_id
+        - open_id
+      properties:
+        name:
+          type: string
+          description: User display name
+          example: "张三"
+        user_id:
+          type: string
+          description: User ID (enterprise unique)
+          example: "7123456789012345678"
+        open_id:
+          type: string
+          description: User OpenID (app unique)
+          example: "ou_7dab8a3d3cdcc08c560abcd"
+        union_id:
+          type: string
+          nullable: true
+          description: User UnionID (cross-app unique)
+          example: "on_8e89a9c0d4e5f6a7b8c9d0e1"
+        mobile:
+          type: string
+          nullable: true
+          description: User mobile number
+          example: "+86-13800138000"
+        email:
+          type: string
+          nullable: true
+          description: User email address
+          example: "zhangsan@example.com"
+
+    TokenResponse:
+      type: object
+      properties:
+        user_access_token:
+          type: string
+          nullable: true
+          description: Decrypted user access token (null if not available)
+          example: "u-7dCz4T1Bx9KyLmNpQrStUvWxYz"
+        token_expires_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Token expiration time
+          example: "2026-01-26T10:05:00Z"
+        is_expiring:
+          type: boolean
+          description: Whether token is expiring soon (<10% remaining)
+          example: false
+
+    SendAuthCardResponse:
+      type: object
+      properties:
+        message_id:
+          type: string
+          description: Message ID of sent card
+          example: "om_7dCz4T1Bx9Ky2Lm3Np4Qr5St6Uv"
+        session_id:
+          type: string
+          format: uuid
+          description: Associated session ID
+          example: "550e8400-e29b-41d4-a716-446655440000"
+
+    CardAuthEventResponse:
+      type: object
+      properties:
+        toast:
+          type: object
+          description: Toast message to show to user
+          properties:
+            type:
+              type: string
+              enum:
+                - success
+                - error
+                - warning
+              example: "success"
+            content:
+              type: string
+              example: "授权成功!"
+        card:
+          type: object
+          nullable: true
+          description: Updated card content (optional)
+
+    Error:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error code
+          example: "SESSION_NOT_FOUND"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Authorization session not found or expired"
+        details:
+          type: object
+          nullable: true
+          description: Additional error details

@@ -39,9 +39,9 @@ class TestContactCacheManager:
 
     def test_cache_user_new(self, cache_manager, sample_user):
         """Test caching a new user."""
-        cached = cache_manager.cache_user("cli_test", sample_user)
+        cached = cache_manager.cache_user("cli_test1234567890ab", sample_user)
 
-        assert cached.app_id == "cli_test"
+        assert cached.app_id == "cli_test1234567890ab"
         assert cached.open_id == sample_user.open_id
         assert cached.email == sample_user.email
         assert cached.name == sample_user.name
@@ -50,7 +50,7 @@ class TestContactCacheManager:
     def test_cache_user_update_existing(self, cache_manager, sample_user):
         """Test updating an existing cached user."""
         # Cache initial user
-        cache_manager.cache_user("cli_test", sample_user)
+        cache_manager.cache_user("cli_test1234567890ab", sample_user)
 
         # Update user info
         updated_user = User(
@@ -63,7 +63,7 @@ class TestContactCacheManager:
         )
 
         # Cache updated user
-        cached = cache_manager.cache_user("cli_test", updated_user)
+        cached = cache_manager.cache_user("cli_test1234567890ab", updated_user)
 
         assert cached.email == "updated@example.com"
         assert cached.name == "Updated User"
@@ -71,9 +71,9 @@ class TestContactCacheManager:
 
     def test_get_user_by_open_id_hit(self, cache_manager, sample_user):
         """Test cache hit when getting user by open_id."""
-        cache_manager.cache_user("cli_test", sample_user)
+        cache_manager.cache_user("cli_test1234567890ab", sample_user)
 
-        user = cache_manager.get_user_by_open_id("cli_test", sample_user.open_id)
+        user = cache_manager.get_user_by_open_id("cli_test1234567890ab", sample_user.open_id)
 
         assert user is not None
         assert user.open_id == sample_user.open_id
@@ -81,15 +81,15 @@ class TestContactCacheManager:
 
     def test_get_user_by_open_id_miss(self, cache_manager):
         """Test cache miss when getting user by open_id."""
-        user = cache_manager.get_user_by_open_id("cli_test", "ou_nonexistent")
+        user = cache_manager.get_user_by_open_id("cli_test1234567890ab", "ou_nonexistent")
 
         assert user is None
 
     def test_get_user_by_email_hit(self, cache_manager, sample_user):
         """Test cache hit when getting user by email."""
-        cache_manager.cache_user("cli_test", sample_user)
+        cache_manager.cache_user("cli_test1234567890ab", sample_user)
 
-        user = cache_manager.get_user_by_email("cli_test", sample_user.email)
+        user = cache_manager.get_user_by_email("cli_test1234567890ab", sample_user.email)
 
         assert user is not None
         assert user.email == sample_user.email
@@ -97,15 +97,15 @@ class TestContactCacheManager:
 
     def test_get_user_by_email_miss(self, cache_manager):
         """Test cache miss when getting user by email."""
-        user = cache_manager.get_user_by_email("cli_test", "nonexistent@example.com")
+        user = cache_manager.get_user_by_email("cli_test1234567890ab", "nonexistent@example.com")
 
         assert user is None
 
     def test_get_user_by_mobile_hit(self, cache_manager, sample_user):
         """Test cache hit when getting user by mobile."""
-        cache_manager.cache_user("cli_test", sample_user)
+        cache_manager.cache_user("cli_test1234567890ab", sample_user)
 
-        user = cache_manager.get_user_by_mobile("cli_test", sample_user.mobile)
+        user = cache_manager.get_user_by_mobile("cli_test1234567890ab", sample_user.mobile)
 
         assert user is not None
         assert user.mobile == sample_user.mobile
@@ -113,15 +113,15 @@ class TestContactCacheManager:
 
     def test_get_user_by_mobile_miss(self, cache_manager):
         """Test cache miss when getting user by mobile."""
-        user = cache_manager.get_user_by_mobile("cli_test", "10000000000")
+        user = cache_manager.get_user_by_mobile("cli_test1234567890ab", "10000000000")
 
         assert user is None
 
     def test_get_user_by_user_id_hit(self, cache_manager, sample_user):
         """Test cache hit when getting user by user_id."""
-        cache_manager.cache_user("cli_test", sample_user)
+        cache_manager.cache_user("cli_test1234567890ab", sample_user)
 
-        user = cache_manager.get_user_by_user_id("cli_test", sample_user.user_id)
+        user = cache_manager.get_user_by_user_id("cli_test1234567890ab", sample_user.user_id)
 
         assert user is not None
         assert user.user_id == sample_user.user_id
@@ -129,14 +129,14 @@ class TestContactCacheManager:
 
     def test_get_user_by_user_id_miss(self, cache_manager):
         """Test cache miss when getting user by user_id."""
-        user = cache_manager.get_user_by_user_id("cli_test", "nonexistent_id")
+        user = cache_manager.get_user_by_user_id("cli_test1234567890ab", "nonexistent_id")
 
         assert user is None
 
     def test_ttl_expiration(self, cache_manager, sample_user):
         """Test that expired cache entries are not returned."""
         # Cache user
-        cached = cache_manager.cache_user("cli_test", sample_user)
+        cached = cache_manager.cache_user("cli_test1234567890ab", sample_user)
 
         # Manually set expiration to past
         with cache_manager.session_factory() as session:
@@ -145,43 +145,43 @@ class TestContactCacheManager:
             session.commit()
 
         # Should return None for expired entry
-        user = cache_manager.get_user_by_open_id("cli_test", sample_user.open_id)
+        user = cache_manager.get_user_by_open_id("cli_test1234567890ab", sample_user.open_id)
         assert user is None
 
     def test_app_id_isolation(self, cache_manager, sample_user):
         """Test that cache entries are isolated by app_id."""
         # Cache user for app1
-        cache_manager.cache_user("cli_app1", sample_user)
+        cache_manager.cache_user("cli_app1test123456789", sample_user)
 
         # Try to get user with different app_id
-        user = cache_manager.get_user_by_open_id("cli_app2", sample_user.open_id)
+        user = cache_manager.get_user_by_open_id("cli_app2test123456789", sample_user.open_id)
 
         assert user is None
 
         # Get user with correct app_id
-        user = cache_manager.get_user_by_open_id("cli_app1", sample_user.open_id)
+        user = cache_manager.get_user_by_open_id("cli_app1test123456789", sample_user.open_id)
 
         assert user is not None
 
     def test_invalidate_user_success(self, cache_manager, sample_user):
         """Test invalidating a cached user."""
-        cache_manager.cache_user("cli_test", sample_user)
+        cache_manager.cache_user("cli_test1234567890ab", sample_user)
 
         # Verify user is cached
-        user = cache_manager.get_user_by_open_id("cli_test", sample_user.open_id)
+        user = cache_manager.get_user_by_open_id("cli_test1234567890ab", sample_user.open_id)
         assert user is not None
 
         # Invalidate user
-        result = cache_manager.invalidate_user("cli_test", sample_user.open_id)
+        result = cache_manager.invalidate_user("cli_test1234567890ab", sample_user.open_id)
         assert result is True
 
         # Verify user is no longer cached
-        user = cache_manager.get_user_by_open_id("cli_test", sample_user.open_id)
+        user = cache_manager.get_user_by_open_id("cli_test1234567890ab", sample_user.open_id)
         assert user is None
 
     def test_invalidate_user_not_found(self, cache_manager):
         """Test invalidating a non-existent user."""
-        result = cache_manager.invalidate_user("cli_test", "ou_nonexistent")
+        result = cache_manager.invalidate_user("cli_test1234567890ab", "ou_nonexistent")
         assert result is False
 
     def test_cleanup_expired(self, cache_manager, sample_user):
@@ -196,8 +196,8 @@ class TestContactCacheManager:
             email="test2@example.com",
         )
 
-        cache_manager.cache_user("cli_test", user1)
-        cache_manager.cache_user("cli_test", user2)
+        cache_manager.cache_user("cli_test1234567890ab", user1)
+        cache_manager.cache_user("cli_test1234567890ab", user2)
 
         # Manually expire one user
         with cache_manager.session_factory() as session:
@@ -216,11 +216,11 @@ class TestContactCacheManager:
         assert count == 1
 
         # Verify expired user is gone
-        user = cache_manager.get_user_by_open_id("cli_test", user1.open_id)
+        user = cache_manager.get_user_by_open_id("cli_test1234567890ab", user1.open_id)
         assert user is None
 
         # Verify non-expired user still exists
-        user = cache_manager.get_user_by_open_id("cli_test", user2.open_id)
+        user = cache_manager.get_user_by_open_id("cli_test1234567890ab", user2.open_id)
         assert user is not None
 
     def test_get_cache_stats(self, cache_manager, sample_user):
@@ -242,9 +242,9 @@ class TestContactCacheManager:
             email="test3@example.com",
         )
 
-        cache_manager.cache_user("cli_test", user1)
-        cache_manager.cache_user("cli_test", user2)
-        cache_manager.cache_user("cli_test", user3)
+        cache_manager.cache_user("cli_test1234567890ab", user1)
+        cache_manager.cache_user("cli_test1234567890ab", user2)
+        cache_manager.cache_user("cli_test1234567890ab", user3)
 
         # Manually expire one user
         with cache_manager.session_factory() as session:
@@ -258,7 +258,7 @@ class TestContactCacheManager:
             session.commit()
 
         # Get stats
-        stats = cache_manager.get_cache_stats("cli_test")
+        stats = cache_manager.get_cache_stats("cli_test1234567890ab")
 
         assert stats["total"] == 3
         assert stats["active"] == 2
@@ -266,7 +266,7 @@ class TestContactCacheManager:
 
     def test_get_cache_stats_empty(self, cache_manager):
         """Test getting cache statistics for empty cache."""
-        stats = cache_manager.get_cache_stats("cli_test")
+        stats = cache_manager.get_cache_stats("cli_test1234567890ab")
 
         assert stats["total"] == 0
         assert stats["active"] == 0
@@ -281,7 +281,7 @@ class TestContactCacheManager:
             name="Minimal User",
         )
 
-        cached = cache_manager.cache_user("cli_test", user)
+        cached = cache_manager.cache_user("cli_test1234567890ab", user)
 
         assert cached.open_id == "ou_4234567890abcdefghij"
         assert cached.user_id == "42345678"
@@ -292,7 +292,7 @@ class TestContactCacheManager:
     def test_cache_refresh_ttl_on_update(self, cache_manager, sample_user):
         """Test that TTL is refreshed when updating cached user."""
         # Cache user
-        cached1 = cache_manager.cache_user("cli_test", sample_user)
+        cached1 = cache_manager.cache_user("cli_test1234567890ab", sample_user)
         original_expires_at = cached1.expires_at
 
         # Wait a bit (simulate time passing)
@@ -301,16 +301,16 @@ class TestContactCacheManager:
         time.sleep(0.1)
 
         # Update user (should refresh TTL)
-        cached2 = cache_manager.cache_user("cli_test", sample_user)
+        cached2 = cache_manager.cache_user("cli_test1234567890ab", sample_user)
 
         # TTL should be refreshed (expires_at should be later)
         assert cached2.expires_at > original_expires_at
 
     def test_department_ids_serialization(self, cache_manager, sample_user):
         """Test that department_ids are properly serialized."""
-        cache_manager.cache_user("cli_test", sample_user)
+        cache_manager.cache_user("cli_test1234567890ab", sample_user)
 
-        user = cache_manager.get_user_by_open_id("cli_test", sample_user.open_id)
+        user = cache_manager.get_user_by_open_id("cli_test1234567890ab", sample_user.open_id)
 
         assert user is not None
         assert user.department_ids == ["dept1", "dept2"]
@@ -325,9 +325,9 @@ class TestContactCacheManager:
             department_ids=None,
         )
 
-        cache_manager.cache_user("cli_test", user)
+        cache_manager.cache_user("cli_test1234567890ab", user)
 
-        cached_user = cache_manager.get_user_by_open_id("cli_test", user.open_id)
+        cached_user = cache_manager.get_user_by_open_id("cli_test1234567890ab", user.open_id)
 
         assert cached_user is not None
         assert cached_user.department_ids is None
@@ -343,8 +343,8 @@ class TestContactCacheManager:
 
         # Use as context manager
         with ContactCacheManager("sqlite:///:memory:") as manager:
-            manager.cache_user("cli_test", user)
-            cached = manager.get_user_by_open_id("cli_test", user.open_id)
+            manager.cache_user("cli_test1234567890ab", user)
+            cached = manager.get_user_by_open_id("cli_test1234567890ab", user.open_id)
             assert cached is not None
             assert cached.name == "Context User"
 
@@ -361,8 +361,8 @@ class TestContactCacheManager:
             name="Close User",
         )
 
-        manager.cache_user("cli_test", user)
-        cached = manager.get_user_by_open_id("cli_test", user.open_id)
+        manager.cache_user("cli_test1234567890ab", user)
+        cached = manager.get_user_by_open_id("cli_test1234567890ab", user.open_id)
         assert cached is not None
 
         # Explicitly close

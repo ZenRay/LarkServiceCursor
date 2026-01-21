@@ -661,3 +661,95 @@ class MessagingClient:
             failed=failed_count,
             results=results,
         )
+
+    def update_message(
+        self,
+        app_id: str,
+        message_id: str,
+        content: str,
+        msg_type: str = "interactive",
+    ) -> dict[str, Any]:
+        """Update an existing message.
+
+        Updates the content of a previously sent message.
+        Commonly used to update interactive cards.
+
+        Parameters
+        ----------
+            app_id : str
+                Lark application ID
+            message_id : str
+                The message ID to update
+            content : str
+                New message content (JSON string for interactive cards)
+            msg_type : str
+                Message type (default: "interactive")
+
+        Returns
+        -------
+            dict[str, Any]
+                Update response from Lark API
+
+        Raises
+        ------
+            InvalidParameterError
+                If message_id or content is invalid
+            RetryableError
+                If API call fails after retries
+
+        Examples
+        --------
+            >>> # Update an interactive card
+            >>> client.update_message(
+            ...     app_id="cli_xxx",
+            ...     message_id="om_xxx",
+            ...     content='{"elements": [...]}',
+            ...     msg_type="interactive"
+            ... )
+        """
+        if not message_id:
+            raise InvalidParameterError("message_id cannot be empty")
+
+        if not content:
+            raise InvalidParameterError("content cannot be empty")
+
+        # Import here to avoid circular dependency
+        from lark_oapi.api.im.v1 import (
+            PatchMessageRequest,
+            PatchMessageRequestBody,
+        )
+
+        logger.info(
+            f"Updating message {message_id}",
+            extra={"app_id": app_id, "message_id": message_id, "msg_type": msg_type},
+        )
+
+        # Get SDK client
+        sdk_client = self.credential_pool._get_sdk_client(app_id)
+
+        # Build request
+        # Note: PatchMessage only updates content, msg_type is inferred from original message
+        request = (
+            PatchMessageRequest.builder()
+            .message_id(message_id)
+            .request_body(PatchMessageRequestBody.builder().content(content).build())
+            .build()
+        )
+
+        # Execute with retry
+        def _update() -> dict[str, Any]:
+            response = sdk_client.im.v1.message.patch(request)
+
+            if not response.success():
+                error_msg = f"Failed to update message: {response.code} - {response.msg}"
+                logger.error(error_msg, extra={"app_id": app_id, "message_id": message_id})
+                raise RetryableError(error_msg)
+
+            logger.info(
+                f"Message {message_id} updated successfully",
+                extra={"app_id": app_id, "message_id": message_id},
+            )
+
+            return {"message_id": message_id, "success": True}
+
+        return self.retry_strategy.execute(_update)

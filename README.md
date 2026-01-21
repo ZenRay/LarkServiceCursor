@@ -15,12 +15,43 @@
 ## ✨ 核心特性
 
 - 🔐 **透明 Token 管理**: 自动获取、刷新和持久化 Token,开发者无需关心认证细节
+- 👤 **WebSocket 用户授权**: 通过交互式卡片获取 user_access_token,支持 aPaaS AI 能力 (v0.2.0+)
 - 🚀 **高度复用**: Python 库设计,可被任何 Python 应用导入使用 (Django、Flask、FastAPI、Airflow 等)
 - 🎯 **多应用隔离**: 支持多个飞书应用并发使用,Token 和配置完全隔离
 - 📦 **模块化设计**: Messaging、CloudDoc、Contact、aPaaS 四大模块,按需使用
 - 🔒 **安全第一**: 加密存储敏感信息,支持环境变量和密钥管理
 - 🧪 **测试驱动**: 99%+ 代码覆盖率,TDD 开发流程
-- 📊 **可观测性**: 结构化日志、请求追踪、性能监控
+- 📊 **生产就绪监控**: Prometheus 指标、Grafana 仪表板、告警规则
+
+## 📚 文档
+
+完整的使用文档请查看：
+
+- 📖 **[在线文档](docs/_build/html/index.html)** - 完整的 API 参考和使用指南
+- 🚀 **[快速开始](docs/quickstart.md)** - 5分钟快速上手
+- 💡 **[使用指南](docs/usage/)** - 各模块详细使用说明
+  - [消息服务](docs/usage/messaging.md)
+  - [卡片服务](docs/usage/card.md)
+  - [通讯录服务](docs/usage/contact.md)
+  - [云文档服务](docs/usage/clouddoc.md)
+  - [aPaaS 数据空间](docs/usage/apaas.md)
+  - [WebSocket 用户授权](docs/usage/auth.md) 🆕
+- 🔧 **[部署指南](docs/deployment.md)** - 生产环境部署
+- 📊 **[监控指南](docs/monitoring.md)** - Prometheus & Grafana
+
+### 构建文档
+
+```bash
+# 使用 Makefile
+make docs
+
+# 或使用脚本
+./scripts/build_docs.sh
+
+# 查看文档
+cd docs/_build/html && python -m http.server 8080
+# 访问 http://localhost:8080
+```
 
 ## 📋 快速开始
 
@@ -214,6 +245,69 @@ print(f"批量发送完成: {response.success}/{response.total} 成功")
 - ✅ PostgreSQL 持久化存储,服务重启后恢复
 - ✅ 并发安全 (线程锁 + 进程锁)
 - ✅ 多应用隔离 (按 `app_id` 隔离)
+
+### 👤 WebSocket 用户授权 (v0.2.0+ ✅)
+
+**通过交互式卡片获取用户授权,解锁 aPaaS AI 能力**
+
+#### 核心功能
+- ✅ **WebSocket 长连接** - 自动管理连接、断线重连、心跳检测
+- ✅ **交互式卡片授权** - 用户点击授权按钮完成 OAuth 流程
+- ✅ **Token 生命周期管理** - 自动刷新、过期检测、用户信息同步
+- ✅ **aPaaS 集成** - 自动注入 `user_access_token` 到 AI API 调用
+- ✅ **生产就绪监控** - Prometheus 指标、Grafana 仪表板、告警规则
+
+#### 使用示例
+
+```python
+from lark_service.auth.session_manager import AuthSessionManager
+from lark_service.auth.card_auth_handler import CardAuthHandler
+from lark_service.events.websocket_client import WebSocketClient
+
+# 1. 初始化 WebSocket 客户端
+ws_client = WebSocketClient(
+    app_id="cli_your_app_id",
+    app_secret="your_app_secret"
+)
+
+# 2. 启动 WebSocket 连接
+await ws_client.connect()
+await ws_client.start()
+
+# 3. 发送授权卡片给用户
+handler = CardAuthHandler(
+    session_manager=session_manager,
+    messaging_client=messaging_client,
+    app_id="cli_your_app_id"
+)
+
+message_id = await handler.send_auth_card(
+    user_id="ou_user_id",
+    options=AuthCardOptions(include_detailed_description=True)
+)
+
+# 4. 用户完成授权后,自动获取 Token
+# WebSocket 自动接收卡片回调事件并完成授权
+
+# 5. 在 aPaaS 调用中自动使用用户 Token
+from lark_service.apaas.client import APaaSClient
+
+apaas_client = APaaSClient(credential_pool, session_manager)
+response = await apaas_client.call_ai_bot(
+    app_id="cli_your_app_id",
+    user_id="ou_user_id",  # 自动注入该用户的 user_access_token
+    bot_id="bot_id",
+    query="帮我总结这篇文档"
+)
+```
+
+#### 快速开始
+参考 [WebSocket 用户授权快速指南](specs/002-websocket-user-auth/quickstart.md) 完成 5 分钟快速上手。
+
+#### 监控和运维
+- **Grafana 仪表板**: `docs/monitoring/grafana-dashboard.json`
+- **Prometheus 告警**: `docs/monitoring/alert-rules.yaml`
+- **部署指南**: `specs/002-websocket-user-auth/deployment.md`
 
 ### 💬 Messaging 模块 (Phase 3 ✅)
 

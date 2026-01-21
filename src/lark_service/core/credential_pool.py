@@ -8,7 +8,6 @@ from pathlib import Path
 
 import lark_oapi as lark
 import requests
-from lark_oapi.api.auth.v3 import InternalAppAccessTokenRequest
 
 from lark_service.core.config import Config
 from lark_service.core.exceptions import (
@@ -128,6 +127,8 @@ class CredentialPool:
     def _fetch_app_access_token(self, app_id: str) -> tuple[str, datetime]:
         """Fetch app_access_token from Feishu API.
 
+        Note: Uses direct HTTP request instead of SDK due to potential compatibility issues.
+
         Args:
             app_id: Application ID
 
@@ -137,30 +138,33 @@ class CredentialPool:
         Raises:
             TokenAcquisitionError: If token acquisition fails
         """
-        client = self._get_sdk_client(app_id)
-
         try:
-            request = (
-                InternalAppAccessTokenRequest.builder()
-                .app_id(app_id)
-                .app_secret(self.app_manager.get_decrypted_secret(app_id))
-                .build()
-            )
+            # Get app secret
+            app_secret = self.app_manager.get_decrypted_secret(app_id)
 
-            response = client.auth.v3.app_access_token.internal(request)
+            # Use direct HTTP request for better compatibility
+            # Reference: https://open.feishu.cn/document/server-docs/authentication-management/access-token/app_access_token_internal
+            url = "https://open.feishu.cn/open-apis/auth/v3/app_access_token/internal"
+            payload = {"app_id": app_id, "app_secret": app_secret}
 
-            if not response.success():
+            response = requests.post(url, json=payload, timeout=10)
+            result = response.json()
+
+            # Check response
+            if result.get("code") != 0:
+                error_code = result.get("code")
+                error_msg = result.get("msg", "Unknown error")
                 raise TokenAcquisitionError(
-                    f"Failed to get app_access_token: {response.msg}",
+                    f"Failed to get app_access_token: {error_msg}",
                     details={
                         "app_id": app_id,
-                        "code": response.code,
-                        "msg": response.msg,
+                        "code": error_code,
+                        "msg": error_msg,
                     },
                 )
 
-            token_value = response.data.app_access_token
-            expires_in = response.data.expire  # seconds
+            token_value = result["app_access_token"]
+            expires_in = result["expire"]  # seconds
 
             expires_at = datetime.now() + timedelta(seconds=expires_in)
 
@@ -177,6 +181,16 @@ class CredentialPool:
 
         except TokenAcquisitionError:
             raise
+        except requests.RequestException as e:
+            raise TokenAcquisitionError(
+                f"Failed to fetch app_access_token: Network error - {e}",
+                details={"app_id": app_id, "error": str(e)},
+            ) from e
+        except KeyError as e:
+            raise TokenAcquisitionError(
+                f"Failed to fetch app_access_token: Invalid response format - missing {e}",
+                details={"app_id": app_id, "error": str(e)},
+            ) from e
         except Exception as e:
             raise TokenAcquisitionError(
                 f"Failed to fetch app_access_token: {e}",
@@ -260,7 +274,7 @@ class CredentialPool:
     def get_token(
         self,
         app_id: str,
-        token_type: str = "app_access_token",
+        token_type: str = "app_access_token",  # nosec B107
         force_refresh: bool = False,
     ) -> str:
         """Get token with automatic refresh.
@@ -322,7 +336,7 @@ class CredentialPool:
     def refresh_token(
         self,
         app_id: str,
-        token_type: str = "app_access_token",
+        token_type: str = "app_access_token",  # nosec B107
     ) -> str:
         """Force refresh token from Feishu API (always fetches new token).
 
@@ -346,7 +360,7 @@ class CredentialPool:
     def _refresh_token_internal(
         self,
         app_id: str,
-        token_type: str = "app_access_token",
+        token_type: str = "app_access_token",  # nosec B107
         force: bool = False,
     ) -> str:
         """Internal method to refresh token with optional force flag.
@@ -383,7 +397,7 @@ class CredentialPool:
 
             # Fetch new token with retry
             def fetch_token() -> tuple[str, datetime]:
-                if token_type == "app_access_token":
+                if token_type == "app_access_token":  # nosec B105
                     return self._fetch_app_access_token(app_id)
                 else:
                     return self._fetch_tenant_access_token(app_id)
@@ -412,7 +426,7 @@ class CredentialPool:
     def invalidate_token(
         self,
         app_id: str,
-        token_type: str = "app_access_token",
+        token_type: str = "app_access_token",  # nosec B107
     ) -> None:
         """Invalidate cached token.
 

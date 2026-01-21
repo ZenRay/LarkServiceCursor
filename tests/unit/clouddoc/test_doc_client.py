@@ -32,7 +32,7 @@ class TestDocClientValidation:
         """Test create document fails with empty title."""
         with pytest.raises(InvalidParameterError, match="Invalid title length"):
             client.create_document(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 title="",
             )
 
@@ -41,7 +41,7 @@ class TestDocClientValidation:
         long_title = "x" * 256
         with pytest.raises(InvalidParameterError, match="Invalid title length"):
             client.create_document(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 title=long_title,
             )
 
@@ -49,7 +49,7 @@ class TestDocClientValidation:
         """Test append content fails with empty blocks."""
         with pytest.raises(InvalidParameterError, match="Blocks cannot be empty"):
             client.append_content(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 doc_id="doxcn1234567890abcdefghij",
                 blocks=[],
             )
@@ -59,7 +59,7 @@ class TestDocClientValidation:
         blocks = [ContentBlock(block_type="paragraph", content=f"Block {i}") for i in range(101)]
         with pytest.raises(InvalidParameterError, match="Too many blocks"):
             client.append_content(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 doc_id="doxcn1234567890abcdefghij",
                 blocks=blocks,
             )
@@ -68,7 +68,7 @@ class TestDocClientValidation:
         """Test grant permission fails with invalid member type."""
         with pytest.raises(InvalidParameterError, match="Invalid member_type"):
             client.grant_permission(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 doc_id="doxcn1234567890abcdefghij",
                 member_type="invalid",
                 member_id="ou_xxx",
@@ -79,7 +79,7 @@ class TestDocClientValidation:
         """Test grant permission fails with invalid permission type."""
         with pytest.raises(InvalidParameterError, match="Invalid permission_type"):
             client.grant_permission(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 doc_id="doxcn1234567890abcdefghij",
                 member_type="user",
                 member_id="ou_xxx",
@@ -120,7 +120,7 @@ class TestDocClientOperations:
 
         # Create document
         doc = client.create_document(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             title="Test Document",
         )
 
@@ -142,7 +142,7 @@ class TestDocClientOperations:
         # Should raise PermissionDeniedError
         with pytest.raises(PermissionDeniedError):
             client.create_document(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 title="Test Document",
             )
 
@@ -160,7 +160,7 @@ class TestDocClientOperations:
 
         # Get document
         doc = client.get_document_content(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             doc_id="doxcn1234567890abcdefghij",
         )
 
@@ -182,7 +182,7 @@ class TestDocClientOperations:
         # Should raise NotFoundError
         with pytest.raises(NotFoundError, match="Document not found"):
             client.get_document_content(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 doc_id="doxcn1234567890abcdefghij",
             )
 
@@ -203,7 +203,7 @@ class TestDocClientOperations:
             content="Updated content",
         )
         result = client.update_block(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             doc_id="doxcn1234567890abcdefghij",
             block_id="blk1234567890abcdefghij",
             block=block,
@@ -232,7 +232,7 @@ class TestDocClientOperations:
         )
         with pytest.raises(NotFoundError, match="Block not found"):
             client.update_block(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 doc_id="doxcn1234567890abcdefghij",
                 block_id="blk1234567890abcdefghij",
                 block=block,
@@ -263,7 +263,7 @@ class TestDocClientPermissions:
         # Test all valid member types
         for member_type in ["user", "department", "group", "public"]:
             perm = client.grant_permission(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 doc_id="doxcn1234567890abcdefghij",
                 member_type=member_type,
                 member_id="test_id" if member_type != "public" else "",
@@ -275,7 +275,7 @@ class TestDocClientPermissions:
         # Test all valid permission types
         for perm_type in ["read", "write", "comment", "manage"]:
             perm = client.grant_permission(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 doc_id="doxcn1234567890abcdefghij",
                 member_type="user",
                 member_id="ou_xxx",
@@ -287,7 +287,7 @@ class TestDocClientPermissions:
     def test_revoke_permission_success(self, client):
         """Test revoke permission succeeds."""
         result = client.revoke_permission(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             doc_id="doxcn1234567890abcdefghij",
             permission_id="perm123",
         )
@@ -297,7 +297,7 @@ class TestDocClientPermissions:
     def test_list_permissions_success(self, client):
         """Test list permissions succeeds."""
         perms = client.list_permissions(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             doc_id="doxcn1234567890abcdefghij",
         )
         assert isinstance(perms, list)

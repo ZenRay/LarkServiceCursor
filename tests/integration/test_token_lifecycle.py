@@ -24,7 +24,7 @@ def test_config(tmp_path: Path) -> Config:
         postgres_host="localhost",
         postgres_port=5432,
         postgres_db="lark_service",
-        postgres_user="lark",
+        postgres_user="lark_user",
         postgres_password="lark_password_123",
         rabbitmq_host="localhost",
         rabbitmq_port=5672,

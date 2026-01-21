@@ -139,7 +139,7 @@ class TestContactClientUserQueriesSuccess:
     def test_get_user_by_email_success(self, client):
         """Test successful user retrieval by email."""
         user = client.get_user_by_email(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             email="test@example.com",
         )
 
@@ -159,7 +159,7 @@ class TestContactClientUserQueriesSuccess:
     def test_get_user_by_mobile_success(self, client):
         """Test successful user retrieval by mobile."""
         user = client.get_user_by_mobile(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             mobile="+86-13800138000",
         )
 
@@ -173,7 +173,7 @@ class TestContactClientUserQueriesSuccess:
         # For user_id query, we only use GetUser API (no batch_get_id)
         # Use the same mock response
         user = client.get_user_by_user_id(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             user_id="ou_test123",
         )
 
@@ -190,7 +190,7 @@ class TestContactClientUserQueriesSuccess:
         mock_response.data.user.avatar = None
 
         user = client.get_user_by_user_id(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             user_id="ou_test123",
         )
 
@@ -211,7 +211,7 @@ class TestContactClientUserQueriesSuccess:
         mock_user.status = None
 
         user = client.get_user_by_user_id(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             user_id="ou_test123",
         )
 
@@ -309,7 +309,7 @@ class TestContactClientCaching:
         )
 
         user = client.get_user_by_email(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             email="cached@example.com",
         )
 
@@ -319,7 +319,7 @@ class TestContactClientCaching:
 
         # Should call cache get method
         mock_cache_manager.get_user_by_email.assert_called_once_with(
-            "cli_test", "cached@example.com"
+            "cli_test1234567890ab", "cached@example.com"
         )
 
         # Should NOT call API (credential pool should not be called)
@@ -337,7 +337,7 @@ class TestContactClientCaching:
         )
 
         user = client.get_user_by_email(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             email="test@example.com",
         )
 
@@ -359,7 +359,7 @@ class TestContactClientCaching:
         )
 
         _ = client.get_user_by_mobile(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             mobile="+86-13800138000",
         )
 
@@ -378,7 +378,7 @@ class TestContactClientCaching:
         )
 
         _ = client.get_user_by_user_id(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             user_id="ou_test123",
         )
 
@@ -475,7 +475,7 @@ class TestContactClientBatchOperations:
         ]
 
         response = client.batch_get_users(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             queries=queries,
         )
 
@@ -489,7 +489,7 @@ class TestContactClientBatchOperations:
         ]
 
         response = client.batch_get_users(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             queries=queries,
         )
 
@@ -528,7 +528,7 @@ class TestContactClientBatchOperations:
         ]
 
         response = client.batch_get_users(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             queries=queries,
         )
 
@@ -594,7 +594,7 @@ class TestContactClientDepartmentOperations:
     def test_get_department_success(self, client):
         """Test successful department retrieval."""
         dept = client.get_department(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             department_id="od-dept123dept123dept123",
         )
 
@@ -610,7 +610,7 @@ class TestContactClientDepartmentOperations:
     def test_get_department_members_success_with_data(self, client):
         """Test successful department members retrieval with data."""
         members, next_token = client.get_department_members(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             department_id="od-dept123dept123dept123",
             page_size=50,
         )
@@ -629,7 +629,7 @@ class TestContactClientDepartmentOperations:
         mock_response.data.page_token = "next_page_token"
 
         members, next_token = client.get_department_members(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             department_id="od-dept123dept123dept123",
             page_size=20,
         )
@@ -639,7 +639,7 @@ class TestContactClientDepartmentOperations:
         # Get next page
         mock_response.data.page_token = None  # Last page
         members2, next_token2 = client.get_department_members(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             department_id="od-dept123dept123dept123",
             page_size=20,
             page_token=next_token,
@@ -700,7 +700,7 @@ class TestContactClientChatOperations:
     def test_get_chat_group_success(self, client):
         """Test successful chat group retrieval."""
         chat = client.get_chat_group(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             chat_id="oc_chat123chat123chat123",
         )
 
@@ -716,7 +716,7 @@ class TestContactClientChatOperations:
     def test_get_chat_members_success_with_data(self, client):
         """Test successful chat members retrieval with data."""
         members, next_token = client.get_chat_members(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             chat_id="oc_chat123chat123chat123",
             page_size=50,
         )
@@ -735,7 +735,7 @@ class TestContactClientChatOperations:
         mock_response.data.page_token = "page_token_123"
 
         members, next_token = client.get_chat_members(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             chat_id="oc_chat123chat123chat123",
             page_size=30,
         )
@@ -782,7 +782,7 @@ class TestContactClientErrorHandling:
 
         with pytest.raises(APIError, match="API error"):
             client.get_user_by_email(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 email="test@example.com",
             )
 
@@ -800,7 +800,7 @@ class TestContactClientErrorHandling:
 
         with pytest.raises(PermissionDeniedError, match="No permission"):
             client.get_department(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 department_id="od-dept123",
             )
 
@@ -818,7 +818,7 @@ class TestContactClientErrorHandling:
 
         with pytest.raises(NotFoundError, match="Chat group not found"):
             client.get_chat_group(
-                app_id="cli_test",
+                app_id="cli_test1234567890ab",
                 chat_id="oc_nonexistent",
             )
 
@@ -841,7 +841,7 @@ class TestContactClientErrorHandling:
 
         # Should not raise, but mark items as not found
         response = client.batch_get_users(
-            app_id="cli_test",
+            app_id="cli_test1234567890ab",
             queries=queries,
         )
 

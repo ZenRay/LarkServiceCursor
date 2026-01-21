@@ -23,6 +23,7 @@ class ContextFilter(logging.Filter):
     Attributes:
         request_id: Current request ID for tracing
         app_id: Current application ID
+        session_id: Current auth session ID
     """
 
     def __init__(self) -> None:
@@ -30,6 +31,7 @@ class ContextFilter(logging.Filter):
         super().__init__()
         self.request_id: str | None = None
         self.app_id: str | None = None
+        self.session_id: str | None = None
 
     def filter(self, record: logging.LogRecord) -> bool:
         """Add context fields to log record.
@@ -42,6 +44,7 @@ class ContextFilter(logging.Filter):
         """
         record.request_id = self.request_id or "N/A"
         record.app_id = self.app_id or "N/A"
+        record.session_id = self.session_id or "N/A"
         return True
 
 
@@ -80,6 +83,8 @@ class CustomJsonFormatter(jsonlogger.JsonFormatter):  # type: ignore
             log_record["request_id"] = record.request_id
         if hasattr(record, "app_id"):
             log_record["app_id"] = record.app_id
+        if hasattr(record, "session_id"):
+            log_record["session_id"] = record.session_id
 
 
 def setup_logger(
@@ -126,7 +131,7 @@ def setup_logger(
         # Human-readable format for development
         formatter = logging.Formatter(
             "%(asctime)s - %(name)s - [%(levelname)s] - "
-            "[req:%(request_id)s] [app:%(app_id)s] - %(message)s",
+            "[req:%(request_id)s] [app:%(app_id)s] [sess:%(session_id)s] - %(message)s",
             datefmt="%Y-%m-%d %H:%M:%S",
         )
 
@@ -163,17 +168,20 @@ def get_logger(name: str = "lark_service") -> logging.Logger:
     return logging.getLogger(name)
 
 
-def set_request_context(request_id: str | None = None, app_id: str | None = None) -> None:
+def set_request_context(
+    request_id: str | None = None, app_id: str | None = None, session_id: str | None = None
+) -> None:
     """Set request context for logging.
 
     Args:
         request_id: Request ID for tracing
         app_id: Application ID
+        session_id: Auth session ID
 
     Example:
-        >>> set_request_context(request_id="req-12345", app_id="cli_abc123")
+        >>> set_request_context(request_id="req-12345", app_id="cli_abc123", session_id="sess-456")
         >>> logger = get_logger()
-        >>> logger.info("Request started")  # Will include request_id and app_id
+        >>> logger.info("Request started")  # Will include request_id, app_id, and session_id
     """
     logger = logging.getLogger("lark_service")
     for filter_obj in logger.filters:
@@ -182,6 +190,8 @@ def set_request_context(request_id: str | None = None, app_id: str | None = None
                 filter_obj.request_id = request_id
             if app_id is not None:
                 filter_obj.app_id = app_id
+            if session_id is not None:
+                filter_obj.session_id = session_id
 
 
 def clear_request_context() -> None:
@@ -195,6 +205,7 @@ def clear_request_context() -> None:
         if isinstance(filter_obj, ContextFilter):
             filter_obj.request_id = None
             filter_obj.app_id = None
+            filter_obj.session_id = None
 
 
 class LoggerContextManager:
@@ -208,15 +219,22 @@ class LoggerContextManager:
         ...     logger.info("Processing")
     """
 
-    def __init__(self, request_id: str | None = None, app_id: str | None = None) -> None:
+    def __init__(
+        self,
+        request_id: str | None = None,
+        app_id: str | None = None,
+        session_id: str | None = None,
+    ) -> None:
         """Initialize context manager.
 
         Args:
             request_id: Request ID for tracing
             app_id: Application ID
+            session_id: Auth session ID
         """
         self.request_id = request_id
         self.app_id = app_id
+        self.session_id = session_id
 
     def __enter__(self) -> "LoggerContextManager":
         """Enter context and set request context.
@@ -224,7 +242,7 @@ class LoggerContextManager:
         Returns:
             Self for context manager protocol
         """
-        set_request_context(self.request_id, self.app_id)
+        set_request_context(self.request_id, self.app_id, self.session_id)
         return self
 
     def __exit__(
@@ -238,3 +256,88 @@ class LoggerContextManager:
             exc_tb: Exception traceback if raised
         """
         clear_request_context()
+
+
+def sanitize_log_data(data: dict[str, Any]) -> dict[str, Any]:
+    """Sanitize sensitive data in log dictionaries.
+
+    Masks tokens, secrets, passwords, and other sensitive information
+    to prevent leaking credentials in logs.
+
+    Args:
+        data: Dictionary that may contain sensitive data
+
+    Returns:
+        Sanitized dictionary with masked sensitive values
+
+    Example:
+        >>> data = {"user_id": "ou_123", "access_token": "u-abc123xyz", "email": "test@example.com"}
+        >>> sanitize_log_data(data)
+        {'user_id': 'ou_123', 'access_token': 'u-abc***', 'email': 'test@example.com'}
+    """
+    import copy
+
+    # Sensitive keys to mask
+    sensitive_keys = {
+        "access_token",
+        "user_access_token",
+        "refresh_token",
+        "app_secret",
+        "authorization_code",
+        "password",
+        "secret",
+        "api_key",
+        "token",
+    }
+
+    # Create a deep copy to avoid modifying original
+    sanitized = copy.deepcopy(data)
+
+    def mask_value(value: str) -> str:
+        """Mask a sensitive value showing only prefix.
+
+        Args:
+            value: String value to mask
+
+        Returns:
+            Masked string (e.g., "u-abc***" for tokens)
+        """
+        if not value or not isinstance(value, str):
+            return value
+
+        if len(value) <= 6:
+            return "***"
+
+        # Show prefix based on token type
+        if value.startswith("u-") or value.startswith("t-"):
+            return value[:6] + "***"
+        elif value.startswith("cli_"):
+            return value[:8] + "***"
+        else:
+            return value[:4] + "***"
+
+    def sanitize_recursive(obj: Any) -> Any:
+        """Recursively sanitize nested dictionaries and lists.
+
+        Args:
+            obj: Object to sanitize
+
+        Returns:
+            Sanitized object
+        """
+        if isinstance(obj, dict):
+            return {
+                key: (
+                    mask_value(value)
+                    if key.lower() in sensitive_keys and isinstance(value, str)
+                    else sanitize_recursive(value)
+                )
+                for key, value in obj.items()
+            }
+        elif isinstance(obj, list):
+            return [sanitize_recursive(item) for item in obj]
+        else:
+            return obj
+
+    result: dict[str, Any] = sanitize_recursive(sanitized)
+    return result
