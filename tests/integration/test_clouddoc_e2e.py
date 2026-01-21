@@ -339,6 +339,7 @@ class TestBitableQueryOperations:
         if not text_field:
             pytest.skip("'文本' field not found in test table")
 
+        assert text_field is not None  # For mypy
         field_name = text_field["field_name"]
         print(f"   Using field: {field_name} ({text_field['field_id']})")
 
@@ -364,9 +365,11 @@ class TestBitableQueryOperations:
         # Verify results
         assert isinstance(records, list)
         print(f"✅ Retrieved {len(records)} filtered records")
+        assert text_field is not None  # For mypy
         print(f"   Filter: {text_field['field_name']} = 'Active'")
 
         if records:
+            assert text_field is not None  # For mypy
             print(f"   First record: {records[0].fields.get(text_field['field_name'])}")
 
     def test_query_records_pagination(self, bitable_client, test_config):

@@ -19,8 +19,8 @@ services:
     restart: unless-stopped
 
     environment:
-      POSTGRES_DB: lark_service
-      POSTGRES_USER: lark_user
+      POSTGRES_DB: ${POSTGRES_DB:-lark_service}
+      POSTGRES_USER: ${POSTGRES_USER:-lark_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
       POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
       PGDATA: /var/lib/postgresql/data/pgdata
