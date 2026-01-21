@@ -77,3 +77,4 @@ test.py
 production.env
 coverage.xml
 htmlcov/
+archive/temp-reports/coverage.json
