@@ -59,7 +59,7 @@ class TestTokenExpiryMonitor:
         # Warning message should be sent
         mock_messaging_client.send_text_message.assert_called_once()
         call_args = mock_messaging_client.send_text_message.call_args
-        assert call_args[1]["user_id"] == "user123"
+        assert call_args[1]["receiver_id"] == "user123"
         assert "⚠️" in call_args[1]["content"]
         # Days might be 4 or 5 depending on microseconds
         assert "days" in call_args[1]["content"]
