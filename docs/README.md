@@ -1,8 +1,9 @@
 # Lark Service - 项目文档索引
 
-**文档总数**: 19个核心文档
-**最后整理**: 2026-01-18
+**文档总数**: 25+ 核心文档
+**最后整理**: 2026-01-22
 **维护者**: Ray
+**当前版本**: v0.5.0 (生产就绪) 🎉
 
 ---
 
@@ -10,14 +11,14 @@
 
 | 角色 | 推荐文档 |
 |------|---------|
-| **新手** | [项目交接](project-handoff.md) → [快速参考](quick-reference.md) → [API参考](api_reference.md) |
-| **开发者** | [开发环境](development-environment.md) → [测试指南](TESTING-GUIDE.md) → [Git规范](git-commit-standards.md) |
-| **运维人员** | [部署指南](deployment.md) → [安全指南](security-guide.md) → [可观测性](observability-guide.md) |
-| **架构师** | [架构设计](architecture.md) → [性能要求](performance-requirements.md) → [SQLAlchemy 2.0](sqlalchemy-2.0-guide.md) |
+| **新手** | [项目交接](project-handoff.md) → [快速参考](quick-reference.md) → [快速开始](quickstart.md) |
+| **开发者** | [开发环境](development-environment.md) → [测试指南](TESTING-GUIDE.md) → [集成验证](testing/INTEGRATION_VERIFICATION.md) 🆕 |
+| **运维人员** | [生产部署](deployment/PRODUCTION_DEPLOYMENT.md) 🆕 → [安全指南](security-guide.md) → [监控指南](monitoring.md) |
+| **架构师** | [架构设计](architecture.md) → [Token刷新机制](architecture/token-refresh-mechanism.md) 🆕 → [性能要求](performance-requirements.md) |
 
 ---
 
-## 📚 核心文档 (19个)
+## 📚 核心文档 (25+)
 
 ### 1. 产品与规格 (4个)
 - [项目移交文档](project-handoff.md) ⭐ - 项目概览、完成功能、质量指标
@@ -25,37 +26,49 @@
 - [任务列表](../specs/001-lark-service-core/tasks.md) - Phase 1-6 任务详情
 - [快速参考](quick-reference.md) - 常用命令与API速查
 
-### 2. 架构与API (3个)
+### 2. 架构与API (5个)
 - [架构设计](architecture.md) ⭐ - 系统架构、模块依赖、数据流、Token管理
+- [Token 刷新机制](architecture/token-refresh-mechanism.md) 🆕 - 三种 Token 类型详解
 - [API参考](api_reference.md) ⭐ - 完整API文档、使用示例、最佳实践
 - [错误处理指南](error-handling-guide.md) - 错误处理策略、重试机制
+- [错误码](error-codes.md) - 完整错误码列表
 
-### 3. 开发指南 (5个)
+### 3. 开发指南 (6个)
 - [开发环境配置](development-environment.md) - 环境搭建、依赖安装
 - [测试指南](TESTING-GUIDE.md) ⭐ - 测试策略、覆盖率要求、CI集成
 - [集成测试指南](integration-test-guide.md) - E2E测试、环境配置
+- [真实飞书环境集成验证](testing/INTEGRATION_VERIFICATION.md) 🆕 - 生产环境验证步骤
 - [Git提交规范](git-commit-standards.md) - Conventional Commits、Pre-commit hooks
 - [Docstring标准](docstring-standard.md) - Google风格文档字符串规范
 
-### 4. 部署与配置 (4个)
-- [部署指南](deployment.md) ⭐ - 部署流程、环境变量、数据库备份
+### 4. 部署与配置 (6个)
+- [生产环境部署指南](deployment/PRODUCTION_DEPLOYMENT.md) ⭐ 🆕 - 完整生产部署流程
+- [部署指南](deployment.md) ⭐ - 基础部署流程、环境变量、数据库备份
+- [监控指南](monitoring.md) - Prometheus & Grafana 配置
 - [RabbitMQ配置](rabbitmq-config.md) - 消息队列生产配置、持久化、DLQ
 - [安全指南](security-guide.md) - 加密、密钥管理、容器安全
 - [性能要求](performance-requirements.md) - 性能指标、压力测试
 
-### 5. 技术专题 (3个)
+### 5. 功能特性 (2个) 🆕
+- [Token 监控](features/token-monitoring.md) 🆕 - Token 过期监控和多级通知
+- 更多功能文档持续添加中...
+
+### 6. 技术专题 (3个)
 - [SQLAlchemy 2.0指南](sqlalchemy-2.0-guide.md) - ORM使用、最佳实践
 - [可观测性指南](observability-guide.md) - 日志、监控、追踪
 - [CI/CD流程](ci-cd.md) - GitHub Actions、安全扫描、质量门禁
+
+### 7. 发布说明 (1个) 🆕
+- [v0.5.0 发布说明](releases/v0.5.0.md) 🎉 - 生产环境完整集成
 
 ---
 
 ## 📊 项目状态与报告
 
-### 当前状态
-- [当前状态摘要](../CURRENT-STATUS.md) ⭐⭐⭐ - 项目当前状态 (60.38%覆盖率)
+### 当前状态 (v0.5.0) 🎉
+- [v0.5.0 完成总结](completion/V0.5.0_COMPLETION_SUMMARY.md) 🆕 - 开发完成报告
+- [当前状态摘要](../CURRENT-STATUS.md) ⭐⭐⭐ - 项目当前状态
 - [快速启动指南](../QUICK-START-NEXT-CHAT.md) ⭐⭐⭐ - 下次Chat快速开始
-- [Phase 2-4 策略](PHASE2-4-STRATEGY.md) - 渐进式测试覆盖率提升策略
 
 ### 检查清单
 - [生产就绪检查](../specs/001-lark-service-core/checklists/production-readiness.md) - 生产部署217项检查
