@@ -605,7 +605,7 @@ class CredentialPool:
         """
         from lark_service.clouddoc.client import DocClient
 
-        return DocClient(self, app_id=app_id)  # type: ignore[call-arg]
+        return DocClient(self, app_id=app_id)
 
     def create_apaas_client(self, app_id: str | None = None) -> WorkspaceTableClient:
         """Factory method to create WorkspaceTableClient (aPaaS) with optional app_id.
