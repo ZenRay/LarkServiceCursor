@@ -496,6 +496,27 @@ class CardAuthHandler:
         """
         url = "https://open.feishu.cn/open-apis/authen/v1/oidc/access_token"
 
+        # First, get app_access_token for authentication
+        app_token_url = "https://open.feishu.cn/open-apis/auth/v3/app_access_token/internal"  # nosec B105
+        app_token_payload = {
+            "app_id": self.app_id,
+            "app_secret": self.app_secret,
+        }
+
+        async with (
+            aiohttp.ClientSession() as token_session,
+            token_session.post(
+                app_token_url, json=app_token_payload, headers={"Content-Type": "application/json"}
+            ) as token_response,
+        ):
+            token_data = await token_response.json()
+            if token_data.get("code") != 0:
+                raise TokenRefreshFailedError(
+                    f"Failed to get app_access_token: {token_data.get('msg')}"
+                )
+            app_access_token = token_data["app_access_token"]
+
+        # Now exchange authorization code for user access token
         payload = {
             "grant_type": "authorization_code",
             "code": authorization_code,
@@ -503,6 +524,7 @@ class CardAuthHandler:
 
         headers = {
             "Content-Type": "application/json",
+            "Authorization": f"Bearer {app_access_token}",
         }
 
         async with (
