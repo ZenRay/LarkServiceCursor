@@ -22,6 +22,7 @@ global:
 # Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
 rule_files:
   - "/etc/prometheus/prometheus-alerts.yaml"
+  - "/etc/prometheus/alerts.yml"
 
 # A scrape configuration containing exactly one endpoint to scrape:
 scrape_configs:
