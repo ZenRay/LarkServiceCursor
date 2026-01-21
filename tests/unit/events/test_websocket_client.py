@@ -7,7 +7,7 @@ event handler registration behavior.
 from __future__ import annotations
 
 import asyncio
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import Mock
 
 import pytest
 
@@ -33,14 +33,13 @@ def mock_lark(monkeypatch: pytest.MonkeyPatch) -> Mock:
     return mock_lark
 
 
-@pytest.mark.asyncio
-async def test_websocket_client_connect_success(mock_lark: Mock) -> None:
+def test_websocket_client_connect_success(mock_lark: Mock) -> None:
     """Test WebSocket client successfully establishes connection."""
     config = WebSocketConfig(app_id="cli_test1234567890ab", app_secret="secret")
     client = LarkWebSocketClient(config)
     client.register_handler("card.action.trigger", lambda event: event)
 
-    await client.connect()
+    client.connect()
 
     ws_client = mock_lark.ws.Client.return_value
     ws_client.start.assert_called_once()
@@ -48,13 +47,14 @@ async def test_websocket_client_connect_success(mock_lark: Mock) -> None:
     assert client.is_connected() is True
 
 
-@pytest.mark.asyncio
-async def test_websocket_client_reconnect_with_backoff(mock_lark: Mock) -> None:
+def test_websocket_client_reconnect_with_backoff(mock_lark: Mock) -> None:
     """Test WebSocket client reconnects with exponential backoff."""
+    from unittest.mock import patch
+
     config = WebSocketConfig(app_id="cli_test1234567890ab", app_secret="secret")
     client = LarkWebSocketClient(config)
 
-    connect_mock = AsyncMock(
+    connect_mock = Mock(
         side_effect=[
             WebSocketConnectionError("fail", app_id="cli_test1234567890ab"),
             WebSocketConnectionError("fail", app_id="cli_test1234567890ab"),
@@ -65,18 +65,14 @@ async def test_websocket_client_reconnect_with_backoff(mock_lark: Mock) -> None:
 
     sleep_calls: list[float] = []
 
-    async def fake_sleep(delay: float) -> None:
+    def fake_sleep(delay: float) -> None:
         sleep_calls.append(delay)
 
-    original_sleep = asyncio.sleep
-    asyncio.sleep = fake_sleep  # type: ignore[assignment]
-    try:
-        await client._reconnect_with_backoff()
-    finally:
-        asyncio.sleep = original_sleep  # type: ignore[assignment]
+    with patch("time.sleep", fake_sleep):
+        client._reconnect_with_backoff()
 
     assert sleep_calls[:3] == [1, 2, 4]
-    assert connect_mock.await_count == 3
+    assert connect_mock.call_count == 3
 
 
 @pytest.mark.asyncio
@@ -91,21 +87,20 @@ async def test_websocket_client_heartbeat_records() -> None:
 
     client._start_heartbeat()
     await asyncio.sleep(0.03)
-    await client.disconnect()
+    client.disconnect()
 
     assert client.status.heartbeat_count > 0
     assert client.status.last_heartbeat_at is not None
 
 
-@pytest.mark.asyncio
-async def test_websocket_client_register_handler(mock_lark: Mock) -> None:
+def test_websocket_client_register_handler(mock_lark: Mock) -> None:
     """Test event handler registration uses SDK dispatcher."""
     config = WebSocketConfig(app_id="cli_test1234567890ab", app_secret="secret")
     client = LarkWebSocketClient(config)
     handler = Mock()
 
     client.register_handler("card.action.trigger", handler)
-    await client.connect()
+    client.connect()
 
     builder = mock_lark.EventDispatcherHandler.builder.return_value
     builder.register_p2_card_action_trigger.assert_called_once_with(handler)

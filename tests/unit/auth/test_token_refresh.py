@@ -20,7 +20,10 @@ class TestTokenRefresh:
     @pytest.fixture
     def mock_db(self):
         """Mock database session."""
-        return Mock()
+        mock = Mock()
+        # Mock count() to return an integer for Prometheus metrics
+        mock.query.return_value.filter.return_value.count.return_value = 0
+        return mock
 
     @pytest.fixture
     def auth_manager(self, mock_db):
