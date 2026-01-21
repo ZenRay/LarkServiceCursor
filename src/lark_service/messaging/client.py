@@ -276,10 +276,10 @@ class MessagingClient(BaseServiceClient):
 
     def send_rich_text_message(
         self,
-        app_id: str,
         receiver_id: str,
         content: dict[str, Any],
         receive_id_type: str = "open_id",
+        app_id: str | None = None,
     ) -> dict[str, Any]:
         """
         Send a rich text (post) message.
@@ -288,14 +288,14 @@ class MessagingClient(BaseServiceClient):
 
         Parameters
         ----------
-            app_id : str
-                Lark application ID
             receiver_id : str
                 Receiver user or chat ID
             content : dict[str, Any]
                 Rich text content structure (with language keys like "zh_cn", "en_us")
             receive_id_type : str
                 Receiver ID type (default: "open_id")
+            app_id : str | None
+                Optional app_id (uses resolution priority if not provided)
 
         Returns
         -------
@@ -321,7 +321,6 @@ class MessagingClient(BaseServiceClient):
             ...     }
             ... }
             >>> response = client.send_rich_text_message(
-            ...     app_id="cli_xxx",
             ...     receiver_id="ou_xxx",
             ...     content=content
             ... )
@@ -336,20 +335,20 @@ class MessagingClient(BaseServiceClient):
         post_content = {"post": content}
 
         return self._send_message(
-            app_id=app_id,
             receiver_id=receiver_id,
             msg_type="post",
             content=post_content,
             receive_id_type=receive_id_type,
+            app_id=app_id,
         )
 
     def send_image_message(
         self,
-        app_id: str,
         receiver_id: str,
         image_path: str | Path | None = None,
         image_key: str | None = None,
         receive_id_type: str = "open_id",
+        app_id: str | None = None,
     ) -> dict[str, Any]:
         """
         Send an image message.
@@ -358,8 +357,6 @@ class MessagingClient(BaseServiceClient):
 
         Parameters
         ----------
-            app_id : str
-                Lark application ID
             receiver_id : str
                 Receiver user or chat ID
             image_path : str | Path | None
@@ -368,6 +365,8 @@ class MessagingClient(BaseServiceClient):
                 Pre-uploaded image key (e.g., "img_v2_xxx")
             receive_id_type : str
                 Receiver ID type (default: "open_id")
+            app_id : str | None
+                Optional app_id (uses resolution priority if not provided)
 
         Returns
         -------
@@ -385,14 +384,12 @@ class MessagingClient(BaseServiceClient):
         --------
             >>> # Auto-upload image
             >>> response = client.send_image_message(
-            ...     app_id="cli_xxx",
             ...     receiver_id="ou_xxx",
             ...     image_path="/path/to/image.jpg"
             ... )
 
             >>> # Use pre-uploaded image
             >>> response = client.send_image_message(
-            ...     app_id="cli_xxx",
             ...     receiver_id="ou_xxx",
             ...     image_key="img_v2_a1b2c3d4"
             ... )
@@ -403,29 +400,32 @@ class MessagingClient(BaseServiceClient):
                 details={"image_path": image_path, "image_key": image_key},
             )
 
+        # Resolve app_id for upload
+        resolved_app_id = self._resolve_app_id(app_id)
+
         # Upload image if path is provided
         if image_path:
-            asset = self.media_uploader.upload_image(app_id, image_path)
+            asset = self.media_uploader.upload_image(resolved_app_id, image_path)
             image_key = asset.image_key
 
         # Prepare content
         content_dict = {"image_key": image_key}
 
         return self._send_message(
-            app_id=app_id,
             receiver_id=receiver_id,
             msg_type="image",
             content=content_dict,
             receive_id_type=receive_id_type,
+            app_id=app_id,
         )
 
     def send_file_message(
         self,
-        app_id: str,
         receiver_id: str,
         file_path: str | Path | None = None,
         file_key: str | None = None,
         receive_id_type: str = "open_id",
+        app_id: str | None = None,
     ) -> dict[str, Any]:
         """
         Send a file message.
@@ -434,8 +434,6 @@ class MessagingClient(BaseServiceClient):
 
         Parameters
         ----------
-            app_id : str
-                Lark application ID
             receiver_id : str
                 Receiver user or chat ID
             file_path : str | Path | None
@@ -444,6 +442,8 @@ class MessagingClient(BaseServiceClient):
                 Pre-uploaded file key (e.g., "file_v2_xxx")
             receive_id_type : str
                 Receiver ID type (default: "open_id")
+            app_id : str | None
+                Optional app_id (uses resolution priority if not provided)
 
         Returns
         -------
@@ -461,14 +461,12 @@ class MessagingClient(BaseServiceClient):
         --------
             >>> # Auto-upload file
             >>> response = client.send_file_message(
-            ...     app_id="cli_xxx",
             ...     receiver_id="ou_xxx",
             ...     file_path="/path/to/document.pdf"
             ... )
 
             >>> # Use pre-uploaded file
             >>> response = client.send_file_message(
-            ...     app_id="cli_xxx",
             ...     receiver_id="ou_xxx",
             ...     file_key="file_v2_a1b2c3d4"
             ... )
@@ -479,28 +477,31 @@ class MessagingClient(BaseServiceClient):
                 details={"file_path": file_path, "file_key": file_key},
             )
 
+        # Resolve app_id for upload
+        resolved_app_id = self._resolve_app_id(app_id)
+
         # Upload file if path is provided
         if file_path:
-            asset = self.media_uploader.upload_file(app_id, file_path)
+            asset = self.media_uploader.upload_file(resolved_app_id, file_path)
             file_key = asset.file_key
 
         # Prepare content
         content_dict = {"file_key": file_key}
 
         return self._send_message(
-            app_id=app_id,
             receiver_id=receiver_id,
             msg_type="file",
             content=content_dict,
             receive_id_type=receive_id_type,
+            app_id=app_id,
         )
 
     def send_card_message(
         self,
-        app_id: str,
         receiver_id: str,
         card_content: dict[str, Any],
         receive_id_type: str = "open_id",
+        app_id: str | None = None,
     ) -> dict[str, Any]:
         """
         Send an interactive card message.
@@ -509,14 +510,14 @@ class MessagingClient(BaseServiceClient):
 
         Parameters
         ----------
-            app_id : str
-                Lark application ID
             receiver_id : str
                 Receiver user or chat ID
             card_content : dict[str, Any]
                 Card JSON structure (built by CardKit)
             receive_id_type : str
                 Receiver ID type (default: "open_id")
+            app_id : str | None
+                Optional app_id (uses resolution priority if not provided)
 
         Returns
         -------
@@ -540,7 +541,6 @@ class MessagingClient(BaseServiceClient):
             ...     ]
             ... }
             >>> response = client.send_card_message(
-            ...     app_id="cli_xxx",
             ...     receiver_id="ou_xxx",
             ...     card_content=card
             ... )
@@ -552,21 +552,21 @@ class MessagingClient(BaseServiceClient):
             )
 
         return self._send_message(
-            app_id=app_id,
             receiver_id=receiver_id,
             msg_type="interactive",
             content=card_content,
             receive_id_type=receive_id_type,
+            app_id=app_id,
         )
 
     def send_batch_messages(
         self,
-        app_id: str,
         receiver_ids: list[str],
         msg_type: str,
         content: str | dict[str, Any],
         receive_id_type: str = "open_id",
         continue_on_error: bool = True,
+        app_id: str | None = None,
     ) -> BatchSendResponse:
         """
         Send the same message to multiple receivers.
@@ -576,8 +576,6 @@ class MessagingClient(BaseServiceClient):
 
         Parameters
         ----------
-            app_id : str
-                Lark application ID
             receiver_ids : list[str]
                 List of receiver user or chat IDs
             msg_type : str
@@ -588,6 +586,8 @@ class MessagingClient(BaseServiceClient):
                 Receiver ID type (default: "open_id")
             continue_on_error : bool
                 Continue sending to remaining receivers if one fails (default: True)
+            app_id : str | None
+                Optional app_id (uses resolution priority if not provided)
 
         Returns
         -------
@@ -602,7 +602,6 @@ class MessagingClient(BaseServiceClient):
         Examples
         --------
             >>> response = client.send_batch_messages(
-            ...     app_id="cli_xxx",
             ...     receiver_ids=["ou_user1", "ou_user2", "ou_user3"],
             ...     msg_type="text",
             ...     content={"text": "System maintenance notice"}
@@ -625,10 +624,13 @@ class MessagingClient(BaseServiceClient):
         success_count = 0
         failed_count = 0
 
+        # Resolve app_id once for all messages
+        resolved_app_id = self._resolve_app_id(app_id)
+
         logger.info(
             f"Starting batch send to {len(receiver_ids)} receivers",
             extra={
-                "app_id": app_id,
+                "app_id": resolved_app_id,
                 "total_receivers": len(receiver_ids),
                 "msg_type": msg_type,
             },
@@ -637,11 +639,11 @@ class MessagingClient(BaseServiceClient):
         for receiver_id in receiver_ids:
             try:
                 response = self._send_message(
-                    app_id=app_id,
                     receiver_id=receiver_id,
                     msg_type=msg_type,
                     content=content,
                     receive_id_type=receive_id_type,
+                    app_id=app_id,
                 )
 
                 results.append(
