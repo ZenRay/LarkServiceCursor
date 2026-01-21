@@ -1,10 +1,29 @@
 # 📋 完整授权流程测试指南
 
+## ⚠️ 重要说明
+
+根据飞书官方技术支持确认（[参考文档](https://go.feishu.cn/s/6mYveuWSw0s)）：
+
+> **OAuth 授权必须使用公网可访问的 redirect_uri**
+>
+> 本地或内网环境测试需要使用内网穿透工具（ngrok/localtunnel/cloudflared）
+
+**本地测试方案**：
+- ✅ 使用内网穿透工具暴露本地服务
+- ✅ 配置公网 redirect_uri
+- ❌ 不能使用纯 localhost（飞书无法回调）
+
+**生产环境**：
+- 必须部署到有公网 IP/域名的服务器
+- 必须配置 HTTPS
+
+---
+
 ## ✅ 功能概览
 
 已实现的完整功能：
-1. ✅ OAuth 2.0 授权码流程
-2. ✅ HTTP 回调服务器（本地测试）
+1. ✅ OAuth 2.0 授权码流程（符合飞书官方要求）
+2. ✅ HTTP 回调服务器（本地测试需配合内网穿透）
 3. ✅ Authorization Code 交换 User Access Token
 4. ✅ 获取用户信息并保存
 5. ✅ **自动更新授权卡片状态** 🎉

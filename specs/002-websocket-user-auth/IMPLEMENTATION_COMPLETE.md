@@ -405,7 +405,51 @@ def update_message(
 
 ## 🐛 已知问题与限制
 
-### 1. 回调服务器端口占用
+### ⚠️ 1. 必须使用公网可访问地址（重要）
+
+**飞书官方要求**（[技术支持文档](https://go.feishu.cn/s/6mYveuWSw0s)）：
+
+> "授权流程依赖浏览器跳转和飞书服务端的回调，要求重定向 URL 必须是公网可访问的地址。本地或内网环境无法完成授权流程。"
+
+**影响**:
+- `redirect_uri` 必须是公网 HTTPS 地址
+- 纯内网环境无法完成 OAuth 授权
+- 本地 `localhost` 仅用于开发测试（需配合内网穿透工具）
+
+**解决方案**:
+
+开发/测试环境：
+```bash
+# 使用内网穿透工具
+ngrok http 8000                    # 推荐
+# 或
+lt --port 8000                     # localtunnel
+# 或
+cloudflared tunnel --url http://localhost:8000  # Cloudflare
+```
+
+生产环境：
+- 部署到有公网 IP/域名的服务器
+- 配置 HTTPS（飞书强制要求）
+- redirect_uri: `https://your-domain.com/callback`
+
+### ⚠️ 2. 交互式卡片不能替代授权流程
+
+**飞书官方说明**（[获取授权码文档](https://go.feishu.cn/s/6llKQ-vAI02)）：
+
+> "交互式卡片主要用于消息通知和简单交互，不支持完整的 OAuth 2.0 授权流程。"
+
+**实际实现**:
+- 卡片作为授权**入口**（提升用户体验）
+- 实际授权通过浏览器跳转到飞书授权页
+- 必须走标准 OAuth 2.0 流程
+
+**无法实现的功能**:
+- ❌ 纯卡片内完成授权（无浏览器跳转）
+- ❌ 不配置 redirect_uri 的授权
+- ❌ 纯内网环境的授权
+
+### 3. 回调服务器端口占用
 
 **问题**: 如果端口 8000 被占用，服务器无法启动
 
@@ -413,19 +457,44 @@ def update_message(
 - 配置环境变量 `CALLBACK_SERVER_PORT`
 - 或者检查并关闭占用端口的进程
 
-### 2. 本地测试限制
-
-**问题**: 本地测试只能在本机浏览器中进行
-
-**解决方案**:
-- 生产环境使用公网域名
-- 或使用 ngrok/cloudflared 暴露本地服务（不推荐用于生产）
-
-### 3. Token 刷新
+### 4. Token 刷新
 
 **现状**: Token 过期后需要重新授权
 
 **计划**: 在 Phase 11 实现自动 Token 刷新
+
+---
+
+## 📋 替代方案（无需公网环境）
+
+如果无法满足公网要求，可使用：
+
+### 方案 1: 使用 tenant_access_token
+
+**适用场景**: 以应用身份操作，无需用户个人身份
+
+```python
+# 获取 tenant_access_token
+token = credential_pool.get_token(app_id, "tenant_access_token")
+
+# 以应用身份发送消息
+messaging_client.send_message(app_id, receiver_id, content)
+```
+
+**限制**:
+- 无法获取用户个人信息
+- 无法以用户身份操作
+- 权限范围受限
+
+### 方案 2: 代理服务
+
+通过云函数或中间服务器代理授权流程：
+
+```
+用户授权 → 云函数(公网) → 内网服务
+```
+
+**实现复杂度**: 中等
 
 ---
 

@@ -48,6 +48,56 @@
 
 ---
 
+## ⚠️ 重要限制说明
+
+根据飞书官方技术支持确认（[配置重定向 URL](https://go.feishu.cn/s/5_sDxnxR402)，[浏览器网页接入指南](https://go.feishu.cn/s/6mYveuWSw0s)，[获取授权码](https://go.feishu.cn/s/6llKQ-vAI02)）：
+
+### 必须满足的条件
+
+1. **必须配置 redirect_uri** ✅
+   - 在飞书开放平台的"安全设置"中配置
+   - 用于接收授权码 `code`
+   - 未配置或 URL 不匹配会导致授权失败（错误码 20029）
+
+2. **必须使用公网可访问的地址** ⚠️
+   - redirect_uri 必须是公网可访问的 HTTPS 地址
+   - 授权流程依赖浏览器跳转和飞书服务端回调
+   - 本地或内网环境无法完成授权流程
+
+3. **交互式卡片不能替代标准授权流程**
+   - 卡片仅作为授权的**入口**，提供更好的用户体验
+   - 实际授权必须通过标准 OAuth 2.0 浏览器跳转流程
+   - 无法通过"纯卡片交互"完成授权
+
+### 部署方案
+
+#### 开发/测试环境
+使用内网穿透工具暴露本地服务：
+- **ngrok**: `ngrok http 8000` → `https://xxx.ngrok.io/callback`
+- **localtunnel**: `lt --port 8000` → `https://xxx.loca.lt/callback`
+- **Cloudflare Tunnel**: `cloudflared tunnel --url http://localhost:8000`
+
+#### 生产环境
+- 部署到有公网 IP 或域名的服务器
+- 配置 HTTPS（飞书要求）
+- redirect_uri 示例：`https://your-domain.com/callback`
+
+### 替代方案（不需要 user_access_token）
+
+如果无法满足公网要求，可考虑：
+1. **使用 tenant_access_token**
+   - 以应用身份操作资源
+   - 无需用户授权
+   - 权限范围受限
+
+2. **使用 app_access_token**
+   - 基础应用级别权限
+   - 无需用户授权
+
+**注意**：这些替代方案无法获取用户个人信息或以用户身份操作。
+
+---
+
 ## 🔍 关键技术发现
 
 ### 从 example.py 学到的实现模式
