@@ -624,7 +624,7 @@ class CredentialPool:
         """
         from lark_service.apaas.client import WorkspaceTableClient
 
-        return WorkspaceTableClient(self, app_id=app_id)  # type: ignore[call-arg]
+        return WorkspaceTableClient(self, app_id=app_id)
 
     def close(self) -> None:
         """Close all resources.
