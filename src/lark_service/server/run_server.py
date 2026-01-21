@@ -58,7 +58,6 @@ def init_services() -> tuple[CardAuthHandler, str, str | None]:
     app_secret = os.getenv("LARK_APP_SECRET")
     verification_token = os.getenv("LARK_VERIFICATION_TOKEN")
     encrypt_key = os.getenv("LARK_ENCRYPT_KEY")
-    encryption_key = os.getenv("LARK_CONFIG_ENCRYPTION_KEY")
 
     if not app_id or not app_secret or not verification_token:
         raise ValueError(
@@ -68,21 +67,20 @@ def init_services() -> tuple[CardAuthHandler, str, str | None]:
 
     logger.info("Initializing services...")
 
-    # Initialize configuration
-    config = Config(
-        max_retries=3,
-        retry_backoff_base=2,
-    )
+    # Initialize configuration from environment
+    config = Config.load_from_env()
 
     # Initialize application manager
-    app_manager = ApplicationManager(encryption_key=encryption_key)
+    app_manager = ApplicationManager(
+        db_path=config.config_db_path,
+        encryption_key=config.config_encryption_key,
+    )
     try:
         app_manager.add_application(
             app_id=app_id,
             app_name=os.getenv("LARK_APP_NAME", "Lark Service"),
             app_secret=app_secret,
-            verification_token=verification_token,
-            encrypt_key=encrypt_key,
+            description="Lark Service Application",
         )
         logger.info(f"Application registered: {app_id}")
     except Exception as e:
