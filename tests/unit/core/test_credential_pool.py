@@ -216,15 +216,12 @@ class TestGetSDKClient:
 class TestFetchAppAccessToken:
     """Test _fetch_app_access_token method."""
 
-    @pytest.mark.xfail(
-        reason="SDK InternalAppAccessTokenRequest API mock is complex, tested in integration"
-    )
     def test_fetch_app_access_token_success(
         self,
         credential_pool: CredentialPool,
         mock_app_manager: Mock,
     ) -> None:
-        """Test successful token fetch."""
+        """Test successful token fetch using direct HTTP request."""
         # Mock application
         mock_app = Mock(spec=Application)
         mock_app.app_id = "cli_test7890abcdef12"
@@ -232,19 +229,17 @@ class TestFetchAppAccessToken:
         mock_app_manager.get_application.return_value = mock_app
         mock_app_manager.get_decrypted_secret.return_value = "test_secret"
 
-        # Mock SDK response
-        mock_data = Mock()
-        mock_data.app_access_token = "t-test_token_123"
-        mock_data.expire = 7200
-
+        # Mock requests.post response
         mock_response = Mock()
-        mock_response.success.return_value = True
-        mock_response.data = mock_data
+        mock_response.json.return_value = {
+            "code": 0,
+            "msg": "success",
+            "app_access_token": "t-test_token_123",
+            "expire": 7200,
+        }
 
-        with patch.object(credential_pool, "_get_sdk_client") as mock_get_client:
-            mock_client = Mock()
-            mock_client.auth.v3.app_access_token.internal.return_value = mock_response
-            mock_get_client.return_value = mock_client
+        with patch("lark_service.core.credential_pool.requests.post") as mock_post:
+            mock_post.return_value = mock_response
 
             token_value, expires_at = credential_pool._fetch_app_access_token(
                 "cli_test7890abcdef12"
@@ -256,30 +251,33 @@ class TestFetchAppAccessToken:
             time_diff = (expires_at - datetime.now()).total_seconds()
             assert 7190 < time_diff < 7210
 
-    @pytest.mark.xfail(
-        reason="SDK InternalAppAccessTokenRequest API mock is complex, tested in integration"
-    )
+            # Verify the request was made correctly
+            mock_post.assert_called_once()
+            call_kwargs = mock_post.call_args[1]
+            assert call_kwargs["json"]["app_id"] == "cli_test7890abcdef12"
+            assert call_kwargs["json"]["app_secret"] == "test_secret"
+
     def test_fetch_app_access_token_api_error(
         self,
         credential_pool: CredentialPool,
         mock_app_manager: Mock,
     ) -> None:
-        """Test error handling for API failure."""
+        """Test error handling for API failure using direct HTTP request."""
         # Mock application
         mock_app = Mock(spec=Application)
         mock_app.is_active.return_value = True
         mock_app_manager.get_application.return_value = mock_app
+        mock_app_manager.get_decrypted_secret.return_value = "test_secret"
 
-        # Mock SDK error response
+        # Mock requests.post error response
         mock_response = Mock()
-        mock_response.success.return_value = False
-        mock_response.code = 99991663
-        mock_response.msg = "app access token invalid"
+        mock_response.json.return_value = {
+            "code": 99991663,
+            "msg": "app access token invalid",
+        }
 
-        with patch.object(credential_pool, "_get_sdk_client") as mock_get_client:
-            mock_client = Mock()
-            mock_client.auth.v3.app_access_token.internal.return_value = mock_response
-            mock_get_client.return_value = mock_client
+        with patch("lark_service.core.credential_pool.requests.post") as mock_post:
+            mock_post.return_value = mock_response
 
             with pytest.raises(TokenAcquisitionError, match="Failed to get app_access_token"):
                 credential_pool._fetch_app_access_token("cli_errortest1234567")
