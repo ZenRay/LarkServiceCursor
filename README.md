@@ -16,6 +16,7 @@
 
 - 🔐 **透明 Token 管理**: 自动获取、刷新和持久化 Token,开发者无需关心认证细节
 - 👤 **WebSocket 用户授权**: 通过交互式卡片获取 user_access_token,支持 aPaaS AI 能力 (v0.2.0+)
+- ✨ **智能应用管理**: 单应用场景自动选择,多应用场景灵活切换,app_id 5 层优先级解析 (v0.3.0+) 🆕
 - 🚀 **高度复用**: Python 库设计,可被任何 Python 应用导入使用 (Django、Flask、FastAPI、Airflow 等)
 - 🎯 **多应用隔离**: 支持多个飞书应用并发使用,Token 和配置完全隔离
 - 📦 **模块化设计**: Messaging、CloudDoc、Contact、aPaaS 四大模块,按需使用
@@ -183,7 +184,7 @@ python -m lark_service.cli app add \
   --name "我的飞书应用"
 ```
 
-**4. 开始使用**
+**4. 开始使用** 🆕 v0.3.0 智能应用管理
 
 ```python
 from lark_service.core.credential_pool import CredentialPool
@@ -193,25 +194,36 @@ from lark_service.cardkit.builder import CardBuilder
 # 初始化 Token 管理池
 credential_pool = CredentialPool()
 
-# 创建消息客户端
+# 🆕 单应用场景 - 设置默认 app_id,后续调用无需重复传递
+credential_pool.set_default_app_id("cli_a1b2c3d4e5f6g7h8")
+
+# 创建消息客户端 (无需传 app_id)
 messaging_client = MessagingClient(credential_pool)
 
-# 1. 发送文本消息
+# 1. 发送文本消息 (无需传 app_id,自动使用默认值)
 response = messaging_client.send_text_message(
-    app_id="cli_a1b2c3d4e5f6g7h8",
     receiver_id="ou_xxxxxxxx",
     content="Hello from Lark Service! 🚀"
 )
 print(f"消息发送成功! Message ID: {response['message_id']}")
 
-# 2. 发送图片消息 (自动上传)
-response = messaging_client.send_image_message(
-    app_id="cli_a1b2c3d4e5f6g7h8",
-    receiver_id="ou_xxxxxxxx",
-    image_path="/path/to/image.jpg"
-)
+# 2. 🆕 多应用场景 - 使用上下文管理器临时切换
+with messaging_client.use_app("cli_app2_different_id"):
+    # 此作用域内使用 app2
+    response = messaging_client.send_text_message(
+        receiver_id="ou_yyyyyyy",
+        content="Message from app2"
+    )
 
-# 3. 发送交互式卡片
+# 3. 🆕 多应用场景 - 使用工厂方法创建独立客户端
+app1_client = credential_pool.create_messaging_client("cli_app1")
+app2_client = credential_pool.create_messaging_client("cli_app2")
+
+# 每个客户端绑定不同的应用
+app1_client.send_text_message(receiver_id="ou_xxx", content="From app1")
+app2_client.send_text_message(receiver_id="ou_yyy", content="From app2")
+
+# 4. 发送交互式卡片
 builder = CardBuilder()
 card = builder.build_notification_card(
     title="系统通知",
@@ -221,19 +233,9 @@ card = builder.build_notification_card(
     action_url="https://example.com"
 )
 response = messaging_client.send_card_message(
-    app_id="cli_a1b2c3d4e5f6g7h8",
     receiver_id="ou_xxxxxxxx",
     card_content=card
 )
-
-# 4. 批量发送消息
-response = messaging_client.send_batch_messages(
-    app_id="cli_a1b2c3d4e5f6g7h8",
-    receiver_ids=["ou_user1", "ou_user2", "ou_user3"],
-    msg_type="text",
-    content={"text": "群发消息"}
-)
-print(f"批量发送完成: {response.success}/{response.total} 成功")
 ```
 
 ## 📚 模块功能
