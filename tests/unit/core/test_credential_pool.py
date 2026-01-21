@@ -293,11 +293,10 @@ class TestFetchAppAccessToken:
         mock_app = Mock(spec=Application)
         mock_app.is_active.return_value = True
         mock_app_manager.get_application.return_value = mock_app
+        mock_app_manager.get_decrypted_secret.return_value = "test_secret"
 
-        with patch.object(credential_pool, "_get_sdk_client") as mock_get_client:
-            mock_client = Mock()
-            mock_client.auth.v3.app_access_token.internal.side_effect = Exception("Network error")
-            mock_get_client.return_value = mock_client
+        with patch("lark_service.core.credential_pool.requests.post") as mock_post:
+            mock_post.side_effect = Exception("Network error")
 
             with pytest.raises(TokenAcquisitionError, match="Failed to fetch app_access_token"):
                 credential_pool._fetch_app_access_token("cli_exceptiontest123")
