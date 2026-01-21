@@ -26,6 +26,7 @@ from lark_service.contact.models import (
     DepartmentUser,
     User,
 )
+from lark_service.core.base_service_client import BaseServiceClient
 from lark_service.core.credential_pool import CredentialPool
 from lark_service.core.exceptions import (
     APIError,
@@ -62,7 +63,7 @@ def _convert_lark_user_status(lark_status: object | None) -> int | None:
     return 1
 
 
-class ContactClient:
+class ContactClient(BaseServiceClient):
     """
     High-level client for Lark Contact operations.
 
@@ -102,6 +103,7 @@ class ContactClient:
     def __init__(
         self,
         credential_pool: CredentialPool,
+        app_id: str | None = None,
         retry_strategy: RetryStrategy | None = None,
         cache_manager: ContactCacheManager | None = None,
         enable_cache: bool = False,
@@ -114,6 +116,8 @@ class ContactClient:
         ----------
             credential_pool : CredentialPool
                 Credential pool for token management
+            app_id : str | None
+                Optional default app_id for this client (layer 3 in priority)
             retry_strategy : RetryStrategy | None
                 Retry strategy (default: creates new instance)
             cache_manager : ContactCacheManager | None
@@ -129,7 +133,9 @@ class ContactClient:
             - Cache is app_id isolated (different apps have different open_ids)
             - Cache uses union_id as primary key (consistent across apps)
         """
-        self.credential_pool = credential_pool
+        # Initialize base class
+        super().__init__(credential_pool, app_id)
+
         self.retry_strategy = retry_strategy or RetryStrategy()
         self.cache_manager = cache_manager
         self.enable_cache = enable_cache and cache_manager is not None

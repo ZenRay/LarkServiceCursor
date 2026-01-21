@@ -10,6 +10,7 @@ from typing import Any
 
 from lark_oapi.api.im.v1 import CreateMessageRequest, CreateMessageRequestBody
 
+from lark_service.core.base_service_client import BaseServiceClient
 from lark_service.core.credential_pool import CredentialPool
 from lark_service.core.exceptions import InvalidParameterError, RetryableError
 from lark_service.core.retry import RetryStrategy
@@ -23,7 +24,7 @@ from lark_service.utils.logger import get_logger
 logger = get_logger()
 
 
-class MessagingClient:
+class MessagingClient(BaseServiceClient):
     """
     High-level client for Lark messaging operations.
 
@@ -53,6 +54,7 @@ class MessagingClient:
     def __init__(
         self,
         credential_pool: CredentialPool,
+        app_id: str | None = None,
         media_uploader: MediaUploader | None = None,
         retry_strategy: RetryStrategy | None = None,
     ) -> None:
@@ -63,30 +65,47 @@ class MessagingClient:
         ----------
             credential_pool : CredentialPool
                 Credential pool for token management
+            app_id : str | None
+                Optional default app_id for this client (layer 3 in priority)
             media_uploader : MediaUploader | None
                 Media uploader (default: creates new instance)
             retry_strategy : RetryStrategy | None
                 Retry strategy (default: creates new instance)
+
+        Examples
+        --------
+        Single-app scenario (no app_id needed):
+
+        >>> pool = CredentialPool(...)
+        >>> pool.set_default_app_id("cli_xxx")
+        >>> client = MessagingClient(pool)
+        >>> client.send_text_message(receiver_id="ou_xxx", text="Hello")
+
+        Multi-app scenario with client-level default:
+
+        >>> pool = CredentialPool(...)
+        >>> client = MessagingClient(pool, app_id="cli_app1")
+        >>> client.send_text_message(receiver_id="ou_xxx", text="Hello")
         """
-        self.credential_pool = credential_pool
+        # Initialize base class
+        super().__init__(credential_pool, app_id)
+
         self.retry_strategy = retry_strategy or RetryStrategy()
         self.media_uploader = media_uploader or MediaUploader(credential_pool, self.retry_strategy)
 
     def _send_message(
         self,
-        app_id: str,
         receiver_id: str,
         msg_type: str,
         content: str | dict[str, Any],
         receive_id_type: str = "open_id",
+        app_id: str | None = None,
     ) -> dict[str, Any]:
         """
         Internal method to send a message via Lark IM API.
 
         Parameters
         ----------
-            app_id : str
-                Lark application ID
             receiver_id : str
                 Receiver user or chat ID
             msg_type : str
@@ -95,6 +114,8 @@ class MessagingClient:
                 Message content (string or dict depending on type)
             receive_id_type : str
                 Receiver ID type (default: "open_id")
+            app_id : str | None
+                Optional app_id (uses resolution priority if not provided)
 
         Returns
         -------
@@ -106,8 +127,13 @@ class MessagingClient:
             RetryableError
                 If message send fails after retries
         """
+        # Resolve app_id using priority mechanism
+        resolved_app_id = self._resolve_app_id(app_id)
+
         # Get SDK client
-        client = self.credential_pool._get_sdk_client(app_id)
+        client = self.credential_pool._get_sdk_client(resolved_app_id)
+
+        logger.debug(f"Sending message using app_id: {resolved_app_id}")
 
         # Prepare content string
         if isinstance(content, dict):
@@ -179,24 +205,24 @@ class MessagingClient:
 
     def send_text_message(
         self,
-        app_id: str,
         receiver_id: str,
         content: str,
         receive_id_type: str = "open_id",
+        app_id: str | None = None,
     ) -> dict[str, Any]:
         """
         Send a text message.
 
         Parameters
         ----------
-            app_id : str
-                Lark application ID
             receiver_id : str
                 Receiver user or chat ID
             content : str
                 Text message content
             receive_id_type : str
                 Receiver ID type (default: "open_id")
+            app_id : str | None
+                Optional app_id (uses resolution priority if not provided)
 
         Returns
         -------
@@ -212,12 +238,24 @@ class MessagingClient:
 
         Examples
         --------
+        Single-app scenario (no app_id needed):
+
+            >>> pool = CredentialPool(...)
+            >>> pool.set_default_app_id("cli_xxx")
+            >>> client = MessagingClient(pool)
             >>> response = client.send_text_message(
-            ...     app_id="cli_xxx",
             ...     receiver_id="ou_xxx",
             ...     content="Hello, World!"
             ... )
             >>> print(response["message_id"])
+
+        Multi-app scenario with explicit app_id:
+
+            >>> response = client.send_text_message(
+            ...     receiver_id="ou_xxx",
+            ...     content="Hello",
+            ...     app_id="cli_xxx"
+            ... )
         """
         if not content or not content.strip():
             raise InvalidParameterError(
@@ -229,11 +267,11 @@ class MessagingClient:
         content_dict = {"text": content}
 
         return self._send_message(
-            app_id=app_id,
             receiver_id=receiver_id,
             msg_type="text",
             content=content_dict,
             receive_id_type=receive_id_type,
+            app_id=app_id,
         )
 
     def send_rich_text_message(

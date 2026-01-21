@@ -567,7 +567,7 @@ class CredentialPool:
         """
         from lark_service.messaging.client import MessagingClient
 
-        return MessagingClient(self, app_id=app_id)  # type: ignore[call-arg]
+        return MessagingClient(self, app_id=app_id)
 
     def create_contact_client(self, app_id: str | None = None) -> ContactClient:
         """Factory method to create ContactClient with optional app_id.
@@ -586,7 +586,7 @@ class CredentialPool:
         """
         from lark_service.contact.client import ContactClient
 
-        return ContactClient(self, app_id=app_id)  # type: ignore[call-arg]
+        return ContactClient(self, app_id=app_id)
 
     def create_clouddoc_client(self, app_id: str | None = None) -> DocClient:
         """Factory method to create DocClient (CloudDoc) with optional app_id.

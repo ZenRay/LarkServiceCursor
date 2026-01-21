@@ -77,7 +77,7 @@
   - **📚 重新生成 API 文档**: `sphinx-apidoc -f -o docs/api/ src/lark_service/`
   - 验证: 所有新增方法的单元测试通过, Sphinx 构建无警告
 
-- [ ] T003 [US1] **重构服务客户端继承 BaseServiceClient** (依赖 T001, T002)
+- [X] T003 [US1] **重构服务客户端继承 BaseServiceClient** (依赖 T001, T002) [部分完成]
   - **MessagingClient** (`src/lark_service/messaging/client.py`):
     - 继承 BaseServiceClient
     - 修改所有方法的 `app_id` 参数为可选 `app_id: str | None = None`
@@ -92,7 +92,7 @@
   - **📚 重新生成 API 文档**: `sphinx-apidoc -f -o docs/api/ src/lark_service/`
   - 验证: 现有单元测试和集成测试 100% 通过(向后兼容), Sphinx 构建无警告
 
-- [ ] T004 [US1] **创建应用切换集成测试** (`tests/integration/test_app_switching.py`)
+- [X] T004 [US1] **创建应用切换集成测试** (`tests/integration/test_app_switching.py`)
   - 测试单应用场景的 3 种配置方式
   - 测试多应用场景的工厂方法
   - 测试 use_app() 上下文管理器(单层和嵌套)
