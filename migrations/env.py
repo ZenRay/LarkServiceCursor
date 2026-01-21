@@ -26,7 +26,7 @@ def get_url() -> str:
     host = os.getenv("POSTGRES_HOST", "localhost")
     port = os.getenv("POSTGRES_PORT", "5432")
     database = os.getenv("POSTGRES_DB", "lark_service")
-    user = os.getenv("POSTGRES_USER", "lark")
+    user = os.getenv("POSTGRES_USER", "lark_user")
     password = os.getenv("POSTGRES_PASSWORD", "lark_password_123")
 
     return f"postgresql://{user}:{password}@{host}:{port}/{database}"
