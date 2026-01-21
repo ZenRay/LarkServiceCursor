@@ -7,7 +7,6 @@ and heartbeat tracking for the Feishu WebSocket client.
 from __future__ import annotations
 
 import asyncio
-import contextlib
 from collections.abc import Callable
 
 import lark_oapi as lark
@@ -62,8 +61,12 @@ class LarkWebSocketClient:
             extra={"app_id": self.config.app_id, "event_type": event_type},
         )
 
-    async def connect(self) -> None:
-        """Establish WebSocket connection."""
+    def connect(self) -> None:
+        """Establish WebSocket connection.
+
+        Note: This is a blocking call that starts the WebSocket client.
+        According to lark-oapi SDK, client.start() blocks until connection ends.
+        """
         if self.status.is_connected:
             return
 
@@ -75,13 +78,18 @@ class LarkWebSocketClient:
                 event_handler=event_handler,
                 log_level=self.log_level,
             )
-            self._ws_client.start()
-            self.status.mark_connected()
-            websocket_connection_status.labels(app_id=self.config.app_id).set(1)
+
             logger.info(
-                "WebSocket connected",
+                "Starting WebSocket connection (blocking call)...",
                 extra={"app_id": self.config.app_id},
             )
+
+            self.status.mark_connected()
+            websocket_connection_status.labels(app_id=self.config.app_id).set(1)
+
+            # This is a BLOCKING call - it will not return until connection ends
+            self._ws_client.start()
+
         except Exception as exc:
             self.status.mark_disconnected(str(exc))
             websocket_connection_status.labels(app_id=self.config.app_id).set(0)
@@ -94,34 +102,41 @@ class LarkWebSocketClient:
                 app_id=self.config.app_id,
             ) from exc
 
-    async def start(self) -> None:
-        """Start WebSocket client and heartbeat loop."""
-        await self.connect()
-        self._start_heartbeat()
+    def start(self) -> None:
+        """Start WebSocket client (blocking call).
 
-    async def disconnect(self) -> None:
-        """Gracefully shutdown WebSocket client."""
+        This method blocks until the connection is terminated.
+        Use this in a separate thread or process if you need non-blocking behavior.
+        """
+        self.connect()
+
+    def disconnect(self) -> None:
+        """Gracefully shutdown WebSocket client.
+
+        Note: The lark-oapi SDK's ws.Client doesn't provide a disconnect method.
+        The connection is typically terminated by the SDK or by process termination.
+        """
         self._shutdown_event.set()
-        if self._heartbeat_task:
-            self._heartbeat_task.cancel()
-            with contextlib.suppress(asyncio.CancelledError):
-                await self._heartbeat_task
 
-        if self._ws_client:
-            if hasattr(self._ws_client, "stop"):
-                self._ws_client.stop()
-            elif hasattr(self._ws_client, "close"):
-                self._ws_client.close()
+        # Note: lark.ws.Client.start() is blocking and doesn't provide a stop() method
+        # The connection is managed by the SDK internally
+        # We just mark as disconnected and let the SDK handle cleanup
 
         self.status.mark_disconnected()
         websocket_connection_status.labels(app_id=self.config.app_id).set(0)
         logger.info(
-            "WebSocket disconnected",
+            "WebSocket disconnect requested",
             extra={"app_id": self.config.app_id},
         )
 
-    async def _reconnect_with_backoff(self) -> None:
-        """Reconnect with exponential backoff (1s → 2s → 4s → 8s)."""
+    def _reconnect_with_backoff(self) -> None:
+        """Reconnect with exponential backoff (1s → 2s → 4s → 8s).
+
+        Note: Since connect() is blocking, this method should be called
+        in a separate thread if non-blocking behavior is needed.
+        """
+        import time
+
         last_error: Exception | None = None
 
         for attempt in range(self.config.max_reconnect_retries):
@@ -136,10 +151,10 @@ class LarkWebSocketClient:
                     "delay": delay,
                 },
             )
-            await asyncio.sleep(delay)
+            time.sleep(delay)
 
             try:
-                await self.connect()
+                self.connect()
                 websocket_reconnect_total.labels(app_id=self.config.app_id, outcome="success").inc()
                 return
             except WebSocketConnectionError as exc:

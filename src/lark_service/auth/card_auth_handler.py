@@ -204,6 +204,19 @@ class CardAuthHandler:
             )
 
         # Add authorization button
+        # HTTP 回调 + OAuth 授权流程：
+        #
+        # 流程说明：
+        # 1. 用户点击"授权"按钮 → 跳转到飞书 OAuth 授权页面
+        # 2. 用户在授权页面点击"同意"
+        # 3. 飞书通过 HTTP POST 发送回调到我们的服务器
+        # 4. 回调中包含 authorization_code
+        # 5. 服务端用 code 换取 user_access_token
+        #
+        # 重要配置：
+        # - 必须在飞书开放平台配置 HTTP 回调地址
+        # - 必须配置 redirect_uri: https://open.feishu.cn/
+        # - 卡片交互事件通过 HTTP 回调，不是 WebSocket
         action_element: dict[str, Any] = {
             "tag": "action",
             "actions": [
@@ -311,29 +324,56 @@ class CardAuthHandler:
                     }
                 }
 
-            # Extract authorization code
+            # 检查是否有 authorization_code (OAuth 模式)
             authorization_code = action_value.get("authorization_code")
-            if not authorization_code:
-                logger.warning(
-                    "No authorization code in event",
-                    extra={"session_id": session_id, "event": event},
+
+            if authorization_code:
+                # OAuth 模式：使用 authorization_code 交换 token
+                logger.info(
+                    "Using OAuth mode: exchanging authorization code for token",
+                    extra={"session_id": session_id, "user_id": open_id},
                 )
-                auth_failure_total.labels(
-                    app_id=self.app_id, auth_method="websocket_card", reason="missing_code"
-                ).inc()
+                token_data = await self._exchange_token(authorization_code)
+            else:
+                # Callback 模式：用户点击授权按钮，我们需要触发授权流程
+                # 由于无法通过 callback 直接获取 user_access_token，
+                # 我们返回一个包含 OAuth 授权链接的响应，引导用户完成授权
+                logger.info(
+                    "Using callback mode: sending authorization URL to user",
+                    extra={"session_id": session_id, "user_id": open_id},
+                )
+
+                # 构建授权 URL（需要在飞书开放平台配置 redirect_uri）
+                auth_url = (
+                    f"https://open.feishu.cn/open-apis/authen/v1/authorize?"
+                    f"app_id={self.app_id}&"
+                    f"redirect_uri=https://open.feishu.cn/&"
+                    f"state={session_id}"
+                )
+
                 return {
                     "toast": {
-                        "type": "error",
-                        "content": "授权失败:缺少授权码",
-                    }
+                        "type": "info",
+                        "content": "请点击链接完成授权",
+                    },
+                    "card": {
+                        "header": {
+                            "title": {"tag": "plain_text", "content": "完成授权"},
+                            "template": "blue",
+                        },
+                        "elements": [
+                            {
+                                "tag": "div",
+                                "text": {
+                                    "tag": "lark_md",
+                                    "content": f"请点击下方链接完成授权:\n\n[点击授权]({auth_url})",
+                                },
+                            }
+                        ],
+                    },
                 }
 
-            # Exchange authorization code for token
-            logger.info(
-                "Exchanging authorization code for token",
-                extra={"session_id": session_id, "user_id": open_id},
-            )
-            token_data = await self._exchange_token(authorization_code)
+            # Continue with OAuth flow if we have the code
 
             # Fetch user information
             user_access_token = token_data["access_token"]
