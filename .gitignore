@@ -74,6 +74,7 @@ Thumbs.db
 # Pre-commit
 .pre-commit-config.yaml.swp
 test.py
+test_simple.py
 test_websocket_auth.py
 websocket_config_helper.py
 debug_contact.py
