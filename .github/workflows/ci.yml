@@ -162,6 +162,15 @@ jobs:
           RABBITMQ_USER: lark
           RABBITMQ_PASSWORD: rabbitmq_password_123
         run: |
+          echo "Python version:"
+          python --version
+          echo "Pytest version:"
+          pytest --version
+          echo "Installed packages:"
+          pip list | grep -E "(pytest|lark|apscheduler)"
+          echo "Attempting to import lark_service.scheduler:"
+          python -c "from lark_service.scheduler.scheduler import SchedulerService; print('Import successful')"
+          echo "Running tests:"
           pytest tests/unit/ -v --cov=src/lark_service --cov-report=xml --cov-report=term --cov-fail-under=60
 
       - name: Upload coverage to Codecov
