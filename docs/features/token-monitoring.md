@@ -4,12 +4,31 @@
 
 ## 概述
 
-Token 过期监控是一个主动式的 UX 优化功能,它会:
+### Token 类型说明
 
-- 🔔 **主动通知**: 在 Token 过期前发送多级提醒
-- 📊 **实时监控**: 通过 Prometheus 和 Grafana 可视化 Token 状态
-- 📝 **详细指引**: 提供清晰的 Token 续期操作步骤
-- 🛡️ **防止服务中断**: 确保管理员及时更新 Token
+飞书有两种主要的 Token 类型:
+
+1. **App Access Token (应用级 Token)**
+   - 通过 `app_id` + `app_secret` 获取
+   - **可以自动刷新** - 无需用户干预
+   - 默认有效期: 2 小时
+   - 刷新机制: SDK 自动管理,无需监控
+
+2. **User Access Token (用户级 Token)**
+   - 通过 OAuth 授权流程获取
+   - 包含 `access_token` 和 `refresh_token`
+   - **`access_token` 可自动刷新** - 使用 `refresh_token`
+   - **`refresh_token` 过期需要用户重新授权**
+   - 这才是需要监控的重点!
+
+### 监控功能
+
+Token 过期监控是一个主动式的 UX 优化功能,专注于监控 **Refresh Token** 的过期状态:
+
+- 🔔 **主动通知**: 在 Refresh Token 过期前发送多级提醒
+- 📊 **实时监控**: 通过 Prometheus 和 Grafana 可视化状态
+- 📝 **详细指引**: 提供清晰的用户重新授权流程
+- 🛡️ **防止服务中断**: 确保用户及时重新授权
 
 ## 功能特性
 
@@ -17,9 +36,14 @@ Token 过期监控是一个主动式的 UX 优化功能,它会:
 
 | 通知级别 | 触发时机 | 严重性 | 通知频率 |
 |---------|---------|--------|---------|
-| 预警 (Warning) | Token 7 天内过期 | ⚠️ 警告 | 每天一次 |
-| 严重警告 (Critical) | Token 3 天内过期 | 🚨 严重 | 每天一次 |
-| 已过期 (Expired) | Token 已过期 | ❌ 关键 | 每天一次 |
+| 预警 (Warning) | Refresh Token 7 天内过期 | ⚠️ 警告 | 每天一次 |
+| 严重警告 (Critical) | Refresh Token 3 天内过期 | 🚨 严重 | 每天一次 |
+| 已过期 (Expired) | Refresh Token 已过期 | ❌ 关键 | 每天一次 |
+
+**重要**:
+- ✅ App Access Token 会自动刷新,**无需监控和通知**
+- ⚠️ 监控的是 User Access Token 的 **Refresh Token**
+- 🔄 Access Token 本身过期不是问题,只要 Refresh Token 有效就能自动刷新
 
 ### 通知内容
 
@@ -107,12 +131,28 @@ scheduler.add_cron_job(
 修改监控阈值:
 
 ```python
-from lark_service.services.token_monitor import TokenExpiryMonitor
+from lark_service.services.token_monitor import TokenExpiryMonitor, TokenType
 
 monitor = TokenExpiryMonitor(
     messaging_client=client,
     warning_days=7,    # 预警天数(默认 7)
     critical_days=3,   # 严重警告天数(默认 3)
+)
+
+# 监控 User Access Token 的 Refresh Token
+monitor.check_token_expiry(
+    app_id="cli_abc123",
+    token_expires_at=access_token_expires_at,  # Access Token 过期时间
+    token_type=TokenType.USER_ACCESS_TOKEN,    # 用户级 Token
+    refresh_token_expires_at=refresh_expires_at,  # Refresh Token 过期时间(重要!)
+    admin_user_id="ou_xxxxx",
+)
+
+# App Access Token 不需要监控(会自动跳过通知)
+monitor.check_token_expiry(
+    app_id="cli_abc123",
+    token_expires_at=app_token_expires_at,
+    token_type=TokenType.APP_ACCESS_TOKEN,  # 应用级 Token,自动刷新
 )
 ```
 

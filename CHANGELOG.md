@@ -36,14 +36,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### **Token Expiry UX Optimization**
 - ✅ **Token 过期监控服务** (`TokenExpiryMonitor`)
-  - 主动检测 Token 过期状态
+  - **智能 Token 类型识别**:
+    * App Access Token: 自动刷新,无需监控
+    * User Access Token: 监控 Refresh Token 过期
   - 多级通知机制:
-    * 7 天预警:普通提醒
-    * 3 天严重警告:紧急通知
-    * 已过期:关键告警
+    * 7 天预警:Refresh Token 即将过期提醒
+    * 3 天严重警告:紧急用户重新授权提醒
+    * 已过期:引导用户完成 OAuth 重新授权
   - 防止重复通知(24小时内只发送一次)
-  - 详细的续期指引和操作步骤
-  - Prometheus 指标集成
+  - 详细的重新授权流程指引
+  - Prometheus 指标集成(区分 token_type)
 
 #### **Prometheus Alerts**
 - ✅ **告警规则配置** (`config/prometheus/alerts.yml`)

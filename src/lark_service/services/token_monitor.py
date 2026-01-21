@@ -1,9 +1,14 @@
 """
 Token expiration monitoring and user experience optimization.
+
+Note: This monitor is primarily for User Access Tokens (OAuth tokens) that require
+user re-authorization when refresh_token expires. App Access Tokens can be automatically
+refreshed using app_id + app_secret and don't need user intervention.
 """
 
 import logging
 from datetime import datetime
+from enum import Enum
 from typing import Any
 
 from prometheus_client import Counter, Gauge
@@ -12,16 +17,30 @@ from lark_service.messaging.client import MessagingClient
 
 logger = logging.getLogger(__name__)
 
+
+class TokenType(Enum):
+    """Token type enumeration."""
+
+    APP_ACCESS_TOKEN = "app_access_token"  # 应用级 Token,可自动刷新  # nosec B105
+    USER_ACCESS_TOKEN = "user_access_token"  # 用户级 Token,需要 refresh_token  # nosec B105
+
+
 # Prometheus metrics for token monitoring
 TOKEN_EXPIRY_WARNING_COUNTER = Counter(
     "token_expiry_warnings_sent_total",
     "Total number of token expiry warnings sent",
-    ["app_id"],
+    ["app_id", "token_type"],
 )
 
 TOKEN_DAYS_TO_EXPIRY = Gauge(
     "token_days_to_expiry",
     "Days until token expiry",
+    ["app_id", "token_type"],
+)
+
+REFRESH_TOKEN_DAYS_TO_EXPIRY = Gauge(
+    "refresh_token_days_to_expiry",
+    "Days until refresh token expiry",
     ["app_id"],
 )
 
@@ -62,21 +81,49 @@ class TokenExpiryMonitor:
         self,
         app_id: str,
         token_expires_at: datetime,
+        token_type: TokenType = TokenType.APP_ACCESS_TOKEN,
+        refresh_token_expires_at: datetime | None = None,
         admin_user_id: str | None = None,
     ) -> None:
         """
         Check if a token is about to expire and send notifications.
 
+        For App Access Tokens: No notification needed as they auto-refresh.
+        For User Access Tokens: Notify when refresh_token is about to expire.
+
         Args:
             app_id: Application ID
             token_expires_at: Token expiration timestamp
+            token_type: Type of token (app or user)
+            refresh_token_expires_at: Refresh token expiration (for user tokens)
             admin_user_id: Optional user ID to notify
         """
         now = datetime.utcnow()
         days_to_expiry = (token_expires_at - now).days
 
         # Update Prometheus metric
-        TOKEN_DAYS_TO_EXPIRY.labels(app_id=app_id).set(days_to_expiry)
+        TOKEN_DAYS_TO_EXPIRY.labels(app_id=app_id, token_type=token_type.value).set(days_to_expiry)
+
+        # App Access Tokens can auto-refresh, no need to notify
+        if token_type == TokenType.APP_ACCESS_TOKEN:
+            logger.debug(
+                f"App Access Token for {app_id} expires in {days_to_expiry} days "
+                "(will auto-refresh)"
+            )
+            return
+
+        # For User Access Tokens, check refresh_token expiry
+        if token_type == TokenType.USER_ACCESS_TOKEN:
+            if refresh_token_expires_at is None:
+                logger.warning(f"User Access Token for {app_id} has no refresh_token expiry info")
+                return
+
+            refresh_days_to_expiry = (refresh_token_expires_at - now).days
+            REFRESH_TOKEN_DAYS_TO_EXPIRY.labels(app_id=app_id).set(refresh_days_to_expiry)
+
+            # Only notify if refresh_token is about to expire
+            # (access_token can be refreshed as long as refresh_token is valid)
+            days_to_expiry = refresh_days_to_expiry
 
         # Check if notification is needed
         notification_key = f"{app_id}:{token_expires_at.isoformat()}"
@@ -98,7 +145,7 @@ class TokenExpiryMonitor:
 
         # Record notification
         self._notification_history[notification_key] = now
-        TOKEN_EXPIRY_WARNING_COUNTER.labels(app_id=app_id).inc()
+        TOKEN_EXPIRY_WARNING_COUNTER.labels(app_id=app_id, token_type=token_type.value).inc()
 
     def _send_warning(
         self,
@@ -115,13 +162,15 @@ class TokenExpiryMonitor:
             admin_user_id: Optional user ID to notify
         """
         message = (
-            f"⚠️ **Token Expiry Warning**\n\n"
-            f"Your access token for application `{app_id}` will expire in **{days_to_expiry} days**.\n\n"
+            f"⚠️ **Refresh Token Expiry Warning**\n\n"
+            f"The refresh token for application `{app_id}` will expire in **{days_to_expiry} days**.\n\n"
+            f"**What does this mean?**\n"
+            f"After the refresh token expires, users will need to re-authorize the application.\n\n"
             f"**Action Required:**\n"
-            f"1. Go to Lark Open Platform\n"
-            f"2. Navigate to your application settings\n"
-            f"3. Regenerate your app credentials\n"
-            f"4. Update the configuration in this service\n\n"
+            f"1. Notify affected users to prepare for re-authorization\n"
+            f"2. Ensure authorization flow is working correctly\n"
+            f"3. Consider implementing automatic re-authorization reminders\n\n"
+            f"**Note:** Access tokens will continue to auto-refresh until the refresh token expires.\n\n"
             f"Need help? Contact your system administrator."
         )
 
@@ -152,19 +201,23 @@ class TokenExpiryMonitor:
             admin_user_id: Optional user ID to notify
         """
         message = (
-            f"🚨 **URGENT: Token Expiring Soon!**\n\n"
-            f"Your access token for application `{app_id}` will expire in **{days_to_expiry} days**!\n\n"
-            f"**Immediate Action Required:**\n"
-            f"Service functionality will be disrupted if the token expires.\n\n"
-            f"**Steps to Renew:**\n"
-            f"1. Visit [Lark Open Platform](https://open.feishu.cn/app)\n"
-            f"2. Select application `{app_id}`\n"
-            f"3. Navigate to 'Credentials & Basic Info'\n"
-            f"4. Regenerate App Secret\n"
-            f"5. Update configuration:\n"
-            f"   ```bash\n"
-            f"   lark-service-cli app update {app_id} --app-secret <new_secret>\n"
-            f"   ```\n\n"
+            f"🚨 **URGENT: Refresh Token Expiring Soon!**\n\n"
+            f"The refresh token for application `{app_id}` will expire in **{days_to_expiry} days**!\n\n"
+            f"**Critical Impact:**\n"
+            f"Users will need to re-authorize the application after the refresh token expires.\n"
+            f"Access tokens can no longer be automatically refreshed.\n\n"
+            f"**Immediate Actions:**\n"
+            f"1. **Notify all users** to re-authorize before expiry\n"
+            f"2. **Test authorization flow**:\n"
+            f"   - Visit: https://open.feishu.cn/app/{app_id}\n"
+            f"   - Verify OAuth redirect URLs are correct\n"
+            f"   - Test the complete authorization process\n"
+            f"3. **Prepare user communications**:\n"
+            f"   - Send email/message to affected users\n"
+            f"   - Provide clear re-authorization instructions\n"
+            f"4. **Monitor re-authorization rate**\n\n"
+            f"**Note:** This is about refresh_token, not app_secret. "
+            f"No need to regenerate app credentials.\n\n"
             f"Contact your system administrator immediately if you need assistance."
         )
 
@@ -193,20 +246,21 @@ class TokenExpiryMonitor:
             admin_user_id: Optional user ID to notify
         """
         message = (
-            f"❌ **Token Expired**\n\n"
-            f"The access token for application `{app_id}` has **EXPIRED**.\n\n"
+            f"❌ **Refresh Token Expired**\n\n"
+            f"The refresh token for application `{app_id}` has **EXPIRED**.\n\n"
             f"**Service Impact:**\n"
-            f"All API calls using this token will fail until renewed.\n\n"
+            f"- Users can no longer automatically refresh their access tokens\n"
+            f"- **User re-authorization is now required**\n"
+            f"- Existing access tokens will work until they expire (typically 2 hours)\n\n"
             f"**Required Actions:**\n"
-            f"1. Visit [Lark Open Platform](https://open.feishu.cn/app)\n"
-            f"2. Regenerate app credentials for `{app_id}`\n"
-            f"3. Update configuration immediately:\n"
-            f"   ```bash\n"
-            f"   lark-service-cli app update {app_id} \\\n"
-            f"     --app-id <app_id> \\\n"
-            f"     --app-secret <new_secret>\n"
-            f"   ```\n"
-            f"4. Restart the service\n\n"
+            f"1. **Enable authorization flow** in your application\n"
+            f"2. **Redirect users to re-authorize**:\n"
+            f"   - Authorization URL: https://open.feishu.cn/open-apis/authen/v1/authorize\n"
+            f"   - Include required parameters: app_id, redirect_uri, state\n"
+            f"3. **Handle OAuth callback** to obtain new tokens\n"
+            f"4. **Notify affected users** about re-authorization requirement\n\n"
+            f"**Important:** This is NOT an app_secret issue. "
+            f"Users need to go through OAuth authorization again.\n\n"
             f"**Need Help?**\n"
             f"Contact: your-support-email@example.com"
         )

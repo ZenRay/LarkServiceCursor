@@ -7,7 +7,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from lark_service.services.token_monitor import TokenExpiryMonitor
+from lark_service.services.token_monitor import TokenExpiryMonitor, TokenType
 
 
 class TestTokenExpiryMonitor:
@@ -33,13 +33,30 @@ class TestTokenExpiryMonitor:
         assert monitor.warning_days == 7
         assert monitor.critical_days == 3
 
-    def test_no_notification_for_valid_token(self, monitor, mock_messaging_client):
-        """Test that no notification is sent for tokens with > 7 days."""
-        expires_at = datetime.utcnow() + timedelta(days=30)
+    def test_no_notification_for_app_token(self, monitor, mock_messaging_client):
+        """Test that no notification is sent for App Access Tokens (auto-refresh)."""
+        expires_at = datetime.utcnow() + timedelta(days=1)
 
         monitor.check_token_expiry(
             app_id="test_app",
             token_expires_at=expires_at,
+            token_type=TokenType.APP_ACCESS_TOKEN,  # App tokens auto-refresh
+            admin_user_id="user123",
+        )
+
+        # No message should be sent for app tokens
+        mock_messaging_client.send_text_message.assert_not_called()
+
+    def test_no_notification_for_valid_refresh_token(self, monitor, mock_messaging_client):
+        """Test that no notification is sent for refresh tokens with > 7 days."""
+        access_expires_at = datetime.utcnow() + timedelta(hours=2)
+        refresh_expires_at = datetime.utcnow() + timedelta(days=30)
+
+        monitor.check_token_expiry(
+            app_id="test_app",
+            token_expires_at=access_expires_at,
+            token_type=TokenType.USER_ACCESS_TOKEN,
+            refresh_token_expires_at=refresh_expires_at,
             admin_user_id="user123",
         )
 
@@ -47,12 +64,15 @@ class TestTokenExpiryMonitor:
         mock_messaging_client.send_text_message.assert_not_called()
 
     def test_warning_notification(self, monitor, mock_messaging_client):
-        """Test warning notification for tokens expiring in 5 days."""
-        expires_at = datetime.utcnow() + timedelta(days=5)
+        """Test warning notification for refresh tokens expiring in 5 days."""
+        access_expires_at = datetime.utcnow() + timedelta(hours=2)
+        refresh_expires_at = datetime.utcnow() + timedelta(days=5)
 
         monitor.check_token_expiry(
             app_id="test_app",
-            token_expires_at=expires_at,
+            token_expires_at=access_expires_at,
+            token_type=TokenType.USER_ACCESS_TOKEN,
+            refresh_token_expires_at=refresh_expires_at,
             admin_user_id="user123",
         )
 
@@ -61,16 +81,20 @@ class TestTokenExpiryMonitor:
         call_args = mock_messaging_client.send_text_message.call_args
         assert call_args[1]["receiver_id"] == "user123"
         assert "⚠️" in call_args[1]["content"]
+        assert "Refresh Token" in call_args[1]["content"]
         # Days might be 4 or 5 depending on microseconds
         assert "days" in call_args[1]["content"]
 
     def test_critical_warning_notification(self, monitor, mock_messaging_client):
-        """Test critical warning for tokens expiring in 2 days."""
-        expires_at = datetime.utcnow() + timedelta(days=2)
+        """Test critical warning for refresh tokens expiring in 2 days."""
+        access_expires_at = datetime.utcnow() + timedelta(hours=2)
+        refresh_expires_at = datetime.utcnow() + timedelta(days=2)
 
         monitor.check_token_expiry(
             app_id="test_app",
-            token_expires_at=expires_at,
+            token_expires_at=access_expires_at,
+            token_type=TokenType.USER_ACCESS_TOKEN,
+            refresh_token_expires_at=refresh_expires_at,
             admin_user_id="user123",
         )
 
@@ -79,14 +103,18 @@ class TestTokenExpiryMonitor:
         call_args = mock_messaging_client.send_text_message.call_args
         assert "🚨" in call_args[1]["content"]
         assert "URGENT" in call_args[1]["content"]
+        assert "Refresh Token" in call_args[1]["content"]
 
     def test_expired_notification(self, monitor, mock_messaging_client):
-        """Test notification for expired tokens."""
-        expires_at = datetime.utcnow() - timedelta(days=1)
+        """Test notification for expired refresh tokens."""
+        access_expires_at = datetime.utcnow() - timedelta(hours=1)
+        refresh_expires_at = datetime.utcnow() - timedelta(days=1)
 
         monitor.check_token_expiry(
             app_id="test_app",
-            token_expires_at=expires_at,
+            token_expires_at=access_expires_at,
+            token_type=TokenType.USER_ACCESS_TOKEN,
+            refresh_token_expires_at=refresh_expires_at,
             admin_user_id="user123",
         )
 
@@ -94,23 +122,29 @@ class TestTokenExpiryMonitor:
         mock_messaging_client.send_text_message.assert_called_once()
         call_args = mock_messaging_client.send_text_message.call_args
         assert "❌" in call_args[1]["content"]
-        assert "EXPIRED" in call_args[1]["content"]
+        assert "Expired" in call_args[1]["content"]
+        assert "Refresh Token" in call_args[1]["content"]
 
     def test_no_duplicate_notifications(self, monitor, mock_messaging_client):
         """Test that duplicate notifications are not sent within 24 hours."""
-        expires_at = datetime.utcnow() + timedelta(days=5)
+        access_expires_at = datetime.utcnow() + timedelta(hours=2)
+        refresh_expires_at = datetime.utcnow() + timedelta(days=5)
 
         # First check
         monitor.check_token_expiry(
             app_id="test_app",
-            token_expires_at=expires_at,
+            token_expires_at=access_expires_at,
+            token_type=TokenType.USER_ACCESS_TOKEN,
+            refresh_token_expires_at=refresh_expires_at,
             admin_user_id="user123",
         )
 
         # Second check immediately after
         monitor.check_token_expiry(
             app_id="test_app",
-            token_expires_at=expires_at,
+            token_expires_at=access_expires_at,
+            token_type=TokenType.USER_ACCESS_TOKEN,
+            refresh_token_expires_at=refresh_expires_at,
             admin_user_id="user123",
         )
 
@@ -165,12 +199,15 @@ class TestTokenExpiryMonitor:
 
     def test_notification_without_admin_user(self, monitor, mock_messaging_client):
         """Test that notification works when admin_user_id is None."""
-        expires_at = datetime.utcnow() + timedelta(days=5)
+        access_expires_at = datetime.utcnow() + timedelta(hours=2)
+        refresh_expires_at = datetime.utcnow() + timedelta(days=5)
 
         # Should not raise an error
         monitor.check_token_expiry(
             app_id="test_app",
-            token_expires_at=expires_at,
+            token_expires_at=access_expires_at,
+            token_type=TokenType.USER_ACCESS_TOKEN,
+            refresh_token_expires_at=refresh_expires_at,
             admin_user_id=None,
         )
 
@@ -178,25 +215,33 @@ class TestTokenExpiryMonitor:
         """Test that messaging client failures are handled gracefully."""
         mock_messaging_client.send_text_message.side_effect = Exception("Network error")
 
-        expires_at = datetime.utcnow() + timedelta(days=5)
+        access_expires_at = datetime.utcnow() + timedelta(hours=2)
+        refresh_expires_at = datetime.utcnow() + timedelta(days=5)
 
         # Should not raise an error
         monitor.check_token_expiry(
             app_id="test_app",
-            token_expires_at=expires_at,
+            token_expires_at=access_expires_at,
+            token_type=TokenType.USER_ACCESS_TOKEN,
+            refresh_token_expires_at=refresh_expires_at,
             admin_user_id="user123",
         )
 
     def test_prometheus_metrics_update(self, monitor, mock_messaging_client):
         """Test that Prometheus metrics are updated."""
-        expires_at = datetime.utcnow() + timedelta(days=5)
+        access_expires_at = datetime.utcnow() + timedelta(hours=2)
+        refresh_expires_at = datetime.utcnow() + timedelta(days=5)
 
         with patch("lark_service.services.token_monitor.TOKEN_DAYS_TO_EXPIRY") as mock_gauge:
             monitor.check_token_expiry(
                 app_id="test_app",
-                token_expires_at=expires_at,
+                token_expires_at=access_expires_at,
+                token_type=TokenType.USER_ACCESS_TOKEN,
+                refresh_token_expires_at=refresh_expires_at,
                 admin_user_id="user123",
             )
 
-            # Check that gauge was set
-            mock_gauge.labels.assert_called_with(app_id="test_app")
+            # Check that gauge was set with token_type
+            mock_gauge.labels.assert_called_with(
+                app_id="test_app", token_type=TokenType.USER_ACCESS_TOKEN.value
+            )
