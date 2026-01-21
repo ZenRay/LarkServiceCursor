@@ -3,8 +3,11 @@
 Provides centralized token management with lazy loading and auto-refresh.
 """
 
+from __future__ import annotations
+
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import lark_oapi as lark
 import requests
@@ -20,6 +23,12 @@ from lark_service.core.storage.postgres_storage import TokenStorageService
 from lark_service.core.storage.sqlite_storage import ApplicationManager
 from lark_service.utils.logger import get_logger
 from lark_service.utils.validators import validate_app_id
+
+if TYPE_CHECKING:
+    from lark_service.apaas.client import WorkspaceTableClient
+    from lark_service.clouddoc.client import DocClient
+    from lark_service.contact.client import ContactClient
+    from lark_service.messaging.client import MessagingClient
 
 logger = get_logger()
 
@@ -71,6 +80,9 @@ class CredentialPool:
 
         # Cache of SDK clients
         self.sdk_clients: dict[str, lark.Client] = {}
+
+        # Pool-level default app_id (layer 4 in priority)
+        self._default_app_id: str | None = None
 
         logger.info("CredentialPool initialized")
 
@@ -452,6 +464,167 @@ class CredentialPool:
                 "Token not found for invalidation",
                 extra={"app_id": app_id, "token_type": token_type},
             )
+
+    def set_default_app_id(self, app_id: str) -> None:
+        """Set pool-level default app_id (layer 4 in priority).
+
+        This default app_id will be used when:
+        - No explicit app_id is passed to client methods (layer 1)
+        - No context manager is active (layer 2)
+        - No client-level default is set (layer 3)
+
+        Args:
+            app_id: Application ID to set as default
+
+        Raises:
+            ValidationError: If app_id format is invalid
+            AuthenticationError: If application not found or inactive
+
+        Example:
+            >>> pool = CredentialPool(config, app_manager, token_storage)
+            >>> pool.set_default_app_id("cli_abc123")
+            >>> # Now all clients created from this pool use "cli_abc123" by default
+        """
+        validate_app_id(app_id)
+
+        # Validate that application exists and is active
+        app = self.app_manager.get_application(app_id)
+        if not app:
+            raise AuthenticationError(
+                f"Application not found: {app_id}",
+                details={"app_id": app_id},
+            )
+
+        if not app.is_active():
+            raise AuthenticationError(
+                f"Application is not active: {app_id}",
+                details={"app_id": app_id, "status": app.status},
+            )
+
+        self._default_app_id = app_id
+        logger.info(
+            "Pool-level default app_id set",
+            extra={"app_id": app_id},
+        )
+
+    def get_default_app_id(self) -> str | None:
+        """Get pool-level default app_id.
+
+        Returns pool-level default if explicitly set via `set_default_app_id()`,
+        otherwise delegates to ApplicationManager's intelligent selection strategy.
+
+        Returns:
+            Default app_id (str) or None if not available
+
+        Example:
+            >>> pool = CredentialPool(config, app_manager, token_storage)
+            >>> pool.set_default_app_id("cli_abc123")
+            >>> default = pool.get_default_app_id()
+            >>> # default == "cli_abc123"
+
+            >>> # If not explicitly set, auto-selects in single-app scenario
+            >>> pool2 = CredentialPool(config, app_manager, token_storage)
+            >>> default = pool2.get_default_app_id()
+            >>> # default == "cli_abc123" (if only one active app exists)
+        """
+        # Priority 1: Explicitly set pool-level default
+        if self._default_app_id:
+            return self._default_app_id
+
+        # Priority 2: ApplicationManager's intelligent selection
+        return self.app_manager.get_default_app_id()
+
+    def list_app_ids(self) -> list[str]:
+        """List all active application IDs.
+
+        Returns:
+            List of active application IDs
+
+        Example:
+            >>> pool = CredentialPool(config, app_manager, token_storage)
+            >>> apps = pool.list_app_ids()
+            >>> # apps == ["cli_app1", "cli_app2", "cli_app3"]
+        """
+        apps = self.app_manager.list_applications()
+        return [app.app_id for app in apps if app.is_active()]
+
+    def create_messaging_client(self, app_id: str | None = None) -> MessagingClient:
+        """Factory method to create MessagingClient with optional app_id.
+
+        Note: This method will be fully functional after T003 refactoring.
+
+        Args:
+            app_id: Optional application ID to bind to this client
+
+        Returns:
+            MessagingClient instance
+
+        Example:
+            >>> pool = CredentialPool(config, app_manager, token_storage)
+            >>> client1 = pool.create_messaging_client("cli_app1")
+            >>> client2 = pool.create_messaging_client("cli_app2")
+            >>> # Each client bound to different app
+        """
+        from lark_service.messaging.client import MessagingClient
+
+        return MessagingClient(self, app_id=app_id)  # type: ignore[call-arg]
+
+    def create_contact_client(self, app_id: str | None = None) -> ContactClient:
+        """Factory method to create ContactClient with optional app_id.
+
+        Note: This method will be fully functional after T003 refactoring.
+
+        Args:
+            app_id: Optional application ID to bind to this client
+
+        Returns:
+            ContactClient instance
+
+        Example:
+            >>> pool = CredentialPool(config, app_manager, token_storage)
+            >>> client = pool.create_contact_client("cli_app1")
+        """
+        from lark_service.contact.client import ContactClient
+
+        return ContactClient(self, app_id=app_id)  # type: ignore[call-arg]
+
+    def create_clouddoc_client(self, app_id: str | None = None) -> DocClient:
+        """Factory method to create DocClient (CloudDoc) with optional app_id.
+
+        Note: This method will be fully functional after T003 refactoring.
+
+        Args:
+            app_id: Optional application ID to bind to this client
+
+        Returns:
+            DocClient instance
+
+        Example:
+            >>> pool = CredentialPool(config, app_manager, token_storage)
+            >>> client = pool.create_clouddoc_client("cli_app1")
+        """
+        from lark_service.clouddoc.client import DocClient
+
+        return DocClient(self, app_id=app_id)  # type: ignore[call-arg]
+
+    def create_apaas_client(self, app_id: str | None = None) -> WorkspaceTableClient:
+        """Factory method to create WorkspaceTableClient (aPaaS) with optional app_id.
+
+        Note: This method will be fully functional after T003 refactoring.
+
+        Args:
+            app_id: Optional application ID to bind to this client
+
+        Returns:
+            WorkspaceTableClient instance
+
+        Example:
+            >>> pool = CredentialPool(config, app_manager, token_storage)
+            >>> client = pool.create_apaas_client("cli_app1")
+        """
+        from lark_service.apaas.client import WorkspaceTableClient
+
+        return WorkspaceTableClient(self, app_id=app_id)  # type: ignore[call-arg]
 
     def close(self) -> None:
         """Close all resources.

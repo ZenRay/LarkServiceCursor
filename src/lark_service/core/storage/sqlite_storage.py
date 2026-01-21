@@ -438,6 +438,63 @@ class ApplicationManager:
                 details={"app_id": app_id, "error": str(e)},
             ) from e
 
+    def get_default_app_id(self) -> str | None:
+        """Get default application ID using intelligent selection strategy.
+
+        Selection strategy:
+        1. If only one active application exists, return it (single-app scenario)
+        2. If multiple active applications exist, return None (requires explicit selection)
+        3. If no active applications exist, return None
+
+        Returns:
+            Default app_id (str) for single-app scenario, None otherwise
+
+        Example:
+            >>> # Single-app scenario (one active app)
+            >>> app_id = manager.get_default_app_id()
+            >>> # app_id == "cli_abc123"
+
+            >>> # Multi-app scenario (multiple active apps)
+            >>> app_id = manager.get_default_app_id()
+            >>> # app_id == None (requires explicit selection)
+
+            >>> # No apps scenario
+            >>> app_id = manager.get_default_app_id()
+            >>> # app_id == None
+        """
+        session = self._get_session()
+        try:
+            active_apps = session.query(Application).filter_by(status="active").all()
+
+            if len(active_apps) == 1:
+                # Single-app scenario: auto-select the only active app
+                default_id = active_apps[0].app_id
+                logger.debug(
+                    "Auto-selected default app_id (single-app scenario)",
+                    extra={"app_id": default_id},
+                )
+                return default_id
+            elif len(active_apps) > 1:
+                # Multi-app scenario: require explicit selection
+                logger.debug(
+                    "Multiple active apps found, no auto-selection",
+                    extra={"count": len(active_apps)},
+                )
+                return None
+            else:
+                # No active apps
+                logger.debug("No active applications found")
+                return None
+
+        except Exception as e:
+            logger.error(
+                f"Failed to get default app_id: {e}",
+                extra={"error": str(e)},
+            )
+            return None
+        finally:
+            session.close()
+
     def close(self) -> None:
         """Close database connections.
 
