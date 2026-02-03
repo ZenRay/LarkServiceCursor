@@ -1,0 +1,2687 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="zh-CN" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>部署指南 &mdash; Lark Service 0.2.0 文档</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=ad3000b3"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/translations.js?v=beaddf03"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="genindex.html" />
+    <link rel="search" title="搜索" href="search.html" />
+    <link rel="next" title="监控指南" href="monitoring.html" />
+    <link rel="prev" title="LarkService 生产环境部署指南" href="deployment/PRODUCTION_DEPLOYMENT.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Lark Service
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="搜索文档" aria-label="搜索文档" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="导航菜单">
+              <p class="caption" role="heading"><span class="caption-text">快速开始</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="README.html">Lark Service - 项目文档索引</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="README.html#id1">🎯 快速导航</a></li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#id2">📚 核心文档 (25+)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="README.html#id3">1. 产品与规格 (4个)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="README.html#api-5">2. 架构与API (5个)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="README.html#id4">3. 开发指南 (6个)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="README.html#id5">4. 部署与配置 (6个)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="README.html#id6">5. 功能特性 (2个) 🆕</a></li>
+<li class="toctree-l3"><a class="reference internal" href="README.html#id7">6. 技术专题 (3个)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="README.html#id8">7. 发布说明 (1个) 🆕</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#id9">📊 项目状态与报告</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="README.html#v0-5-0">当前状态 (v0.5.0) 🎉</a></li>
+<li class="toctree-l3"><a class="reference internal" href="README.html#id10">检查清单</a></li>
+<li class="toctree-l3"><a class="reference internal" href="README.html#id11">历史归档</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#id12">🔧 模块使用说明</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="README.html#core">Core 核心模块</a></li>
+<li class="toctree-l3"><a class="reference internal" href="README.html#messaging">Messaging 消息模块</a></li>
+<li class="toctree-l3"><a class="reference internal" href="README.html#clouddoc">CloudDoc 云文档模块</a></li>
+<li class="toctree-l3"><a class="reference internal" href="README.html#contact">Contact 通讯录模块</a></li>
+<li class="toctree-l3"><a class="reference internal" href="README.html#cardkit">CardKit 卡片模块</a></li>
+<li class="toctree-l3"><a class="reference internal" href="README.html#apaas">aPaaS 数据空间模块</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#id13">📖 快速开始</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="README.html#id14">1. 查看项目概览</a></li>
+<li class="toctree-l3"><a class="reference internal" href="README.html#id15">2. 本地开发</a></li>
+<li class="toctree-l3"><a class="reference internal" href="README.html#id16">3. 代码质量检查</a></li>
+<li class="toctree-l3"><a class="reference internal" href="README.html#git">4. Git工作流</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#id17">📋 项目规范</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="README.html#id18">代码规范</a></li>
+<li class="toctree-l3"><a class="reference internal" href="README.html#id19">Git规范</a></li>
+<li class="toctree-l3"><a class="reference internal" href="README.html#id20">质量门禁</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#id21">🔍 相关资源</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="README.html#id22">官方文档</a></li>
+<li class="toctree-l3"><a class="reference internal" href="README.html#id23">项目链接</a></li>
+<li class="toctree-l3"><a class="reference internal" href="README.html#id24">项目指标</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="README.html#id25">📞 获取帮助</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="README.html#id26">问题排查</a></li>
+<li class="toctree-l3"><a class="reference internal" href="README.html#id27">文档导航</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">安装指南</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#id2">环境要求</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#pip">使用 pip 安装</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#id3">开发环境</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#id4">生产环境</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#docker">使用 Docker 部署</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#id5">1. 克隆项目</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#id6">2. 配置环境变量</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#id7">3. 启动服务</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#id8">4. 运行数据库迁移</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#id9">5. 配置飞书应用</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#id10">验证安装</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#id11">下一步</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">5分钟快速开始</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#id2">前置条件</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#id3">步骤 1: 安装</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#id4">步骤 2: 配置环境变量</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#id5">步骤 3: 初始化数据库</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#id6">步骤 4: 添加飞书应用</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#id7">步骤 5: 发送第一条消息</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#id8">步骤 6: 发送交互式卡片</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#id9">🎉 完成！</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#id10">下一步</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#id11">常见问题</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="quickstart.html#q-open-id">Q: 如何获取用户的 open_id？</a></li>
+<li class="toctree-l3"><a class="reference internal" href="quickstart.html#q-token">Q: 如何处理 token 过期？</a></li>
+<li class="toctree-l3"><a class="reference internal" href="quickstart.html#q">Q: 如何启用日志？</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quick-reference.html">代码质量检查工具快速参考</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quick-reference.html#id2">🎯 核心命令</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="quick-reference.html#id3">日常开发流程</a></li>
+<li class="toctree-l3"><a class="reference internal" href="quick-reference.html#id4">辅助命令</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="quick-reference.html#id5">📋 检查内容详解</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="quick-reference.html#git-check">git check 会运行以下检查：</a></li>
+<li class="toctree-l3"><a class="reference internal" href="quick-reference.html#id6">关键配置差异</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="quick-reference.html#id7">⚙️ 配置文件对应关系</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick-reference.html#id8">🔧 常见问题</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="quick-reference.html#q1-mypy-commit">Q1: 为什么本地 mypy 通过，但 commit 失败？</a></li>
+<li class="toctree-l3"><a class="reference internal" href="quick-reference.html#q2-tests">Q2: tests/ 的类型注解错误要修复吗？</a></li>
+<li class="toctree-l3"><a class="reference internal" href="quick-reference.html#q3">Q3: 如何只检查特定目录？</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="quick-reference.html#id9">📖 完整工作流示例</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick-reference.html#id10">🚀 首次设置</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick-reference.html#id11">📚 更多信息</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">使用指南</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="usage/app-management.html">应用管理 (Application Management)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="usage/app-management.html#id1">概述</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/app-management.html#id2">核心概念</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/app-management.html#app-id">5层 app_id 解析优先级</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage/app-management.html#id3">场景 1: 单应用场景</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/app-management.html#id4">示例代码</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/app-management.html#id5">返回值示例</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/app-management.html#id6">场景 2: 多应用场景 - 客户端级别默认值</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/app-management.html#id7">示例代码</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/app-management.html#id8">返回值示例</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/app-management.html#id9">场景 3: 动态切换应用 - 使用上下文管理器</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/app-management.html#id10">示例代码</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/app-management.html#id11">输出示例</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/app-management.html#id12">场景 4: 方法参数覆盖 - 最高优先级</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/app-management.html#id13">示例代码</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/app-management.html#id14">返回值示例</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/app-management.html#id15">场景 5: 嵌套上下文管理器</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/app-management.html#id16">示例代码</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/app-management.html#id17">输出示例</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/app-management.html#id18">实用工具方法</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/app-management.html#id">获取当前应用 ID</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/app-management.html#id19">列出所有可用应用</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/app-management.html#id20">输出示例</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/app-management.html#id21">错误处理</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/app-management.html#id22">未指定 app_id</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/app-management.html#id23">应用不存在</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/app-management.html#id24">线程安全注意事项</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/app-management.html#id25">推荐做法</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/app-management.html#id26">示例代码</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/app-management.html#id27">最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage/app-management.html#id28">相关文档</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="usage/messaging.html">消息服务</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="usage/messaging.html#id2">基本用法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage/messaging.html#id3">应用管理</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/messaging.html#id4">快速示例</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="usage/card.html">卡片服务</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="usage/card.html#id2">功能特点</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage/card.html#id3">快速开始</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/card.html#id4">基础使用</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/card.html#id5">预定义卡片模板</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/card.html#notification-card">1. 通知卡片 (Notification Card)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/card.html#approval-card">2. 审批卡片 (Approval Card)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/card.html#form-card">3. 表单卡片 (Form Card)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/card.html#id6">自定义卡片构建</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/card.html#build-card">使用 build_card 方法</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/card.html#id7">常用卡片元素</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="usage/card.html#div">文本元素 (div)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="usage/card.html#markdown">Markdown 文本</a></li>
+<li class="toctree-l4"><a class="reference internal" href="usage/card.html#button">按钮 (button)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="usage/card.html#hr">分割线 (hr)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="usage/card.html#img">图片 (img)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="usage/card.html#column-set">多列布局 (column_set)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/card.html#id8">卡片交互回调</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/card.html#id9">设置回调服务器</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/card.html#id10">卡片回调数据结构</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/card.html#id11">更新卡片</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/card.html#cardupdater">使用 CardUpdater</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/card.html#id12">在回调中更新卡片</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/card.html#id13">高级用法</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/card.html#id14">条件渲染</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/card.html#id15">数据绑定</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/card.html#id16">卡片链</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/card.html#id17">最佳实践</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/card.html#id18">1. 卡片设计原则</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/card.html#id19">2. 错误处理</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/card.html#id20">3. 回调安全验证</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/card.html#id21">4. 性能优化</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/card.html#id22">故障排查</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/card.html#id23">卡片发送失败</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/card.html#id24">回调未触发</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/card.html#id25">相关文档</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="usage/contact.html">通讯录服务</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="usage/contact.html#id2">应用管理</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/contact.html#id3">快速示例</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="usage/clouddoc.html">云文档服务</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="usage/clouddoc.html#id2">应用管理</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/clouddoc.html#id3">快速示例</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="usage/apaas.html">aPaaS 数据空间</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="usage/apaas.html#id1">应用管理</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/apaas.html#id2">快速示例</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="usage/auth.html">WebSocket 用户授权</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="usage/auth.html#id1">概述</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/auth.html#id2">核心特性</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/auth.html#id3">授权流程</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/auth.html#id4">前置条件</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/auth.html#id5">1. 数据库配置</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/auth.html#id6">2. 飞书应用配置</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/auth.html#id7">3. 环境变量</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/auth.html#id8">基本用法</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/auth.html#id9">初始化组件</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/auth.html#id10">发送授权卡片</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/auth.html#id11">检查授权状态</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/auth.html#user-access-token">使用 user_access_token</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/auth.html#id12">高级用法</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/auth.html#id13">自定义授权卡片</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/auth.html#token">Token 自动刷新</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/auth.html#id14">会话管理</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/auth.html#id15">清理过期会话</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/auth.html#id16">WebSocket 事件处理（可选）</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage/auth.html#id17">生产部署注意事项</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/auth.html#id18">1. 公网访问要求</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="usage/auth.html#id19">开发环境方案</a></li>
+<li class="toctree-l4"><a class="reference internal" href="usage/auth.html#id20">生产环境方案</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="usage/auth.html#id21">2. 回调服务器配置</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/auth.html#oauth-redirect-uri">3. 配置 OAuth Redirect URI</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/auth.html#id22">4. 环境变量</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/auth.html#id23">错误处理</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/auth.html#id24">常见错误</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="usage/auth.html#id25">1. 授权码过期</a></li>
+<li class="toctree-l4"><a class="reference internal" href="usage/auth.html#id26">2. Token 刷新失败</a></li>
+<li class="toctree-l4"><a class="reference internal" href="usage/auth.html#id27">3. 会话不存在</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/auth.html#id28">监控指标</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage/auth.html#id29">完整示例</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage/auth.html#id30">限制与注意事项</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/auth.html#id31">⚠️ 公网要求</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/auth.html#id32">⚠️ 授权流程</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/auth.html#id33">⚠️ Token 管理</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/auth.html#id34">相关文档</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage/auth.html#api">API 参考</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="usage/scheduler.html">Scheduler 定时任务</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="usage/scheduler.html#id1">功能特点</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage/scheduler.html#id2">快速开始</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/scheduler.html#id3">基础用法</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/scheduler.html#id4">使用预定义任务</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/scheduler.html#id5">预定义任务</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/scheduler.html#sync-user-info">1. 用户信息同步 (<code class="docutils literal notranslate"><span class="pre">sync_user_info</span></code>)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/scheduler.html#token-check-token-expiry">2. Token 过期检查 (<code class="docutils literal notranslate"><span class="pre">check_token_expiry</span></code>)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/scheduler.html#token-cleanup-expired-tokens">3. 过期 Token 清理 (<code class="docutils literal notranslate"><span class="pre">cleanup_expired_tokens</span></code>)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/scheduler.html#scheduler-health-check">4. 健康检查 (<code class="docutils literal notranslate"><span class="pre">scheduler_health_check</span></code>)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/scheduler.html#id6">自定义任务</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/scheduler.html#id7">创建自定义任务</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/scheduler.html#interval-job">Interval Job 选项</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/scheduler.html#cron-job">Cron Job 表达式</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/scheduler.html#id8">任务管理</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/scheduler.html#id9">查看所有任务</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/scheduler.html#id10">移除任务</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/scheduler.html#docker">Docker 中运行</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage/scheduler.html#prometheus">Prometheus 监控</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/scheduler.html#id11">任务执行计数器</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/scheduler.html#id12">任务执行时长</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/scheduler.html#grafana">Grafana 查询示例</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/scheduler.html#id13">最佳实践</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/scheduler.html#id14">1. 错误处理</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/scheduler.html#id15">2. 超时控制</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/scheduler.html#id16">3. 幂等性</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/scheduler.html#id17">4. 分布式锁</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/scheduler.html#id18">故障排查</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/scheduler.html#id19">任务未执行</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/scheduler.html#id20">任务执行失败</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/scheduler.html#id21">下一步</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="usage/advanced.html">高级用法</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="usage/advanced.html#id2">目录</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage/advanced.html#id3">多应用管理</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/advanced.html#id4">动态应用切换策略</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/advanced.html#id5">多服务客户端协同</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/advanced.html#id6">自定义重试策略</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage/advanced.html#id7">批量操作优化</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/advanced.html#id8">批量发送消息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/advanced.html#apaas">批量创建aPaaS记录</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/advanced.html#id9">错误处理最佳实践</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/advanced.html#id10">分级错误处理</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/advanced.html#id11">日志配置</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/advanced.html#id12">自定义日志级别</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/advanced.html#id13">性能优化</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/advanced.html#token">Token缓存</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/advanced.html#id14">连接池复用</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/advanced.html#id15">安全最佳实践</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="usage/advanced.html#id16">敏感信息保护</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/advanced.html#id17">数据库文件权限</a></li>
+<li class="toctree-l3"><a class="reference internal" href="usage/advanced.html#id18">Token过期处理</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage/advanced.html#id19">相关文档</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API 参考</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api-examples.html">API使用示例</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api-examples.html#id1">快速开始</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api-examples.html#id2">消息发送示例</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api-examples.html#id3">发送文本消息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-examples.html#id4">发送富文本消息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-examples.html#id5">发送卡片消息</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api-examples.html#id6">通讯录操作示例</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api-examples.html#id7">获取用户信息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-examples.html#id8">查询部门信息</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api-examples.html#id9">云文档操作示例</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api-examples.html#id10">操作电子表格</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-examples.html#id11">操作多维表格</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api-examples.html#id12">完整应用示例</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api-examples.html#id13">消息通知机器人</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api-rate-limiting-guide.html">API速率限制配置指南</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api-rate-limiting-guide.html#id1">📋 概述</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api-rate-limiting-guide.html#id2">🎯 限流策略</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api-rate-limiting-guide.html#fixed-window">1. 固定窗口（Fixed Window）</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-rate-limiting-guide.html#sliding-window">2. 滑动窗口（Sliding Window）</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-rate-limiting-guide.html#token-bucket">3. 令牌桶（Token Bucket）</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api-rate-limiting-guide.html#id3">⚙️ 配置方法</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api-rate-limiting-guide.html#id4">环境变量配置</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-rate-limiting-guide.html#id5">代码配置</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-rate-limiting-guide.html#fastapi">FastAPI中间件集成</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api-rate-limiting-guide.html#id6">📊 预定义限流配置</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api-rate-limiting-guide.html#id7">🔍 响应头</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api-rate-limiting-guide.html#too-many-requests">429 Too Many Requests响应</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api-rate-limiting-guide.html#id8">🧪 测试速率限制</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api-rate-limiting-guide.html#id9">单元测试</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-rate-limiting-guide.html#id10">压力测试</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-rate-limiting-guide.html#id11">手动测试</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api-rate-limiting-guide.html#id12">📈 监控指标</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api-rate-limiting-guide.html#grafana">Grafana告警</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api-rate-limiting-guide.html#id13">🎯 最佳实践</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api-rate-limiting-guide.html#id14">1. 选择合适的限流策略</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-rate-limiting-guide.html#id15">2. 合理设置限额</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-rate-limiting-guide.html#id16">3. 提供清晰的错误信息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-rate-limiting-guide.html#id17">4. 客户端重试策略</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-rate-limiting-guide.html#id18">5. 用户标识</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api-rate-limiting-guide.html#id19">⚠️ 注意事项</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api-rate-limiting-guide.html#id20">分布式部署</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-rate-limiting-guide.html#id21">白名单</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-rate-limiting-guide.html#id22">成本考虑</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api-rate-limiting-guide.html#id23">🔧 故障排查</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api-rate-limiting-guide.html#id24">问题1: 频繁触发限流</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-rate-limiting-guide.html#id25">问题2: 限流不生效</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-rate-limiting-guide.html#id26">问题3: 性能影响</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api-rate-limiting-guide.html#id27">📚 参考资料</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/core.html">核心模块</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/auth.html">认证模块</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/messaging.html">消息模块</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/contact.html">通讯录模块</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/clouddoc.html">云文档模块</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/apaas.html">aPaaS 模块</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/events.html">事件模块</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/scheduler.html">调度模块</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/services.html">服务模块</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/monitoring.html">监控模块</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/server.html">服务器模块</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/utils.html">工具模块</a><ul class="simple">
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">部署与运维</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html">LarkService 生产环境部署指南</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id1">目录</a></li>
+<li class="toctree-l2"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id2">系统要求</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id3">硬件要求</a></li>
+<li class="toctree-l3"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id4">软件要求</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id5">前置准备</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#docker-docker-compose">1. 安装 Docker 和 Docker Compose</a></li>
+<li class="toctree-l3"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id6">2. 获取代码</a></li>
+<li class="toctree-l3"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id7">3. 配置飞书应用</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id8">环境配置</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id9">1. 创建环境变量文件</a></li>
+<li class="toctree-l3"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#env">2. 编辑 <code class="docutils literal notranslate"><span class="pre">.env</span></code> 文件</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id10">基础配置</a></li>
+<li class="toctree-l4"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id11">飞书应用配置</a></li>
+<li class="toctree-l4"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id12">数据库配置</a></li>
+<li class="toctree-l4"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#rabbitmq">RabbitMQ 配置</a></li>
+<li class="toctree-l4"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id13">监控配置</a></li>
+<li class="toctree-l4"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#token">Token 监控配置</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id14">部署步骤</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id15">1. 构建镜像</a></li>
+<li class="toctree-l3"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id16">2. 启动服务</a></li>
+<li class="toctree-l3"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id17">3. 验证部署</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id18">检查服务健康状态</a></li>
+<li class="toctree-l4"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id19">验证数据库连接</a></li>
+<li class="toctree-l4"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id20">验证 RabbitMQ</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id21">监控配置</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#prometheus">1. Prometheus</a></li>
+<li class="toctree-l3"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#grafana">2. Grafana</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id22">访问 Grafana</a></li>
+<li class="toctree-l4"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id23">导入仪表板</a></li>
+<li class="toctree-l4"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id24">导入步骤</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id25">3. 告警规则</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id26">运维管理</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id27">日常维护</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id28">查看日志</a></li>
+<li class="toctree-l4"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id29">重启服务</a></li>
+<li class="toctree-l4"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id30">更新服务</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id31">数据备份</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#postgresql">PostgreSQL 备份</a></li>
+<li class="toctree-l4"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id32">恢复备份</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id33">日志轮转</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id34">故障排查</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id35">常见问题</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id36">1. 服务无法启动</a></li>
+<li class="toctree-l4"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id37">2. Token 刷新失败</a></li>
+<li class="toctree-l4"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id38">3. 数据库连接失败</a></li>
+<li class="toctree-l4"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id39">4. Prometheus 无法抓取指标</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id40">性能优化</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id41">数据库优化</a></li>
+<li class="toctree-l4"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id42">Token 缓存优化</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id43">安全加固</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id44">1. 网络隔离</a></li>
+<li class="toctree-l3"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#https">2. 使用 HTTPS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id45">3. 密钥管理</a></li>
+<li class="toctree-l3"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id46">4. 最小权限原则</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id47">扩展部署</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id48">高可用部署</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id49">多实例部署</a></li>
+<li class="toctree-l4"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id50">负载均衡</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#kubernetes">Kubernetes 部署</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id51">联系与支持</a></li>
+<li class="toctree-l2"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#id52">附录</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#a">A. 端口列表</a></li>
+<li class="toctree-l3"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#b">B. 环境变量完整列表</a></li>
+<li class="toctree-l3"><a class="reference internal" href="deployment/PRODUCTION_DEPLOYMENT.html#c-docker-compose">C. Docker Compose 服务依赖图</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">部署指南</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id2">快速链接</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id3">2. 依赖服务部署</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#postgresql">2.1 PostgreSQL 部署</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#docker">本地开发 (Docker)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id4">生产环境 (云服务)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#fr-118-new">数据备份与恢复 (FR-118) ⭐ NEW</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#rabbitmq">2.2 RabbitMQ 部署</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id5">本地开发 (Docker)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id6">生产环境 (云服务)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#docker-compose">2.3 Docker Compose 一键部署</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id7">3. 集成方式选择</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id8">3.1 子项目集成 (推荐) ⭐</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pypi">3.2 PyPI 包安装 (备选)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id9">3.3 集成方式对比</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id10">4. 在不同应用中使用</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#django">4.1 Django 应用</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#flask">4.2 Flask 应用</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#apache-airflow">4.3 Apache Airflow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fastapi">4.4 FastAPI 应用</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id11">5. 环境变量配置</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id12">5.1 必需环境变量</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id13">5.2 生成加密密钥</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id14">5.3 不同环境的配置管理</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id15">开发环境</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id16">测试环境</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id17">生产环境</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id18">6. 初始化应用配置</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#cli">5.1 使用 CLI 添加应用</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#python-api">5.2 使用 Python API 添加应用</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id19">7. 数据库迁移</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#alembic">6.1 初始化 Alembic</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id20">6.2 执行迁移</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id21">6.3 创建新迁移</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id22">8. 健康检查</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id23">7.1 数据库连接检查</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id24">7.2 RabbitMQ 连接检查</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id25">9. 监控和日志</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id26">8.1 日志配置</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id27">8.2 监控指标</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id28">10. 安全最佳实践</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id29">9.1 密钥管理</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id30">9.2 网络安全</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id31">9.3 数据库安全</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id32">10. 故障排查</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id33">10.1 常见问题</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id34">10.2 调试模式</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id35">10.3 查看日志</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id36">11. 性能优化</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id37">11.1 数据库优化</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id38">11.2 连接池配置</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id39">12. 备份和恢复</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id40">12.1 备份策略概览</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id41">12.2 自动化备份脚本</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id42">12.3 PostgreSQL 备份</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sqlite">12.4 SQLite 配置备份</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id43">12.5 数据库迁移回滚</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id44">12.6 备份验证</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id45">12.7 灾难恢复演练</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html">监控指南</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="monitoring.html#prometheus">Prometheus 监控</a></li>
+<li class="toctree-l2"><a class="reference internal" href="monitoring.html#id2">关键指标</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="monitoring.html#websocket">WebSocket 连接</a></li>
+<li class="toctree-l3"><a class="reference internal" href="monitoring.html#id3">授权流程</a></li>
+<li class="toctree-l3"><a class="reference internal" href="monitoring.html#token">Token 管理</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="observability-guide.html">可观测性与监控指南</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="observability-guide.html#id2">📊 可观测性目标</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="observability-guide.html#id3">三大支柱</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="observability-guide.html#chk088-chk089">📝 日志规范 (CHK088, CHK089)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="observability-guide.html#id4">日志格式标准</a></li>
+<li class="toctree-l3"><a class="reference internal" href="observability-guide.html#chk088">构建日志规范 (CHK088)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="observability-guide.html#chk089">配置加载日志 (CHK089)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="observability-guide.html#id5">关键操作日志</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="observability-guide.html#chk030-chk090">📈 健康检查 (CHK030, CHK090)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="observability-guide.html#chk030">健康检查响应时间阈值 (CHK030)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="observability-guide.html#id6">健康检查端点实现</a></li>
+<li class="toctree-l3"><a class="reference internal" href="observability-guide.html#chk090">监控指标 (CHK090)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="observability-guide.html#kubernetes">Kubernetes 健康检查配置</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="observability-guide.html#grafana">📊 Grafana 仪表盘</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="observability-guide.html#id7">推荐仪表盘</a></li>
+<li class="toctree-l3"><a class="reference internal" href="observability-guide.html#id8">告警规则</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="observability-guide.html#id9">✅ 可观测性检查清单</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="observability-guide.html#id10">日志检查</a></li>
+<li class="toctree-l3"><a class="reference internal" href="observability-guide.html#id11">指标检查</a></li>
+<li class="toctree-l3"><a class="reference internal" href="observability-guide.html#id12">健康检查</a></li>
+<li class="toctree-l3"><a class="reference internal" href="observability-guide.html#id13">告警检查</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="grafana-setup-guide.html">Grafana配置指南</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="grafana-setup-guide.html#id1">1. 访问Grafana</a></li>
+<li class="toctree-l2"><a class="reference internal" href="grafana-setup-guide.html#prometheus">2. 配置Prometheus数据源</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="grafana-setup-guide.html#id2">步骤 1: 添加数据源</a></li>
+<li class="toctree-l3"><a class="reference internal" href="grafana-setup-guide.html#id3">步骤 2: 配置参数</a></li>
+<li class="toctree-l3"><a class="reference internal" href="grafana-setup-guide.html#id4">步骤 3: 保存并测试</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="grafana-setup-guide.html#lark-service">3. 导入Lark Service监控仪表板</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="grafana-setup-guide.html#id5">方法 1: 从文件导入</a></li>
+<li class="toctree-l3"><a class="reference internal" href="grafana-setup-guide.html#json">方法 2: 直接粘贴JSON</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="grafana-setup-guide.html#id6">4. 仪表板内容</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="grafana-setup-guide.html#http">HTTP性能</a></li>
+<li class="toctree-l3"><a class="reference internal" href="grafana-setup-guide.html#token">Token管理</a></li>
+<li class="toctree-l3"><a class="reference internal" href="grafana-setup-guide.html#api">API调用</a></li>
+<li class="toctree-l3"><a class="reference internal" href="grafana-setup-guide.html#id7">系统资源</a></li>
+<li class="toctree-l3"><a class="reference internal" href="grafana-setup-guide.html#id8">业务指标</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="grafana-setup-guide.html#id9">5. 告警配置（可选）</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="grafana-setup-guide.html#id10">创建告警规则</a></li>
+<li class="toctree-l3"><a class="reference internal" href="grafana-setup-guide.html#id11">推荐告警</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="grafana-setup-guide.html#id12">6. 自定义面板</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="grafana-setup-guide.html#id13">添加新面板</a></li>
+<li class="toctree-l3"><a class="reference internal" href="grafana-setup-guide.html#promql">常用PromQL查询</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="grafana-setup-guide.html#id14">7. 故障排查</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="grafana-setup-guide.html#id15">问题: 仪表板无数据</a></li>
+<li class="toctree-l3"><a class="reference internal" href="grafana-setup-guide.html#id16">问题: 指标值为0</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="grafana-setup-guide.html#id17">8. 相关链接</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tracing-guide.html">分布式追踪配置指南</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tracing-guide.html#id2">📋 概述</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tracing-guide.html#id3">🎯 追踪策略</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tracing-guide.html#request-id">Request ID 规范</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tracing-guide.html#id4">🔧 实现方案</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tracing-guide.html#id5">1. Request ID 生成器</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tracing-guide.html#fastapi">2. FastAPI 中间件</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tracing-guide.html#id6">3. 异步任务追踪</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tracing-guide.html#id7">4. 飞书回调追踪</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tracing-guide.html#id8">📊 追踪字段标准</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tracing-guide.html#id9">日志必需字段</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tracing-guide.html#id10">跨服务传递</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tracing-guide.html#id11">🔍 追踪查询</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tracing-guide.html#elasticsearch-kibana">Elasticsearch/Kibana 查询</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tracing-guide.html#grafana-loki">Grafana Loki 查询</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tracing-guide.html#postgresql">PostgreSQL 慢查询关联</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tracing-guide.html#id12">📈 追踪指标</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tracing-guide.html#prometheus-metrics">Prometheus Metrics</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tracing-guide.html#id13">🚀 最佳实践</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tracing-guide.html#id14">1. 始终传播 request_id</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tracing-guide.html#id15">2. 异步任务包含原始 request_id</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tracing-guide.html#id16">3. 错误日志包含完整上下文</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tracing-guide.html#id17">4. 性能追踪</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tracing-guide.html#id18">🔗 相关文档</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="troubleshooting.html">故障排查</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="troubleshooting.html#id2">常见问题</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="troubleshooting.html#id3">数据库连接失败</a></li>
+<li class="toctree-l3"><a class="reference internal" href="troubleshooting.html#token">Token 获取失败</a></li>
+<li class="toctree-l3"><a class="reference internal" href="troubleshooting.html#oauth">OAuth 回调失败</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="error-codes.html">错误码文档</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="error-codes.html#xxx">系统错误码 (1xxx)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="error-codes.html#token-2xxx">Token错误码 (2xxx)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="error-codes.html#api-3xxx">API错误码 (3xxx)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="error-codes.html#api-99991xxx">飞书API错误码 (99991xxx)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="error-codes.html#id2">业务错误码 (4xxx)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="error-codes.html#id3">使用示例</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="error-handling-guide.html">异常处理与恢复策略指南</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="error-handling-guide.html#id2">核心原则</a></li>
+<li class="toctree-l2"><a class="reference internal" href="error-handling-guide.html#chk052">启动失败处理 (CHK052)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="error-handling-guide.html#id3">退出码规范</a></li>
+<li class="toctree-l3"><a class="reference internal" href="error-handling-guide.html#id4">配置加载失败</a></li>
+<li class="toctree-l3"><a class="reference internal" href="error-handling-guide.html#id5">数据库连接失败</a></li>
+<li class="toctree-l3"><a class="reference internal" href="error-handling-guide.html#id6">服务降级策略</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="error-handling-guide.html#chk058">数据库初始化回滚 (CHK058)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="error-handling-guide.html#alembic">Alembic 迁移失败</a></li>
+<li class="toctree-l3"><a class="reference internal" href="error-handling-guide.html#sqlite">SQLite 初始化失败</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="error-handling-guide.html#id7">运行时错误处理</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="error-handling-guide.html#api">API 调用错误</a></li>
+<li class="toctree-l3"><a class="reference internal" href="error-handling-guide.html#id8">数据库错误</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="error-handling-guide.html#id9">自动恢复场景</a></li>
+<li class="toctree-l2"><a class="reference internal" href="error-handling-guide.html#id10">检查清单</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="error-recovery-guide.html">错误恢复指南</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="error-recovery-guide.html#id2">目录</a></li>
+<li class="toctree-l2"><a class="reference internal" href="error-recovery-guide.html#token">Token相关错误</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="error-recovery-guide.html#token-99991663">错误1: Token过期 (99991663)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="error-recovery-guide.html#id3">错误2: 凭据无效 (99991400/99991401)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="error-recovery-guide.html#id4">数据库连接错误</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="error-recovery-guide.html#id5">错误3: 数据库连接失败</a></li>
+<li class="toctree-l3"><a class="reference internal" href="error-recovery-guide.html#id6">错误4: 数据库死锁</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="error-recovery-guide.html#api">API调用错误</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="error-recovery-guide.html#api-99991405">错误5: API限流 (99991405)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="error-recovery-guide.html#id7">错误6: 网络超时</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="error-recovery-guide.html#id8">缓存错误</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="error-recovery-guide.html#redis">错误7: Redis连接失败</a></li>
+<li class="toctree-l3"><a class="reference internal" href="error-recovery-guide.html#id9">错误8: 缓存雪崩</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="error-recovery-guide.html#id10">配置错误</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="error-recovery-guide.html#id11">错误9: 环境变量缺失</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="error-recovery-guide.html#id12">消息队列错误</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="error-recovery-guide.html#rabbitmq">错误10: RabbitMQ连接失败</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="error-recovery-guide.html#id13">通用恢复策略</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="error-recovery-guide.html#id14">1. 健康检查</a></li>
+<li class="toctree-l3"><a class="reference internal" href="error-recovery-guide.html#id15">2. 日志分析</a></li>
+<li class="toctree-l3"><a class="reference internal" href="error-recovery-guide.html#id16">3. 监控告警</a></li>
+<li class="toctree-l3"><a class="reference internal" href="error-recovery-guide.html#id17">4. 回滚策略</a></li>
+<li class="toctree-l3"><a class="reference internal" href="error-recovery-guide.html#id18">5. 紧急联系</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="error-recovery-guide.html#id19">最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="error-recovery-guide.html#id20">相关文档</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="security-guide.html">安全配置指南</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="security-guide.html#blocker">🚨 安全需求清单 (Blocker)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="security-guide.html#must">配置安全 (MUST)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="security-guide.html#id2">密钥管理 (MUST)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="security-guide.html#id3">依赖安全 (MUST)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="security-guide.html#id4">容器安全 (MUST)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="security-guide.html#id5">环境隔离 (MUST)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="security-guide.html#id6">🔐 加密密钥管理</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="security-guide.html#id7">密钥作用</a></li>
+<li class="toctree-l3"><a class="reference internal" href="security-guide.html#id8">为什么需要加密?</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="security-guide.html#id9">🚀 部署配置</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="security-guide.html#id10">开发环境</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="security-guide.html#id11">1. 生成加密密钥</a></li>
+<li class="toctree-l4"><a class="reference internal" href="security-guide.html#env">2. 配置 .env 文件</a></li>
+<li class="toctree-l4"><a class="reference internal" href="security-guide.html#id12">3. 重要提醒</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="security-guide.html#id13">生产环境</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="security-guide.html#a">方案 A: 系统环境变量 (推荐)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="security-guide.html#b-docker-secrets">方案 B: Docker Secrets</a></li>
+<li class="toctree-l4"><a class="reference internal" href="security-guide.html#c-kubernetes-secrets">方案 C: Kubernetes Secrets</a></li>
+<li class="toctree-l4"><a class="reference internal" href="security-guide.html#d">方案 D: 云服务密钥管理</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="security-guide.html#id14">🔄 密钥轮换</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="security-guide.html#id15">何时需要轮换密钥?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="security-guide.html#id16">轮换步骤</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="security-guide.html#id17">📁 文件权限管理</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="security-guide.html#sqlite-fr-079-fr-080">SQLite 配置文件权限 (FR-079, FR-080)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="security-guide.html#env-fr-094">生产环境 .env 文件权限 (FR-094)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="security-guide.html#fr-081">🔖 配置敏感度分类 (FR-081)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="security-guide.html#public">Public (公开级)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="security-guide.html#internal">Internal (内部级)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="security-guide.html#secret">Secret (机密级)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="security-guide.html#fr-084">日志脱敏规则 (FR-084)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="security-guide.html#id18">🛡️ 依赖安全管理</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="security-guide.html#fr-086">安全扫描工具 (FR-086)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="security-guide.html#fr-087">依赖更新策略 (FR-087)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="security-guide.html#fr-088">依赖版本锁定 (FR-088)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="security-guide.html#id19">🐳 容器安全</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="security-guide.html#docker-fr-089-fr-091">Docker 镜像最佳实践 (FR-089, FR-091)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="security-guide.html#fr-090">镜像安全扫描 (FR-090)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="security-guide.html#ci-cd">CI/CD 集成示例</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="security-guide.html#id20">🔄 密钥轮换流程</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="security-guide.html#cli-fr-083">CLI 密钥轮换命令 (FR-083)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="security-guide.html#id21">轮换频率建议</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="security-guide.html#id22">✅ 安全检查清单</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="security-guide.html#id23">开发环境</a></li>
+<li class="toctree-l3"><a class="reference internal" href="security-guide.html#id24">生产环境</a></li>
+<li class="toctree-l3"><a class="reference internal" href="security-guide.html#id25">数据库</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="security-guide.html#id26">🔍 常见问题</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="security-guide.html#q1">Q1: 如果忘记了加密密钥怎么办?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="security-guide.html#q2-123456">Q2: 可以使用弱密钥吗 (如 &quot;123456&quot;)?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="security-guide.html#q3">Q3: 多个环境可以共用一个密钥吗?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="security-guide.html#q4">Q4: 数据库文件可以直接复制到其他环境吗?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="security-guide.html#q5">Q5: 如何验证密钥是否正确?</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="security-guide.html#id27">📚 相关文档</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">架构与设计</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="architecture/token-refresh-mechanism.html">飞书 Token 刷新机制详解</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="architecture/token-refresh-mechanism.html#id1">📋 概述</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture/token-refresh-mechanism.html#id2">🔑 Token 类型</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="architecture/token-refresh-mechanism.html#app-access-token">1. App Access Token (应用级访问令牌)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="architecture/token-refresh-mechanism.html#tenant-access-token">2. Tenant Access Token (租户级访问令牌)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="architecture/token-refresh-mechanism.html#user-access-token">3. User Access Token (用户级访问令牌)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="architecture/token-refresh-mechanism.html#id3">🔄 Token 类型对比总结</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture/token-refresh-mechanism.html#id4">🚨 常见误区</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="architecture/token-refresh-mechanism.html#token-app-secret">❌ 误区 1: Token 过期就需要重新生成 app_secret</a></li>
+<li class="toctree-l3"><a class="reference internal" href="architecture/token-refresh-mechanism.html#id5">❌ 误区 2: 所有 Token 都需要监控过期</a></li>
+<li class="toctree-l3"><a class="reference internal" href="architecture/token-refresh-mechanism.html#id6">❌ 误区 3: Token 刷新失败就是 app_secret 的问题</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="architecture/token-refresh-mechanism.html#id7">📊 监控和通知策略</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="architecture/token-refresh-mechanism.html#app-access-token-tenant-access-token">App Access Token / Tenant Access Token</a></li>
+<li class="toctree-l3"><a class="reference internal" href="architecture/token-refresh-mechanism.html#id8">User Access Token</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="architecture/token-refresh-mechanism.html#larkservice">🔧 LarkService 实现细节</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="architecture/token-refresh-mechanism.html#credentialpool">CredentialPool 自动刷新逻辑</a></li>
+<li class="toctree-l3"><a class="reference internal" href="architecture/token-refresh-mechanism.html#tokenexpirymonitor">TokenExpiryMonitor 智能通知</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="architecture/token-refresh-mechanism.html#id9">🎯 最佳实践</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="architecture/token-refresh-mechanism.html#id10">1. 定期任务配置</a></li>
+<li class="toctree-l3"><a class="reference internal" href="architecture/token-refresh-mechanism.html#id11">2. 通知内容模板</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="architecture/token-refresh-mechanism.html#refresh-token-7">Refresh Token 7 天预警</a></li>
+<li class="toctree-l4"><a class="reference internal" href="architecture/token-refresh-mechanism.html#refresh-token-3">Refresh Token 3 天严重警告</a></li>
+<li class="toctree-l4"><a class="reference internal" href="architecture/token-refresh-mechanism.html#refresh-token">Refresh Token 已过期</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="architecture/token-refresh-mechanism.html#id12">📚 参考资料</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture/token-refresh-mechanism.html#id13">🤝 感谢</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Lark Service 架构设计文档</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#id1">1. 系统概述</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="architecture.html#id2">1.1 设计目标</a></li>
+<li class="toctree-l3"><a class="reference internal" href="architecture.html#id3">1.2 核心特性</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#id4">2. 系统架构</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="architecture.html#id5">2.1 完整系统架构图</a></li>
+<li class="toctree-l3"><a class="reference internal" href="architecture.html#id6">2.2 数据流图</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="architecture.html#id7">2.2.1 发送消息流程</a></li>
+<li class="toctree-l4"><a class="reference internal" href="architecture.html#id8">2.2.2 用户查询流程 (带缓存)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="architecture.html#token">2.2.3 Token 自动刷新流程</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="architecture.html#id9">2.3 模块依赖关系</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#id10">3. Token 管理架构</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="architecture.html#id11">3.1 Token 生命周期</a></li>
+<li class="toctree-l3"><a class="reference internal" href="architecture.html#id12">3.2 并发控制</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#id13">5. 安全架构</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="architecture.html#id14">5.1 加密策略</a></li>
+<li class="toctree-l3"><a class="reference internal" href="architecture.html#id15">5.2 零信任原则</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#id16">6. 性能优化</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="architecture.html#id17">6.1 缓存策略</a></li>
+<li class="toctree-l3"><a class="reference internal" href="architecture.html#id18">6.2 连接池</a></li>
+<li class="toctree-l3"><a class="reference internal" href="architecture.html#id19">6.3 重试策略</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#id20">7. 可观测性</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="architecture.html#id21">7.1 日志架构</a></li>
+<li class="toctree-l3"><a class="reference internal" href="architecture.html#id22">7.2 监控指标</a></li>
+<li class="toctree-l3"><a class="reference internal" href="architecture.html#id23">7.3 请求追踪</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#id24">8. 部署架构</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="architecture.html#id25">8.1 部署架构图</a></li>
+<li class="toctree-l3"><a class="reference internal" href="architecture.html#docker-compose">8.2 容器化部署 (Docker Compose)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="architecture.html#id26">8.3 本地开发</a></li>
+<li class="toctree-l3"><a class="reference internal" href="architecture.html#id27">8.4 生产部署</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#id28">9. 扩展性设计</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="architecture.html#id29">9.1 添加新模块</a></li>
+<li class="toctree-l3"><a class="reference internal" href="architecture.html#id30">9.2 添加新 Token 类型</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#id31">10. 技术栈总结</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="features/token-monitoring.html">Token 过期监控 (Token Expiry Monitoring)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="features/token-monitoring.html#id1">概述</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="features/token-monitoring.html#token">Token 类型说明</a></li>
+<li class="toctree-l3"><a class="reference internal" href="features/token-monitoring.html#id2">监控功能</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="features/token-monitoring.html#id3">功能特性</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="features/token-monitoring.html#id4">多级通知机制</a></li>
+<li class="toctree-l3"><a class="reference internal" href="features/token-monitoring.html#id5">通知内容</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="features/token-monitoring.html#id6">预警通知 (7 天)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="features/token-monitoring.html#id7">严重警告 (3 天)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="features/token-monitoring.html#id8">配置监控参数</a></li>
+<li class="toctree-l3"><a class="reference internal" href="features/token-monitoring.html#id9">手动检查 Token 状态</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="features/token-monitoring.html#id10">监控和可视化</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="features/token-monitoring.html#prometheus">Prometheus 指标</a></li>
+<li class="toctree-l3"><a class="reference internal" href="features/token-monitoring.html#grafana">Grafana 面板</a></li>
+<li class="toctree-l3"><a class="reference internal" href="features/token-monitoring.html#id11">Prometheus 告警</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="features/token-monitoring.html#id12">Token 续期流程</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="features/token-monitoring.html#id13">在飞书开放平台续期</a></li>
+<li class="toctree-l3"><a class="reference internal" href="features/token-monitoring.html#id14">验证更新</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="features/token-monitoring.html#api">API 参考</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="features/token-monitoring.html#tokenexpirymonitor">TokenExpiryMonitor 类</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="features/token-monitoring.html#id15">最佳实践</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="features/token-monitoring.html#id16">1. 设置管理员通知</a></li>
+<li class="toctree-l3"><a class="reference internal" href="features/token-monitoring.html#id17">2. 定期检查监控面板</a></li>
+<li class="toctree-l3"><a class="reference internal" href="features/token-monitoring.html#id18">3. 提前续期</a></li>
+<li class="toctree-l3"><a class="reference internal" href="features/token-monitoring.html#id19">4. 建立续期流程</a></li>
+<li class="toctree-l3"><a class="reference internal" href="features/token-monitoring.html#id20">5. 配置备用联系方式</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="features/token-monitoring.html#id21">故障排查</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="features/token-monitoring.html#id22">未收到通知</a></li>
+<li class="toctree-l3"><a class="reference internal" href="features/token-monitoring.html#id23">通知发送失败</a></li>
+<li class="toctree-l3"><a class="reference internal" href="features/token-monitoring.html#id24">Prometheus 指标缺失</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="features/token-monitoring.html#id25">参考资料</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">测试与验证</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html">真实飞书环境集成验证指南</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#id2">📋 验证清单</a></li>
+<li class="toctree-l2"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#id3">1. 配置真实飞书应用凭据</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#id4">1.1 创建飞书应用</a></li>
+<li class="toctree-l3"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#id5">1.2 获取应用凭证</a></li>
+<li class="toctree-l3"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#id6">1.3 配置应用权限</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#id7">消息与群组</a></li>
+<li class="toctree-l4"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#id8">通讯录</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#id9">1.4 配置环境变量</a></li>
+<li class="toctree-l3"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#id10">1.5 重启服务</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#app-access-token">2. 验证 App Access Token 自动刷新</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#id11">2.1 启动服务并观察日志</a></li>
+<li class="toctree-l3"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#token">2.2 触发 Token 获取</a></li>
+<li class="toctree-l3"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#prometheus">2.3 验证 Prometheus 指标</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#user-access-token-oauth">3. 验证 User Access Token OAuth 流程</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#oauth">3.1 配置 OAuth 回调</a></li>
+<li class="toctree-l3"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#id12">3.2 启动 OAuth 授权流程</a></li>
+<li class="toctree-l3"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#id13">3.3 完成授权</a></li>
+<li class="toctree-l3"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#user-access-token">3.4 交换 User Access Token</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#id14">4. 验证 Token 过期通知功能</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#id15">4.1 手动触发 Token 过期检查</a></li>
+<li class="toctree-l3"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#id16">4.2 检查飞书消息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#id17">4.3 验证 Prometheus 指标</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#grafana">5. 验证 Grafana 仪表板数据显示</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#id18">5.1 访问 Grafana</a></li>
+<li class="toctree-l3"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#id19">5.2 导入仪表板</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#id20">导入系统概览仪表板</a></li>
+<li class="toctree-l4"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#id21">导入 Token 监控仪表板</a></li>
+<li class="toctree-l4"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#scheduler">导入 Scheduler 任务仪表板</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#id22">5.3 验证数据显示</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#id23">系统概览仪表板</a></li>
+<li class="toctree-l4"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#id24">Token 监控仪表板</a></li>
+<li class="toctree-l4"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#id25">Scheduler 任务仪表板</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#id26">5.4 生成测试数据</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#id27">6. 验证定时任务执行</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#id28">6.1 查看 Scheduler 日志</a></li>
+<li class="toctree-l3"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#id29">6.2 验证任务执行频率</a></li>
+<li class="toctree-l3"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#id30">6.3 查看 Prometheus 指标</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#id31">📊 完整验证报告</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#id32">功能验证结果</a></li>
+<li class="toctree-l3"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#id33">性能指标</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#id34">🐛 常见问题</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#q1-token">Q1: Token 刷新失败</a></li>
+<li class="toctree-l3"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#q2">Q2: 收不到飞书通知</a></li>
+<li class="toctree-l3"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#q3-grafana">Q3: Grafana 无数据</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="testing/INTEGRATION_VERIFICATION.html#id35">📝 下一步</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="TESTING-GUIDE.html">测试指南</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="TESTING-GUIDE.html#id2">📖 概述</a></li>
+<li class="toctree-l2"><a class="reference internal" href="TESTING-GUIDE.html#id3">🚀 快速开始</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="TESTING-GUIDE.html#id4">安装测试环境</a></li>
+<li class="toctree-l3"><a class="reference internal" href="TESTING-GUIDE.html#id5">运行测试</a></li>
+<li class="toctree-l3"><a class="reference internal" href="TESTING-GUIDE.html#id6">查看覆盖率</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="TESTING-GUIDE.html#id7">📋 覆盖率要求</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="TESTING-GUIDE.html#id8">整体要求</a></li>
+<li class="toctree-l3"><a class="reference internal" href="TESTING-GUIDE.html#id9">覆盖率阈值</a></li>
+<li class="toctree-l3"><a class="reference internal" href="TESTING-GUIDE.html#id10">模块覆盖率目标</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="TESTING-GUIDE.html#id11">🎯 测试编写指南</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="TESTING-GUIDE.html#id12">测试结构</a></li>
+<li class="toctree-l3"><a class="reference internal" href="TESTING-GUIDE.html#mock">Mock策略</a></li>
+<li class="toctree-l3"><a class="reference internal" href="TESTING-GUIDE.html#id13">测试覆盖场景</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="TESTING-GUIDE.html#id14">📊 查看覆盖率报告</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="TESTING-GUIDE.html#html">HTML报告</a></li>
+<li class="toctree-l3"><a class="reference internal" href="TESTING-GUIDE.html#id15">终端报告</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="TESTING-GUIDE.html#id16">🔧 常用命令</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="TESTING-GUIDE.html#id17">测试筛选</a></li>
+<li class="toctree-l3"><a class="reference internal" href="TESTING-GUIDE.html#id18">调试</a></li>
+<li class="toctree-l3"><a class="reference internal" href="TESTING-GUIDE.html#id19">性能</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="TESTING-GUIDE.html#id20">📝 测试命名规范</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="TESTING-GUIDE.html#id21">文件命名</a></li>
+<li class="toctree-l3"><a class="reference internal" href="TESTING-GUIDE.html#id22">类命名</a></li>
+<li class="toctree-l3"><a class="reference internal" href="TESTING-GUIDE.html#id23">方法命名</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="TESTING-GUIDE.html#ci-cd">🎯 CI/CD集成</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="TESTING-GUIDE.html#github-actions">GitHub Actions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="TESTING-GUIDE.html#id24">覆盖率检查</a></li>
+<li class="toctree-l3"><a class="reference internal" href="TESTING-GUIDE.html#id25">失败处理</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="TESTING-GUIDE.html#id26">📚 参考资源</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="TESTING-GUIDE.html#pytest">Pytest文档</a></li>
+<li class="toctree-l3"><a class="reference internal" href="TESTING-GUIDE.html#id27">项目示例</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="TESTING-GUIDE.html#id28">❓ 常见问题</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="TESTING-GUIDE.html#q">Q: 覆盖率不增加?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="TESTING-GUIDE.html#q-mock-sdk">Q: 如何Mock SDK?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="TESTING-GUIDE.html#id29">Q: 测试太慢?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="TESTING-GUIDE.html#id30">Q: 覆盖率如何提升?</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="integration-test-guide.html">集成测试指南</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="integration-test-guide.html#id2">📋 测试分类</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="integration-test-guide.html#unit-tests">1. 单元测试 (Unit Tests)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="integration-test-guide.html#integration-tests">2. 集成测试 (Integration Tests)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="integration-test-guide.html#id3">🔧 配置集成测试环境</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="integration-test-guide.html#id4">步骤1: 创建配置文件</a></li>
+<li class="toctree-l3"><a class="reference internal" href="integration-test-guide.html#id5">步骤2: 填写必需的配置</a></li>
+<li class="toctree-l3"><a class="reference internal" href="integration-test-guide.html#id6">步骤3: 填写模块测试数据(可选)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="integration-test-guide.html#contact">Contact模块测试</a></li>
+<li class="toctree-l4"><a class="reference internal" href="integration-test-guide.html#clouddoc">CloudDoc模块测试</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="integration-test-guide.html#id7">🚀 运行集成测试</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="integration-test-guide.html#id8">运行所有集成测试</a></li>
+<li class="toctree-l3"><a class="reference internal" href="integration-test-guide.html#id9">运行特定模块的集成测试</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="integration-test-guide.html#id10">Contact模块</a></li>
+<li class="toctree-l4"><a class="reference internal" href="integration-test-guide.html#id11">CloudDoc模块</a></li>
+<li class="toctree-l4"><a class="reference internal" href="integration-test-guide.html#bitable">Bitable模块</a></li>
+<li class="toctree-l4"><a class="reference internal" href="integration-test-guide.html#sheet">Sheet模块</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="integration-test-guide.html#id12">运行特定测试类</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="integration-test-guide.html#id13">📊 当前测试状态</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="integration-test-guide.html#id14">Contact模块 ✅</a></li>
+<li class="toctree-l3"><a class="reference internal" href="integration-test-guide.html#clouddoc-doc">CloudDoc - Doc客户端 ✅</a></li>
+<li class="toctree-l3"><a class="reference internal" href="integration-test-guide.html#clouddoc-bitable">CloudDoc - Bitable客户端 ⚠️</a></li>
+<li class="toctree-l3"><a class="reference internal" href="integration-test-guide.html#clouddoc-sheet">CloudDoc - Sheet客户端 ⚠️</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="integration-test-guide.html#id15">🔑 权限要求</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="integration-test-guide.html#id16">Contact模块权限</a></li>
+<li class="toctree-l3"><a class="reference internal" href="integration-test-guide.html#id17">CloudDoc模块权限</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="integration-test-guide.html#id18">读操作</a></li>
+<li class="toctree-l4"><a class="reference internal" href="integration-test-guide.html#id19">写操作(可选)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="integration-test-guide.html#id20">📝 测试数据准备</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="integration-test-guide.html#token">获取测试Token</a></li>
+<li class="toctree-l3"><a class="reference internal" href="integration-test-guide.html#id21">配置写权限测试</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="integration-test-guide.html#id22">⚠️ 注意事项</a></li>
+<li class="toctree-l2"><a class="reference internal" href="integration-test-guide.html#id23">🐛 故障排查</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="integration-test-guide.html#id24">测试被跳过</a></li>
+<li class="toctree-l3"><a class="reference internal" href="integration-test-guide.html#id25">认证失败</a></li>
+<li class="toctree-l3"><a class="reference internal" href="integration-test-guide.html#id26">找不到资源</a></li>
+<li class="toctree-l3"><a class="reference internal" href="integration-test-guide.html#id27">Bitable测试失败</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="integration-test-guide.html#id28">📚 相关文档</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">发布说明</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="releases/v0.5.0.html">LarkService v0.5.0 发布说明</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="releases/v0.5.0.html#id1">📅 发布信息</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releases/v0.5.0.html#id2">🎯 版本亮点</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="releases/v0.5.0.html#id3">1. ✅ 生产环境完整支持</a></li>
+<li class="toctree-l3"><a class="reference internal" href="releases/v0.5.0.html#id4">2. 📊 监控与可观测性</a></li>
+<li class="toctree-l3"><a class="reference internal" href="releases/v0.5.0.html#id5">3. ⏰ 定时任务系统</a></li>
+<li class="toctree-l3"><a class="reference internal" href="releases/v0.5.0.html#token">4. 🔐 Token 管理优化</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="releases/v0.5.0.html#id6">🚀 新功能</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="releases/v0.5.0.html#docker">Docker &amp; 容器化</a></li>
+<li class="toctree-l3"><a class="reference internal" href="releases/v0.5.0.html#id7">监控系统</a></li>
+<li class="toctree-l3"><a class="reference internal" href="releases/v0.5.0.html#apscheduler">APScheduler 定时任务</a></li>
+<li class="toctree-l3"><a class="reference internal" href="releases/v0.5.0.html#id8">Token 监控增强</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="releases/v0.5.0.html#id9">🔧 改进与优化</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="releases/v0.5.0.html#id10">架构改进</a></li>
+<li class="toctree-l3"><a class="reference internal" href="releases/v0.5.0.html#id11">性能优化</a></li>
+<li class="toctree-l3"><a class="reference internal" href="releases/v0.5.0.html#id12">代码质量</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="releases/v0.5.0.html#id13">📖 文档更新</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="releases/v0.5.0.html#id14">新增文档</a></li>
+<li class="toctree-l3"><a class="reference internal" href="releases/v0.5.0.html#id15">更新文档</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="releases/v0.5.0.html#breaking-changes">🔄 Breaking Changes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="releases/v0.5.0.html#id16">⚠️ 重要变更</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="releases/v0.5.0.html#id17">1. Token 监控逻辑调整</a></li>
+<li class="toctree-l4"><a class="reference internal" href="releases/v0.5.0.html#id18">2. 环境变量新增</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="releases/v0.5.0.html#bug">🐛 Bug 修复</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releases/v0.5.0.html#id19">📦 依赖更新</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="releases/v0.5.0.html#id20">新增依赖</a></li>
+<li class="toctree-l3"><a class="reference internal" href="releases/v0.5.0.html#id21">更新依赖</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="releases/v0.5.0.html#id22">🔍 已知问题</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="releases/v0.5.0.html#id23">限制与待改进</a></li>
+<li class="toctree-l3"><a class="reference internal" href="releases/v0.5.0.html#v0-6-0">计划改进 (v0.6.0)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="releases/v0.5.0.html#id24">🚀 快速开始</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="releases/v0.5.0.html#id25">1. 克隆仓库</a></li>
+<li class="toctree-l3"><a class="reference internal" href="releases/v0.5.0.html#id26">2. 配置环境</a></li>
+<li class="toctree-l3"><a class="reference internal" href="releases/v0.5.0.html#id27">3. 启动服务</a></li>
+<li class="toctree-l3"><a class="reference internal" href="releases/v0.5.0.html#id28">4. 验证部署</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="releases/v0.5.0.html#id29">📊 统计数据</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="releases/v0.5.0.html#id30">项目规模</a></li>
+<li class="toctree-l3"><a class="reference internal" href="releases/v0.5.0.html#id31">功能模块</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="releases/v0.5.0.html#id32">🙏 致谢</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="releases/v0.5.0.html#id33">核心贡献者</a></li>
+<li class="toctree-l3"><a class="reference internal" href="releases/v0.5.0.html#id34">特别感谢</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="releases/v0.5.0.html#id35">📞 获取帮助</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="releases/v0.5.0.html#id36">文档资源</a></li>
+<li class="toctree-l3"><a class="reference internal" href="releases/v0.5.0.html#id37">社区支持</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="releases/v0.5.0.html#id38">🗺️ 未来规划</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="releases/v0.5.0.html#v0-6-0-2026-q2">v0.6.0 (2026-Q2)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="releases/v0.5.0.html#v0-7-0-2026-q3">v0.7.0 (2026-Q3)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="releases/v0.5.0.html#id39">📜 许可证</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="移动版导航菜单" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Lark Service</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="页面导航">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">部署指南</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/deployment.md.txt" rel="nofollow"> 查看页面源码</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="id1">
+<h1>部署指南<a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
+<p>请参考 <code class="docutils literal notranslate"><span class="pre">docs/deployment.md</span></code> 中的详细部署指南。</p>
+<section id="id2">
+<h2>快速链接<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
+<p>Lark Service 是一个 Python 库,不是独立服务。它被其他 Python 应用导入使用,因此部署方式取决于调用方应用。</p>
+<p>本文档介绍:</p>
+<ol class="arabic simple">
+<li><p>依赖服务的部署 (PostgreSQL、RabbitMQ)</p></li>
+<li><p>在不同环境中使用 Lark Service</p></li>
+<li><p>配置管理和安全最佳实践</p></li>
+</ol>
+</section>
+<section id="id3">
+<h2>2. 依赖服务部署<a class="headerlink" href="#id3" title="Link to this heading"></a></h2>
+<section id="postgresql">
+<h3>2.1 PostgreSQL 部署<a class="headerlink" href="#postgresql" title="Link to this heading"></a></h3>
+<p><strong>用途</strong>: 存储 Token 和用户缓存</p>
+<section id="docker">
+<h4>本地开发 (Docker)<a class="headerlink" href="#docker" title="Link to this heading"></a></h4>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--name<span class="w"> </span>lark-postgres<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-e<span class="w"> </span><span class="nv">POSTGRES_DB</span><span class="o">=</span>lark_service<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-e<span class="w"> </span><span class="nv">POSTGRES_USER</span><span class="o">=</span>lark<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-e<span class="w"> </span><span class="nv">POSTGRES_PASSWORD</span><span class="o">=</span>lark_password_123<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-p<span class="w"> </span><span class="m">5432</span>:5432<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-v<span class="w"> </span>lark_postgres_data:/var/lib/postgresql/data<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>postgres:15-alpine
+
+<span class="c1"># 初始化扩展</span>
+docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>lark-postgres<span class="w"> </span>psql<span class="w"> </span>-U<span class="w"> </span>lark<span class="w"> </span>-d<span class="w"> </span>lark_service<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;CREATE EXTENSION IF NOT EXISTS pgcrypto;&quot;</span>
+
+<span class="c1"># 配置连接池 (FR-120)</span>
+<span class="c1"># 在 postgresql.conf 或环境变量中配置:</span>
+<span class="c1"># - max_connections = 100</span>
+<span class="c1"># - shared_buffers = 256MB</span>
+<span class="c1"># - effective_cache_size = 1GB</span>
+</pre></div>
+</div>
+</section>
+<section id="id4">
+<h4>生产环境 (云服务)<a class="headerlink" href="#id4" title="Link to this heading"></a></h4>
+<p><strong>推荐</strong>: 使用托管数据库服务</p>
+<ul class="simple">
+<li><p><strong>AWS</strong>: RDS for PostgreSQL</p></li>
+<li><p><strong>Azure</strong>: Azure Database for PostgreSQL</p></li>
+<li><p><strong>GCP</strong>: Cloud SQL for PostgreSQL</p></li>
+<li><p><strong>阿里云</strong>: RDS PostgreSQL</p></li>
+</ul>
+<p><strong>配置要求</strong> (FR-120):</p>
+<ul class="simple">
+<li><p>PostgreSQL ≥ 13 (推荐15+,支持pg_crypto扩展)</p></li>
+<li><p>启用 <code class="docutils literal notranslate"><span class="pre">pgcrypto</span></code> 扩展</p></li>
+<li><p>连接池大小: 5-20 个连接 (通过环境变量 DB_POOL_SIZE 配置)</p></li>
+<li><p>连接超时: 30秒 (通过环境变量 DB_POOL_TIMEOUT 配置)</p></li>
+<li><p>连接最大生命周期: 3600秒 (1小时)</p></li>
+<li><p>至少 2GB 内存</p></li>
+<li><p>SSD 存储</p></li>
+</ul>
+</section>
+<section id="fr-118-new">
+<h4>数据备份与恢复 (FR-118) ⭐ NEW<a class="headerlink" href="#fr-118-new" title="Link to this heading"></a></h4>
+<p><strong>备份策略</strong>:</p>
+<ul class="simple">
+<li><p><strong>备份频率</strong>: 每日一次 (建议凌晨2-4点业务低峰期)</p></li>
+<li><p><strong>备份类型</strong>: 全量备份(每周日) + 增量备份(每日)</p></li>
+<li><p><strong>RTO</strong>: ≤ 4小时 (恢复时间目标)</p></li>
+<li><p><strong>RPO</strong>: ≤ 24小时 (恢复点目标,最多丢失24小时数据)</p></li>
+<li><p><strong>备份加密</strong>: 使用独立加密密钥</p></li>
+<li><p><strong>备份演练</strong>: 每季度演练一次,验证备份可用性</p></li>
+</ul>
+<p><strong>自动备份脚本</strong>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash</span>
+<span class="c1"># /opt/lark-service/scripts/backup-postgres.sh</span>
+
+<span class="c1"># 配置</span>
+<span class="nv">BACKUP_DIR</span><span class="o">=</span><span class="s2">&quot;/backup/lark-service/postgres&quot;</span>
+<span class="nv">DB_NAME</span><span class="o">=</span><span class="s2">&quot;lark_service&quot;</span>
+<span class="nv">DB_USER</span><span class="o">=</span><span class="s2">&quot;lark&quot;</span>
+<span class="nv">RETENTION_DAYS</span><span class="o">=</span><span class="m">30</span><span class="w">  </span><span class="c1"># 保留30天</span>
+
+<span class="c1"># 创建备份目录</span>
+mkdir<span class="w"> </span>-p<span class="w"> </span><span class="nv">$BACKUP_DIR</span>
+
+<span class="c1"># 生成备份文件名 (时间戳)</span>
+<span class="nv">BACKUP_FILE</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$BACKUP_DIR</span><span class="s2">/lark_service_</span><span class="k">$(</span>date<span class="w"> </span>+%Y%m%d_%H%M%S<span class="k">)</span><span class="s2">.sql.gz&quot;</span>
+
+<span class="c1"># 执行备份 (使用 pg_dump)</span>
+<span class="nv">PGPASSWORD</span><span class="o">=</span><span class="nv">$DB_PASSWORD</span><span class="w"> </span>pg_dump<span class="w"> </span>-h<span class="w"> </span>localhost<span class="w"> </span>-U<span class="w"> </span><span class="nv">$DB_USER</span><span class="w"> </span>-d<span class="w"> </span><span class="nv">$DB_NAME</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="p">|</span><span class="w"> </span>gzip<span class="w"> </span>&gt;<span class="w"> </span><span class="nv">$BACKUP_FILE</span>
+
+<span class="c1"># 加密备份文件</span>
+gpg<span class="w"> </span>--symmetric<span class="w"> </span>--cipher-algo<span class="w"> </span>AES256<span class="w"> </span>--output<span class="w"> </span><span class="nv">$BACKUP_FILE</span>.gpg<span class="w"> </span><span class="nv">$BACKUP_FILE</span>
+rm<span class="w"> </span><span class="nv">$BACKUP_FILE</span><span class="w">  </span><span class="c1"># 删除明文备份</span>
+
+<span class="c1"># 清理过期备份</span>
+find<span class="w"> </span><span class="nv">$BACKUP_DIR</span><span class="w"> </span>-name<span class="w"> </span><span class="s2">&quot;*.gpg&quot;</span><span class="w"> </span>-mtime<span class="w"> </span>+<span class="nv">$RETENTION_DAYS</span><span class="w"> </span>-delete
+
+<span class="c1"># 记录备份日志</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;[</span><span class="k">$(</span>date<span class="k">)</span><span class="s2">] Backup completed: </span><span class="nv">$BACKUP_FILE</span><span class="s2">.gpg&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>/var/log/lark-backup.log
+</pre></div>
+</div>
+<p><strong>定时任务 (Crontab)</strong>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 每天凌晨2点执行备份</span>
+<span class="m">0</span><span class="w"> </span><span class="m">2</span><span class="w"> </span>*<span class="w"> </span>*<span class="w"> </span>*<span class="w"> </span>/opt/lark-service/scripts/backup-postgres.sh
+
+<span class="c1"># 每周日执行全量备份</span>
+<span class="m">0</span><span class="w"> </span><span class="m">3</span><span class="w"> </span>*<span class="w"> </span>*<span class="w"> </span><span class="m">0</span><span class="w"> </span>/opt/lark-service/scripts/backup-postgres-full.sh
+</pre></div>
+</div>
+<p><strong>恢复流程</strong>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 1. 解密备份文件</span>
+gpg<span class="w"> </span>--decrypt<span class="w"> </span>backup_file.sql.gz.gpg<span class="w"> </span>&gt;<span class="w"> </span>backup_file.sql.gz
+
+<span class="c1"># 2. 解压</span>
+gunzip<span class="w"> </span>backup_file.sql.gz
+
+<span class="c1"># 3. 停止应用服务 (避免写入冲突)</span>
+systemctl<span class="w"> </span>stop<span class="w"> </span>lark-service
+
+<span class="c1"># 4. 删除现有数据库</span>
+psql<span class="w"> </span>-U<span class="w"> </span>postgres<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;DROP DATABASE IF EXISTS lark_service;&quot;</span>
+psql<span class="w"> </span>-U<span class="w"> </span>postgres<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;CREATE DATABASE lark_service OWNER lark;&quot;</span>
+
+<span class="c1"># 5. 恢复数据</span>
+psql<span class="w"> </span>-U<span class="w"> </span>lark<span class="w"> </span>-d<span class="w"> </span>lark_service<span class="w"> </span>&lt;<span class="w"> </span>backup_file.sql
+
+<span class="c1"># 6. 验证数据完整性</span>
+psql<span class="w"> </span>-U<span class="w"> </span>lark<span class="w"> </span>-d<span class="w"> </span>lark_service<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;SELECT COUNT(*) FROM tokens;&quot;</span>
+psql<span class="w"> </span>-U<span class="w"> </span>lark<span class="w"> </span>-d<span class="w"> </span>lark_service<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;SELECT COUNT(*) FROM user_cache;&quot;</span>
+
+<span class="c1"># 7. 启动应用服务</span>
+systemctl<span class="w"> </span>start<span class="w"> </span>lark-service
+
+<span class="c1"># 8. 记录恢复日志</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;[</span><span class="k">$(</span>date<span class="k">)</span><span class="s2">] Database restored from backup&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>/var/log/lark-restore.log
+</pre></div>
+</div>
+<p><strong>备份验证</strong>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 每季度执行恢复演练 (测试环境)</span>
+<span class="c1"># 1. 下载最新备份到测试环境</span>
+<span class="c1"># 2. 执行完整恢复流程</span>
+<span class="c1"># 3. 验证数据完整性和应用功能</span>
+<span class="c1"># 4. 记录演练结果和耗时</span>
+</pre></div>
+</div>
+<p><strong>监控告警</strong>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 监控备份状态</span>
+-<span class="w"> </span>备份文件大小异常<span class="w"> </span><span class="o">(</span>&lt;<span class="w"> </span>10MB<span class="w"> </span>或<span class="w"> </span>&gt;<span class="w"> </span>10GB<span class="o">)</span>
+-<span class="w"> </span>备份失败<span class="w"> </span><span class="o">(</span>检查日志中的错误<span class="o">)</span>
+-<span class="w"> </span>备份时间过长<span class="w"> </span><span class="o">(</span>&gt;<span class="w"> </span>30分钟<span class="o">)</span>
+-<span class="w"> </span>备份文件缺失<span class="w"> </span><span class="o">(</span>连续2天无新备份<span class="o">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>自动备份</p></li>
+</ul>
+<p><strong>连接示例</strong>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 环境变量配置</span>
+<span class="nv">POSTGRES_HOST</span><span class="o">=</span>your-rds-endpoint.rds.amazonaws.com
+<span class="nv">POSTGRES_PORT</span><span class="o">=</span><span class="m">5432</span>
+<span class="nv">POSTGRES_DB</span><span class="o">=</span>lark_service
+<span class="nv">POSTGRES_USER</span><span class="o">=</span>lark
+<span class="nv">POSTGRES_PASSWORD</span><span class="o">=</span>your_secure_password
+</pre></div>
+</div>
+</section>
+</section>
+<section id="rabbitmq">
+<h3>2.2 RabbitMQ 部署<a class="headerlink" href="#rabbitmq" title="Link to this heading"></a></h3>
+<p><strong>用途</strong>: 处理交互式卡片回调 (可选,如果不使用卡片功能可以不部署)</p>
+<section id="id5">
+<h4>本地开发 (Docker)<a class="headerlink" href="#id5" title="Link to this heading"></a></h4>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--name<span class="w"> </span>lark-rabbitmq<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-e<span class="w"> </span><span class="nv">RABBITMQ_DEFAULT_USER</span><span class="o">=</span>lark<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-e<span class="w"> </span><span class="nv">RABBITMQ_DEFAULT_PASS</span><span class="o">=</span>rabbitmq_password_123<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-p<span class="w"> </span><span class="m">5672</span>:5672<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-p<span class="w"> </span><span class="m">15672</span>:15672<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-v<span class="w"> </span>lark_rabbitmq_data:/var/lib/rabbitmq<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>rabbitmq:3-management-alpine
+
+<span class="c1"># 访问管理界面: http://localhost:15672</span>
+<span class="c1"># 用户名: lark, 密码: rabbitmq_password_123</span>
+</pre></div>
+</div>
+</section>
+<section id="id6">
+<h4>生产环境 (云服务)<a class="headerlink" href="#id6" title="Link to this heading"></a></h4>
+<p><strong>推荐</strong>: 使用托管消息队列服务</p>
+<ul class="simple">
+<li><p><strong>AWS</strong>: Amazon MQ for RabbitMQ</p></li>
+<li><p><strong>Azure</strong>: Azure Service Bus</p></li>
+<li><p><strong>GCP</strong>: Cloud Pub/Sub</p></li>
+<li><p><strong>阿里云</strong>: 消息队列 RabbitMQ 版</p></li>
+</ul>
+<p><strong>配置要求</strong>:</p>
+<ul class="simple">
+<li><p>RabbitMQ 3.11+</p></li>
+<li><p>集群模式 (高可用)</p></li>
+<li><p>持久化存储</p></li>
+<li><p>自动重启</p></li>
+</ul>
+</section>
+</section>
+<section id="docker-compose">
+<h3>2.3 Docker Compose 一键部署<a class="headerlink" href="#docker-compose" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 克隆仓库</span>
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/your-org/lark-service.git
+<span class="nb">cd</span><span class="w"> </span>lark-service
+
+<span class="c1"># 启动所有依赖服务</span>
+docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> </span>-d<span class="w"> </span>postgres<span class="w"> </span>rabbitmq
+
+<span class="c1"># 查看服务状态</span>
+docker<span class="w"> </span>compose<span class="w"> </span>ps
+
+<span class="c1"># 查看日志</span>
+docker<span class="w"> </span>compose<span class="w"> </span>logs<span class="w"> </span>-f<span class="w"> </span>postgres
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id7">
+<h2>3. 集成方式选择<a class="headerlink" href="#id7" title="Link to this heading"></a></h2>
+<p>Lark Service 支持两种集成方式,<strong>推荐使用子项目集成方式</strong>以便于开发调试和定制。</p>
+<section id="id8">
+<h3>3.1 子项目集成 (推荐) ⭐<a class="headerlink" href="#id8" title="Link to this heading"></a></h3>
+<p><strong>适用场景</strong>:</p>
+<ul class="simple">
+<li><p>需要频繁调试和修改 Lark Service 代码</p></li>
+<li><p>深度定制功能</p></li>
+<li><p>单体应用架构</p></li>
+<li><p>开发阶段</p></li>
+</ul>
+<p><strong>集成步骤</strong>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 1. 在你的项目中添加 lark-service 作为 Git 子模块</span>
+<span class="nb">cd</span><span class="w"> </span>your-project
+git<span class="w"> </span>submodule<span class="w"> </span>add<span class="w"> </span>https://github.com/your-org/lark-service.git<span class="w"> </span>libs/lark-service
+
+<span class="c1"># 2. 初始化子模块</span>
+git<span class="w"> </span>submodule<span class="w"> </span>update<span class="w"> </span>--init<span class="w"> </span>--recursive
+
+<span class="c1"># 3. 安装依赖</span>
+<span class="nb">cd</span><span class="w"> </span>libs/lark-service
+uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+<span class="nb">cd</span><span class="w"> </span>../..
+
+<span class="c1"># 4. 运行数据库迁移</span>
+<span class="nb">cd</span><span class="w"> </span>libs/lark-service
+alembic<span class="w"> </span>upgrade<span class="w"> </span>head
+<span class="nb">cd</span><span class="w"> </span>../..
+</pre></div>
+</div>
+<p><strong>项目结构</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>your-project/
+├── libs/
+│   └── lark-service/              # Git 子模块
+│       ├── src/
+│       │   └── lark_service/
+│       ├── migrations/
+│       ├── requirements.txt
+│       └── pyproject.toml
+├── your_app/
+│   ├── __init__.py
+│   ├── main.py
+│   └── config.py
+├── .gitmodules
+├── requirements.txt
+└── docker-compose.yml
+</pre></div>
+</div>
+<p><strong>在代码中使用</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># your_app/main.py</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="c1"># 添加子项目到 Python 路径</span>
+<span class="n">project_root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span>
+<span class="n">lark_service_path</span> <span class="o">=</span> <span class="n">project_root</span> <span class="o">/</span> <span class="s2">&quot;libs&quot;</span> <span class="o">/</span> <span class="s2">&quot;lark-service&quot;</span> <span class="o">/</span> <span class="s2">&quot;src&quot;</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">lark_service_path</span><span class="p">))</span>
+
+<span class="c1"># 正常导入使用</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">lark_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">LarkServiceClient</span>
+
+<span class="n">client</span> <span class="o">=</span> <span class="n">LarkServiceClient</span><span class="p">(</span><span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_your_app_id&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>优势</strong>:</p>
+<ul class="simple">
+<li><p>✅ 源码完全可见,便于学习和调试</p></li>
+<li><p>✅ 修改即生效,无需重新安装</p></li>
+<li><p>✅ Git 子模块锁定版本,团队环境一致</p></li>
+<li><p>✅ 可以自由定制和扩展</p></li>
+</ul>
+<p><strong>注意事项</strong>:</p>
+<ol class="arabic simple">
+<li><p><strong>依赖管理</strong>: 需要在主项目的 <code class="docutils literal notranslate"><span class="pre">requirements.txt</span></code> 或 <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> 中包含 lark-service 的依赖:</p></li>
+</ol>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="c1"># your-project/pyproject.toml</span>
+<span class="k">[project]</span>
+<span class="n">dependencies</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="c1"># lark-service 的依赖</span>
+<span class="w">    </span><span class="s2">&quot;lark-oapi&gt;=1.2.0&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">&quot;pydantic&gt;=2.0.0,&lt;3.0.0&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">&quot;SQLAlchemy&gt;=2.0.0,&lt;3.0.0&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">&quot;psycopg2-binary&gt;=2.9.0&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">&quot;pika&gt;=1.3.0&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">&quot;cryptography&gt;=41.0.0&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">&quot;python-dotenv&gt;=1.0.0&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">&quot;filelock&gt;=3.12.0&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">&quot;click&gt;=8.1.0&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">&quot;rich&gt;=13.0.0&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">&quot;alembic&gt;=1.12.0&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="c1"># 你的项目依赖</span>
+<span class="w">    </span><span class="s2">&quot;django&gt;=4.2.0&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p><strong>数据库配置</strong>: 子项目的 SQLite 配置数据库和 PostgreSQL 需要正确配置路径:</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># your_app/config.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="c1"># 子项目根目录</span>
+<span class="n">LARK_SERVICE_ROOT</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;libs&quot;</span> <span class="o">/</span> <span class="s2">&quot;lark-service&quot;</span>
+
+<span class="c1"># SQLite 配置数据库路径</span>
+<span class="n">LARK_CONFIG_DB</span> <span class="o">=</span> <span class="n">LARK_SERVICE_ROOT</span> <span class="o">/</span> <span class="s2">&quot;data&quot;</span> <span class="o">/</span> <span class="s2">&quot;lark_config.db&quot;</span>
+
+<span class="c1"># PostgreSQL 配置 (共享)</span>
+<span class="n">POSTGRES_HOST</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;POSTGRES_HOST&#39;</span><span class="p">,</span> <span class="s1">&#39;localhost&#39;</span><span class="p">)</span>
+<span class="n">POSTGRES_PORT</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;POSTGRES_PORT&#39;</span><span class="p">,</span> <span class="s1">&#39;5432&#39;</span><span class="p">)</span>
+<span class="n">POSTGRES_DB</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;POSTGRES_DB&#39;</span><span class="p">,</span> <span class="s1">&#39;lark_service&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="3">
+<li><p><strong>CI/CD 配置</strong>: 需要配置子模块递归拉取:</p></li>
+</ol>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># .github/workflows/deploy.yml</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Checkout code with submodules</span>
+<span class="w">  </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v4</span>
+<span class="w">  </span><span class="nt">with</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">submodules</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">recursive</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="4">
+<li><p><strong>Docker 部署</strong>: Dockerfile 需要复制子模块:</p></li>
+</ol>
+<div class="highlight-dockerfile notranslate"><div class="highlight"><pre><span></span><span class="c"># Dockerfile</span>
+<span class="k">FROM</span><span class="w"> </span><span class="s">python:3.12-slim</span>
+
+<span class="k">WORKDIR</span><span class="w"> </span><span class="s">/app</span>
+
+<span class="c"># 复制整个项目 (包含子模块)</span>
+<span class="k">COPY</span><span class="w"> </span>.<span class="w"> </span>.
+
+<span class="c"># 安装依赖</span>
+<span class="k">RUN</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>uv<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span><span class="nb">cd</span><span class="w"> </span>libs/lark-service<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+
+<span class="k">CMD</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;python&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;-m&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;your_app.main&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="pypi">
+<h3>3.2 PyPI 包安装 (备选)<a class="headerlink" href="#pypi" title="Link to this heading"></a></h3>
+<p><strong>适用场景</strong>:</p>
+<ul class="simple">
+<li><p>生产环境部署</p></li>
+<li><p>多项目复用</p></li>
+<li><p>快速集成</p></li>
+<li><p>标准化管理</p></li>
+</ul>
+<p><strong>安装</strong>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 使用 uv (推荐,速度快 10-100x)</span>
+uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>lark-service
+
+<span class="c1"># 或使用 pip</span>
+pip<span class="w"> </span>install<span class="w"> </span>lark-service
+
+<span class="c1"># 锁定版本</span>
+uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>lark-service<span class="o">==</span><span class="m">1</span>.2.0
+</pre></div>
+</div>
+<p><strong>在代码中使用</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 直接导入,无需配置路径</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">lark_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">LarkServiceClient</span>
+
+<span class="n">client</span> <span class="o">=</span> <span class="n">LarkServiceClient</span><span class="p">(</span><span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_your_app_id&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>优势</strong>:</p>
+<ul class="simple">
+<li><p>✅ 标准化,符合 Python 生态最佳实践</p></li>
+<li><p>✅ 依赖自动安装</p></li>
+<li><p>✅ 更新简单: <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">--upgrade</span> <span class="pre">lark-service</span></code></p></li>
+<li><p>✅ 完全隔离在虚拟环境</p></li>
+</ul>
+<p><strong>依赖管理</strong>:</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="c1"># pyproject.toml</span>
+<span class="k">[project]</span>
+<span class="n">dependencies</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="s2">&quot;lark-service&gt;=1.0.0,&lt;2.0.0&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">&quot;django&gt;=4.2.0&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="id9">
+<h3>3.3 集成方式对比<a class="headerlink" href="#id9" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>维度</p></th>
+<th class="head"><p>子项目集成 (推荐)</p></th>
+<th class="head"><p>PyPI 包安装</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>代码可见性</strong></p></td>
+<td><p>✅ 源码完全可见</p></td>
+<td><p>❌ 安装在 site-packages</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>实时调试</strong></p></td>
+<td><p>✅ 修改即生效</p></td>
+<td><p>❌ 需要重新安装</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>定制能力</strong></p></td>
+<td><p>✅ 可以自由修改</p></td>
+<td><p>❌ 修改需要 fork</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>依赖管理</strong></p></td>
+<td><p>⚠️ 需要手动管理</p></td>
+<td><p>✅ 自动安装</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>更新方式</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">submodule</span> <span class="pre">update</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">--upgrade</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>适用场景</strong></p></td>
+<td><p>开发调试、深度定制</p></td>
+<td><p>生产部署、快速集成</p></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<div><p>💡 <strong>推荐策略</strong>: 开发阶段使用<strong>子项目集成</strong>,生产部署可选 <strong>PyPI 安装</strong>。详细对比见 <span class="xref myst">research.md § 8</span></p>
+</div></blockquote>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id10">
+<h2>4. 在不同应用中使用<a class="headerlink" href="#id10" title="Link to this heading"></a></h2>
+<p>以下示例以 <strong>PyPI 安装方式</strong> 为例,如果使用子项目集成,请参考 3.1 节配置 Python 路径。</p>
+<section id="django">
+<h3>4.1 Django 应用<a class="headerlink" href="#django" title="Link to this heading"></a></h3>
+<p><strong>安装</strong>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 使用 uv (推荐)</span>
+uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>lark-service
+
+<span class="c1"># 或使用 pip</span>
+pip<span class="w"> </span>install<span class="w"> </span>lark-service
+</pre></div>
+</div>
+<p><strong>配置</strong> (<code class="docutils literal notranslate"><span class="pre">settings.py</span></code>):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># settings.py</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dotenv</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_dotenv</span>
+
+<span class="n">load_dotenv</span><span class="p">()</span>
+
+<span class="c1"># Lark Service 配置</span>
+<span class="n">LARK_CONFIG</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;POSTGRES_HOST&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;POSTGRES_HOST&#39;</span><span class="p">,</span> <span class="s1">&#39;localhost&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;POSTGRES_PORT&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;POSTGRES_PORT&#39;</span><span class="p">,</span> <span class="s1">&#39;5432&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;POSTGRES_DB&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;POSTGRES_DB&#39;</span><span class="p">,</span> <span class="s1">&#39;lark_service&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;POSTGRES_USER&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;POSTGRES_USER&#39;</span><span class="p">,</span> <span class="s1">&#39;lark&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;POSTGRES_PASSWORD&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;POSTGRES_PASSWORD&#39;</span><span class="p">),</span>
+    <span class="s1">&#39;LARK_CONFIG_ENCRYPTION_KEY&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;LARK_CONFIG_ENCRYPTION_KEY&#39;</span><span class="p">),</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>使用</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># views.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">lark_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">LarkServiceClient</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">send_notification</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="n">client</span> <span class="o">=</span> <span class="n">LarkServiceClient</span><span class="p">(</span><span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_your_app_id&quot;</span><span class="p">)</span>
+
+    <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">messaging</span><span class="o">.</span><span class="n">send_text</span><span class="p">(</span>
+        <span class="n">receiver_id</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">lark_user_id</span><span class="p">,</span>
+        <span class="n">content</span><span class="o">=</span><span class="s2">&quot;您有新的订单通知!&quot;</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">JsonResponse</span><span class="p">({</span><span class="s2">&quot;message_id&quot;</span><span class="p">:</span> <span class="n">response</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;message_id&#39;</span><span class="p">]})</span>
+</pre></div>
+</div>
+</section>
+<section id="flask">
+<h3>4.2 Flask 应用<a class="headerlink" href="#flask" title="Link to this heading"></a></h3>
+<p><strong>安装</strong>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 使用 uv (推荐)</span>
+uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>lark-service
+
+<span class="c1"># 或使用 pip</span>
+pip<span class="w"> </span>install<span class="w"> </span>lark-service
+</pre></div>
+</div>
+<p><strong>配置</strong> (<code class="docutils literal notranslate"><span class="pre">config.py</span></code>):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># config.py</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Config</span><span class="p">:</span>
+    <span class="n">POSTGRES_HOST</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;POSTGRES_HOST&#39;</span><span class="p">,</span> <span class="s1">&#39;localhost&#39;</span><span class="p">)</span>
+    <span class="n">POSTGRES_PORT</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;POSTGRES_PORT&#39;</span><span class="p">,</span> <span class="s1">&#39;5432&#39;</span><span class="p">)</span>
+    <span class="n">POSTGRES_DB</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;POSTGRES_DB&#39;</span><span class="p">,</span> <span class="s1">&#39;lark_service&#39;</span><span class="p">)</span>
+    <span class="n">POSTGRES_USER</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;POSTGRES_USER&#39;</span><span class="p">,</span> <span class="s1">&#39;lark&#39;</span><span class="p">)</span>
+    <span class="n">POSTGRES_PASSWORD</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;POSTGRES_PASSWORD&#39;</span><span class="p">)</span>
+    <span class="n">LARK_CONFIG_ENCRYPTION_KEY</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;LARK_CONFIG_ENCRYPTION_KEY&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>使用</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># app.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">flask</span><span class="w"> </span><span class="kn">import</span> <span class="n">Flask</span><span class="p">,</span> <span class="n">jsonify</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">lark_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">LarkServiceClient</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">from_object</span><span class="p">(</span><span class="s1">&#39;config.Config&#39;</span><span class="p">)</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/send-message&#39;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;POST&#39;</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">send_message</span><span class="p">():</span>
+    <span class="n">client</span> <span class="o">=</span> <span class="n">LarkServiceClient</span><span class="p">(</span><span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_your_app_id&quot;</span><span class="p">)</span>
+
+    <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">messaging</span><span class="o">.</span><span class="n">send_text</span><span class="p">(</span>
+        <span class="n">receiver_id</span><span class="o">=</span><span class="s2">&quot;ou_xxxxxxxx&quot;</span><span class="p">,</span>
+        <span class="n">content</span><span class="o">=</span><span class="s2">&quot;Hello from Flask!&quot;</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">jsonify</span><span class="p">({</span><span class="s2">&quot;message_id&quot;</span><span class="p">:</span> <span class="n">response</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;message_id&#39;</span><span class="p">]})</span>
+</pre></div>
+</div>
+</section>
+<section id="apache-airflow">
+<h3>4.3 Apache Airflow<a class="headerlink" href="#apache-airflow" title="Link to this heading"></a></h3>
+<p><strong>安装</strong> (在 Airflow 环境中):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 使用 uv (推荐)</span>
+uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>lark-service
+
+<span class="c1"># 或使用 pip</span>
+pip<span class="w"> </span>install<span class="w"> </span>lark-service
+</pre></div>
+</div>
+<p><strong>DAG 示例</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># dags/etl_to_lark.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">airflow</span><span class="w"> </span><span class="kn">import</span> <span class="n">DAG</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">airflow.operators.python</span><span class="w"> </span><span class="kn">import</span> <span class="n">PythonOperator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">lark_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">LarkServiceClient</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">load_to_lark</span><span class="p">(</span><span class="o">**</span><span class="n">context</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;ETL 完成后将数据加载到飞书&quot;&quot;&quot;</span>
+    <span class="n">client</span> <span class="o">=</span> <span class="n">LarkServiceClient</span><span class="p">(</span><span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_airflow_app&quot;</span><span class="p">)</span>
+
+    <span class="c1"># 获取 ETL 结果</span>
+    <span class="n">etl_result</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s1">&#39;task_instance&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">xcom_pull</span><span class="p">(</span><span class="n">task_ids</span><span class="o">=</span><span class="s1">&#39;etl_task&#39;</span><span class="p">)</span>
+
+    <span class="c1"># 发送通知</span>
+    <span class="n">client</span><span class="o">.</span><span class="n">messaging</span><span class="o">.</span><span class="n">send_text</span><span class="p">(</span>
+        <span class="n">receiver_id</span><span class="o">=</span><span class="s2">&quot;ou_team_leader&quot;</span><span class="p">,</span>
+        <span class="n">content</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;✅ ETL 完成! 数据量: </span><span class="si">{</span><span class="n">etl_result</span><span class="p">[</span><span class="s1">&#39;row_count&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+
+    <span class="c1"># 写入飞书多维表格</span>
+    <span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">etl_result</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]:</span>
+        <span class="n">client</span><span class="o">.</span><span class="n">clouddoc</span><span class="o">.</span><span class="n">bitable</span><span class="o">.</span><span class="n">create_record</span><span class="p">(</span>
+            <span class="n">app_token</span><span class="o">=</span><span class="s2">&quot;bascnxxxxxx&quot;</span><span class="p">,</span>
+            <span class="n">table_id</span><span class="o">=</span><span class="s2">&quot;tblxxxxxx&quot;</span><span class="p">,</span>
+            <span class="n">fields</span><span class="o">=</span><span class="n">record</span>
+        <span class="p">)</span>
+
+<span class="k">with</span> <span class="n">DAG</span><span class="p">(</span>
+    <span class="s1">&#39;etl_to_lark&#39;</span><span class="p">,</span>
+    <span class="n">start_date</span><span class="o">=</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2026</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">schedule_interval</span><span class="o">=</span><span class="s1">&#39;@daily&#39;</span><span class="p">,</span>
+<span class="p">)</span> <span class="k">as</span> <span class="n">dag</span><span class="p">:</span>
+
+    <span class="n">load_task</span> <span class="o">=</span> <span class="n">PythonOperator</span><span class="p">(</span>
+        <span class="n">task_id</span><span class="o">=</span><span class="s1">&#39;load_to_lark&#39;</span><span class="p">,</span>
+        <span class="n">python_callable</span><span class="o">=</span><span class="n">load_to_lark</span><span class="p">,</span>
+        <span class="n">provide_context</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="fastapi">
+<h3>4.4 FastAPI 应用<a class="headerlink" href="#fastapi" title="Link to this heading"></a></h3>
+<p><strong>安装</strong>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 使用 uv (推荐)</span>
+uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>lark-service
+
+<span class="c1"># 或使用 pip</span>
+pip<span class="w"> </span>install<span class="w"> </span>lark-service
+</pre></div>
+</div>
+<p><strong>使用</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># main.py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">lark_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">LarkServiceClient</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+<span class="n">lark_client</span> <span class="o">=</span> <span class="n">LarkServiceClient</span><span class="p">(</span><span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_your_app_id&quot;</span><span class="p">)</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/send-notification&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">send_notification</span><span class="p">(</span><span class="n">user_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">lark_client</span><span class="o">.</span><span class="n">messaging</span><span class="o">.</span><span class="n">send_text</span><span class="p">(</span>
+        <span class="n">receiver_id</span><span class="o">=</span><span class="n">user_id</span><span class="p">,</span>
+        <span class="n">content</span><span class="o">=</span><span class="n">message</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;message_id&quot;</span><span class="p">:</span> <span class="n">response</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;message_id&#39;</span><span class="p">]}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id11">
+<h2>5. 环境变量配置<a class="headerlink" href="#id11" title="Link to this heading"></a></h2>
+<section id="id12">
+<h3>5.1 必需环境变量<a class="headerlink" href="#id12" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># PostgreSQL 配置</span>
+<span class="nv">POSTGRES_HOST</span><span class="o">=</span>localhost
+<span class="nv">POSTGRES_PORT</span><span class="o">=</span><span class="m">5432</span>
+<span class="nv">POSTGRES_DB</span><span class="o">=</span>lark_service
+<span class="nv">POSTGRES_USER</span><span class="o">=</span>lark
+<span class="nv">POSTGRES_PASSWORD</span><span class="o">=</span>your_secure_password
+
+<span class="c1"># RabbitMQ 配置 (可选)</span>
+<span class="nv">RABBITMQ_HOST</span><span class="o">=</span>localhost
+<span class="nv">RABBITMQ_PORT</span><span class="o">=</span><span class="m">5672</span>
+<span class="nv">RABBITMQ_USER</span><span class="o">=</span>lark
+<span class="nv">RABBITMQ_PASSWORD</span><span class="o">=</span>your_secure_password
+
+<span class="c1"># 加密密钥 (必需)</span>
+<span class="nv">LARK_CONFIG_ENCRYPTION_KEY</span><span class="o">=</span>your_32_byte_base64_key
+
+<span class="c1"># 日志级别</span>
+<span class="nv">LOG_LEVEL</span><span class="o">=</span>INFO
+</pre></div>
+</div>
+</section>
+<section id="id13">
+<h3>5.2 生成加密密钥<a class="headerlink" href="#id13" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 生成 32 字节的 base64 编码密钥</span>
+openssl<span class="w"> </span>rand<span class="w"> </span>-base64<span class="w"> </span><span class="m">32</span>
+
+<span class="c1"># 输出示例: 3yX9kL2mP5nQ8rT1uV4wZ6aB7cD0eF1g==</span>
+</pre></div>
+</div>
+</section>
+<section id="id14">
+<h3>5.3 不同环境的配置管理<a class="headerlink" href="#id14" title="Link to this heading"></a></h3>
+<section id="id15">
+<h4>开发环境<a class="headerlink" href="#id15" title="Link to this heading"></a></h4>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># .env.dev</span>
+<span class="nv">POSTGRES_HOST</span><span class="o">=</span>localhost
+<span class="nv">POSTGRES_PASSWORD</span><span class="o">=</span>dev_password
+<span class="nv">LOG_LEVEL</span><span class="o">=</span>DEBUG
+</pre></div>
+</div>
+</section>
+<section id="id16">
+<h4>测试环境<a class="headerlink" href="#id16" title="Link to this heading"></a></h4>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># .env.test</span>
+<span class="nv">POSTGRES_HOST</span><span class="o">=</span>test-postgres.internal
+<span class="nv">POSTGRES_PASSWORD</span><span class="o">=</span>test_password
+<span class="nv">LOG_LEVEL</span><span class="o">=</span>INFO
+</pre></div>
+</div>
+</section>
+<section id="id17">
+<h4>生产环境<a class="headerlink" href="#id17" title="Link to this heading"></a></h4>
+<p><strong>推荐</strong>: 使用密钥管理服务,不使用 .env 文件</p>
+<ul class="simple">
+<li><p><strong>AWS</strong>: AWS Secrets Manager</p></li>
+<li><p><strong>Azure</strong>: Azure Key Vault</p></li>
+<li><p><strong>GCP</strong>: Secret Manager</p></li>
+<li><p><strong>Kubernetes</strong>: Secrets</p></li>
+</ul>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># Kubernetes Secret 示例</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Secret</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">lark-service-secrets</span>
+<span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Opaque</span>
+<span class="nt">stringData</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">POSTGRES_HOST</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prod-postgres.internal</span>
+<span class="w">  </span><span class="nt">POSTGRES_PASSWORD</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prod_secure_password</span>
+<span class="w">  </span><span class="nt">LARK_CONFIG_ENCRYPTION_KEY</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">your_production_key</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+<section id="id18">
+<h2>6. 初始化应用配置<a class="headerlink" href="#id18" title="Link to this heading"></a></h2>
+<section id="cli">
+<h3>5.1 使用 CLI 添加应用<a class="headerlink" href="#cli" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 添加第一个应用</span>
+python<span class="w"> </span>-m<span class="w"> </span>lark_service.cli<span class="w"> </span>app<span class="w"> </span>add<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--app-id<span class="w"> </span><span class="s2">&quot;cli_your_app_id&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--app-secret<span class="w"> </span><span class="s2">&quot;your_app_secret&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--name<span class="w"> </span><span class="s2">&quot;生产应用&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--description<span class="w"> </span><span class="s2">&quot;用于生产环境&quot;</span>
+
+<span class="c1"># 查看已添加的应用</span>
+python<span class="w"> </span>-m<span class="w"> </span>lark_service.cli<span class="w"> </span>app<span class="w"> </span>list
+
+<span class="c1"># 输出:</span>
+<span class="c1"># ┌──────────────────┬──────────┬────────┬─────────────────────┐</span>
+<span class="c1"># │ App ID           │ Name     │ Status │ Created At          │</span>
+<span class="c1"># ├──────────────────┼──────────┼────────┼─────────────────────┤</span>
+<span class="c1"># │ cli_your_app_id  │ 生产应用 │ Active │ 2026-01-15 10:30:00 │</span>
+<span class="c1"># └──────────────────┴──────────┴────────┴─────────────────────┘</span>
+</pre></div>
+</div>
+</section>
+<section id="python-api">
+<h3>5.2 使用 Python API 添加应用<a class="headerlink" href="#python-api" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lark_service.core.storage.sqlite_storage</span><span class="w"> </span><span class="kn">import</span> <span class="n">ApplicationManager</span>
+
+<span class="c1"># 初始化应用管理器</span>
+<span class="n">app_manager</span> <span class="o">=</span> <span class="n">ApplicationManager</span><span class="p">()</span>
+
+<span class="c1"># 添加应用配置</span>
+<span class="n">app_manager</span><span class="o">.</span><span class="n">create_application</span><span class="p">(</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_your_app_id&quot;</span><span class="p">,</span>
+    <span class="n">app_secret</span><span class="o">=</span><span class="s2">&quot;your_app_secret&quot;</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;生产应用&quot;</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;用于生产环境&quot;</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;应用配置已添加!&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id19">
+<h2>7. 数据库迁移<a class="headerlink" href="#id19" title="Link to this heading"></a></h2>
+<section id="alembic">
+<h3>6.1 初始化 Alembic<a class="headerlink" href="#alembic" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 已在项目中配置,无需初始化</span>
+<span class="c1"># 迁移脚本位于 migrations/versions/</span>
+</pre></div>
+</div>
+</section>
+<section id="id20">
+<h3>6.2 执行迁移<a class="headerlink" href="#id20" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 升级到最新版本</span>
+alembic<span class="w"> </span>upgrade<span class="w"> </span>head
+
+<span class="c1"># 查看当前版本</span>
+alembic<span class="w"> </span>current
+
+<span class="c1"># 查看迁移历史</span>
+alembic<span class="w"> </span><span class="nb">history</span>
+
+<span class="c1"># 回滚到上一个版本</span>
+alembic<span class="w"> </span>downgrade<span class="w"> </span>-1
+</pre></div>
+</div>
+</section>
+<section id="id21">
+<h3>6.3 创建新迁移<a class="headerlink" href="#id21" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 自动生成迁移脚本 (检测模型变更)</span>
+alembic<span class="w"> </span>revision<span class="w"> </span>--autogenerate<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;add new table&quot;</span>
+
+<span class="c1"># 手动创建迁移脚本</span>
+alembic<span class="w"> </span>revision<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;manual migration&quot;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id22">
+<h2>8. 健康检查<a class="headerlink" href="#id22" title="Link to this heading"></a></h2>
+<section id="id23">
+<h3>7.1 数据库连接检查<a class="headerlink" href="#id23" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lark_service.core.storage.postgres_storage</span><span class="w"> </span><span class="kn">import</span> <span class="n">PostgresStorage</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">check_postgres_health</span><span class="p">():</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">storage</span> <span class="o">=</span> <span class="n">PostgresStorage</span><span class="p">()</span>
+        <span class="c1"># 执行简单查询</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">storage</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT 1&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;healthy&quot;</span><span class="p">,</span> <span class="s2">&quot;database&quot;</span><span class="p">:</span> <span class="s2">&quot;connected&quot;</span><span class="p">}</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;unhealthy&quot;</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)}</span>
+</pre></div>
+</div>
+</section>
+<section id="id24">
+<h3>7.2 RabbitMQ 连接检查<a class="headerlink" href="#id24" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pika</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">check_rabbitmq_health</span><span class="p">():</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">connection</span> <span class="o">=</span> <span class="n">pika</span><span class="o">.</span><span class="n">BlockingConnection</span><span class="p">(</span>
+            <span class="n">pika</span><span class="o">.</span><span class="n">ConnectionParameters</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="s1">&#39;localhost&#39;</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">connection</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;healthy&quot;</span><span class="p">,</span> <span class="s2">&quot;rabbitmq&quot;</span><span class="p">:</span> <span class="s2">&quot;connected&quot;</span><span class="p">}</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;unhealthy&quot;</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id25">
+<h2>9. 监控和日志<a class="headerlink" href="#id25" title="Link to this heading"></a></h2>
+<section id="id26">
+<h3>8.1 日志配置<a class="headerlink" href="#id26" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 在应用启动时配置日志</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">lark_service.utils.logger</span><span class="w"> </span><span class="kn">import</span> <span class="n">setup_logger</span>
+
+<span class="c1"># 设置日志级别</span>
+<span class="n">setup_logger</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+<span class="c1"># 日志输出到文件</span>
+<span class="n">setup_logger</span><span class="p">(</span>
+    <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
+    <span class="n">log_file</span><span class="o">=</span><span class="s2">&quot;/var/log/lark-service/app.log&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id27">
+<h3>8.2 监控指标<a class="headerlink" href="#id27" title="Link to this heading"></a></h3>
+<p><strong>推荐监控项</strong>:</p>
+<ul class="simple">
+<li><p>PostgreSQL 连接数</p></li>
+<li><p>RabbitMQ 队列长度</p></li>
+<li><p>Token 刷新频率</p></li>
+<li><p>API 调用延迟</p></li>
+<li><p>错误率</p></li>
+</ul>
+<p><strong>工具推荐</strong>:</p>
+<ul class="simple">
+<li><p>Prometheus + Grafana</p></li>
+<li><p>Datadog</p></li>
+<li><p>New Relic</p></li>
+<li><p>CloudWatch (AWS)</p></li>
+</ul>
+</section>
+</section>
+<section id="id28">
+<h2>10. 安全最佳实践<a class="headerlink" href="#id28" title="Link to this heading"></a></h2>
+<section id="id29">
+<h3>9.1 密钥管理<a class="headerlink" href="#id29" title="Link to this heading"></a></h3>
+<p>✅ <strong>DO</strong>:</p>
+<ul class="simple">
+<li><p>使用环境变量或密钥管理服务</p></li>
+<li><p>定期轮换加密密钥</p></li>
+<li><p>使用强密码 (至少 16 字符)</p></li>
+<li><p>限制密钥访问权限</p></li>
+</ul>
+<p>❌ <strong>DON'T</strong>:</p>
+<ul class="simple">
+<li><p>不要将密钥提交到 Git</p></li>
+<li><p>不要在代码中硬编码密钥</p></li>
+<li><p>不要在日志中输出密钥</p></li>
+<li><p>不要使用默认密码</p></li>
+</ul>
+</section>
+<section id="id30">
+<h3>9.2 网络安全<a class="headerlink" href="#id30" title="Link to this heading"></a></h3>
+<p>✅ <strong>DO</strong>:</p>
+<ul class="simple">
+<li><p>使用 TLS/SSL 加密数据库连接</p></li>
+<li><p>限制数据库访问 IP (安全组/防火墙)</p></li>
+<li><p>使用 VPC/私有网络</p></li>
+<li><p>定期更新依赖包</p></li>
+</ul>
+</section>
+<section id="id31">
+<h3>9.3 数据库安全<a class="headerlink" href="#id31" title="Link to this heading"></a></h3>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="c1">-- 创建只读用户 (用于监控)</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">USER</span><span class="w"> </span><span class="n">lark_readonly</span><span class="w"> </span><span class="k">WITH</span><span class="w"> </span><span class="n">PASSWORD</span><span class="w"> </span><span class="s1">&#39;readonly_password&#39;</span><span class="p">;</span>
+<span class="k">GRANT</span><span class="w"> </span><span class="k">CONNECT</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="k">DATABASE</span><span class="w"> </span><span class="n">lark_service</span><span class="w"> </span><span class="k">TO</span><span class="w"> </span><span class="n">lark_readonly</span><span class="p">;</span>
+<span class="k">GRANT</span><span class="w"> </span><span class="k">SELECT</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="k">ALL</span><span class="w"> </span><span class="n">TABLES</span><span class="w"> </span><span class="k">IN</span><span class="w"> </span><span class="k">SCHEMA</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="k">TO</span><span class="w"> </span><span class="n">lark_readonly</span><span class="p">;</span>
+
+<span class="c1">-- 创建应用用户 (最小权限)</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">USER</span><span class="w"> </span><span class="n">lark_app</span><span class="w"> </span><span class="k">WITH</span><span class="w"> </span><span class="n">PASSWORD</span><span class="w"> </span><span class="s1">&#39;app_password&#39;</span><span class="p">;</span>
+<span class="k">GRANT</span><span class="w"> </span><span class="k">CONNECT</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="k">DATABASE</span><span class="w"> </span><span class="n">lark_service</span><span class="w"> </span><span class="k">TO</span><span class="w"> </span><span class="n">lark_app</span><span class="p">;</span>
+<span class="k">GRANT</span><span class="w"> </span><span class="k">SELECT</span><span class="p">,</span><span class="w"> </span><span class="k">INSERT</span><span class="p">,</span><span class="w"> </span><span class="k">UPDATE</span><span class="p">,</span><span class="w"> </span><span class="k">DELETE</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="k">ALL</span><span class="w"> </span><span class="n">TABLES</span><span class="w"> </span><span class="k">IN</span><span class="w"> </span><span class="k">SCHEMA</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="k">TO</span><span class="w"> </span><span class="n">lark_app</span><span class="p">;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id32">
+<h2>10. 故障排查<a class="headerlink" href="#id32" title="Link to this heading"></a></h2>
+<section id="id33">
+<h3>10.1 常见问题<a class="headerlink" href="#id33" title="Link to this heading"></a></h3>
+<p><strong>问题 1</strong>: Token 获取失败</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">TokenAcquisitionError</span><span class="p">:</span> <span class="n">Failed</span> <span class="n">to</span> <span class="n">get</span> <span class="n">token</span><span class="p">:</span> <span class="mi">10014</span>
+</pre></div>
+</div>
+<p><strong>解决方法</strong>:</p>
+<ol class="arabic simple">
+<li><p>检查应用配置是否正确</p></li>
+<li><p>确认飞书应用状态为&quot;已启用&quot;</p></li>
+<li><p>检查网络连接</p></li>
+</ol>
+<p><strong>问题 2</strong>: 数据库连接失败</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sqlalchemy</span><span class="o">.</span><span class="n">exc</span><span class="o">.</span><span class="n">OperationalError</span><span class="p">:</span> <span class="n">could</span> <span class="ow">not</span> <span class="n">connect</span> <span class="n">to</span> <span class="n">server</span>
+</pre></div>
+</div>
+<p><strong>解决方法</strong>:</p>
+<ol class="arabic simple">
+<li><p>检查 PostgreSQL 是否运行</p></li>
+<li><p>验证环境变量配置</p></li>
+<li><p>检查网络连接和防火墙</p></li>
+</ol>
+<p><strong>问题 3</strong>: 加密密钥错误</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cryptography</span><span class="o">.</span><span class="n">fernet</span><span class="o">.</span><span class="n">InvalidToken</span>
+</pre></div>
+</div>
+<p><strong>解决方法</strong>:</p>
+<ol class="arabic simple">
+<li><p>确认 <code class="docutils literal notranslate"><span class="pre">LARK_CONFIG_ENCRYPTION_KEY</span></code> 正确</p></li>
+<li><p>检查密钥格式 (base64 编码)</p></li>
+<li><p>重新生成密钥并重新添加应用配置</p></li>
+</ol>
+</section>
+<section id="id34">
+<h3>10.2 调试模式<a class="headerlink" href="#id34" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 启用调试日志</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">LOG_LEVEL</span><span class="o">=</span>DEBUG
+
+<span class="c1"># 运行应用</span>
+python<span class="w"> </span>your_app.py
+</pre></div>
+</div>
+</section>
+<section id="id35">
+<h3>10.3 查看日志<a class="headerlink" href="#id35" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Docker Compose 日志</span>
+docker<span class="w"> </span>compose<span class="w"> </span>logs<span class="w"> </span>-f<span class="w"> </span>postgres
+docker<span class="w"> </span>compose<span class="w"> </span>logs<span class="w"> </span>-f<span class="w"> </span>rabbitmq
+
+<span class="c1"># 应用日志</span>
+tail<span class="w"> </span>-f<span class="w"> </span>/var/log/lark-service/app.log
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id36">
+<h2>11. 性能优化<a class="headerlink" href="#id36" title="Link to this heading"></a></h2>
+<section id="id37">
+<h3>11.1 数据库优化<a class="headerlink" href="#id37" title="Link to this heading"></a></h3>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="c1">-- 创建索引</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_tokens_app_id</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">tokens</span><span class="p">(</span><span class="n">app_id</span><span class="p">);</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_tokens_expires_at</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">tokens</span><span class="p">(</span><span class="n">expires_at</span><span class="p">);</span>
+
+<span class="c1">-- 定期清理过期数据</span>
+<span class="k">DELETE</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">tokens</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">expires_at</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">NOW</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="nb">INTERVAL</span><span class="w"> </span><span class="s1">&#39;7 days&#39;</span><span class="p">;</span>
+<span class="k">DELETE</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">user_cache</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">expires_at</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">NOW</span><span class="p">();</span>
+</pre></div>
+</div>
+</section>
+<section id="id38">
+<h3>11.2 连接池配置<a class="headerlink" href="#id38" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_engine</span>
+
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span>
+    <span class="n">database_url</span><span class="p">,</span>
+    <span class="n">pool_size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>          <span class="c1"># 连接池大小</span>
+    <span class="n">max_overflow</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>       <span class="c1"># 最大溢出连接</span>
+    <span class="n">pool_timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>       <span class="c1"># 获取连接超时</span>
+    <span class="n">pool_recycle</span><span class="o">=</span><span class="mi">3600</span><span class="p">,</span>     <span class="c1"># 连接回收时间 (1小时)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id39">
+<h2>12. 备份和恢复<a class="headerlink" href="#id39" title="Link to this heading"></a></h2>
+<section id="id40">
+<h3>12.1 备份策略概览<a class="headerlink" href="#id40" title="Link to this heading"></a></h3>
+<p><strong>目标</strong>:</p>
+<ul class="simple">
+<li><p><strong>RPO (恢复点目标)</strong>: 1小时</p></li>
+<li><p><strong>RTO (恢复时间目标)</strong>: 4小时</p></li>
+<li><p><strong>保留期限</strong>: 30天</p></li>
+</ul>
+</section>
+<section id="id41">
+<h3>12.2 自动化备份脚本<a class="headerlink" href="#id41" title="Link to this heading"></a></h3>
+<p>项目提供完整的备份恢复脚本:</p>
+<ul class="simple">
+<li><p><strong>备份脚本</strong>: <code class="docutils literal notranslate"><span class="pre">scripts/backup_database.sh</span></code></p></li>
+<li><p><strong>恢复脚本</strong>: <code class="docutils literal notranslate"><span class="pre">scripts/restore_database.sh</span></code></p></li>
+<li><p><strong>回滚测试</strong>: <code class="docutils literal notranslate"><span class="pre">scripts/test_migration_rollback.sh</span></code></p></li>
+</ul>
+<p><strong>安装和配置</strong>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 1. 设置可执行权限</span>
+chmod<span class="w"> </span>+x<span class="w"> </span>scripts/*.sh
+
+<span class="c1"># 2. 配置环境变量</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">BACKUP_DIR</span><span class="o">=</span><span class="s2">&quot;/backups/postgres&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">POSTGRES_HOST</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">POSTGRES_PORT</span><span class="o">=</span><span class="s2">&quot;5432&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">POSTGRES_DB</span><span class="o">=</span><span class="s2">&quot;lark_service&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">POSTGRES_USER</span><span class="o">=</span><span class="s2">&quot;lark_user&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">PGPASSWORD</span><span class="o">=</span><span class="s2">&quot;your_password&quot;</span>
+
+<span class="c1"># 3. 测试备份</span>
+./scripts/backup_database.sh
+
+<span class="c1"># 4. 配置定时任务 (每日凌晨2点)</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;0 2 * * * /path/to/scripts/backup_database.sh&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>crontab<span class="w"> </span>-
+</pre></div>
+</div>
+</section>
+<section id="id42">
+<h3>12.3 PostgreSQL 备份<a class="headerlink" href="#id42" title="Link to this heading"></a></h3>
+<p><strong>手动备份</strong>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 完整SQL备份 (推荐)</span>
+pg_dump<span class="w"> </span>-h<span class="w"> </span>localhost<span class="w"> </span>-U<span class="w"> </span>lark_user<span class="w"> </span>-d<span class="w"> </span>lark_service<span class="w"> </span><span class="p">|</span><span class="w"> </span>gzip<span class="w"> </span>&gt;<span class="w"> </span>backup_<span class="k">$(</span>date<span class="w"> </span>+%Y%m%d_%H%M%S<span class="k">)</span>.sql.gz
+
+<span class="c1"># 自定义格式备份 (快速恢复)</span>
+pg_dump<span class="w"> </span>-h<span class="w"> </span>localhost<span class="w"> </span>-U<span class="w"> </span>lark_user<span class="w"> </span>-d<span class="w"> </span>lark_service<span class="w"> </span>-Fc<span class="w"> </span>&gt;<span class="w"> </span>backup_<span class="k">$(</span>date<span class="w"> </span>+%Y%m%d_%H%M%S<span class="k">)</span>.dump
+</pre></div>
+</div>
+<p><strong>恢复数据库</strong>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 方法1: 使用恢复脚本 (推荐)</span>
+./scripts/restore_database.sh<span class="w"> </span>/backups/postgres/lark_service_latest.sql.gz
+
+<span class="c1"># 方法2: 手动恢复</span>
+gunzip<span class="w"> </span>-c<span class="w"> </span>backup_20260118.sql.gz<span class="w"> </span><span class="p">|</span><span class="w"> </span>psql<span class="w"> </span>-h<span class="w"> </span>localhost<span class="w"> </span>-U<span class="w"> </span>lark_user<span class="w"> </span>-d<span class="w"> </span>lark_service
+
+<span class="c1"># 方法3: 自定义格式恢复</span>
+pg_restore<span class="w"> </span>-h<span class="w"> </span>localhost<span class="w"> </span>-U<span class="w"> </span>lark_user<span class="w"> </span>-d<span class="w"> </span>lark_service<span class="w"> </span>backup_20260118.dump
+</pre></div>
+</div>
+<p><strong>详细文档</strong>: 参见 <a class="reference internal" href="#./database-migration-rollback.md"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">docs/database-migration-rollback.md</span></code></span></a></p>
+</section>
+<section id="sqlite">
+<h3>12.4 SQLite 配置备份<a class="headerlink" href="#sqlite" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 备份应用配置数据库</span>
+cp<span class="w"> </span>config/applications.db<span class="w"> </span>config/applications.db.backup_<span class="k">$(</span>date<span class="w"> </span>+%Y%m%d<span class="k">)</span>
+
+<span class="c1"># 定时备份</span>
+<span class="m">0</span><span class="w"> </span><span class="m">3</span><span class="w"> </span>*<span class="w"> </span>*<span class="w"> </span>*<span class="w"> </span>cp<span class="w"> </span>config/applications.db<span class="w"> </span>/backups/sqlite/applications.db.<span class="k">$(</span>date<span class="w"> </span>+<span class="se">\%</span>Y<span class="se">\%</span>m<span class="se">\%</span>d<span class="k">)</span>
+
+<span class="c1"># 清理30天前备份</span>
+find<span class="w"> </span>/backups/sqlite/<span class="w"> </span>-name<span class="w"> </span><span class="s2">&quot;applications.db.*&quot;</span><span class="w"> </span>-mtime<span class="w"> </span>+30<span class="w"> </span>-delete
+
+<span class="c1"># 恢复</span>
+cp<span class="w"> </span>config/applications.db.backup_20260118<span class="w"> </span>config/applications.db
+</pre></div>
+</div>
+</section>
+<section id="id43">
+<h3>12.5 数据库迁移回滚<a class="headerlink" href="#id43" title="Link to this heading"></a></h3>
+<p><strong>回滚一个版本</strong>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 1. 备份当前数据</span>
+./scripts/backup_database.sh
+
+<span class="c1"># 2. 回滚迁移</span>
+alembic<span class="w"> </span>downgrade<span class="w"> </span>-1
+
+<span class="c1"># 3. 验证</span>
+alembic<span class="w"> </span>current
+
+<span class="c1"># 4. 重启应用</span>
+docker<span class="w"> </span>compose<span class="w"> </span>restart<span class="w"> </span>app
+</pre></div>
+</div>
+<p><strong>测试回滚流程</strong>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 自动化测试脚本</span>
+./scripts/test_migration_rollback.sh
+
+<span class="c1"># 测试内容:</span>
+<span class="c1"># - 升级到最新版本</span>
+<span class="c1"># - 插入测试数据</span>
+<span class="c1"># - 执行回滚</span>
+<span class="c1"># - 验证表删除</span>
+<span class="c1"># - 重新升级</span>
+<span class="c1"># - 验证数据状态</span>
+</pre></div>
+</div>
+</section>
+<section id="id44">
+<h3>12.6 备份验证<a class="headerlink" href="#id44" title="Link to this heading"></a></h3>
+<p><strong>每周验证备份可恢复性</strong>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 创建验证脚本</span>
+cat<span class="w"> </span>&gt;<span class="w"> </span>scripts/verify_backup.sh<span class="w"> </span><span class="s">&lt;&lt; &#39;EOF&#39;</span>
+<span class="s">#!/bin/bash</span>
+<span class="s">set -e</span>
+
+<span class="s">LATEST_BACKUP=&quot;/backups/postgres/lark_service_latest.sql.gz&quot;</span>
+<span class="s">TEST_DB=&quot;lark_service_verify&quot;</span>
+
+<span class="s">echo &quot;验证备份: $LATEST_BACKUP&quot;</span>
+
+<span class="s"># 创建测试数据库</span>
+<span class="s">psql -U postgres -c &quot;DROP DATABASE IF EXISTS $TEST_DB;&quot;</span>
+<span class="s">psql -U postgres -c &quot;CREATE DATABASE $TEST_DB;&quot;</span>
+
+<span class="s"># 恢复到测试数据库</span>
+<span class="s">gunzip -c &quot;$LATEST_BACKUP&quot; | psql -U postgres -d &quot;$TEST_DB&quot;</span>
+
+<span class="s"># 验证表结构</span>
+<span class="s">TABLE_COUNT=$(psql -U postgres -d &quot;$TEST_DB&quot; -t -c &quot;SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=&#39;public&#39;;&quot;)</span>
+
+<span class="s">if [ &quot;$TABLE_COUNT&quot; -ge 3 ]; then</span>
+<span class="s">    echo &quot;✓ 备份验证成功: $TABLE_COUNT 个表已恢复&quot;</span>
+<span class="s">else</span>
+<span class="s">    echo &quot;✗ 备份验证失败&quot;</span>
+<span class="s">    exit 1</span>
+<span class="s">fi</span>
+
+<span class="s"># 清理测试数据库</span>
+<span class="s">psql -U postgres -c &quot;DROP DATABASE $TEST_DB;&quot;</span>
+<span class="s">echo &quot;✓ 验证完成&quot;</span>
+<span class="s">EOF</span>
+
+chmod<span class="w"> </span>+x<span class="w"> </span>scripts/verify_backup.sh
+
+<span class="c1"># 配置每周验证</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;0 3 * * 0 /path/to/scripts/verify_backup.sh&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>crontab<span class="w"> </span>-
+</pre></div>
+</div>
+</section>
+<section id="id45">
+<h3>12.7 灾难恢复演练<a class="headerlink" href="#id45" title="Link to this heading"></a></h3>
+<p><strong>目的</strong>: 验证备份可用性,确保团队熟悉恢复流程</p>
+<p><strong>频率</strong>: 每季度</p>
+<p><strong>演练步骤</strong>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 1. 在测试环境执行</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">POSTGRES_DB</span><span class="o">=</span><span class="s2">&quot;lark_service_test&quot;</span>
+
+<span class="c1"># 2. 使用生产备份</span>
+<span class="nv">BACKUP_FILE</span><span class="o">=</span><span class="s2">&quot;/backups/postgres/prod_backup_latest.sql.gz&quot;</span>
+
+<span class="c1"># 3. 执行恢复</span>
+./scripts/restore_database.sh<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$BACKUP_FILE</span><span class="s2">&quot;</span>
+
+<span class="c1"># 4. 运行集成测试</span>
+pytest<span class="w"> </span>tests/integration/<span class="w"> </span>-v
+
+<span class="c1"># 5. 记录恢复时间 (目标: &lt; 4小时)</span>
+
+<span class="c1"># 6. 生成演练报告</span>
+cat<span class="w"> </span>&gt;<span class="w"> </span>dr_report_<span class="k">$(</span>date<span class="w"> </span>+%Y%m%d<span class="k">)</span>.md<span class="w"> </span><span class="s">&lt;&lt; EOF</span>
+<span class="s"># 灾难恢复演练报告</span>
+<span class="s">- 日期: $(date)</span>
+<span class="s">- 备份文件: $BACKUP_FILE</span>
+<span class="s">- 恢复时间: XX 分钟</span>
+<span class="s">- 数据完整性: PASS</span>
+<span class="s">- 应用功能: PASS</span>
+<span class="s">EOF</span>
+</pre></div>
+</div>
+<hr class="docutils" />
+<p><strong>维护者</strong>: Lark Service Team
+<strong>最后更新</strong>: 2026-01-18
+<strong>版本</strong>: 1.1.0 (新增自动化备份恢复)</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="页脚">
+        <a href="deployment/PRODUCTION_DEPLOYMENT.html" class="btn btn-neutral float-left" title="LarkService 生产环境部署指南" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> 上一页</a>
+        <a href="monitoring.html" class="btn btn-neutral float-right" title="监控指南" accesskey="n" rel="next">下一页 <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; 版权所有 2026, Ray。</p>
+  </div>
+
+  利用 <a href="https://www.sphinx-doc.org/">Sphinx</a> 构建，使用的 
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">主题</a>
+    由 <a href="https://readthedocs.org">Read the Docs</a> 开发.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

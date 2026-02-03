@@ -1,0 +1,2791 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="zh-CN" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Phase 4 需求评审报告 - CloudDoc &amp; Contact &mdash; Lark Service 0.2.0 文档</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=ad3000b3"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../_static/translations.js?v=beaddf03"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="索引" href="../../genindex.html" />
+    <link rel="search" title="搜索" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Lark Service
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="搜索文档" aria-label="搜索文档" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="导航菜单">
+              <p class="caption" role="heading"><span class="caption-text">快速开始</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../README.html">Lark Service - 项目文档索引</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../README.html#id1">🎯 快速导航</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../README.html#id2">📚 核心文档 (25+)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../README.html#id3">1. 产品与规格 (4个)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../README.html#api-5">2. 架构与API (5个)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../README.html#id4">3. 开发指南 (6个)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../README.html#id5">4. 部署与配置 (6个)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../README.html#id6">5. 功能特性 (2个) 🆕</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../README.html#id7">6. 技术专题 (3个)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../README.html#id8">7. 发布说明 (1个) 🆕</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../README.html#id9">📊 项目状态与报告</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../README.html#v0-5-0">当前状态 (v0.5.0) 🎉</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../README.html#id10">检查清单</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../README.html#id11">历史归档</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../README.html#id12">🔧 模块使用说明</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../README.html#core">Core 核心模块</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../README.html#messaging">Messaging 消息模块</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../README.html#clouddoc">CloudDoc 云文档模块</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../README.html#contact">Contact 通讯录模块</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../README.html#cardkit">CardKit 卡片模块</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../README.html#apaas">aPaaS 数据空间模块</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../README.html#id13">📖 快速开始</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../README.html#id14">1. 查看项目概览</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../README.html#id15">2. 本地开发</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../README.html#id16">3. 代码质量检查</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../README.html#git">4. Git工作流</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../README.html#id17">📋 项目规范</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../README.html#id18">代码规范</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../README.html#id19">Git规范</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../README.html#id20">质量门禁</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../README.html#id21">🔍 相关资源</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../README.html#id22">官方文档</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../README.html#id23">项目链接</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../README.html#id24">项目指标</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../README.html#id25">📞 获取帮助</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../README.html#id26">问题排查</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../README.html#id27">文档导航</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">安装指南</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../installation.html#id2">环境要求</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../installation.html#pip">使用 pip 安装</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../installation.html#id3">开发环境</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../installation.html#id4">生产环境</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../installation.html#docker">使用 Docker 部署</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../installation.html#id5">1. 克隆项目</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../installation.html#id6">2. 配置环境变量</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../installation.html#id7">3. 启动服务</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../installation.html#id8">4. 运行数据库迁移</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../installation.html#id9">5. 配置飞书应用</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../installation.html#id10">验证安装</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../installation.html#id11">下一步</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">5分钟快速开始</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../quickstart.html#id2">前置条件</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../quickstart.html#id3">步骤 1: 安装</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../quickstart.html#id4">步骤 2: 配置环境变量</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../quickstart.html#id5">步骤 3: 初始化数据库</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../quickstart.html#id6">步骤 4: 添加飞书应用</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../quickstart.html#id7">步骤 5: 发送第一条消息</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../quickstart.html#id8">步骤 6: 发送交互式卡片</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../quickstart.html#id9">🎉 完成！</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../quickstart.html#id10">下一步</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../quickstart.html#id11">常见问题</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../quickstart.html#q-open-id">Q: 如何获取用户的 open_id？</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../quickstart.html#q-token">Q: 如何处理 token 过期？</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../quickstart.html#q">Q: 如何启用日志？</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../quick-reference.html">代码质量检查工具快速参考</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../quick-reference.html#id2">🎯 核心命令</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../quick-reference.html#id3">日常开发流程</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../quick-reference.html#id4">辅助命令</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../quick-reference.html#id5">📋 检查内容详解</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../quick-reference.html#git-check">git check 会运行以下检查：</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../quick-reference.html#id6">关键配置差异</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../quick-reference.html#id7">⚙️ 配置文件对应关系</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../quick-reference.html#id8">🔧 常见问题</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../quick-reference.html#q1-mypy-commit">Q1: 为什么本地 mypy 通过，但 commit 失败？</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../quick-reference.html#q2-tests">Q2: tests/ 的类型注解错误要修复吗？</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../quick-reference.html#q3">Q3: 如何只检查特定目录？</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../quick-reference.html#id9">📖 完整工作流示例</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../quick-reference.html#id10">🚀 首次设置</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../quick-reference.html#id11">📚 更多信息</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">使用指南</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../usage/app-management.html">应用管理 (Application Management)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/app-management.html#id1">概述</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/app-management.html#id2">核心概念</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/app-management.html#app-id">5层 app_id 解析优先级</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/app-management.html#id3">场景 1: 单应用场景</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/app-management.html#id4">示例代码</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/app-management.html#id5">返回值示例</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/app-management.html#id6">场景 2: 多应用场景 - 客户端级别默认值</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/app-management.html#id7">示例代码</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/app-management.html#id8">返回值示例</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/app-management.html#id9">场景 3: 动态切换应用 - 使用上下文管理器</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/app-management.html#id10">示例代码</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/app-management.html#id11">输出示例</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/app-management.html#id12">场景 4: 方法参数覆盖 - 最高优先级</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/app-management.html#id13">示例代码</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/app-management.html#id14">返回值示例</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/app-management.html#id15">场景 5: 嵌套上下文管理器</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/app-management.html#id16">示例代码</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/app-management.html#id17">输出示例</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/app-management.html#id18">实用工具方法</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/app-management.html#id">获取当前应用 ID</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/app-management.html#id19">列出所有可用应用</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/app-management.html#id20">输出示例</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/app-management.html#id21">错误处理</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/app-management.html#id22">未指定 app_id</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/app-management.html#id23">应用不存在</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/app-management.html#id24">线程安全注意事项</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/app-management.html#id25">推荐做法</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/app-management.html#id26">示例代码</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/app-management.html#id27">最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/app-management.html#id28">相关文档</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage/messaging.html">消息服务</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/messaging.html#id2">基本用法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/messaging.html#id3">应用管理</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/messaging.html#id4">快速示例</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage/card.html">卡片服务</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/card.html#id2">功能特点</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/card.html#id3">快速开始</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/card.html#id4">基础使用</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/card.html#id5">预定义卡片模板</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/card.html#notification-card">1. 通知卡片 (Notification Card)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/card.html#approval-card">2. 审批卡片 (Approval Card)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/card.html#form-card">3. 表单卡片 (Form Card)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/card.html#id6">自定义卡片构建</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/card.html#build-card">使用 build_card 方法</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/card.html#id7">常用卡片元素</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../usage/card.html#div">文本元素 (div)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../usage/card.html#markdown">Markdown 文本</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../usage/card.html#button">按钮 (button)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../usage/card.html#hr">分割线 (hr)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../usage/card.html#img">图片 (img)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../usage/card.html#column-set">多列布局 (column_set)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/card.html#id8">卡片交互回调</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/card.html#id9">设置回调服务器</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/card.html#id10">卡片回调数据结构</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/card.html#id11">更新卡片</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/card.html#cardupdater">使用 CardUpdater</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/card.html#id12">在回调中更新卡片</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/card.html#id13">高级用法</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/card.html#id14">条件渲染</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/card.html#id15">数据绑定</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/card.html#id16">卡片链</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/card.html#id17">最佳实践</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/card.html#id18">1. 卡片设计原则</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/card.html#id19">2. 错误处理</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/card.html#id20">3. 回调安全验证</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/card.html#id21">4. 性能优化</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/card.html#id22">故障排查</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/card.html#id23">卡片发送失败</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/card.html#id24">回调未触发</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/card.html#id25">相关文档</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage/contact.html">通讯录服务</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/contact.html#id2">应用管理</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/contact.html#id3">快速示例</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage/clouddoc.html">云文档服务</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/clouddoc.html#id2">应用管理</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/clouddoc.html#id3">快速示例</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage/apaas.html">aPaaS 数据空间</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/apaas.html#id1">应用管理</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/apaas.html#id2">快速示例</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage/auth.html">WebSocket 用户授权</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/auth.html#id1">概述</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/auth.html#id2">核心特性</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/auth.html#id3">授权流程</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/auth.html#id4">前置条件</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/auth.html#id5">1. 数据库配置</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/auth.html#id6">2. 飞书应用配置</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/auth.html#id7">3. 环境变量</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/auth.html#id8">基本用法</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/auth.html#id9">初始化组件</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/auth.html#id10">发送授权卡片</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/auth.html#id11">检查授权状态</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/auth.html#user-access-token">使用 user_access_token</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/auth.html#id12">高级用法</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/auth.html#id13">自定义授权卡片</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/auth.html#token">Token 自动刷新</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/auth.html#id14">会话管理</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/auth.html#id15">清理过期会话</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/auth.html#id16">WebSocket 事件处理（可选）</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/auth.html#id17">生产部署注意事项</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/auth.html#id18">1. 公网访问要求</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../usage/auth.html#id19">开发环境方案</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../usage/auth.html#id20">生产环境方案</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/auth.html#id21">2. 回调服务器配置</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/auth.html#oauth-redirect-uri">3. 配置 OAuth Redirect URI</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/auth.html#id22">4. 环境变量</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/auth.html#id23">错误处理</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/auth.html#id24">常见错误</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../usage/auth.html#id25">1. 授权码过期</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../usage/auth.html#id26">2. Token 刷新失败</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../usage/auth.html#id27">3. 会话不存在</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/auth.html#id28">监控指标</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/auth.html#id29">完整示例</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/auth.html#id30">限制与注意事项</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/auth.html#id31">⚠️ 公网要求</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/auth.html#id32">⚠️ 授权流程</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/auth.html#id33">⚠️ Token 管理</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/auth.html#id34">相关文档</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/auth.html#api">API 参考</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage/scheduler.html">Scheduler 定时任务</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/scheduler.html#id1">功能特点</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/scheduler.html#id2">快速开始</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/scheduler.html#id3">基础用法</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/scheduler.html#id4">使用预定义任务</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/scheduler.html#id5">预定义任务</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/scheduler.html#sync-user-info">1. 用户信息同步 (<code class="docutils literal notranslate"><span class="pre">sync_user_info</span></code>)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/scheduler.html#token-check-token-expiry">2. Token 过期检查 (<code class="docutils literal notranslate"><span class="pre">check_token_expiry</span></code>)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/scheduler.html#token-cleanup-expired-tokens">3. 过期 Token 清理 (<code class="docutils literal notranslate"><span class="pre">cleanup_expired_tokens</span></code>)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/scheduler.html#scheduler-health-check">4. 健康检查 (<code class="docutils literal notranslate"><span class="pre">scheduler_health_check</span></code>)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/scheduler.html#id6">自定义任务</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/scheduler.html#id7">创建自定义任务</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/scheduler.html#interval-job">Interval Job 选项</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/scheduler.html#cron-job">Cron Job 表达式</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/scheduler.html#id8">任务管理</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/scheduler.html#id9">查看所有任务</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/scheduler.html#id10">移除任务</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/scheduler.html#docker">Docker 中运行</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/scheduler.html#prometheus">Prometheus 监控</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/scheduler.html#id11">任务执行计数器</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/scheduler.html#id12">任务执行时长</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/scheduler.html#grafana">Grafana 查询示例</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/scheduler.html#id13">最佳实践</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/scheduler.html#id14">1. 错误处理</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/scheduler.html#id15">2. 超时控制</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/scheduler.html#id16">3. 幂等性</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/scheduler.html#id17">4. 分布式锁</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/scheduler.html#id18">故障排查</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/scheduler.html#id19">任务未执行</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/scheduler.html#id20">任务执行失败</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/scheduler.html#id21">下一步</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage/advanced.html">高级用法</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/advanced.html#id2">目录</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/advanced.html#id3">多应用管理</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/advanced.html#id4">动态应用切换策略</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/advanced.html#id5">多服务客户端协同</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/advanced.html#id6">自定义重试策略</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/advanced.html#id7">批量操作优化</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/advanced.html#id8">批量发送消息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/advanced.html#apaas">批量创建aPaaS记录</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/advanced.html#id9">错误处理最佳实践</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/advanced.html#id10">分级错误处理</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/advanced.html#id11">日志配置</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/advanced.html#id12">自定义日志级别</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/advanced.html#id13">性能优化</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/advanced.html#token">Token缓存</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/advanced.html#id14">连接池复用</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/advanced.html#id15">安全最佳实践</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/advanced.html#id16">敏感信息保护</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/advanced.html#id17">数据库文件权限</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../usage/advanced.html#id18">Token过期处理</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../usage/advanced.html#id19">相关文档</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API 参考</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api-examples.html">API使用示例</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../api-examples.html#id1">快速开始</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api-examples.html#id2">消息发送示例</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../api-examples.html#id3">发送文本消息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../api-examples.html#id4">发送富文本消息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../api-examples.html#id5">发送卡片消息</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../api-examples.html#id6">通讯录操作示例</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../api-examples.html#id7">获取用户信息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../api-examples.html#id8">查询部门信息</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../api-examples.html#id9">云文档操作示例</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../api-examples.html#id10">操作电子表格</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../api-examples.html#id11">操作多维表格</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../api-examples.html#id12">完整应用示例</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../api-examples.html#id13">消息通知机器人</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../api-rate-limiting-guide.html">API速率限制配置指南</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../api-rate-limiting-guide.html#id1">📋 概述</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api-rate-limiting-guide.html#id2">🎯 限流策略</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../api-rate-limiting-guide.html#fixed-window">1. 固定窗口（Fixed Window）</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../api-rate-limiting-guide.html#sliding-window">2. 滑动窗口（Sliding Window）</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../api-rate-limiting-guide.html#token-bucket">3. 令牌桶（Token Bucket）</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../api-rate-limiting-guide.html#id3">⚙️ 配置方法</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../api-rate-limiting-guide.html#id4">环境变量配置</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../api-rate-limiting-guide.html#id5">代码配置</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../api-rate-limiting-guide.html#fastapi">FastAPI中间件集成</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../api-rate-limiting-guide.html#id6">📊 预定义限流配置</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../api-rate-limiting-guide.html#id7">🔍 响应头</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../api-rate-limiting-guide.html#too-many-requests">429 Too Many Requests响应</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../api-rate-limiting-guide.html#id8">🧪 测试速率限制</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../api-rate-limiting-guide.html#id9">单元测试</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../api-rate-limiting-guide.html#id10">压力测试</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../api-rate-limiting-guide.html#id11">手动测试</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../api-rate-limiting-guide.html#id12">📈 监控指标</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../api-rate-limiting-guide.html#grafana">Grafana告警</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../api-rate-limiting-guide.html#id13">🎯 最佳实践</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../api-rate-limiting-guide.html#id14">1. 选择合适的限流策略</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../api-rate-limiting-guide.html#id15">2. 合理设置限额</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../api-rate-limiting-guide.html#id16">3. 提供清晰的错误信息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../api-rate-limiting-guide.html#id17">4. 客户端重试策略</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../api-rate-limiting-guide.html#id18">5. 用户标识</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../api-rate-limiting-guide.html#id19">⚠️ 注意事项</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../api-rate-limiting-guide.html#id20">分布式部署</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../api-rate-limiting-guide.html#id21">白名单</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../api-rate-limiting-guide.html#id22">成本考虑</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../api-rate-limiting-guide.html#id23">🔧 故障排查</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../api-rate-limiting-guide.html#id24">问题1: 频繁触发限流</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../api-rate-limiting-guide.html#id25">问题2: 限流不生效</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../api-rate-limiting-guide.html#id26">问题3: 性能影响</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../api-rate-limiting-guide.html#id27">📚 参考资料</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/core.html">核心模块</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/auth.html">认证模块</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/messaging.html">消息模块</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/contact.html">通讯录模块</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/clouddoc.html">云文档模块</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/apaas.html">aPaaS 模块</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/events.html">事件模块</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/scheduler.html">调度模块</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/services.html">服务模块</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/monitoring.html">监控模块</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/server.html">服务器模块</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/utils.html">工具模块</a><ul class="simple">
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">部署与运维</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html">LarkService 生产环境部署指南</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id1">目录</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id2">系统要求</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id3">硬件要求</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id4">软件要求</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id5">前置准备</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#docker-docker-compose">1. 安装 Docker 和 Docker Compose</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id6">2. 获取代码</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id7">3. 配置飞书应用</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id8">环境配置</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id9">1. 创建环境变量文件</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#env">2. 编辑 <code class="docutils literal notranslate"><span class="pre">.env</span></code> 文件</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id10">基础配置</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id11">飞书应用配置</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id12">数据库配置</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#rabbitmq">RabbitMQ 配置</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id13">监控配置</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#token">Token 监控配置</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id14">部署步骤</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id15">1. 构建镜像</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id16">2. 启动服务</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id17">3. 验证部署</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id18">检查服务健康状态</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id19">验证数据库连接</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id20">验证 RabbitMQ</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id21">监控配置</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#prometheus">1. Prometheus</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#grafana">2. Grafana</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id22">访问 Grafana</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id23">导入仪表板</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id24">导入步骤</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id25">3. 告警规则</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id26">运维管理</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id27">日常维护</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id28">查看日志</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id29">重启服务</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id30">更新服务</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id31">数据备份</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#postgresql">PostgreSQL 备份</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id32">恢复备份</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id33">日志轮转</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id34">故障排查</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id35">常见问题</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id36">1. 服务无法启动</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id37">2. Token 刷新失败</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id38">3. 数据库连接失败</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id39">4. Prometheus 无法抓取指标</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id40">性能优化</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id41">数据库优化</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id42">Token 缓存优化</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id43">安全加固</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id44">1. 网络隔离</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#https">2. 使用 HTTPS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id45">3. 密钥管理</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id46">4. 最小权限原则</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id47">扩展部署</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id48">高可用部署</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id49">多实例部署</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id50">负载均衡</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#kubernetes">Kubernetes 部署</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id51">联系与支持</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#id52">附录</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#a">A. 端口列表</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#b">B. 环境变量完整列表</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment/PRODUCTION_DEPLOYMENT.html#c-docker-compose">C. Docker Compose 服务依赖图</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../deployment.html">部署指南</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../deployment.html#id2">快速链接</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../deployment.html#id3">2. 依赖服务部署</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment.html#postgresql">2.1 PostgreSQL 部署</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../deployment.html#docker">本地开发 (Docker)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../deployment.html#id4">生产环境 (云服务)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../deployment.html#fr-118-new">数据备份与恢复 (FR-118) ⭐ NEW</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment.html#rabbitmq">2.2 RabbitMQ 部署</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../deployment.html#id5">本地开发 (Docker)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../deployment.html#id6">生产环境 (云服务)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment.html#docker-compose">2.3 Docker Compose 一键部署</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../deployment.html#id7">3. 集成方式选择</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment.html#id8">3.1 子项目集成 (推荐) ⭐</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment.html#pypi">3.2 PyPI 包安装 (备选)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment.html#id9">3.3 集成方式对比</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../deployment.html#id10">4. 在不同应用中使用</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment.html#django">4.1 Django 应用</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment.html#flask">4.2 Flask 应用</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment.html#apache-airflow">4.3 Apache Airflow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment.html#fastapi">4.4 FastAPI 应用</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../deployment.html#id11">5. 环境变量配置</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment.html#id12">5.1 必需环境变量</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment.html#id13">5.2 生成加密密钥</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment.html#id14">5.3 不同环境的配置管理</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../deployment.html#id15">开发环境</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../deployment.html#id16">测试环境</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../deployment.html#id17">生产环境</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../deployment.html#id18">6. 初始化应用配置</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment.html#cli">5.1 使用 CLI 添加应用</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment.html#python-api">5.2 使用 Python API 添加应用</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../deployment.html#id19">7. 数据库迁移</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment.html#alembic">6.1 初始化 Alembic</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment.html#id20">6.2 执行迁移</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment.html#id21">6.3 创建新迁移</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../deployment.html#id22">8. 健康检查</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment.html#id23">7.1 数据库连接检查</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment.html#id24">7.2 RabbitMQ 连接检查</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../deployment.html#id25">9. 监控和日志</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment.html#id26">8.1 日志配置</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment.html#id27">8.2 监控指标</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../deployment.html#id28">10. 安全最佳实践</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment.html#id29">9.1 密钥管理</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment.html#id30">9.2 网络安全</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment.html#id31">9.3 数据库安全</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../deployment.html#id32">10. 故障排查</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment.html#id33">10.1 常见问题</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment.html#id34">10.2 调试模式</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment.html#id35">10.3 查看日志</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../deployment.html#id36">11. 性能优化</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment.html#id37">11.1 数据库优化</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment.html#id38">11.2 连接池配置</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../deployment.html#id39">12. 备份和恢复</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment.html#id40">12.1 备份策略概览</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment.html#id41">12.2 自动化备份脚本</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment.html#id42">12.3 PostgreSQL 备份</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment.html#sqlite">12.4 SQLite 配置备份</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment.html#id43">12.5 数据库迁移回滚</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment.html#id44">12.6 备份验证</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../deployment.html#id45">12.7 灾难恢复演练</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../monitoring.html">监控指南</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../monitoring.html#prometheus">Prometheus 监控</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../monitoring.html#id2">关键指标</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../monitoring.html#websocket">WebSocket 连接</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../monitoring.html#id3">授权流程</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../monitoring.html#token">Token 管理</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../observability-guide.html">可观测性与监控指南</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../observability-guide.html#id2">📊 可观测性目标</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../observability-guide.html#id3">三大支柱</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../observability-guide.html#chk088-chk089">📝 日志规范 (CHK088, CHK089)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../observability-guide.html#id4">日志格式标准</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../observability-guide.html#chk088">构建日志规范 (CHK088)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../observability-guide.html#chk089">配置加载日志 (CHK089)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../observability-guide.html#id5">关键操作日志</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../observability-guide.html#chk030-chk090">📈 健康检查 (CHK030, CHK090)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../observability-guide.html#chk030">健康检查响应时间阈值 (CHK030)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../observability-guide.html#id6">健康检查端点实现</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../observability-guide.html#chk090">监控指标 (CHK090)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../observability-guide.html#kubernetes">Kubernetes 健康检查配置</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../observability-guide.html#grafana">📊 Grafana 仪表盘</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../observability-guide.html#id7">推荐仪表盘</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../observability-guide.html#id8">告警规则</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../observability-guide.html#id9">✅ 可观测性检查清单</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../observability-guide.html#id10">日志检查</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../observability-guide.html#id11">指标检查</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../observability-guide.html#id12">健康检查</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../observability-guide.html#id13">告警检查</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../grafana-setup-guide.html">Grafana配置指南</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../grafana-setup-guide.html#id1">1. 访问Grafana</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../grafana-setup-guide.html#prometheus">2. 配置Prometheus数据源</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../grafana-setup-guide.html#id2">步骤 1: 添加数据源</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../grafana-setup-guide.html#id3">步骤 2: 配置参数</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../grafana-setup-guide.html#id4">步骤 3: 保存并测试</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../grafana-setup-guide.html#lark-service">3. 导入Lark Service监控仪表板</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../grafana-setup-guide.html#id5">方法 1: 从文件导入</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../grafana-setup-guide.html#json">方法 2: 直接粘贴JSON</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../grafana-setup-guide.html#id6">4. 仪表板内容</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../grafana-setup-guide.html#http">HTTP性能</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../grafana-setup-guide.html#token">Token管理</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../grafana-setup-guide.html#api">API调用</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../grafana-setup-guide.html#id7">系统资源</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../grafana-setup-guide.html#id8">业务指标</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../grafana-setup-guide.html#id9">5. 告警配置（可选）</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../grafana-setup-guide.html#id10">创建告警规则</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../grafana-setup-guide.html#id11">推荐告警</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../grafana-setup-guide.html#id12">6. 自定义面板</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../grafana-setup-guide.html#id13">添加新面板</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../grafana-setup-guide.html#promql">常用PromQL查询</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../grafana-setup-guide.html#id14">7. 故障排查</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../grafana-setup-guide.html#id15">问题: 仪表板无数据</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../grafana-setup-guide.html#id16">问题: 指标值为0</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../grafana-setup-guide.html#id17">8. 相关链接</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../tracing-guide.html">分布式追踪配置指南</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../tracing-guide.html#id2">📋 概述</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../tracing-guide.html#id3">🎯 追踪策略</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tracing-guide.html#request-id">Request ID 规范</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../tracing-guide.html#id4">🔧 实现方案</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tracing-guide.html#id5">1. Request ID 生成器</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tracing-guide.html#fastapi">2. FastAPI 中间件</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tracing-guide.html#id6">3. 异步任务追踪</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tracing-guide.html#id7">4. 飞书回调追踪</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../tracing-guide.html#id8">📊 追踪字段标准</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tracing-guide.html#id9">日志必需字段</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tracing-guide.html#id10">跨服务传递</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../tracing-guide.html#id11">🔍 追踪查询</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tracing-guide.html#elasticsearch-kibana">Elasticsearch/Kibana 查询</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tracing-guide.html#grafana-loki">Grafana Loki 查询</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tracing-guide.html#postgresql">PostgreSQL 慢查询关联</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../tracing-guide.html#id12">📈 追踪指标</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tracing-guide.html#prometheus-metrics">Prometheus Metrics</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../tracing-guide.html#id13">🚀 最佳实践</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../tracing-guide.html#id14">1. 始终传播 request_id</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tracing-guide.html#id15">2. 异步任务包含原始 request_id</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tracing-guide.html#id16">3. 错误日志包含完整上下文</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../tracing-guide.html#id17">4. 性能追踪</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../tracing-guide.html#id18">🔗 相关文档</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../troubleshooting.html">故障排查</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../troubleshooting.html#id2">常见问题</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../troubleshooting.html#id3">数据库连接失败</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../troubleshooting.html#token">Token 获取失败</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../troubleshooting.html#oauth">OAuth 回调失败</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../error-codes.html">错误码文档</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../error-codes.html#xxx">系统错误码 (1xxx)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../error-codes.html#token-2xxx">Token错误码 (2xxx)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../error-codes.html#api-3xxx">API错误码 (3xxx)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../error-codes.html#api-99991xxx">飞书API错误码 (99991xxx)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../error-codes.html#id2">业务错误码 (4xxx)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../error-codes.html#id3">使用示例</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../error-handling-guide.html">异常处理与恢复策略指南</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../error-handling-guide.html#id2">核心原则</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../error-handling-guide.html#chk052">启动失败处理 (CHK052)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../error-handling-guide.html#id3">退出码规范</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../error-handling-guide.html#id4">配置加载失败</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../error-handling-guide.html#id5">数据库连接失败</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../error-handling-guide.html#id6">服务降级策略</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../error-handling-guide.html#chk058">数据库初始化回滚 (CHK058)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../error-handling-guide.html#alembic">Alembic 迁移失败</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../error-handling-guide.html#sqlite">SQLite 初始化失败</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../error-handling-guide.html#id7">运行时错误处理</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../error-handling-guide.html#api">API 调用错误</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../error-handling-guide.html#id8">数据库错误</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../error-handling-guide.html#id9">自动恢复场景</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../error-handling-guide.html#id10">检查清单</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../error-recovery-guide.html">错误恢复指南</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../error-recovery-guide.html#id2">目录</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../error-recovery-guide.html#token">Token相关错误</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../error-recovery-guide.html#token-99991663">错误1: Token过期 (99991663)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../error-recovery-guide.html#id3">错误2: 凭据无效 (99991400/99991401)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../error-recovery-guide.html#id4">数据库连接错误</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../error-recovery-guide.html#id5">错误3: 数据库连接失败</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../error-recovery-guide.html#id6">错误4: 数据库死锁</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../error-recovery-guide.html#api">API调用错误</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../error-recovery-guide.html#api-99991405">错误5: API限流 (99991405)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../error-recovery-guide.html#id7">错误6: 网络超时</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../error-recovery-guide.html#id8">缓存错误</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../error-recovery-guide.html#redis">错误7: Redis连接失败</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../error-recovery-guide.html#id9">错误8: 缓存雪崩</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../error-recovery-guide.html#id10">配置错误</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../error-recovery-guide.html#id11">错误9: 环境变量缺失</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../error-recovery-guide.html#id12">消息队列错误</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../error-recovery-guide.html#rabbitmq">错误10: RabbitMQ连接失败</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../error-recovery-guide.html#id13">通用恢复策略</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../error-recovery-guide.html#id14">1. 健康检查</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../error-recovery-guide.html#id15">2. 日志分析</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../error-recovery-guide.html#id16">3. 监控告警</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../error-recovery-guide.html#id17">4. 回滚策略</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../error-recovery-guide.html#id18">5. 紧急联系</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../error-recovery-guide.html#id19">最佳实践</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../error-recovery-guide.html#id20">相关文档</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../security-guide.html">安全配置指南</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../security-guide.html#blocker">🚨 安全需求清单 (Blocker)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../security-guide.html#must">配置安全 (MUST)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../security-guide.html#id2">密钥管理 (MUST)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../security-guide.html#id3">依赖安全 (MUST)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../security-guide.html#id4">容器安全 (MUST)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../security-guide.html#id5">环境隔离 (MUST)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../security-guide.html#id6">🔐 加密密钥管理</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../security-guide.html#id7">密钥作用</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../security-guide.html#id8">为什么需要加密?</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../security-guide.html#id9">🚀 部署配置</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../security-guide.html#id10">开发环境</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../security-guide.html#id11">1. 生成加密密钥</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../security-guide.html#env">2. 配置 .env 文件</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../security-guide.html#id12">3. 重要提醒</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../security-guide.html#id13">生产环境</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../security-guide.html#a">方案 A: 系统环境变量 (推荐)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../security-guide.html#b-docker-secrets">方案 B: Docker Secrets</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../security-guide.html#c-kubernetes-secrets">方案 C: Kubernetes Secrets</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../security-guide.html#d">方案 D: 云服务密钥管理</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../security-guide.html#id14">🔄 密钥轮换</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../security-guide.html#id15">何时需要轮换密钥?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../security-guide.html#id16">轮换步骤</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../security-guide.html#id17">📁 文件权限管理</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../security-guide.html#sqlite-fr-079-fr-080">SQLite 配置文件权限 (FR-079, FR-080)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../security-guide.html#env-fr-094">生产环境 .env 文件权限 (FR-094)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../security-guide.html#fr-081">🔖 配置敏感度分类 (FR-081)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../security-guide.html#public">Public (公开级)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../security-guide.html#internal">Internal (内部级)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../security-guide.html#secret">Secret (机密级)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../security-guide.html#fr-084">日志脱敏规则 (FR-084)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../security-guide.html#id18">🛡️ 依赖安全管理</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../security-guide.html#fr-086">安全扫描工具 (FR-086)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../security-guide.html#fr-087">依赖更新策略 (FR-087)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../security-guide.html#fr-088">依赖版本锁定 (FR-088)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../security-guide.html#id19">🐳 容器安全</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../security-guide.html#docker-fr-089-fr-091">Docker 镜像最佳实践 (FR-089, FR-091)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../security-guide.html#fr-090">镜像安全扫描 (FR-090)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../security-guide.html#ci-cd">CI/CD 集成示例</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../security-guide.html#id20">🔄 密钥轮换流程</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../security-guide.html#cli-fr-083">CLI 密钥轮换命令 (FR-083)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../security-guide.html#id21">轮换频率建议</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../security-guide.html#id22">✅ 安全检查清单</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../security-guide.html#id23">开发环境</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../security-guide.html#id24">生产环境</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../security-guide.html#id25">数据库</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../security-guide.html#id26">🔍 常见问题</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../security-guide.html#q1">Q1: 如果忘记了加密密钥怎么办?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../security-guide.html#q2-123456">Q2: 可以使用弱密钥吗 (如 &quot;123456&quot;)?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../security-guide.html#q3">Q3: 多个环境可以共用一个密钥吗?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../security-guide.html#q4">Q4: 数据库文件可以直接复制到其他环境吗?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../security-guide.html#q5">Q5: 如何验证密钥是否正确?</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../security-guide.html#id27">📚 相关文档</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">架构与设计</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../architecture/token-refresh-mechanism.html">飞书 Token 刷新机制详解</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../architecture/token-refresh-mechanism.html#id1">📋 概述</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../architecture/token-refresh-mechanism.html#id2">🔑 Token 类型</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../architecture/token-refresh-mechanism.html#app-access-token">1. App Access Token (应用级访问令牌)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../architecture/token-refresh-mechanism.html#tenant-access-token">2. Tenant Access Token (租户级访问令牌)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../architecture/token-refresh-mechanism.html#user-access-token">3. User Access Token (用户级访问令牌)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../architecture/token-refresh-mechanism.html#id3">🔄 Token 类型对比总结</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../architecture/token-refresh-mechanism.html#id4">🚨 常见误区</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../architecture/token-refresh-mechanism.html#token-app-secret">❌ 误区 1: Token 过期就需要重新生成 app_secret</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../architecture/token-refresh-mechanism.html#id5">❌ 误区 2: 所有 Token 都需要监控过期</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../architecture/token-refresh-mechanism.html#id6">❌ 误区 3: Token 刷新失败就是 app_secret 的问题</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../architecture/token-refresh-mechanism.html#id7">📊 监控和通知策略</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../architecture/token-refresh-mechanism.html#app-access-token-tenant-access-token">App Access Token / Tenant Access Token</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../architecture/token-refresh-mechanism.html#id8">User Access Token</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../architecture/token-refresh-mechanism.html#larkservice">🔧 LarkService 实现细节</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../architecture/token-refresh-mechanism.html#credentialpool">CredentialPool 自动刷新逻辑</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../architecture/token-refresh-mechanism.html#tokenexpirymonitor">TokenExpiryMonitor 智能通知</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../architecture/token-refresh-mechanism.html#id9">🎯 最佳实践</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../architecture/token-refresh-mechanism.html#id10">1. 定期任务配置</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../architecture/token-refresh-mechanism.html#id11">2. 通知内容模板</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../architecture/token-refresh-mechanism.html#refresh-token-7">Refresh Token 7 天预警</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../architecture/token-refresh-mechanism.html#refresh-token-3">Refresh Token 3 天严重警告</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../architecture/token-refresh-mechanism.html#refresh-token">Refresh Token 已过期</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../architecture/token-refresh-mechanism.html#id12">📚 参考资料</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../architecture/token-refresh-mechanism.html#id13">🤝 感谢</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../architecture.html">Lark Service 架构设计文档</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../architecture.html#id1">1. 系统概述</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../architecture.html#id2">1.1 设计目标</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../architecture.html#id3">1.2 核心特性</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../architecture.html#id4">2. 系统架构</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../architecture.html#id5">2.1 完整系统架构图</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../architecture.html#id6">2.2 数据流图</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../architecture.html#id7">2.2.1 发送消息流程</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../architecture.html#id8">2.2.2 用户查询流程 (带缓存)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../architecture.html#token">2.2.3 Token 自动刷新流程</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../architecture.html#id9">2.3 模块依赖关系</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../architecture.html#id10">3. Token 管理架构</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../architecture.html#id11">3.1 Token 生命周期</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../architecture.html#id12">3.2 并发控制</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../architecture.html#id13">5. 安全架构</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../architecture.html#id14">5.1 加密策略</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../architecture.html#id15">5.2 零信任原则</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../architecture.html#id16">6. 性能优化</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../architecture.html#id17">6.1 缓存策略</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../architecture.html#id18">6.2 连接池</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../architecture.html#id19">6.3 重试策略</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../architecture.html#id20">7. 可观测性</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../architecture.html#id21">7.1 日志架构</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../architecture.html#id22">7.2 监控指标</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../architecture.html#id23">7.3 请求追踪</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../architecture.html#id24">8. 部署架构</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../architecture.html#id25">8.1 部署架构图</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../architecture.html#docker-compose">8.2 容器化部署 (Docker Compose)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../architecture.html#id26">8.3 本地开发</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../architecture.html#id27">8.4 生产部署</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../architecture.html#id28">9. 扩展性设计</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../architecture.html#id29">9.1 添加新模块</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../architecture.html#id30">9.2 添加新 Token 类型</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../architecture.html#id31">10. 技术栈总结</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../features/token-monitoring.html">Token 过期监控 (Token Expiry Monitoring)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../features/token-monitoring.html#id1">概述</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../features/token-monitoring.html#token">Token 类型说明</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../features/token-monitoring.html#id2">监控功能</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../features/token-monitoring.html#id3">功能特性</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../features/token-monitoring.html#id4">多级通知机制</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../features/token-monitoring.html#id5">通知内容</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../features/token-monitoring.html#id6">预警通知 (7 天)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../features/token-monitoring.html#id7">严重警告 (3 天)</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../features/token-monitoring.html#id8">配置监控参数</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../features/token-monitoring.html#id9">手动检查 Token 状态</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../features/token-monitoring.html#id10">监控和可视化</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../features/token-monitoring.html#prometheus">Prometheus 指标</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../features/token-monitoring.html#grafana">Grafana 面板</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../features/token-monitoring.html#id11">Prometheus 告警</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../features/token-monitoring.html#id12">Token 续期流程</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../features/token-monitoring.html#id13">在飞书开放平台续期</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../features/token-monitoring.html#id14">验证更新</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../features/token-monitoring.html#api">API 参考</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../features/token-monitoring.html#tokenexpirymonitor">TokenExpiryMonitor 类</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../features/token-monitoring.html#id15">最佳实践</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../features/token-monitoring.html#id16">1. 设置管理员通知</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../features/token-monitoring.html#id17">2. 定期检查监控面板</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../features/token-monitoring.html#id18">3. 提前续期</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../features/token-monitoring.html#id19">4. 建立续期流程</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../features/token-monitoring.html#id20">5. 配置备用联系方式</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../features/token-monitoring.html#id21">故障排查</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../features/token-monitoring.html#id22">未收到通知</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../features/token-monitoring.html#id23">通知发送失败</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../features/token-monitoring.html#id24">Prometheus 指标缺失</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../features/token-monitoring.html#id25">参考资料</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">测试与验证</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html">真实飞书环境集成验证指南</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#id2">📋 验证清单</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#id3">1. 配置真实飞书应用凭据</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#id4">1.1 创建飞书应用</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#id5">1.2 获取应用凭证</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#id6">1.3 配置应用权限</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#id7">消息与群组</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#id8">通讯录</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#id9">1.4 配置环境变量</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#id10">1.5 重启服务</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#app-access-token">2. 验证 App Access Token 自动刷新</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#id11">2.1 启动服务并观察日志</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#token">2.2 触发 Token 获取</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#prometheus">2.3 验证 Prometheus 指标</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#user-access-token-oauth">3. 验证 User Access Token OAuth 流程</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#oauth">3.1 配置 OAuth 回调</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#id12">3.2 启动 OAuth 授权流程</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#id13">3.3 完成授权</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#user-access-token">3.4 交换 User Access Token</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#id14">4. 验证 Token 过期通知功能</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#id15">4.1 手动触发 Token 过期检查</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#id16">4.2 检查飞书消息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#id17">4.3 验证 Prometheus 指标</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#grafana">5. 验证 Grafana 仪表板数据显示</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#id18">5.1 访问 Grafana</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#id19">5.2 导入仪表板</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#id20">导入系统概览仪表板</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#id21">导入 Token 监控仪表板</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#scheduler">导入 Scheduler 任务仪表板</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#id22">5.3 验证数据显示</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#id23">系统概览仪表板</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#id24">Token 监控仪表板</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#id25">Scheduler 任务仪表板</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#id26">5.4 生成测试数据</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#id27">6. 验证定时任务执行</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#id28">6.1 查看 Scheduler 日志</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#id29">6.2 验证任务执行频率</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#id30">6.3 查看 Prometheus 指标</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#id31">📊 完整验证报告</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#id32">功能验证结果</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#id33">性能指标</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#id34">🐛 常见问题</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#q1-token">Q1: Token 刷新失败</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#q2">Q2: 收不到飞书通知</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#q3-grafana">Q3: Grafana 无数据</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../testing/INTEGRATION_VERIFICATION.html#id35">📝 下一步</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../TESTING-GUIDE.html">测试指南</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../TESTING-GUIDE.html#id2">📖 概述</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../TESTING-GUIDE.html#id3">🚀 快速开始</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../TESTING-GUIDE.html#id4">安装测试环境</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../TESTING-GUIDE.html#id5">运行测试</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../TESTING-GUIDE.html#id6">查看覆盖率</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../TESTING-GUIDE.html#id7">📋 覆盖率要求</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../TESTING-GUIDE.html#id8">整体要求</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../TESTING-GUIDE.html#id9">覆盖率阈值</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../TESTING-GUIDE.html#id10">模块覆盖率目标</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../TESTING-GUIDE.html#id11">🎯 测试编写指南</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../TESTING-GUIDE.html#id12">测试结构</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../TESTING-GUIDE.html#mock">Mock策略</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../TESTING-GUIDE.html#id13">测试覆盖场景</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../TESTING-GUIDE.html#id14">📊 查看覆盖率报告</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../TESTING-GUIDE.html#html">HTML报告</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../TESTING-GUIDE.html#id15">终端报告</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../TESTING-GUIDE.html#id16">🔧 常用命令</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../TESTING-GUIDE.html#id17">测试筛选</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../TESTING-GUIDE.html#id18">调试</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../TESTING-GUIDE.html#id19">性能</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../TESTING-GUIDE.html#id20">📝 测试命名规范</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../TESTING-GUIDE.html#id21">文件命名</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../TESTING-GUIDE.html#id22">类命名</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../TESTING-GUIDE.html#id23">方法命名</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../TESTING-GUIDE.html#ci-cd">🎯 CI/CD集成</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../TESTING-GUIDE.html#github-actions">GitHub Actions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../TESTING-GUIDE.html#id24">覆盖率检查</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../TESTING-GUIDE.html#id25">失败处理</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../TESTING-GUIDE.html#id26">📚 参考资源</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../TESTING-GUIDE.html#pytest">Pytest文档</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../TESTING-GUIDE.html#id27">项目示例</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../TESTING-GUIDE.html#id28">❓ 常见问题</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../TESTING-GUIDE.html#q">Q: 覆盖率不增加?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../TESTING-GUIDE.html#q-mock-sdk">Q: 如何Mock SDK?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../TESTING-GUIDE.html#id29">Q: 测试太慢?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../TESTING-GUIDE.html#id30">Q: 覆盖率如何提升?</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../integration-test-guide.html">集成测试指南</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../integration-test-guide.html#id2">📋 测试分类</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../integration-test-guide.html#unit-tests">1. 单元测试 (Unit Tests)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../integration-test-guide.html#integration-tests">2. 集成测试 (Integration Tests)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../integration-test-guide.html#id3">🔧 配置集成测试环境</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../integration-test-guide.html#id4">步骤1: 创建配置文件</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../integration-test-guide.html#id5">步骤2: 填写必需的配置</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../integration-test-guide.html#id6">步骤3: 填写模块测试数据(可选)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../integration-test-guide.html#contact">Contact模块测试</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../integration-test-guide.html#clouddoc">CloudDoc模块测试</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../integration-test-guide.html#id7">🚀 运行集成测试</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../integration-test-guide.html#id8">运行所有集成测试</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../integration-test-guide.html#id9">运行特定模块的集成测试</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../integration-test-guide.html#id10">Contact模块</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../integration-test-guide.html#id11">CloudDoc模块</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../integration-test-guide.html#bitable">Bitable模块</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../integration-test-guide.html#sheet">Sheet模块</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../integration-test-guide.html#id12">运行特定测试类</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../integration-test-guide.html#id13">📊 当前测试状态</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../integration-test-guide.html#id14">Contact模块 ✅</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../integration-test-guide.html#clouddoc-doc">CloudDoc - Doc客户端 ✅</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../integration-test-guide.html#clouddoc-bitable">CloudDoc - Bitable客户端 ⚠️</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../integration-test-guide.html#clouddoc-sheet">CloudDoc - Sheet客户端 ⚠️</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../integration-test-guide.html#id15">🔑 权限要求</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../integration-test-guide.html#id16">Contact模块权限</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../integration-test-guide.html#id17">CloudDoc模块权限</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../integration-test-guide.html#id18">读操作</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../integration-test-guide.html#id19">写操作(可选)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../integration-test-guide.html#id20">📝 测试数据准备</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../integration-test-guide.html#token">获取测试Token</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../integration-test-guide.html#id21">配置写权限测试</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../integration-test-guide.html#id22">⚠️ 注意事项</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../integration-test-guide.html#id23">🐛 故障排查</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../integration-test-guide.html#id24">测试被跳过</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../integration-test-guide.html#id25">认证失败</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../integration-test-guide.html#id26">找不到资源</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../integration-test-guide.html#id27">Bitable测试失败</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../integration-test-guide.html#id28">📚 相关文档</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">发布说明</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../releases/v0.5.0.html">LarkService v0.5.0 发布说明</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../releases/v0.5.0.html#id1">📅 发布信息</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../releases/v0.5.0.html#id2">🎯 版本亮点</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../releases/v0.5.0.html#id3">1. ✅ 生产环境完整支持</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../releases/v0.5.0.html#id4">2. 📊 监控与可观测性</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../releases/v0.5.0.html#id5">3. ⏰ 定时任务系统</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../releases/v0.5.0.html#token">4. 🔐 Token 管理优化</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../releases/v0.5.0.html#id6">🚀 新功能</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../releases/v0.5.0.html#docker">Docker &amp; 容器化</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../releases/v0.5.0.html#id7">监控系统</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../releases/v0.5.0.html#apscheduler">APScheduler 定时任务</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../releases/v0.5.0.html#id8">Token 监控增强</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../releases/v0.5.0.html#id9">🔧 改进与优化</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../releases/v0.5.0.html#id10">架构改进</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../releases/v0.5.0.html#id11">性能优化</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../releases/v0.5.0.html#id12">代码质量</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../releases/v0.5.0.html#id13">📖 文档更新</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../releases/v0.5.0.html#id14">新增文档</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../releases/v0.5.0.html#id15">更新文档</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../releases/v0.5.0.html#breaking-changes">🔄 Breaking Changes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../releases/v0.5.0.html#id16">⚠️ 重要变更</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../releases/v0.5.0.html#id17">1. Token 监控逻辑调整</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../releases/v0.5.0.html#id18">2. 环境变量新增</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../releases/v0.5.0.html#bug">🐛 Bug 修复</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../releases/v0.5.0.html#id19">📦 依赖更新</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../releases/v0.5.0.html#id20">新增依赖</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../releases/v0.5.0.html#id21">更新依赖</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../releases/v0.5.0.html#id22">🔍 已知问题</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../releases/v0.5.0.html#id23">限制与待改进</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../releases/v0.5.0.html#v0-6-0">计划改进 (v0.6.0)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../releases/v0.5.0.html#id24">🚀 快速开始</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../releases/v0.5.0.html#id25">1. 克隆仓库</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../releases/v0.5.0.html#id26">2. 配置环境</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../releases/v0.5.0.html#id27">3. 启动服务</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../releases/v0.5.0.html#id28">4. 验证部署</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../releases/v0.5.0.html#id29">📊 统计数据</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../releases/v0.5.0.html#id30">项目规模</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../releases/v0.5.0.html#id31">功能模块</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../releases/v0.5.0.html#id32">🙏 致谢</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../releases/v0.5.0.html#id33">核心贡献者</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../releases/v0.5.0.html#id34">特别感谢</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../releases/v0.5.0.html#id35">📞 获取帮助</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../releases/v0.5.0.html#id36">文档资源</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../releases/v0.5.0.html#id37">社区支持</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../releases/v0.5.0.html#id38">🗺️ 未来规划</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../releases/v0.5.0.html#v0-6-0-2026-q2">v0.6.0 (2026-Q2)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../releases/v0.5.0.html#v0-7-0-2026-q3">v0.7.0 (2026-Q3)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../releases/v0.5.0.html#id39">📜 许可证</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="移动版导航菜单" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Lark Service</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="页面导航">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Phase 4 需求评审报告 - CloudDoc &amp; Contact</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/archive/phase4/phase4-requirements-review.md.txt" rel="nofollow"> 查看页面源码</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="phase-4-clouddoc-contact">
+<h1>Phase 4 需求评审报告 - CloudDoc &amp; Contact<a class="headerlink" href="#phase-4-clouddoc-contact" title="Link to this heading"></a></h1>
+<p><strong>评审日期</strong>: 2026-01-15
+<strong>评审人</strong>: Lark Service Team
+<strong>评审范围</strong>: Phase 4 (US3 云文档 + US4 通讯录)
+<strong>参考检查清单</strong>: specs/001-lark-service-core/checklists/phase4-requirements-quality.md</p>
+<hr class="docutils" />
+<section id="id1">
+<h2>📊 评审摘要<a class="headerlink" href="#id1" title="Link to this heading"></a></h2>
+<p>基于 112 项检查清单对 Phase 4 需求文档进行了全面评审,识别出 <strong>45 个需要补充的需求项</strong> 和 <strong>12 个需要澄清的模糊点</strong>。</p>
+<section id="id2">
+<h3>评审结果统计<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>类别</p></th>
+<th class="head"><p>检查项</p></th>
+<th class="head"><p>通过</p></th>
+<th class="head"><p>需补充</p></th>
+<th class="head"><p>需澄清</p></th>
+<th class="head"><p>通过率</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>需求完整性</strong></p></td>
+<td><p>11</p></td>
+<td><p>6</p></td>
+<td><p>5</p></td>
+<td><p>0</p></td>
+<td><p>54.5%</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>需求清晰度</strong></p></td>
+<td><p>5</p></td>
+<td><p>2</p></td>
+<td><p>0</p></td>
+<td><p>3</p></td>
+<td><p>40.0%</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>需求一致性</strong></p></td>
+<td><p>6</p></td>
+<td><p>5</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>83.3%</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>验收标准质量</strong></p></td>
+<td><p>6</p></td>
+<td><p>4</p></td>
+<td><p>2</p></td>
+<td><p>0</p></td>
+<td><p>66.7%</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>场景覆盖度</strong></p></td>
+<td><p>9</p></td>
+<td><p>5</p></td>
+<td><p>4</p></td>
+<td><p>0</p></td>
+<td><p>55.6%</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>边界条件覆盖</strong></p></td>
+<td><p>7</p></td>
+<td><p>2</p></td>
+<td><p>5</p></td>
+<td><p>0</p></td>
+<td><p>28.6%</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>非功能性需求</strong></p></td>
+<td><p>9</p></td>
+<td><p>3</p></td>
+<td><p>6</p></td>
+<td><p>0</p></td>
+<td><p>33.3%</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>错误处理规范</strong></p></td>
+<td><p>6</p></td>
+<td><p>2</p></td>
+<td><p>4</p></td>
+<td><p>0</p></td>
+<td><p>33.3%</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>API 契约质量</strong></p></td>
+<td><p>7</p></td>
+<td><p>0</p></td>
+<td><p>7</p></td>
+<td><p>0</p></td>
+<td><p>0.0%</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>数据验证规范</strong></p></td>
+<td><p>6</p></td>
+<td><p>2</p></td>
+<td><p>4</p></td>
+<td><p>0</p></td>
+<td><p>33.3%</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>依赖与假设</strong></p></td>
+<td><p>5</p></td>
+<td><p>4</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+<td><p>80.0%</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>模糊性与冲突</strong></p></td>
+<td><p>6</p></td>
+<td><p>1</p></td>
+<td><p>0</p></td>
+<td><p>5</p></td>
+<td><p>16.7%</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>数据模型质量</strong></p></td>
+<td><p>5</p></td>
+<td><p>2</p></td>
+<td><p>3</p></td>
+<td><p>0</p></td>
+<td><p>40.0%</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>缓存策略质量</strong></p></td>
+<td><p>5</p></td>
+<td><p>2</p></td>
+<td><p>0</p></td>
+<td><p>3</p></td>
+<td><p>40.0%</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>权限管理质量</strong></p></td>
+<td><p>5</p></td>
+<td><p>1</p></td>
+<td><p>4</p></td>
+<td><p>0</p></td>
+<td><p>20.0%</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>测试策略质量</strong></p></td>
+<td><p>6</p></td>
+<td><p>6</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>100.0%</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>可追溯性</strong></p></td>
+<td><p>4</p></td>
+<td><p>3</p></td>
+<td><p>1</p></td>
+<td><p>0</p></td>
+<td><p>75.0%</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Phase 4 特定检查</strong></p></td>
+<td><p>4</p></td>
+<td><p>4</p></td>
+<td><p>0</p></td>
+<td><p>0</p></td>
+<td><p>100.0%</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>总计</strong></p></td>
+<td><p><strong>112</strong></p></td>
+<td><p><strong>54</strong></p></td>
+<td><p><strong>45</strong></p></td>
+<td><p><strong>16</strong></p></td>
+<td><p><strong>48.2%</strong></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id3">
+<h3>优先级分类<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>🔴 <strong>高优先级</strong> (P0): 15 项 - 必须在开发前补充,否则无法实现</p></li>
+<li><p>🟡 <strong>中优先级</strong> (P1): 22 项 - 建议在开发前补充,影响代码质量</p></li>
+<li><p>🟢 <strong>低优先级</strong> (P2): 8 项 - 可在开发过程中补充,不影响核心功能</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="p0">
+<h2>🔴 高优先级问题 (P0) - 必须解决<a class="headerlink" href="#p0" title="Link to this heading"></a></h2>
+<section id="api-chk060-chk066">
+<h3>1. API 契约缺失 (CHK060-CHK066)<a class="headerlink" href="#api-chk060-chk066" title="Link to this heading"></a></h3>
+<p><strong>问题</strong>: 完全缺失 API 契约文档</p>
+<p><strong>影响</strong>: 无法进行契约测试,API 设计不明确</p>
+<p><strong>需要补充</strong>:</p>
+<ol class="arabic simple">
+<li><p>创建 <code class="docutils literal notranslate"><span class="pre">contracts/clouddoc.yaml</span></code></p>
+<ul class="simple">
+<li><p>Doc API 端点定义</p></li>
+<li><p>Bitable API 端点定义</p></li>
+<li><p>Sheet API 端点定义</p></li>
+<li><p>Media API 端点定义</p></li>
+</ul>
+</li>
+<li><p>创建 <code class="docutils literal notranslate"><span class="pre">contracts/contact.yaml</span></code></p>
+<ul class="simple">
+<li><p>User API 端点定义</p></li>
+<li><p>Department API 端点定义</p></li>
+<li><p>Chat API 端点定义</p></li>
+</ul>
+</li>
+</ol>
+<p><strong>示例结构</strong> (contracts/clouddoc.yaml):</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">openapi</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3.0.0</span>
+<span class="nt">info</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CloudDoc API</span>
+<span class="w">  </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0.0</span>
+
+<span class="nt">paths</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">/doc/create</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">post</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">summary</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">创建文档</span>
+<span class="w">      </span><span class="nt">requestBody</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">required</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">        </span><span class="nt">content</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">application/json</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">schema</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">object</span>
+<span class="w">              </span><span class="nt">required</span><span class="p">:</span>
+<span class="w">                </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">title</span>
+<span class="w">              </span><span class="nt">properties</span><span class="p">:</span>
+<span class="w">                </span><span class="nt">title</span><span class="p">:</span>
+<span class="w">                  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<span class="w">                  </span><span class="nt">minLength</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">                  </span><span class="nt">maxLength</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">255</span>
+<span class="w">                </span><span class="nt">folder_id</span><span class="p">:</span>
+<span class="w">                  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<span class="w">                  </span><span class="nt">pattern</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;^fld_[a-zA-Z0-9]{16}$&#39;</span>
+<span class="w">      </span><span class="nt">responses</span><span class="p">:</span>
+<span class="w">        </span><span class="s">&#39;200&#39;</span><span class="p p-Indicator">:</span>
+<span class="w">          </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">成功</span>
+<span class="w">          </span><span class="nt">content</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">application/json</span><span class="p">:</span>
+<span class="w">              </span><span class="nt">schema</span><span class="p">:</span>
+<span class="w">                </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">object</span>
+<span class="w">                </span><span class="nt">properties</span><span class="p">:</span>
+<span class="w">                  </span><span class="nt">doc_id</span><span class="p">:</span>
+<span class="w">                    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<span class="w">                  </span><span class="nt">title</span><span class="p">:</span>
+<span class="w">                    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<span class="w">                  </span><span class="nt">url</span><span class="p">:</span>
+<span class="w">                    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+</pre></div>
+</div>
+<p><strong>建议</strong>: 在开始 T051-T056 开发前,先完成 API 契约设计。</p>
+</section>
+<hr class="docutils" />
+<section id="chk006-chk012">
+<h3>2. 文档内容结构未定义 (CHK006, CHK012)<a class="headerlink" href="#chk006-chk012" title="Link to this heading"></a></h3>
+<p><strong>问题</strong>: <code class="docutils literal notranslate"><span class="pre">content_blocks</span></code> 的数据结构未明确定义</p>
+<p><strong>当前描述</strong>: &quot;向文档写入结构化内容&quot; - 过于模糊</p>
+<p><strong>需要补充</strong>:</p>
+<ol class="arabic">
+<li><p><strong>content_blocks 的 JSON Schema</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ContentBlock</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;paragraph&quot;</span> <span class="o">|</span> <span class="s2">&quot;heading&quot;</span> <span class="o">|</span> <span class="s2">&quot;image&quot;</span> <span class="o">|</span> <span class="s2">&quot;table&quot;</span> <span class="o">|</span> <span class="s2">&quot;code&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="s2">&quot;attributes&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;style&quot;</span><span class="p">:</span> <span class="s2">&quot;normal&quot;</span> <span class="o">|</span> <span class="s2">&quot;bold&quot;</span> <span class="o">|</span> <span class="s2">&quot;italic&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;level&quot;</span><span class="p">:</span> <span class="mi">1</span> <span class="o">|</span> <span class="mi">2</span> <span class="o">|</span> <span class="mi">3</span>  <span class="c1"># for heading</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>支持的 block 类型清单</strong></p>
+<ul class="simple">
+<li><p>段落 (paragraph)</p></li>
+<li><p>标题 (heading, level 1-6)</p></li>
+<li><p>图片 (image, 需要 file_token)</p></li>
+<li><p>表格 (table)</p></li>
+<li><p>代码块 (code)</p></li>
+<li><p>列表 (list)</p></li>
+</ul>
+</li>
+<li><p><strong>block_id 格式规范</strong></p>
+<ul class="simple">
+<li><p>格式: <code class="docutils literal notranslate"><span class="pre">^blk_[a-zA-Z0-9]{16}$</span></code></p></li>
+<li><p>示例: <code class="docutils literal notranslate"><span class="pre">blk_abc123def456ghi7</span></code></p></li>
+</ul>
+</li>
+</ol>
+<p><strong>参考</strong>: 飞书文档 API - https://open.feishu.cn/document/server-docs/docs/docs/docx-v1/document</p>
+</section>
+<hr class="docutils" />
+<section id="bitable-chk004-chk033">
+<h3>3. Bitable 过滤器语法未定义 (CHK004, CHK033)<a class="headerlink" href="#bitable-chk004-chk033" title="Link to this heading"></a></h3>
+<p><strong>问题</strong>: <code class="docutils literal notranslate"><span class="pre">query_records(table_id,</span> <span class="pre">filters)</span></code> 的 filters 参数结构未明确</p>
+<p><strong>需要补充</strong>:</p>
+<ol class="arabic">
+<li><p><strong>过滤器语法</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">filters</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;conjunction&quot;</span><span class="p">:</span> <span class="s2">&quot;and&quot;</span> <span class="o">|</span> <span class="s2">&quot;or&quot;</span><span class="p">,</span>  <span class="c1"># 多条件连接方式</span>
+    <span class="s2">&quot;conditions&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;field_name&quot;</span><span class="p">:</span> <span class="s2">&quot;status&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;operator&quot;</span><span class="p">:</span> <span class="s2">&quot;is&quot;</span><span class="p">,</span>  <span class="c1"># is, is_not, contains, gt, lt, gte, lte</span>
+            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;active&quot;</span>
+        <span class="p">}</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>支持的操作符</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">is</span></code>: 等于</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_not</span></code>: 不等于</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">contains</span></code>: 包含 (字符串)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gt</span></code>: 大于 (数值/日期)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lt</span></code>: 小于</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gte</span></code>: 大于等于</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lte</span></code>: 小于等于</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_empty</span></code>: 为空</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_not_empty</span></code>: 不为空</p></li>
+</ul>
+</li>
+<li><p><strong>分页参数</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;page_size&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>  <span class="c1"># 1-500, 默认 100</span>
+    <span class="s2">&quot;page_token&quot;</span><span class="p">:</span> <span class="s2">&quot;xxx&quot;</span><span class="p">,</span>  <span class="c1"># 下一页标记</span>
+    <span class="s2">&quot;sort&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;field_name&quot;</span><span class="p">:</span> <span class="s2">&quot;created_at&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;desc&quot;</span><span class="p">:</span> <span class="kc">True</span>
+        <span class="p">}</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+<hr class="docutils" />
+<section id="chk005-chk038">
+<h3>4. 媒体上传限制未明确 (CHK005, CHK038)<a class="headerlink" href="#chk005-chk038" title="Link to this heading"></a></h3>
+<p><strong>问题</strong>: 文件类型和大小限制未明确定义</p>
+<p><strong>需要补充</strong>:</p>
+<ol class="arabic simple">
+<li><p><strong>图片上传限制</strong></p>
+<ul class="simple">
+<li><p>支持格式: JPG, PNG, GIF, BMP, WEBP</p></li>
+<li><p>最大大小: 10 MB</p></li>
+<li><p>最大尺寸: 4096 x 4096 像素</p></li>
+</ul>
+</li>
+<li><p><strong>文件上传限制</strong></p>
+<ul class="simple">
+<li><p>支持格式: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, ZIP, RAR</p></li>
+<li><p>最大大小: 30 MB</p></li>
+</ul>
+</li>
+<li><p><strong>文档内容限制</strong></p>
+<ul class="simple">
+<li><p>单个文档最大 block 数: 10,000</p></li>
+<li><p>单次 append_content 最大 block 数: 100</p></li>
+<li><p>单个 block 最大大小: 100 KB</p></li>
+</ul>
+</li>
+</ol>
+<p><strong>验证逻辑</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">_validate_file_size</span><span class="p">(</span><span class="n">file_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">max_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">media_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="n">file_size</span> <span class="o">=</span> <span class="n">file_path</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span><span class="o">.</span><span class="n">st_size</span>
+    <span class="k">if</span> <span class="n">file_size</span> <span class="o">&gt;</span> <span class="n">max_size</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">InvalidParameterError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">media_type</span><span class="si">}</span><span class="s2"> file size </span><span class="si">{</span><span class="n">file_size</span><span class="si">}</span><span class="s2"> exceeds maximum </span><span class="si">{</span><span class="n">max_size</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="sheet-chk014-chk040">
+<h3>5. Sheet 范围格式未定义 (CHK014, CHK040)<a class="headerlink" href="#sheet-chk014-chk040" title="Link to this heading"></a></h3>
+<p><strong>问题</strong>: <code class="docutils literal notranslate"><span class="pre">get_sheet_data(sheet_id,</span> <span class="pre">range)</span></code> 的 range 参数格式未明确</p>
+<p><strong>需要补充</strong>:</p>
+<ol class="arabic simple">
+<li><p><strong>范围表示法</strong></p>
+<ul class="simple">
+<li><p>A1 表示法: <code class="docutils literal notranslate"><span class="pre">&quot;A1:B10&quot;</span></code> (推荐)</p></li>
+<li><p>行列表示法: <code class="docutils literal notranslate"><span class="pre">&quot;R1C1:R10C2&quot;</span></code></p></li>
+<li><p>整行: <code class="docutils literal notranslate"><span class="pre">&quot;3:5&quot;</span></code> (第 3-5 行)</p></li>
+<li><p>整列: <code class="docutils literal notranslate"><span class="pre">&quot;A:C&quot;</span></code> (A-C 列)</p></li>
+<li><p>单个单元格: <code class="docutils literal notranslate"><span class="pre">&quot;A1&quot;</span></code></p></li>
+</ul>
+</li>
+<li><p><strong>跨 sheet 范围</strong></p>
+<ul class="simple">
+<li><p>格式: <code class="docutils literal notranslate"><span class="pre">&quot;Sheet1!A1:B10&quot;</span></code></p></li>
+<li><p>不支持跨多个 sheet</p></li>
+</ul>
+</li>
+<li><p><strong>范围限制</strong></p>
+<ul class="simple">
+<li><p>最大行数: 1,000,000</p></li>
+<li><p>最大列数: 18,278 (ZZZ)</p></li>
+<li><p>单次读取最大单元格数: 100,000</p></li>
+<li><p>单次更新最大单元格数: 10,000</p></li>
+</ul>
+</li>
+<li><p><strong>格式化操作限制</strong></p>
+<ul class="simple">
+<li><p>单次合并最大单元格数: 1,000</p></li>
+<li><p>冻结窗格最大行数: 100</p></li>
+<li><p>冻结窗格最大列数: 100</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<hr class="docutils" />
+<section id="id-chk007">
+<h3>6. 用户 ID 类型使用场景未明确 (CHK007)<a class="headerlink" href="#id-chk007" title="Link to this heading"></a></h3>
+<p><strong>问题</strong>: open_id, user_id, union_id 的使用场景未明确说明</p>
+<p><strong>需要补充</strong>:</p>
+<ol class="arabic">
+<li><p><strong>ID 类型说明</strong></p>
+<div class="highlight-markdown notranslate"><div class="highlight"><pre><span></span>| ID 类型 | 作用域 | 使用场景 | 格式 |
+|---------|--------|----------|------|
+| open_id | 应用内 | 消息发送、权限管理 | ou_xxx |
+| user_id | 租户内 | 通讯录查询、组织架构 | 123456 |
+| union_id | 跨租户 | 多租户用户关联 | on_xxx |
+</pre></div>
+</div>
+</li>
+<li><p><strong>ID 转换规则</strong></p>
+<ul class="simple">
+<li><p>同一用户在不同应用有不同 open_id</p></li>
+<li><p>同一用户在同一租户有唯一 user_id</p></li>
+<li><p>同一用户跨租户有唯一 union_id</p></li>
+</ul>
+</li>
+<li><p><strong>推荐使用策略</strong></p>
+<ul class="simple">
+<li><p>消息发送: 优先使用 open_id</p></li>
+<li><p>缓存存储: 使用 union_id 作为主键</p></li>
+<li><p>组织架构: 使用 user_id</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<hr class="docutils" />
+<section id="chk009-chk016">
+<h3>7. 缓存策略细节未明确 (CHK009, CHK016)<a class="headerlink" href="#chk009-chk016" title="Link to this heading"></a></h3>
+<p><strong>问题</strong>: &quot;懒加载刷新&quot; 的具体行为未定义</p>
+<p><strong>需要补充</strong>:</p>
+<ol class="arabic">
+<li><p><strong>缓存刷新行为</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 同步刷新 (推荐)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_user_by_email</span><span class="p">(</span><span class="n">email</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">app_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">User</span><span class="p">:</span>
+    <span class="n">cached</span> <span class="o">=</span> <span class="n">check_cache</span><span class="p">(</span><span class="n">email</span><span class="p">,</span> <span class="n">app_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cached</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_expired</span><span class="p">(</span><span class="n">cached</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">cached</span>
+
+    <span class="c1"># 缓存未命中或已过期,同步调用 API</span>
+    <span class="n">user</span> <span class="o">=</span> <span class="n">fetch_from_lark_api</span><span class="p">(</span><span class="n">email</span><span class="p">,</span> <span class="n">app_id</span><span class="p">)</span>
+    <span class="n">update_cache</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">user</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>刷新失败降级策略</strong></p>
+<ul class="simple">
+<li><p>如果 API 调用失败且有过期缓存,返回过期缓存并记录 WARNING</p></li>
+<li><p>如果 API 调用失败且无缓存,抛出异常</p></li>
+</ul>
+</li>
+<li><p><strong>刷新超时时间</strong></p>
+<ul class="simple">
+<li><p>API 调用超时: 10 秒</p></li>
+<li><p>数据库操作超时: 5 秒</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<hr class="docutils" />
+<section id="chk054-chk055">
+<h3>8. 错误码体系缺失 (CHK054-CHK055)<a class="headerlink" href="#chk054-chk055" title="Link to this heading"></a></h3>
+<p><strong>问题</strong>: CloudDoc 和 Contact 模块的错误码未定义</p>
+<p><strong>需要补充</strong>:</p>
+<ol class="arabic">
+<li><p><strong>CloudDoc 错误码</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 40xxx - 客户端错误</span>
+<span class="mi">40001</span><span class="p">:</span> <span class="s2">&quot;文档不存在&quot;</span>
+<span class="mi">40002</span><span class="p">:</span> <span class="s2">&quot;权限不足&quot;</span>
+<span class="mi">40003</span><span class="p">:</span> <span class="s2">&quot;文档内容过大&quot;</span>
+<span class="mi">40004</span><span class="p">:</span> <span class="s2">&quot;block_id 无效&quot;</span>
+<span class="mi">40005</span><span class="p">:</span> <span class="s2">&quot;文件类型不支持&quot;</span>
+<span class="mi">40006</span><span class="p">:</span> <span class="s2">&quot;文件大小超限&quot;</span>
+
+<span class="c1"># 50xxx - 服务端错误</span>
+<span class="mi">50001</span><span class="p">:</span> <span class="s2">&quot;文档创建失败&quot;</span>
+<span class="mi">50002</span><span class="p">:</span> <span class="s2">&quot;内容追加失败&quot;</span>
+<span class="mi">50003</span><span class="p">:</span> <span class="s2">&quot;媒体上传失败&quot;</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Contact 错误码</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 40xxx - 客户端错误</span>
+<span class="mi">40101</span><span class="p">:</span> <span class="s2">&quot;用户不存在&quot;</span>
+<span class="mi">40102</span><span class="p">:</span> <span class="s2">&quot;邮箱格式错误&quot;</span>
+<span class="mi">40103</span><span class="p">:</span> <span class="s2">&quot;部门不存在&quot;</span>
+<span class="mi">40104</span><span class="p">:</span> <span class="s2">&quot;群组不存在&quot;</span>
+<span class="mi">40105</span><span class="p">:</span> <span class="s2">&quot;权限不足&quot;</span>
+
+<span class="c1"># 50xxx - 服务端错误</span>
+<span class="mi">50101</span><span class="p">:</span> <span class="s2">&quot;缓存写入失败&quot;</span>
+<span class="mi">50102</span><span class="p">:</span> <span class="s2">&quot;API 调用超时&quot;</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>错误响应格式</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;code&quot;</span><span class="p">:</span> <span class="mi">40001</span><span class="p">,</span>
+    <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;文档不存在&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;details&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;doc_id&quot;</span><span class="p">:</span> <span class="s2">&quot;doc_abc123&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;suggestion&quot;</span><span class="p">:</span> <span class="s2">&quot;请检查文档 ID 是否正确&quot;</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;request_id&quot;</span><span class="p">:</span> <span class="s2">&quot;req_xyz789&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+<hr class="docutils" />
+<section id="chk094">
+<h3>9. 权限类型定义不明确 (CHK094)<a class="headerlink" href="#chk094" title="Link to this heading"></a></h3>
+<p><strong>问题</strong>: 文档权限的四种类型具体含义未明确</p>
+<p><strong>需要补充</strong>:</p>
+<ol class="arabic">
+<li><p><strong>权限类型定义</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">PermissionType</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="n">READ</span> <span class="o">=</span> <span class="s2">&quot;read&quot;</span>        <span class="c1"># 可阅读: 查看文档内容</span>
+    <span class="n">WRITE</span> <span class="o">=</span> <span class="s2">&quot;write&quot;</span>      <span class="c1"># 可编辑: 修改文档内容</span>
+    <span class="n">COMMENT</span> <span class="o">=</span> <span class="s2">&quot;comment&quot;</span>  <span class="c1"># 可评论: 添加评论,不能修改内容</span>
+    <span class="n">MANAGE</span> <span class="o">=</span> <span class="s2">&quot;manage&quot;</span>    <span class="c1"># 可管理: 修改权限,删除文档</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>权限层级关系</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">manage</span></code> &gt; <code class="docutils literal notranslate"><span class="pre">write</span></code> &gt; <code class="docutils literal notranslate"><span class="pre">comment</span></code> &gt; <code class="docutils literal notranslate"><span class="pre">read</span></code></p></li>
+<li><p>高级权限包含低级权限的所有能力</p></li>
+</ul>
+</li>
+<li><p><strong>权限授予对象</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;member_type&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span> <span class="o">|</span> <span class="s2">&quot;department&quot;</span> <span class="o">|</span> <span class="s2">&quot;group&quot;</span> <span class="o">|</span> <span class="s2">&quot;anyone&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;member_id&quot;</span><span class="p">:</span> <span class="s2">&quot;ou_xxx&quot;</span> <span class="o">|</span> <span class="s2">&quot;dept_xxx&quot;</span> <span class="o">|</span> <span class="s2">&quot;oc_xxx&quot;</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="s2">&quot;permission&quot;</span><span class="p">:</span> <span class="s2">&quot;read&quot;</span> <span class="o">|</span> <span class="s2">&quot;write&quot;</span> <span class="o">|</span> <span class="s2">&quot;comment&quot;</span> <span class="o">|</span> <span class="s2">&quot;manage&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+<hr class="docutils" />
+<section id="chk084-chk085">
+<h3>10. 数据模型字段缺失 (CHK084-CHK085)<a class="headerlink" href="#chk084-chk085" title="Link to this heading"></a></h3>
+<p><strong>问题</strong>: 数据模型的字段定义不完整</p>
+<p><strong>需要补充</strong>:</p>
+<ol class="arabic">
+<li><p><strong>Document 模型</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Document</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="n">doc_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;^doc_[a-zA-Z0-9]</span><span class="si">{16}</span><span class="s1">$&#39;</span><span class="p">)</span>
+    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">min_length</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span>
+    <span class="n">folder_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">owner_id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">created_at</span><span class="p">:</span> <span class="n">datetime</span>
+    <span class="n">updated_at</span><span class="p">:</span> <span class="n">datetime</span>
+    <span class="n">url</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">block_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>BaseRecord 模型</strong> (Bitable)</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">BaseRecord</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="n">record_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;^rec_[a-zA-Z0-9]</span><span class="si">{16}</span><span class="s1">$&#39;</span><span class="p">)</span>
+    <span class="n">fields</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+    <span class="n">created_by</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">created_time</span><span class="p">:</span> <span class="nb">int</span>  <span class="c1"># Unix timestamp</span>
+    <span class="n">last_modified_by</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">last_modified_time</span><span class="p">:</span> <span class="nb">int</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>User 模型</strong> (Contact)</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">User</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="n">open_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;^ou_[a-zA-Z0-9]</span><span class="si">{16}</span><span class="s1">$&#39;</span><span class="p">)</span>
+    <span class="n">user_id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">union_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;^on_[a-zA-Z0-9]</span><span class="si">{16}</span><span class="s1">$&#39;</span><span class="p">)</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">en_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">email</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">mobile</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">avatar</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># URL</span>
+    <span class="n">department_ids</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">status</span><span class="p">:</span> <span class="nb">int</span>  <span class="c1"># 1: 正常, 2: 停用</span>
+    <span class="n">employee_type</span><span class="p">:</span> <span class="nb">int</span>  <span class="c1"># 1: 正式, 2: 实习, 3: 外包</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>UserCache 模型</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">UserCache</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="n">app_id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">union_id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">open_id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">user_id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">email</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
+    <span class="n">mobile</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
+    <span class="n">avatar</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
+    <span class="n">department_ids</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">cached_at</span><span class="p">:</span> <span class="n">datetime</span>
+    <span class="n">ttl</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">86400</span>  <span class="c1"># 24 hours</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_expired</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">cached_at</span><span class="p">)</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">ttl</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+<hr class="docutils" />
+<section id="chk013">
+<h3>11. 批量操作大小限制未定义 (CHK013)<a class="headerlink" href="#chk013" title="Link to this heading"></a></h3>
+<p><strong>问题</strong>: 批量操作的最大记录数未明确</p>
+<p><strong>需要补充</strong>:</p>
+<ol class="arabic simple">
+<li><p><strong>Bitable 批量操作限制</strong></p>
+<ul class="simple">
+<li><p>批量创建: 最多 500 条记录</p></li>
+<li><p>批量更新: 最多 500 条记录</p></li>
+<li><p>批量删除: 最多 500 条记录</p></li>
+<li><p>批量查询: 单次最多返回 500 条 (使用分页)</p></li>
+</ul>
+</li>
+<li><p><strong>Sheet 批量操作限制</strong></p>
+<ul class="simple">
+<li><p>批量更新单元格: 最多 10,000 个单元格</p></li>
+<li><p>批量格式化: 最多 1,000 个单元格</p></li>
+<li><p>批量合并: 最多 100 个合并区域</p></li>
+</ul>
+</li>
+<li><p><strong>Contact 批量操作限制</strong></p>
+<ul class="simple">
+<li><p>批量查询用户: 最多 200 个用户</p></li>
+<li><p>批量更新缓存: 最多 1,000 条记录</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<hr class="docutils" />
+<section id="chk045-chk047">
+<h3>12. 性能需求缺失 (CHK045-CHK047)<a class="headerlink" href="#chk045-chk047" title="Link to this heading"></a></h3>
+<p><strong>问题</strong>: 未定义性能要求</p>
+<p><strong>需要补充</strong>:</p>
+<ol class="arabic simple">
+<li><p><strong>CloudDoc 性能要求</strong></p>
+<ul class="simple">
+<li><p>文档创建: &lt; 2 秒</p></li>
+<li><p>内容读取: &lt; 1 秒</p></li>
+<li><p>内容追加: &lt; 3 秒</p></li>
+<li><p>Bitable 查询: &lt; 2 秒</p></li>
+<li><p>媒体上传 (10MB): &lt; 30 秒</p></li>
+</ul>
+</li>
+<li><p><strong>Contact 性能要求</strong></p>
+<ul class="simple">
+<li><p>缓存命中查询: &lt; 100 ms</p></li>
+<li><p>缓存未命中查询: &lt; 2 秒</p></li>
+<li><p>批量查询 (200 用户): &lt; 5 秒</p></li>
+<li><p>缓存刷新: &lt; 3 秒</p></li>
+</ul>
+</li>
+<li><p><strong>并发性能要求</strong></p>
+<ul class="simple">
+<li><p>支持每秒 50 次并发 CloudDoc 操作</p></li>
+<li><p>支持每秒 100 次并发 Contact 查询</p></li>
+<li><p>缓存命中率目标: &gt; 80%</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<hr class="docutils" />
+<section id="chk048-chk050">
+<h3>13. 安全需求缺失 (CHK048-CHK050)<a class="headerlink" href="#chk048-chk050" title="Link to this heading"></a></h3>
+<p><strong>问题</strong>: 权限验证和数据隐私需求未明确</p>
+<p><strong>需要补充</strong>:</p>
+<ol class="arabic simple">
+<li><p><strong>权限验证</strong></p>
+<ul class="simple">
+<li><p>每次文档操作前验证用户权限</p></li>
+<li><p>权限缓存 TTL: 5 分钟</p></li>
+<li><p>权限变更后立即失效缓存</p></li>
+</ul>
+</li>
+<li><p><strong>数据隐私</strong></p>
+<ul class="simple">
+<li><p>缓存数据加密存储 (AES-256)</p></li>
+<li><p>敏感字段脱敏:</p>
+<ul>
+<li><p>email: <code class="docutils literal notranslate"><span class="pre">z***&#64;example.com</span></code></p></li>
+<li><p>mobile: <code class="docutils literal notranslate"><span class="pre">138****5678</span></code></p></li>
+</ul>
+</li>
+<li><p>日志中不记录完整邮箱和手机号</p></li>
+</ul>
+</li>
+<li><p><strong>审计日志</strong></p>
+<ul class="simple">
+<li><p>记录所有文档权限变更</p></li>
+<li><p>记录所有敏感数据访问</p></li>
+<li><p>日志保留期: 90 天</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<hr class="docutils" />
+<section id="chk067-chk070">
+<h3>14. 数据验证规则缺失 (CHK067-CHK070)<a class="headerlink" href="#chk067-chk070" title="Link to this heading"></a></h3>
+<p><strong>问题</strong>: 输入参数验证规则未明确</p>
+<p><strong>需要补充</strong>:</p>
+<ol class="arabic">
+<li><p><strong>ID 格式验证</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">doc_id</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;^doc_[a-zA-Z0-9]</span><span class="si">{16}</span><span class="s1">$&#39;</span>
+<span class="n">table_id</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;^tbl_[a-zA-Z0-9]</span><span class="si">{16}</span><span class="s1">$&#39;</span>
+<span class="n">sheet_id</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;^sht_[a-zA-Z0-9]</span><span class="si">{16}</span><span class="s1">$&#39;</span>
+<span class="n">record_id</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;^rec_[a-zA-Z0-9]</span><span class="si">{16}</span><span class="s1">$&#39;</span>
+<span class="n">file_token</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;^file_v2_[a-zA-Z0-9]</span><span class="si">{32}</span><span class="s1">$&#39;</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>邮箱和手机号验证</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">email</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$&#39;</span>
+<span class="n">mobile</span><span class="p">:</span> <span class="sa">r</span><span class="s1">&#39;^\+?[1-9]\d{1,14}$&#39;</span>  <span class="c1"># E.164 格式</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>文档内容验证</strong></p>
+<ul class="simple">
+<li><p>标题长度: 1-255 字符</p></li>
+<li><p>block 数量: 1-100 (单次追加)</p></li>
+<li><p>block 内容大小: &lt; 100 KB</p></li>
+</ul>
+</li>
+<li><p><strong>Bitable 字段验证</strong></p>
+<ul class="simple">
+<li><p>字段名长度: 1-100 字符</p></li>
+<li><p>字段值大小: &lt; 10 KB</p></li>
+<li><p>必填字段检查</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<hr class="docutils" />
+<section id="chk051-chk053">
+<h3>15. 可靠性需求缺失 (CHK051-CHK053)<a class="headerlink" href="#chk051-chk053" title="Link to this heading"></a></h3>
+<p><strong>问题</strong>: 重试策略和一致性保证未明确</p>
+<p><strong>需要补充</strong>:</p>
+<ol class="arabic simple">
+<li><p><strong>CloudDoc 重试策略</strong></p>
+<ul class="simple">
+<li><p>可重试操作: 读取、查询</p></li>
+<li><p>不可重试操作: 创建、删除 (需幂等性保证)</p></li>
+<li><p>幂等性实现: 使用 idempotency_key</p></li>
+</ul>
+</li>
+<li><p><strong>缓存一致性保证</strong></p>
+<ul class="simple">
+<li><p>缓存更新使用事务</p></li>
+<li><p>并发更新使用乐观锁 (version 字段)</p></li>
+<li><p>冲突检测和重试</p></li>
+</ul>
+</li>
+<li><p><strong>数据持久化可靠性</strong></p>
+<ul class="simple">
+<li><p>数据库写入失败重试 3 次</p></li>
+<li><p>使用数据库事务保证原子性</p></li>
+<li><p>定期备份缓存数据</p></li>
+</ul>
+</li>
+</ol>
+</section>
+</section>
+<hr class="docutils" />
+<section id="p1">
+<h2>🟡 中优先级问题 (P1) - 建议补充<a class="headerlink" href="#p1" title="Link to this heading"></a></h2>
+<section id="chk023-chk026">
+<h3>16. 验收标准可测量性 (CHK023-CHK026)<a class="headerlink" href="#chk023-chk026" title="Link to this heading"></a></h3>
+<p><strong>问题</strong>: 验收标准过于主观,难以客观验证</p>
+<p><strong>建议补充</strong>:</p>
+<ol class="arabic simple">
+<li><p><strong>&quot;格式正确&quot; 的定义</strong></p>
+<ul class="simple">
+<li><p>文档内容追加后,block 类型匹配</p></li>
+<li><p>block 顺序与输入一致</p></li>
+<li><p>block 属性正确应用</p></li>
+</ul>
+</li>
+<li><p><strong>&quot;完整内容结构&quot; 的定义</strong></p>
+<ul class="simple">
+<li><p>包含所有 block</p></li>
+<li><p>包含 block 元数据 (id, type, created_at)</p></li>
+<li><p>包含文档元数据 (title, owner, created_at)</p></li>
+</ul>
+</li>
+<li><p><strong>缓存命中验证</strong></p>
+<ul class="simple">
+<li><p>日志中记录 &quot;Cache hit&quot; 标记</p></li>
+<li><p>不产生飞书 API 调用日志</p></li>
+<li><p>响应时间 &lt; 100 ms</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<hr class="docutils" />
+<section id="chk032-chk035">
+<h3>17. 异常场景覆盖 (CHK032-CHK035)<a class="headerlink" href="#chk032-chk035" title="Link to this heading"></a></h3>
+<p><strong>问题</strong>: 异常场景需求不完整</p>
+<p><strong>建议补充</strong>:</p>
+<ol class="arabic simple">
+<li><p><strong>文档操作异常</strong></p>
+<ul class="simple">
+<li><p>文档不存在: 返回 404 错误</p></li>
+<li><p>文档已删除: 返回 410 错误</p></li>
+<li><p>权限不足: 返回 403 错误</p></li>
+<li><p>文档内容过大: 返回 413 错误</p></li>
+</ul>
+</li>
+<li><p><strong>Bitable 查询异常</strong></p>
+<ul class="simple">
+<li><p>查询结果为空: 返回空数组 <code class="docutils literal notranslate"><span class="pre">[]</span></code></p></li>
+<li><p>过滤器语法错误: 返回 400 错误并说明错误位置</p></li>
+<li><p>字段类型不匹配: 返回 400 错误并说明期望类型</p></li>
+</ul>
+</li>
+<li><p><strong>缓存异常</strong></p>
+<ul class="simple">
+<li><p>数据库连接失败: 降级到直接调用 API</p></li>
+<li><p>缓存数据损坏: 清除缓存并重新获取</p></li>
+<li><p>并发更新冲突: 使用最后写入胜出策略</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<hr class="docutils" />
+<section id="chk036-chk037">
+<h3>18. 恢复流程需求 (CHK036-CHK037)<a class="headerlink" href="#chk036-chk037" title="Link to this heading"></a></h3>
+<p><strong>问题</strong>: 失败恢复机制未定义</p>
+<p><strong>建议补充</strong>:</p>
+<ol class="arabic simple">
+<li><p><strong>文档操作失败恢复</strong></p>
+<ul class="simple">
+<li><p>创建失败: 无需清理 (未创建成功)</p></li>
+<li><p>追加失败: 记录失败的 block,支持重试</p></li>
+<li><p>权限授予失败: 支持重试,记录失败原因</p></li>
+</ul>
+</li>
+<li><p><strong>缓存不一致修复</strong></p>
+<ul class="simple">
+<li><p>提供 <code class="docutils literal notranslate"><span class="pre">force_refresh</span></code> 参数强制刷新</p></li>
+<li><p>定期任务检查缓存一致性</p></li>
+<li><p>提供 CLI 工具手动修复缓存</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<hr class="docutils" />
+<section id="chk042-chk044">
+<h3>19. 特殊值处理 (CHK042-CHK044)<a class="headerlink" href="#chk042-chk044" title="Link to this heading"></a></h3>
+<p><strong>问题</strong>: 空值和特殊字符处理未定义</p>
+<p><strong>建议补充</strong>:</p>
+<ol class="arabic simple">
+<li><p><strong>空值处理</strong></p>
+<ul class="simple">
+<li><p>Sheet 空单元格: 返回 <code class="docutils literal notranslate"><span class="pre">None</span></code></p></li>
+<li><p>Bitable 字段为 null: 返回 <code class="docutils literal notranslate"><span class="pre">None</span></code></p></li>
+<li><p>用户信息缺失: 返回 <code class="docutils literal notranslate"><span class="pre">None</span></code> (不抛出异常)</p></li>
+</ul>
+</li>
+<li><p><strong>特殊字符处理</strong></p>
+<ul class="simple">
+<li><p>文档内容: 支持 emoji, 换行符, 特殊符号</p></li>
+<li><p>文件名: 自动转义特殊字符 <code class="docutils literal notranslate"><span class="pre">&lt;</span> <span class="pre">&gt;</span> <span class="pre">:</span> <span class="pre">&quot;</span> <span class="pre">/</span> <span class="pre">\</span> <span class="pre">|</span> <span class="pre">?</span> <span class="pre">*</span></code></p></li>
+<li><p>查询条件: 自动转义 SQL 特殊字符</p></li>
+</ul>
+</li>
+<li><p><strong>极端数据处理</strong></p>
+<ul class="simple">
+<li><p>超长文本: 自动截断并记录 WARNING</p></li>
+<li><p>超大数值: 使用 Decimal 类型避免精度丢失</p></li>
+<li><p>空字符串 vs null: 明确区分 (<code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code> != <code class="docutils literal notranslate"><span class="pre">None</span></code>)</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<hr class="docutils" />
+<section id="key-chk089">
+<h3>20. 缓存 key 命名规则 (CHK089)<a class="headerlink" href="#key-chk089" title="Link to this heading"></a></h3>
+<p><strong>问题</strong>: 缓存 key 格式未明确</p>
+<p><strong>建议补充</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 用户缓存 key</span>
+<span class="sa">f</span><span class="s2">&quot;user:</span><span class="si">{</span><span class="n">app_id</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">union_id</span><span class="si">}</span><span class="s2">&quot;</span>
+
+<span class="c1"># 部门缓存 key</span>
+<span class="sa">f</span><span class="s2">&quot;dept:</span><span class="si">{</span><span class="n">app_id</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">dept_id</span><span class="si">}</span><span class="s2">&quot;</span>
+
+<span class="c1"># 群组缓存 key</span>
+<span class="sa">f</span><span class="s2">&quot;chat:</span><span class="si">{</span><span class="n">app_id</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">chat_id</span><span class="si">}</span><span class="s2">&quot;</span>
+
+<span class="c1"># 权限缓存 key</span>
+<span class="sa">f</span><span class="s2">&quot;perm:</span><span class="si">{</span><span class="n">app_id</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">doc_id</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">&quot;</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="chk090">
+<h3>21. 缓存失效策略 (CHK090)<a class="headerlink" href="#chk090" title="Link to this heading"></a></h3>
+<p><strong>问题</strong>: 缓存失效机制不完整</p>
+<p><strong>建议补充</strong>:</p>
+<ol class="arabic simple">
+<li><p><strong>TTL 过期失效</strong>: 自动失效,无需手动清理</p></li>
+<li><p><strong>主动失效</strong>: 用户信息更新时,清除对应缓存</p></li>
+<li><p><strong>强制失效</strong>: 提供 API 清除指定用户/部门缓存</p></li>
+<li><p><strong>容量淘汰</strong>: 使用 LRU 策略,最大缓存 100,000 条记录</p></li>
+</ol>
+</section>
+<hr class="docutils" />
+<section id="chk093">
+<h3>22. 并发缓存更新冲突 (CHK093)<a class="headerlink" href="#chk093" title="Link to this heading"></a></h3>
+<p><strong>问题</strong>: 并发冲突处理策略未定义</p>
+<p><strong>建议补充</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 使用乐观锁</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">UserCache</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="n">version</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">update_cache</span><span class="p">(</span><span class="n">user</span><span class="p">:</span> <span class="n">User</span><span class="p">):</span>
+    <span class="n">cached</span> <span class="o">=</span> <span class="n">get_cache</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">union_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cached</span><span class="p">:</span>
+        <span class="c1"># 检查版本号</span>
+        <span class="k">if</span> <span class="n">cached</span><span class="o">.</span><span class="n">version</span> <span class="o">!=</span> <span class="n">user</span><span class="o">.</span><span class="n">version</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ConflictError</span><span class="p">(</span><span class="s2">&quot;Cache version mismatch&quot;</span><span class="p">)</span>
+        <span class="n">user</span><span class="o">.</span><span class="n">version</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="n">save_cache</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="chk095">
+<h3>23. 权限授予对象类型 (CHK095)<a class="headerlink" href="#chk095" title="Link to this heading"></a></h3>
+<p><strong>问题</strong>: 权限授予对象类型未明确</p>
+<p><strong>建议补充</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">PermissionMember</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="n">member_type</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;department&quot;</span><span class="p">,</span> <span class="s2">&quot;group&quot;</span><span class="p">,</span> <span class="s2">&quot;anyone&quot;</span><span class="p">]</span>
+    <span class="n">member_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>  <span class="c1"># anyone 时为 None</span>
+
+<span class="c1"># 使用示例</span>
+<span class="n">grant_permission</span><span class="p">(</span>
+    <span class="n">doc_id</span><span class="o">=</span><span class="s2">&quot;doc_abc123&quot;</span><span class="p">,</span>
+    <span class="n">member</span><span class="o">=</span><span class="n">PermissionMember</span><span class="p">(</span>
+        <span class="n">member_type</span><span class="o">=</span><span class="s2">&quot;department&quot;</span><span class="p">,</span>
+        <span class="n">member_id</span><span class="o">=</span><span class="s2">&quot;dept_xyz789&quot;</span>
+    <span class="p">),</span>
+    <span class="n">permission</span><span class="o">=</span><span class="s2">&quot;read&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="chk096">
+<h3>24. 权限继承规则 (CHK096)<a class="headerlink" href="#chk096" title="Link to this heading"></a></h3>
+<p><strong>问题</strong>: 权限继承和优先级未定义</p>
+<p><strong>建议补充</strong>:</p>
+<ol class="arabic simple">
+<li><p><strong>部门权限继承</strong>: 部门成员自动继承部门权限</p></li>
+<li><p><strong>权限优先级</strong>: 用户权限 &gt; 部门权限 &gt; 群组权限</p></li>
+<li><p><strong>权限生效时间</strong>: 立即生效,5 分钟内缓存失效</p></li>
+</ol>
+</section>
+<hr class="docutils" />
+<section id="chk098">
+<h3>25. 权限查询返回数据 (CHK098)<a class="headerlink" href="#chk098" title="Link to this heading"></a></h3>
+<p><strong>问题</strong>: list_permissions 返回结构未明确</p>
+<p><strong>建议补充</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;permissions&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;member_type&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;member_id&quot;</span><span class="p">:</span> <span class="s2">&quot;ou_abc123&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;member_name&quot;</span><span class="p">:</span> <span class="s2">&quot;张三&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;permission&quot;</span><span class="p">:</span> <span class="s2">&quot;write&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;granted_by&quot;</span><span class="p">:</span> <span class="s2">&quot;ou_owner&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;granted_at&quot;</span><span class="p">:</span> <span class="s2">&quot;2026-01-15T10:30:00Z&quot;</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;total&quot;</span><span class="p">:</span> <span class="mi">10</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="id4">
+<h3>26-30. 其他中优先级问题<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
+<p>(详细内容省略,包括测试覆盖、性能监控、日志记录等)</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="p2">
+<h2>🟢 低优先级问题 (P2) - 可延后补充<a class="headerlink" href="#p2" title="Link to this heading"></a></h2>
+<section id="chk091">
+<h3>31. 缓存预热策略 (CHK091)<a class="headerlink" href="#chk091" title="Link to this heading"></a></h3>
+<p><strong>建议</strong>: 支持批量预加载常用用户</p>
+</section>
+<section id="chk103">
+<h3>32. 性能测试需求 (CHK103)<a class="headerlink" href="#chk103" title="Link to this heading"></a></h3>
+<p><strong>建议</strong>: 定义性能基准测试和负载测试</p>
+</section>
+<section id="chk104">
+<h3>33. 安全测试需求 (CHK104)<a class="headerlink" href="#chk104" title="Link to this heading"></a></h3>
+<p><strong>建议</strong>: 定义权限验证测试和注入攻击测试</p>
+</section>
+<section id="id5">
+<h3>34-38. 其他低优先级问题<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
+<p>(详细内容省略)</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id6">
+<h2>🔍 需要澄清的模糊点<a class="headerlink" href="#id6" title="Link to this heading"></a></h2>
+<section id="chk078">
+<h3>1. &quot;完整内容结构&quot; 的定义 (CHK078)<a class="headerlink" href="#chk078" title="Link to this heading"></a></h3>
+<p><strong>当前描述</strong>: &quot;返回文档的完整内容结构&quot;</p>
+<p><strong>需要澄清</strong>:</p>
+<ul class="simple">
+<li><p>是否包含格式信息?</p></li>
+<li><p>是否包含元数据 (创建时间、作者)?</p></li>
+<li><p>是否包含历史版本?</p></li>
+</ul>
+<p><strong>建议</strong>: 明确定义返回的数据结构</p>
+</section>
+<hr class="docutils" />
+<section id="chk079">
+<h3>2. &quot;批量更新缓存&quot; 的行为 (CHK079)<a class="headerlink" href="#chk079" title="Link to this heading"></a></h3>
+<p><strong>当前描述</strong>: &quot;批量更新数据库缓存&quot;</p>
+<p><strong>需要澄清</strong>:</p>
+<ul class="simple">
+<li><p>是否覆盖已有缓存?</p></li>
+<li><p>是否更新 TTL?</p></li>
+<li><p>是否触发缓存淘汰?</p></li>
+</ul>
+<p><strong>建议</strong>: 明确批量更新的具体行为</p>
+</section>
+<hr class="docutils" />
+<section id="app-id-chk080">
+<h3>3. &quot;app_id 隔离&quot; 的实现方式 (CHK080)<a class="headerlink" href="#app-id-chk080" title="Link to this heading"></a></h3>
+<p><strong>当前描述</strong>: &quot;按 app_id 隔离存储&quot;</p>
+<p><strong>需要澄清</strong>:</p>
+<ul class="simple">
+<li><p>数据库层面如何隔离? (分表 vs 字段)</p></li>
+<li><p>缓存 key 如何命名?</p></li>
+<li><p>是否支持跨应用查询?</p></li>
+</ul>
+<p><strong>建议</strong>: 明确隔离的技术实现方案</p>
+</section>
+<hr class="docutils" />
+<section id="chk081">
+<h3>4. 缓存策略与实时性需求冲突 (CHK081)<a class="headerlink" href="#chk081" title="Link to this heading"></a></h3>
+<p><strong>问题</strong>: 24 小时 TTL 可能导致数据不够实时</p>
+<p><strong>需要澄清</strong>:</p>
+<ul class="simple">
+<li><p>是否可接受 24 小时的数据延迟?</p></li>
+<li><p>是否需要强制刷新机制?</p></li>
+<li><p>如何平衡性能和数据新鲜度?</p></li>
+</ul>
+<p><strong>建议</strong>: 根据业务场景调整 TTL 或提供强制刷新</p>
+</section>
+<hr class="docutils" />
+<section id="chk082">
+<h3>5. 懒加载策略与性能需求冲突 (CHK082)<a class="headerlink" href="#chk082" title="Link to this heading"></a></h3>
+<p><strong>问题</strong>: 首次查询需要等待 API 调用</p>
+<p><strong>需要澄清</strong>:</p>
+<ul class="simple">
+<li><p>首次查询延迟是否可接受?</p></li>
+<li><p>是否需要预加载机制?</p></li>
+<li><p>冷启动场景的性能影响?</p></li>
+</ul>
+<p><strong>建议</strong>: 提供预加载 API 或异步加载机制</p>
+</section>
+<hr class="docutils" />
+<section id="id7">
+<h3>6-12. 其他需要澄清的问题<a class="headerlink" href="#id7" title="Link to this heading"></a></h3>
+<p>(详细内容省略)</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id8">
+<h2>✅ 通过的检查项<a class="headerlink" href="#id8" title="Link to this heading"></a></h2>
+<section id="id9">
+<h3>测试策略质量 (100%)<a class="headerlink" href="#id9" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>✅ CHK099: 契约测试需求已定义 (T057, T063)</p></li>
+<li><p>✅ CHK100: 单元测试需求已定义 (T058, T064)</p></li>
+<li><p>✅ CHK101: 集成测试需求已定义 (T059, T065)</p></li>
+<li><p>✅ CHK102: 集成测试场景完整</p></li>
+<li><p>✅ CHK103: 性能测试需求 (可延后)</p></li>
+<li><p>✅ CHK104: 安全测试需求 (可延后)</p></li>
+</ul>
+</section>
+<section id="phase-4-100">
+<h3>Phase 4 特定检查 (100%)<a class="headerlink" href="#phase-4-100" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>✅ CHK109: US3 和 US4 的独立性明确</p></li>
+<li><p>✅ CHK110: 并行开发的集成点明确</p></li>
+<li><p>✅ CHK111: CloudDoc 与 Messaging 的集成需求 (可延后)</p></li>
+<li><p>✅ CHK112: Contact 与 Messaging 的集成需求 (明确)</p></li>
+</ul>
+</section>
+<section id="id10">
+<h3>依赖与假设 (80%)<a class="headerlink" href="#id10" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>✅ CHK073: 飞书 API 版本依赖 (需补充)</p></li>
+<li><p>✅ CHK074: API 行为假设 (需补充)</p></li>
+<li><p>✅ CHK075: 数据库依赖 (已明确)</p></li>
+<li><p>✅ CHK076: Phase 1-3 依赖 (已明确)</p></li>
+<li><p>✅ CHK077: 模块间依赖 (已明确)</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id11">
+<h2>📋 行动计划<a class="headerlink" href="#id11" title="Link to this heading"></a></h2>
+<section id="p0-2-3">
+<h3>第一步: 补充高优先级需求 (P0) - 预计 2-3 天<a class="headerlink" href="#p0-2-3" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p><strong>创建 API 契约文档</strong> (1 天)</p>
+<ul class="contains-task-list simple">
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> contracts/clouddoc.yaml</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> contracts/contact.yaml</p></li>
+</ul>
+</li>
+<li><p><strong>明确数据结构和限制</strong> (1 天)</p>
+<ul class="contains-task-list simple">
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> 文档内容结构 (content_blocks)</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Bitable 过滤器语法</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Sheet 范围格式</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> 媒体上传限制</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> 批量操作限制</p></li>
+</ul>
+</li>
+<li><p><strong>定义错误码和数据模型</strong> (0.5 天)</p>
+<ul class="contains-task-list simple">
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> CloudDoc 错误码</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> Contact 错误码</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> 完整数据模型定义</p></li>
+</ul>
+</li>
+<li><p><strong>补充非功能性需求</strong> (0.5 天)</p>
+<ul class="contains-task-list simple">
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> 性能需求</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> 安全需求</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> 可靠性需求</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="id12">
+<h3>第二步: 澄清模糊点 - 预计 0.5 天<a class="headerlink" href="#id12" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p><strong>与产品/架构师讨论</strong></p>
+<ul class="contains-task-list simple">
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> 缓存策略细节</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> 权限管理细节</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> 性能与实时性平衡</p></li>
+</ul>
+</li>
+<li><p><strong>更新需求文档</strong></p>
+<ul class="contains-task-list simple">
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> 补充澄清后的内容</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> 更新验收场景</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="id13">
+<h3>第三步: 补充中优先级需求 (P1) - 与开发并行<a class="headerlink" href="#id13" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p><strong>在开发过程中补充</strong></p>
+<ul class="contains-task-list simple">
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> 异常场景处理</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> 恢复流程</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> 特殊值处理</p></li>
+</ul>
+</li>
+<li><p><strong>代码 Review 时补充</strong></p>
+<ul class="contains-task-list simple">
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> 验证规则</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> 错误处理</p></li>
+<li class="task-list-item"><p><input class="task-list-item-checkbox" disabled="disabled" type="checkbox"> 日志记录</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="phase-4">
+<h3>第四步: 开始 Phase 4 开发<a class="headerlink" href="#phase-4" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p><strong>并行开发</strong></p>
+<ul class="simple">
+<li><p>CloudDoc 模块 (T051-T056)</p></li>
+<li><p>Contact 模块 (T060-T062)</p></li>
+</ul>
+</li>
+<li><p><strong>TDD 开发</strong></p>
+<ul class="simple">
+<li><p>先写契约测试</p></li>
+<li><p>再写单元测试</p></li>
+<li><p>最后写集成测试</p></li>
+</ul>
+</li>
+</ol>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id14">
+<h2>📊 评审结论<a class="headerlink" href="#id14" title="Link to this heading"></a></h2>
+<section id="id15">
+<h3>总体评价<a class="headerlink" href="#id15" title="Link to this heading"></a></h3>
+<p>Phase 4 需求文档在 <strong>用户故事和验收场景</strong> 方面较为完善,但在 <strong>技术细节、API 契约、错误处理、非功能性需求</strong> 方面存在较多缺失。</p>
+</section>
+<section id="id16">
+<h3>关键发现<a class="headerlink" href="#id16" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p><strong>✅ 优势</strong>:</p>
+<ul class="simple">
+<li><p>用户故事清晰,优先级合理</p></li>
+<li><p>验收场景覆盖主流程</p></li>
+<li><p>测试策略完整</p></li>
+<li><p>模块独立性好,支持并行开发</p></li>
+</ul>
+</li>
+<li><p><strong>❌ 不足</strong>:</p>
+<ul class="simple">
+<li><p>API 契约完全缺失 (0%)</p></li>
+<li><p>数据结构定义不明确</p></li>
+<li><p>错误处理规范缺失</p></li>
+<li><p>非功能性需求不完整</p></li>
+<li><p>边界条件覆盖不足</p></li>
+</ul>
+</li>
+<li><p><strong>⚠️ 风险</strong>:</p>
+<ul class="simple">
+<li><p>缺少 API 契约会导致契约测试无法进行</p></li>
+<li><p>数据结构不明确会导致开发返工</p></li>
+<li><p>错误码缺失会导致错误处理不一致</p></li>
+<li><p>性能需求缺失会导致性能问题</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="id17">
+<h3>建议<a class="headerlink" href="#id17" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p><strong>暂缓开发</strong>: 在补充高优先级需求 (P0) 前,不建议开始开发</p></li>
+<li><p><strong>优先创建 API 契约</strong>: 这是契约测试和 TDD 的基础</p></li>
+<li><p><strong>明确数据结构</strong>: 避免开发过程中频繁修改</p></li>
+<li><p><strong>定义错误码体系</strong>: 确保错误处理一致性</p></li>
+</ol>
+</section>
+<section id="id18">
+<h3>预计补充时间<a class="headerlink" href="#id18" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>高优先级 (P0)</strong>: 2-3 天</p></li>
+<li><p><strong>中优先级 (P1)</strong>: 与开发并行,1-2 天</p></li>
+<li><p><strong>低优先级 (P2)</strong>: 可延后到 Phase 4 完成后</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id19">
+<h2>📚 参考资料<a class="headerlink" href="#id19" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="#../specs/001-lark-service-core/checklists/phase4-requirements-quality.md"><span class="xref myst">Phase 4 检查清单</span></a></p></li>
+<li><p><a class="reference internal" href="#../specs/001-lark-service-core/spec.md"><span class="xref myst">Phase 4 需求文档</span></a> (US3, US4)</p></li>
+<li><p><a class="reference internal" href="#../specs/001-lark-service-core/tasks.md"><span class="xref myst">Phase 4 任务清单</span></a> (Phase 4)</p></li>
+<li><p><a class="reference internal" href="#./phase3-completion-report.md"><span class="xref myst">Phase 3 完成报告</span></a></p></li>
+<li><p><a class="reference external" href="https://open.feishu.cn/document/">飞书开放平台文档</a></p></li>
+</ul>
+<hr class="docutils" />
+<p><strong>评审版本</strong>: v1.0
+<strong>最后更新</strong>: 2026-01-15
+<strong>评审人</strong>: Lark Service Team</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; 版权所有 2026, Ray。</p>
+  </div>
+
+  利用 <a href="https://www.sphinx-doc.org/">Sphinx</a> 构建，使用的 
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">主题</a>
+    由 <a href="https://readthedocs.org">Read the Docs</a> 开发.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
