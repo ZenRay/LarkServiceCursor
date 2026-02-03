@@ -1,0 +1,83 @@
+name: Deploy Documentation
+
+on:
+  push:
+    branches:
+      - main      # 生产环境文档
+      - develop   # 开发环境文档
+      - "00*-*"   # 功能分支文档（可选）
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy-docs:
+    name: Build and Deploy Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-docs-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-docs-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Build Sphinx documentation
+        run: |
+          cd docs
+          sphinx-build -W --keep-going -b html . _build/html
+        continue-on-error: false
+
+      - name: Add version info
+        run: |
+          BRANCH_NAME="${{ github.ref_name }}"
+          COMMIT_SHA="${{ github.sha }}"
+          BUILD_DATE=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+
+          cat > docs/_build/html/VERSION.txt << EOF
+          Branch: ${BRANCH_NAME}
+          Commit: ${COMMIT_SHA:0:7}
+          Built: ${BUILD_DATE}
+          EOF
+
+          echo "📚 文档版本信息:"
+          cat docs/_build/html/VERSION.txt
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/_build/html
+          # main 分支部署到根目录，其他分支部署到子目录
+          destination_dir: ${{ github.ref == 'refs/heads/main' && '.' || github.ref_name }}
+          cname: false  # 如果有自定义域名，改为你的域名
+
+      - name: Generate deployment info
+        run: |
+          REPO_NAME="${{ github.repository }}"
+          BRANCH_NAME="${{ github.ref_name }}"
+
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            URL="https://${REPO_NAME%%/*}.github.io/${REPO_NAME#*/}/"
+          else
+            URL="https://${REPO_NAME%%/*}.github.io/${REPO_NAME#*/}/${BRANCH_NAME}/"
+          fi
+
+          echo "✅ 文档部署成功！"
+          echo "📖 访问地址: ${URL}"
+          echo "🌿 分支: ${BRANCH_NAME}"
