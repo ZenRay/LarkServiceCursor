@@ -72,10 +72,10 @@ client.send_post(
 ```python
 from lark_service.cardkit import CardBuilder
 
-card = CardBuilder()\\
-    .add_header("通知标题", "blue")\\
-    .add_text("这是通知内容")\\
-    .add_button("查看详情", "https://example.com")\\
+card = CardBuilder() \
+    .add_header("通知标题", "blue") \
+    .add_text("这是通知内容") \
+    .add_button("查看详情", "https://example.com") \
     .build()
 
 client.send_interactive(
