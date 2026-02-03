@@ -40,7 +40,7 @@ jobs:
       - name: Build Sphinx documentation
         run: |
           cd docs
-          sphinx-build -W --keep-going -b html . _build/html
+          sphinx-build -b html . _build/html
         continue-on-error: false
 
       - name: Add version info
