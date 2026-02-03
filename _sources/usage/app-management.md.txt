@@ -44,7 +44,7 @@ config = Config()
 
 # 初始化存储服务
 app_manager = ApplicationManager(db_path="data/applications.db")
-token_storage = TokenStorageService(db_path="data/tokens.db")
+token_storage = TokenStorageService(postgres_url=config.postgres_url)
 
 # 创建 CredentialPool
 credential_pool = CredentialPool(
@@ -98,7 +98,7 @@ from lark_service.messaging.client import MessagingClient
 # 初始化配置
 config = Config()
 app_manager = ApplicationManager(db_path="data/applications.db")
-token_storage = TokenStorageService(db_path="data/tokens.db")
+token_storage = TokenStorageService(postgres_url=config.postgres_url)
 credential_pool = CredentialPool(
     config=config, app_manager=app_manager, token_storage=token_storage, lock_dir=Path("data/locks")
 )
@@ -162,7 +162,7 @@ from lark_service.messaging.client import MessagingClient
 # 初始化
 config = Config()
 app_manager = ApplicationManager(db_path="data/applications.db")
-token_storage = TokenStorageService(db_path="data/tokens.db")
+token_storage = TokenStorageService(postgres_url=config.postgres_url)
 credential_pool = CredentialPool(
     config=config, app_manager=app_manager, token_storage=token_storage, lock_dir=Path("data/locks")
 )
@@ -221,7 +221,7 @@ from lark_service.messaging.client import MessagingClient
 # 初始化
 config = Config()
 app_manager = ApplicationManager(db_path="data/applications.db")
-token_storage = TokenStorageService(db_path="data/tokens.db")
+token_storage = TokenStorageService(postgres_url=config.postgres_url)
 credential_pool = CredentialPool(
     config=config, app_manager=app_manager, token_storage=token_storage, lock_dir=Path("data/locks")
 )
@@ -276,7 +276,7 @@ from lark_service.messaging.client import MessagingClient
 # 初始化
 config = Config()
 app_manager = ApplicationManager(db_path="data/applications.db")
-token_storage = TokenStorageService(db_path="data/tokens.db")
+token_storage = TokenStorageService(postgres_url=config.postgres_url)
 credential_pool = CredentialPool(
     config=config, app_manager=app_manager, token_storage=token_storage, lock_dir=Path("data/locks")
 )
@@ -339,7 +339,7 @@ from lark_service.messaging.client import MessagingClient
 # 初始化
 config = Config()
 app_manager = ApplicationManager(db_path="data/applications.db")
-token_storage = TokenStorageService(db_path="data/tokens.db")
+token_storage = TokenStorageService(postgres_url=config.postgres_url)
 credential_pool = CredentialPool(
     config=config, app_manager=app_manager, token_storage=token_storage, lock_dir=Path("data/locks")
 )
@@ -377,7 +377,7 @@ from lark_service.messaging.client import MessagingClient
 # 初始化
 config = Config()
 app_manager = ApplicationManager(db_path="data/applications.db")
-token_storage = TokenStorageService(db_path="data/tokens.db")
+token_storage = TokenStorageService(postgres_url=config.postgres_url)
 credential_pool = CredentialPool(
     config=config, app_manager=app_manager, token_storage=token_storage, lock_dir=Path("data/locks")
 )
@@ -431,7 +431,7 @@ from lark_service.messaging.client import MessagingClient
 # 初始化
 config = Config()
 app_manager = ApplicationManager(db_path="data/applications.db")
-token_storage = TokenStorageService(db_path="data/tokens.db")
+token_storage = TokenStorageService(postgres_url=config.postgres_url)
 credential_pool = CredentialPool(
     config=config, app_manager=app_manager, token_storage=token_storage, lock_dir=Path("data/locks")
 )
@@ -480,7 +480,7 @@ from lark_service.messaging.client import MessagingClient
 # 初始化
 config = Config()
 app_manager = ApplicationManager(db_path="data/applications.db")
-token_storage = TokenStorageService(db_path="data/tokens.db")
+token_storage = TokenStorageService(postgres_url=config.postgres_url)
 credential_pool = CredentialPool(
     config=config, app_manager=app_manager, token_storage=token_storage, lock_dir=Path("data/locks")
 )
@@ -527,7 +527,7 @@ from lark_service.messaging.client import MessagingClient
 # 初始化 (共享)
 config = Config()
 app_manager = ApplicationManager(db_path="data/applications.db")
-token_storage = TokenStorageService(db_path="data/tokens.db")
+token_storage = TokenStorageService(postgres_url=config.postgres_url)
 credential_pool = CredentialPool(
     config=config, app_manager=app_manager, token_storage=token_storage, lock_dir=Path("data/locks")
 )

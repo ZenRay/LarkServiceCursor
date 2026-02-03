@@ -27,7 +27,7 @@ app_manager = ApplicationManager(
     db_path=config.config_db_path,
     encryption_key=config.config_encryption_key
 )
-token_storage = TokenStorageService(db_path=config.config_db_path)
+token_storage = TokenStorageService(postgres_url=config.postgres_url)
 pool = CredentialPool(config=config, app_manager=app_manager, token_storage=token_storage)
 messaging_client = MessagingClient(pool=pool)
 

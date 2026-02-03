@@ -41,7 +41,7 @@ from lark_service.core.config import Config
 from lark_service.core.storage import TokenStorageService
 
 config = Config.load_from_env()
-token_storage = TokenStorageService(db_path=config.config_db_path)
+token_storage = TokenStorageService(postgres_url=config.postgres_url)
 print('✅ 数据库连接成功')
 "
 ```
@@ -81,7 +81,7 @@ app_manager = ApplicationManager(
     db_path=config.config_db_path,
     encryption_key=config.config_encryption_key
 )
-token_storage = TokenStorageService(db_path=config.config_db_path)
+token_storage = TokenStorageService(postgres_url=config.postgres_url)
 credential_pool = CredentialPool(
     config=config,
     app_manager=app_manager,
@@ -147,7 +147,7 @@ from lark_service.core.config import Config
 
 config = Config.load_from_env()
 try:
-    ts = TokenStorageService(db_path=config.config_db_path)
+    ts = TokenStorageService(postgres_url=config.postgres_url)
     print('✅ Token 存储初始化成功')
 except Exception as e:
     print(f'❌ 错误: {e}')

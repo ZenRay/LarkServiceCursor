@@ -1525,7 +1525,7 @@ alembic<span class="w"> </span>upgrade<span class="w"> </span>head
 <span class="s2">from lark_service.core.storage import TokenStorageService</span>
 
 <span class="s2">config = Config.load_from_env()</span>
-<span class="s2">token_storage = TokenStorageService(db_path=config.config_db_path)</span>
+<span class="s2">token_storage = TokenStorageService(postgres_url=config.postgres_url)</span>
 <span class="s2">print(&#39;✅ 数据库连接成功&#39;)</span>
 <span class="s2">&quot;</span>
 </pre></div>
@@ -1570,7 +1570,7 @@ cat<span class="w"> </span>&gt;<span class="w"> </span>test_quickstart.py<span c
 <span class="s">    db_path=config.config_db_path,</span>
 <span class="s">    encryption_key=config.config_encryption_key</span>
 <span class="s">)</span>
-<span class="s">token_storage = TokenStorageService(db_path=config.config_db_path)</span>
+<span class="s">token_storage = TokenStorageService(postgres_url=config.postgres_url)</span>
 <span class="s">credential_pool = CredentialPool(</span>
 <span class="s">    config=config,</span>
 <span class="s">    app_manager=app_manager,</span>
@@ -1641,7 +1641,7 @@ python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;<
 
 <span class="s2">config = Config.load_from_env()</span>
 <span class="s2">try:</span>
-<span class="s2">    ts = TokenStorageService(db_path=config.config_db_path)</span>
+<span class="s2">    ts = TokenStorageService(postgres_url=config.postgres_url)</span>
 <span class="s2">    print(&#39;✅ Token 存储初始化成功&#39;)</span>
 <span class="s2">except Exception as e:</span>
 <span class="s2">    print(f&#39;❌ 错误: {e}&#39;)</span>
