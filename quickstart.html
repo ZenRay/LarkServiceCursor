@@ -1539,7 +1539,7 @@ alembic<span class="w"> </span>upgrade<span class="w"> </span>head
     <span class="n">db_path</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">config_db_path</span><span class="p">,</span>
     <span class="n">encryption_key</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">config_encryption_key</span>
 <span class="p">)</span>
-<span class="n">token_storage</span> <span class="o">=</span> <span class="n">TokenStorageService</span><span class="p">(</span><span class="n">postgres_url</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">postgres_url</span><span class="p">)</span>
+<span class="n">token_storage</span> <span class="o">=</span> <span class="n">TokenStorageService</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get_postgres_url</span><span class="p">())</span>
 <span class="n">credential_pool</span> <span class="o">=</span> <span class="n">CredentialPool</span><span class="p">(</span>
     <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span>
     <span class="n">app_manager</span><span class="o">=</span><span class="n">app_manager</span><span class="p">,</span>

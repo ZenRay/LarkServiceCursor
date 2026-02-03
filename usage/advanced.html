@@ -1507,7 +1507,7 @@
 <span class="c1"># 初始化</span>
 <span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
 <span class="n">app_manager</span> <span class="o">=</span> <span class="n">ApplicationManager</span><span class="p">(</span><span class="n">db_path</span><span class="o">=</span><span class="s2">&quot;data/applications.db&quot;</span><span class="p">)</span>
-<span class="n">token_storage</span> <span class="o">=</span> <span class="n">TokenStorageService</span><span class="p">(</span><span class="n">postgres_url</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">postgres_url</span><span class="p">)</span>
+<span class="n">token_storage</span> <span class="o">=</span> <span class="n">TokenStorageService</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get_postgres_url</span><span class="p">())</span>
 <span class="n">credential_pool</span> <span class="o">=</span> <span class="n">CredentialPool</span><span class="p">(</span>
     <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">app_manager</span><span class="o">=</span><span class="n">app_manager</span><span class="p">,</span> <span class="n">token_storage</span><span class="o">=</span><span class="n">token_storage</span><span class="p">,</span> <span class="n">lock_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;data/locks&quot;</span><span class="p">)</span>
 <span class="p">)</span>
@@ -1563,7 +1563,7 @@
 <span class="c1"># 初始化</span>
 <span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
 <span class="n">app_manager</span> <span class="o">=</span> <span class="n">ApplicationManager</span><span class="p">(</span><span class="n">db_path</span><span class="o">=</span><span class="s2">&quot;data/applications.db&quot;</span><span class="p">)</span>
-<span class="n">token_storage</span> <span class="o">=</span> <span class="n">TokenStorageService</span><span class="p">(</span><span class="n">postgres_url</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">postgres_url</span><span class="p">)</span>
+<span class="n">token_storage</span> <span class="o">=</span> <span class="n">TokenStorageService</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get_postgres_url</span><span class="p">())</span>
 <span class="n">credential_pool</span> <span class="o">=</span> <span class="n">CredentialPool</span><span class="p">(</span>
     <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">app_manager</span><span class="o">=</span><span class="n">app_manager</span><span class="p">,</span> <span class="n">token_storage</span><span class="o">=</span><span class="n">token_storage</span><span class="p">,</span> <span class="n">lock_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;data/locks&quot;</span><span class="p">)</span>
 <span class="p">)</span>
@@ -1637,7 +1637,7 @@
 <span class="c1"># 初始化</span>
 <span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
 <span class="n">app_manager</span> <span class="o">=</span> <span class="n">ApplicationManager</span><span class="p">(</span><span class="n">db_path</span><span class="o">=</span><span class="s2">&quot;data/applications.db&quot;</span><span class="p">)</span>
-<span class="n">token_storage</span> <span class="o">=</span> <span class="n">TokenStorageService</span><span class="p">(</span><span class="n">postgres_url</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">postgres_url</span><span class="p">)</span>
+<span class="n">token_storage</span> <span class="o">=</span> <span class="n">TokenStorageService</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get_postgres_url</span><span class="p">())</span>
 <span class="n">credential_pool</span> <span class="o">=</span> <span class="n">CredentialPool</span><span class="p">(</span>
     <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">app_manager</span><span class="o">=</span><span class="n">app_manager</span><span class="p">,</span> <span class="n">token_storage</span><span class="o">=</span><span class="n">token_storage</span><span class="p">,</span> <span class="n">lock_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;data/locks&quot;</span><span class="p">)</span>
 <span class="p">)</span>
@@ -1685,7 +1685,7 @@
 <span class="c1"># 初始化</span>
 <span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
 <span class="n">app_manager</span> <span class="o">=</span> <span class="n">ApplicationManager</span><span class="p">(</span><span class="n">db_path</span><span class="o">=</span><span class="s2">&quot;data/applications.db&quot;</span><span class="p">)</span>
-<span class="n">token_storage</span> <span class="o">=</span> <span class="n">TokenStorageService</span><span class="p">(</span><span class="n">postgres_url</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">postgres_url</span><span class="p">)</span>
+<span class="n">token_storage</span> <span class="o">=</span> <span class="n">TokenStorageService</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get_postgres_url</span><span class="p">())</span>
 <span class="n">credential_pool</span> <span class="o">=</span> <span class="n">CredentialPool</span><span class="p">(</span>
     <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">app_manager</span><span class="o">=</span><span class="n">app_manager</span><span class="p">,</span> <span class="n">token_storage</span><span class="o">=</span><span class="n">token_storage</span><span class="p">,</span> <span class="n">lock_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;data/locks&quot;</span><span class="p">)</span>
 <span class="p">)</span>
@@ -1741,7 +1741,7 @@
 <span class="c1"># 初始化</span>
 <span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
 <span class="n">app_manager</span> <span class="o">=</span> <span class="n">ApplicationManager</span><span class="p">(</span><span class="n">db_path</span><span class="o">=</span><span class="s2">&quot;data/applications.db&quot;</span><span class="p">)</span>
-<span class="n">token_storage</span> <span class="o">=</span> <span class="n">TokenStorageService</span><span class="p">(</span><span class="n">postgres_url</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">postgres_url</span><span class="p">)</span>
+<span class="n">token_storage</span> <span class="o">=</span> <span class="n">TokenStorageService</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get_postgres_url</span><span class="p">())</span>
 <span class="n">credential_pool</span> <span class="o">=</span> <span class="n">CredentialPool</span><span class="p">(</span>
     <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">app_manager</span><span class="o">=</span><span class="n">app_manager</span><span class="p">,</span> <span class="n">token_storage</span><span class="o">=</span><span class="n">token_storage</span><span class="p">,</span> <span class="n">lock_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;data/locks&quot;</span><span class="p">)</span>
 <span class="p">)</span>
@@ -1793,7 +1793,7 @@
 <span class="c1"># 初始化</span>
 <span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
 <span class="n">app_manager</span> <span class="o">=</span> <span class="n">ApplicationManager</span><span class="p">(</span><span class="n">db_path</span><span class="o">=</span><span class="s2">&quot;data/applications.db&quot;</span><span class="p">)</span>
-<span class="n">token_storage</span> <span class="o">=</span> <span class="n">TokenStorageService</span><span class="p">(</span><span class="n">postgres_url</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">postgres_url</span><span class="p">)</span>
+<span class="n">token_storage</span> <span class="o">=</span> <span class="n">TokenStorageService</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get_postgres_url</span><span class="p">())</span>
 <span class="n">credential_pool</span> <span class="o">=</span> <span class="n">CredentialPool</span><span class="p">(</span>
     <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">app_manager</span><span class="o">=</span><span class="n">app_manager</span><span class="p">,</span> <span class="n">token_storage</span><span class="o">=</span><span class="n">token_storage</span><span class="p">,</span> <span class="n">lock_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;data/locks&quot;</span><span class="p">)</span>
 <span class="p">)</span>
@@ -1891,7 +1891,7 @@
 
 <span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
 <span class="n">app_manager</span> <span class="o">=</span> <span class="n">ApplicationManager</span><span class="p">(</span><span class="n">db_path</span><span class="o">=</span><span class="s2">&quot;data/applications.db&quot;</span><span class="p">)</span>
-<span class="n">token_storage</span> <span class="o">=</span> <span class="n">TokenStorageService</span><span class="p">(</span><span class="n">postgres_url</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">postgres_url</span><span class="p">)</span>
+<span class="n">token_storage</span> <span class="o">=</span> <span class="n">TokenStorageService</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get_postgres_url</span><span class="p">())</span>
 <span class="n">credential_pool</span> <span class="o">=</span> <span class="n">CredentialPool</span><span class="p">(</span>
     <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">app_manager</span><span class="o">=</span><span class="n">app_manager</span><span class="p">,</span> <span class="n">token_storage</span><span class="o">=</span><span class="n">token_storage</span><span class="p">,</span> <span class="n">lock_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;data/locks&quot;</span><span class="p">)</span>
 <span class="p">)</span>
@@ -1926,7 +1926,7 @@
 <span class="c1"># 初始化</span>
 <span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
 <span class="n">app_manager</span> <span class="o">=</span> <span class="n">ApplicationManager</span><span class="p">(</span><span class="n">db_path</span><span class="o">=</span><span class="s2">&quot;data/applications.db&quot;</span><span class="p">)</span>
-<span class="n">token_storage</span> <span class="o">=</span> <span class="n">TokenStorageService</span><span class="p">(</span><span class="n">postgres_url</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">postgres_url</span><span class="p">)</span>
+<span class="n">token_storage</span> <span class="o">=</span> <span class="n">TokenStorageService</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get_postgres_url</span><span class="p">())</span>
 
 <span class="c1"># CredentialPool会自动管理Token缓存和刷新</span>
 <span class="n">credential_pool</span> <span class="o">=</span> <span class="n">CredentialPool</span><span class="p">(</span>
@@ -1965,7 +1965,7 @@
 <span class="c1"># 初始化 (全局单例)</span>
 <span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
 <span class="n">app_manager</span> <span class="o">=</span> <span class="n">ApplicationManager</span><span class="p">(</span><span class="n">db_path</span><span class="o">=</span><span class="s2">&quot;data/applications.db&quot;</span><span class="p">)</span>
-<span class="n">token_storage</span> <span class="o">=</span> <span class="n">TokenStorageService</span><span class="p">(</span><span class="n">postgres_url</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">postgres_url</span><span class="p">)</span>
+<span class="n">token_storage</span> <span class="o">=</span> <span class="n">TokenStorageService</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get_postgres_url</span><span class="p">())</span>
 <span class="n">credential_pool</span> <span class="o">=</span> <span class="n">CredentialPool</span><span class="p">(</span>
     <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">app_manager</span><span class="o">=</span><span class="n">app_manager</span><span class="p">,</span> <span class="n">token_storage</span><span class="o">=</span><span class="n">token_storage</span><span class="p">,</span> <span class="n">lock_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;data/locks&quot;</span><span class="p">)</span>
 <span class="p">)</span>
@@ -2009,7 +2009,7 @@
 <span class="c1"># 初始化</span>
 <span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
 <span class="n">app_manager</span> <span class="o">=</span> <span class="n">ApplicationManager</span><span class="p">(</span><span class="n">db_path</span><span class="o">=</span><span class="s2">&quot;data/applications.db&quot;</span><span class="p">)</span>
-<span class="n">token_storage</span> <span class="o">=</span> <span class="n">TokenStorageService</span><span class="p">(</span><span class="n">postgres_url</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">postgres_url</span><span class="p">)</span>
+<span class="n">token_storage</span> <span class="o">=</span> <span class="n">TokenStorageService</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get_postgres_url</span><span class="p">())</span>
 <span class="n">credential_pool</span> <span class="o">=</span> <span class="n">CredentialPool</span><span class="p">(</span>
     <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">app_manager</span><span class="o">=</span><span class="n">app_manager</span><span class="p">,</span> <span class="n">token_storage</span><span class="o">=</span><span class="n">token_storage</span><span class="p">,</span> <span class="n">lock_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;data/locks&quot;</span><span class="p">)</span>
 <span class="p">)</span>
@@ -2051,7 +2051,7 @@ chmod<span class="w"> </span><span class="m">700</span><span class="w"> </span>d
 <span class="c1"># 初始化</span>
 <span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
 <span class="n">app_manager</span> <span class="o">=</span> <span class="n">ApplicationManager</span><span class="p">(</span><span class="n">db_path</span><span class="o">=</span><span class="s2">&quot;data/applications.db&quot;</span><span class="p">)</span>
-<span class="n">token_storage</span> <span class="o">=</span> <span class="n">TokenStorageService</span><span class="p">(</span><span class="n">postgres_url</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">postgres_url</span><span class="p">)</span>
+<span class="n">token_storage</span> <span class="o">=</span> <span class="n">TokenStorageService</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get_postgres_url</span><span class="p">())</span>
 <span class="n">credential_pool</span> <span class="o">=</span> <span class="n">CredentialPool</span><span class="p">(</span>
     <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">app_manager</span><span class="o">=</span><span class="n">app_manager</span><span class="p">,</span> <span class="n">token_storage</span><span class="o">=</span><span class="n">token_storage</span><span class="p">,</span> <span class="n">lock_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;data/locks&quot;</span><span class="p">)</span>
 <span class="p">)</span>
