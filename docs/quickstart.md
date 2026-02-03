@@ -50,8 +50,7 @@ lark-service-cli app add \
 
 ```python
 from lark_service.core.config import Config
-from lark_service.core.storage.sqlite_storage import ApplicationManager
-from lark_service.core.storage.token_storage import TokenStorageService
+from lark_service.core.storage import ApplicationManager, TokenStorageService
 from lark_service.core.credential_pool import CredentialPool
 from lark_service.messaging.client import MessagingClient
 
