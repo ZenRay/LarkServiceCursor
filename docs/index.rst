@@ -7,8 +7,10 @@ Lark Service 文档
    :maxdepth: 2
    :caption: 快速开始
 
+   README
    installation
    quickstart
+   quick-reference
 
 .. toctree::
    :maxdepth: 2
@@ -28,6 +30,8 @@ Lark Service 文档
    :maxdepth: 2
    :caption: API 参考
 
+   api-examples
+   api-rate-limiting-guide
    api/core
    api/auth
    api/messaging
@@ -48,7 +52,14 @@ Lark Service 文档
    deployment/PRODUCTION_DEPLOYMENT
    deployment
    monitoring
+   observability-guide
+   grafana-setup-guide
+   tracing-guide
    troubleshooting
+   error-codes
+   error-handling-guide
+   error-recovery-guide
+   security-guide
 
 .. toctree::
    :maxdepth: 2
@@ -58,8 +69,9 @@ Lark Service 文档
    architecture
 
 .. toctree::
-   :maxdepth: 2
-   :caption: 功能特性
+   :maxdepth:开发与测试
+
+   development-environment   :caption: 功能特性
 
    features/token-monitoring
 
