@@ -31,7 +31,7 @@ from lark_service.core.storage.sqlite_storage import ApplicationManager, TokenSt
 # 初始化
 config = Config()
 app_manager = ApplicationManager(db_path="data/applications.db")
-token_storage = TokenStorageService(db_path="data/tokens.db")
+token_storage = TokenStorageService(postgres_url=config.postgres_url)
 credential_pool = CredentialPool(
     config=config,
     app_manager=app_manager,
