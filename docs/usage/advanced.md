@@ -31,7 +31,7 @@ from lark_service.messaging.client import MessagingClient
 # 初始化
 config = Config()
 app_manager = ApplicationManager(db_path="data/applications.db")
-token_storage = TokenStorageService(postgres_url=config.postgres_url)
+token_storage = TokenStorageService(config.get_postgres_url())
 credential_pool = CredentialPool(
     config=config, app_manager=app_manager, token_storage=token_storage, lock_dir=Path("data/locks")
 )
@@ -88,7 +88,7 @@ from lark_service.messaging.client import MessagingClient
 # 初始化
 config = Config()
 app_manager = ApplicationManager(db_path="data/applications.db")
-token_storage = TokenStorageService(postgres_url=config.postgres_url)
+token_storage = TokenStorageService(config.get_postgres_url())
 credential_pool = CredentialPool(
     config=config, app_manager=app_manager, token_storage=token_storage, lock_dir=Path("data/locks")
 )
@@ -162,7 +162,7 @@ from lark_service.messaging.client import MessagingClient
 # 初始化
 config = Config()
 app_manager = ApplicationManager(db_path="data/applications.db")
-token_storage = TokenStorageService(postgres_url=config.postgres_url)
+token_storage = TokenStorageService(config.get_postgres_url())
 credential_pool = CredentialPool(
     config=config, app_manager=app_manager, token_storage=token_storage, lock_dir=Path("data/locks")
 )
@@ -211,7 +211,7 @@ from lark_service.messaging.client import MessagingClient
 # 初始化
 config = Config()
 app_manager = ApplicationManager(db_path="data/applications.db")
-token_storage = TokenStorageService(postgres_url=config.postgres_url)
+token_storage = TokenStorageService(config.get_postgres_url())
 credential_pool = CredentialPool(
     config=config, app_manager=app_manager, token_storage=token_storage, lock_dir=Path("data/locks")
 )
@@ -267,7 +267,7 @@ from lark_service.core.storage.sqlite_storage import ApplicationManager, TokenSt
 # 初始化
 config = Config()
 app_manager = ApplicationManager(db_path="data/applications.db")
-token_storage = TokenStorageService(postgres_url=config.postgres_url)
+token_storage = TokenStorageService(config.get_postgres_url())
 credential_pool = CredentialPool(
     config=config, app_manager=app_manager, token_storage=token_storage, lock_dir=Path("data/locks")
 )
@@ -318,7 +318,7 @@ from lark_service.messaging.client import MessagingClient
 # 初始化
 config = Config()
 app_manager = ApplicationManager(db_path="data/applications.db")
-token_storage = TokenStorageService(postgres_url=config.postgres_url)
+token_storage = TokenStorageService(config.get_postgres_url())
 credential_pool = CredentialPool(
     config=config, app_manager=app_manager, token_storage=token_storage, lock_dir=Path("data/locks")
 )
@@ -415,7 +415,7 @@ from lark_service.messaging.client import MessagingClient
 
 config = Config()
 app_manager = ApplicationManager(db_path="data/applications.db")
-token_storage = TokenStorageService(postgres_url=config.postgres_url)
+token_storage = TokenStorageService(config.get_postgres_url())
 credential_pool = CredentialPool(
     config=config, app_manager=app_manager, token_storage=token_storage, lock_dir=Path("data/locks")
 )
@@ -450,7 +450,7 @@ from lark_service.core.storage.sqlite_storage import ApplicationManager, TokenSt
 # 初始化
 config = Config()
 app_manager = ApplicationManager(db_path="data/applications.db")
-token_storage = TokenStorageService(postgres_url=config.postgres_url)
+token_storage = TokenStorageService(config.get_postgres_url())
 
 # CredentialPool会自动管理Token缓存和刷新
 credential_pool = CredentialPool(
@@ -490,7 +490,7 @@ from lark_service.core.storage.sqlite_storage import ApplicationManager, TokenSt
 # 初始化 (全局单例)
 config = Config()
 app_manager = ApplicationManager(db_path="data/applications.db")
-token_storage = TokenStorageService(postgres_url=config.postgres_url)
+token_storage = TokenStorageService(config.get_postgres_url())
 credential_pool = CredentialPool(
     config=config, app_manager=app_manager, token_storage=token_storage, lock_dir=Path("data/locks")
 )
@@ -533,7 +533,7 @@ if not app_id or not app_secret:
 # 初始化
 config = Config()
 app_manager = ApplicationManager(db_path="data/applications.db")
-token_storage = TokenStorageService(postgres_url=config.postgres_url)
+token_storage = TokenStorageService(config.get_postgres_url())
 credential_pool = CredentialPool(
     config=config, app_manager=app_manager, token_storage=token_storage, lock_dir=Path("data/locks")
 )
@@ -576,7 +576,7 @@ from lark_service.messaging.client import MessagingClient
 # 初始化
 config = Config()
 app_manager = ApplicationManager(db_path="data/applications.db")
-token_storage = TokenStorageService(postgres_url=config.postgres_url)
+token_storage = TokenStorageService(config.get_postgres_url())
 credential_pool = CredentialPool(
     config=config, app_manager=app_manager, token_storage=token_storage, lock_dir=Path("data/locks")
 )
