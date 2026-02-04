@@ -123,11 +123,16 @@
 <li class="toctree-l2"><a class="reference internal" href="#id4">步骤 2: 配置环境变量</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#id5">步骤 3: 初始化数据库</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#id6">步骤 4: 添加飞书应用</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id7">步骤 5: 发送第一条消息</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id8">步骤 6: 发送交互式卡片</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id9">🎉 完成！</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id10">下一步</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id11">常见问题</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id">步骤 5: 获取接收者 ID</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id7">方式 1: 群聊 ID（推荐用于测试）</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#open-id">方式 2: 用户 open_id</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id8">步骤 6: 发送第一条消息</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id9">步骤 7: 发送交互式卡片</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id10">🎉 完成！</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id11">下一步</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id12">常见问题</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#q-open-id">Q: 如何获取用户的 open_id？</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#q-token">Q: 如何处理 token 过期？</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#q">Q: 如何启用日志？</a></li>
@@ -1524,8 +1529,48 @@ alembic<span class="w"> </span>upgrade<span class="w"> </span>head
 </pre></div>
 </div>
 </section>
+<section id="id">
+<h2>步骤 5: 获取接收者 ID<a class="headerlink" href="#id" title="Link to this heading"></a></h2>
+<p>发送消息前需要获取接收者的 ID。有以下几种方式：</p>
 <section id="id7">
-<h2>步骤 5: 发送第一条消息<a class="headerlink" href="#id7" title="Link to this heading"></a></h2>
+<h3>方式 1: 群聊 ID（推荐用于测试）<a class="headerlink" href="#id7" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p>在飞书中打开目标群聊</p></li>
+<li><p>点击右上角「...」→「设置」</p></li>
+<li><p>在群设置中找到「群组 ID」（格式：<code class="docutils literal notranslate"><span class="pre">oc_xxx</span></code>）</p></li>
+<li><p>复制群组 ID 用于发送消息</p></li>
+</ol>
+</section>
+<section id="open-id">
+<h3>方式 2: 用户 open_id<a class="headerlink" href="#open-id" title="Link to this heading"></a></h3>
+<p><strong>注意</strong>：每个应用的用户 open_id 是独立的，不能跨应用使用。</p>
+<p>使用 CLI 工具查询：</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 通过手机号查询</span>
+lark-service-cli<span class="w"> </span>contact<span class="w"> </span>get-user-by-mobile<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--app-id<span class="w"> </span>cli_a8d27f9bf635500e<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--mobile<span class="w"> </span><span class="s2">&quot;+8613800138000&quot;</span>
+
+<span class="c1"># 通过邮箱查询</span>
+lark-service-cli<span class="w"> </span>contact<span class="w"> </span>get-user-by-email<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--app-id<span class="w"> </span>cli_a8d27f9bf635500e<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--email<span class="w"> </span><span class="s2">&quot;user@example.com&quot;</span>
+</pre></div>
+</div>
+<p>或使用 Python 代码：</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lark_service.contact.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">ContactClient</span>
+
+<span class="n">contact_client</span> <span class="o">=</span> <span class="n">ContactClient</span><span class="p">(</span><span class="n">credential_pool</span><span class="p">)</span>
+<span class="n">user</span> <span class="o">=</span> <span class="n">contact_client</span><span class="o">.</span><span class="n">get_user_by_mobile</span><span class="p">(</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_a8d27f9bf635500e&quot;</span><span class="p">,</span>
+    <span class="n">mobile</span><span class="o">=</span><span class="s2">&quot;+8613800138000&quot;</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;用户 open_id: </span><span class="si">{</span><span class="n">user</span><span class="p">[</span><span class="s1">&#39;open_id&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id8">
+<h2>步骤 6: 发送第一条消息<a class="headerlink" href="#id8" title="Link to this heading"></a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lark_service.core.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">Config</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">lark_service.core.storage</span><span class="w"> </span><span class="kn">import</span> <span class="n">ApplicationManager</span><span class="p">,</span> <span class="n">TokenStorageService</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">lark_service.core.credential_pool</span><span class="w"> </span><span class="kn">import</span> <span class="n">CredentialPool</span>
@@ -1550,18 +1595,35 @@ alembic<span class="w"> </span>upgrade<span class="w"> </span>head
 <span class="n">messaging_client</span> <span class="o">=</span> <span class="n">MessagingClient</span><span class="p">(</span><span class="n">credential_pool</span><span class="p">)</span>
 
 <span class="c1"># 4. 发送文本消息</span>
+<span class="c1"># 注意：需要使用当前应用的接收者 ID</span>
+<span class="c1"># 选项1：发送到群聊（推荐用于测试，群聊 ID 通用）</span>
 <span class="n">response</span> <span class="o">=</span> <span class="n">messaging_client</span><span class="o">.</span><span class="n">send_text_message</span><span class="p">(</span>
     <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_a8d27f9bf635500e&quot;</span><span class="p">,</span>
-    <span class="n">receiver_id</span><span class="o">=</span><span class="s2">&quot;ou_xxx&quot;</span><span class="p">,</span>  <span class="c1"># 用户 open_id</span>
-    <span class="n">content</span><span class="o">=</span><span class="s2">&quot;你好，这是来自 Lark Service 的第一条消息！&quot;</span>
+    <span class="n">receiver_id</span><span class="o">=</span><span class="s2">&quot;oc_xxx&quot;</span><span class="p">,</span>  <span class="c1"># 群聊 ID，从飞书群聊设置中获取</span>
+    <span class="n">content</span><span class="o">=</span><span class="s2">&quot;你好，这是来自 Lark Service 的第一条消息！&quot;</span><span class="p">,</span>
+    <span class="n">receive_id_type</span><span class="o">=</span><span class="s2">&quot;chat_id&quot;</span>  <span class="c1"># 指定接收者类型为群聊</span>
 <span class="p">)</span>
+
+<span class="c1"># 选项2：发送到个人（open_id 是应用特定的）</span>
+<span class="c1"># 需要先通过手机号或邮箱获取用户的 open_id</span>
+<span class="c1"># from lark_service.contact.client import ContactClient</span>
+<span class="c1"># contact_client = ContactClient(credential_pool)</span>
+<span class="c1"># user = contact_client.get_user_by_mobile(</span>
+<span class="c1">#     app_id=&quot;cli_a8d27f9bf635500e&quot;,</span>
+<span class="c1">#     mobile=&quot;+8613800138000&quot;</span>
+<span class="c1"># )</span>
+<span class="c1"># response = messaging_client.send_text_message(</span>
+<span class="c1">#     app_id=&quot;cli_a8d27f9bf635500e&quot;,</span>
+<span class="c1">#     receiver_id=user[&#39;open_id&#39;],</span>
+<span class="c1">#     content=&quot;你好！&quot;</span>
+<span class="c1"># )</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✅ 消息发送成功！message_id: </span><span class="si">{</span><span class="n">response</span><span class="p">[</span><span class="s1">&#39;message_id&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
-<section id="id8">
-<h2>步骤 6: 发送交互式卡片<a class="headerlink" href="#id8" title="Link to this heading"></a></h2>
+<section id="id9">
+<h2>步骤 7: 发送交互式卡片<a class="headerlink" href="#id9" title="Link to this heading"></a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lark_service.cardkit.builder</span><span class="w"> </span><span class="kn">import</span> <span class="n">CardBuilder</span>
 
 <span class="c1"># 创建卡片</span>
@@ -1571,23 +1633,24 @@ alembic<span class="w"> </span>upgrade<span class="w"> </span>head
     <span class="o">.</span><span class="n">add_button</span><span class="p">(</span><span class="s2">&quot;点击我&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;action&quot;</span><span class="p">:</span> <span class="s2">&quot;click&quot;</span><span class="p">})</span> \
     <span class="o">.</span><span class="n">build</span><span class="p">()</span>
 
-<span class="c1"># 发送卡片</span>
+<span class="c1"># 发送卡片（使用与步骤6相同的接收者）</span>
 <span class="n">response</span> <span class="o">=</span> <span class="n">messaging_client</span><span class="o">.</span><span class="n">send_card_message</span><span class="p">(</span>
     <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_a8d27f9bf635500e&quot;</span><span class="p">,</span>
-    <span class="n">receiver_id</span><span class="o">=</span><span class="s2">&quot;ou_xxx&quot;</span><span class="p">,</span>
-    <span class="n">card</span><span class="o">=</span><span class="n">card</span>
+    <span class="n">receiver_id</span><span class="o">=</span><span class="s2">&quot;oc_xxx&quot;</span><span class="p">,</span>  <span class="c1"># 替换为实际的群聊 ID</span>
+    <span class="n">card</span><span class="o">=</span><span class="n">card</span><span class="p">,</span>
+    <span class="n">receive_id_type</span><span class="o">=</span><span class="s2">&quot;chat_id&quot;</span>
 <span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✅ 卡片发送成功！message_id: </span><span class="si">{</span><span class="n">response</span><span class="p">[</span><span class="s1">&#39;message_id&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
-<section id="id9">
-<h2>🎉 完成！<a class="headerlink" href="#id9" title="Link to this heading"></a></h2>
+<section id="id10">
+<h2>🎉 完成！<a class="headerlink" href="#id10" title="Link to this heading"></a></h2>
 <p>恭喜！你已经成功发送了第一条消息和交互式卡片。</p>
 </section>
-<section id="id10">
-<h2>下一步<a class="headerlink" href="#id10" title="Link to this heading"></a></h2>
+<section id="id11">
+<h2>下一步<a class="headerlink" href="#id11" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>📖 <a class="reference internal" href="usage/messaging.html"><span class="std std-doc">消息服务</span></a> - 学习各种消息类型</p></li>
 <li><p>🎴 <a class="reference internal" href="usage/card.html"><span class="std std-doc">卡片服务</span></a> - 创建复杂的交互式卡片</p></li>
@@ -1596,8 +1659,8 @@ alembic<span class="w"> </span>upgrade<span class="w"> </span>head
 <li><p>🔐 <a class="reference internal" href="usage/auth.html"><span class="std std-doc">用户授权</span></a> - WebSocket 用户授权流程</p></li>
 </ul>
 </section>
-<section id="id11">
-<h2>常见问题<a class="headerlink" href="#id11" title="Link to this heading"></a></h2>
+<section id="id12">
+<h2>常见问题<a class="headerlink" href="#id12" title="Link to this heading"></a></h2>
 <section id="q-open-id">
 <h3>Q: 如何获取用户的 open_id？<a class="headerlink" href="#q-open-id" title="Link to this heading"></a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lark_service.contact.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">ContactClient</span>
