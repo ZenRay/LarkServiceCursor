@@ -71,7 +71,7 @@ from lark_service.messaging.client import MessagingClient
 messaging_client = MessagingClient(credential_pool=credential_pool)
 
 # 修复后 ✅
-messaging_client = MessagingClient(pool=credential_pool)
+messaging_client = MessagingClient(credential_pool)
 ```
 
 ```python
