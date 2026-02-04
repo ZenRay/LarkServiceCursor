@@ -1626,12 +1626,14 @@ lark-service-cli<span class="w"> </span>contact<span class="w"> </span>get-user-
 <h2>步骤 7: 发送交互式卡片<a class="headerlink" href="#id9" title="Link to this heading"></a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lark_service.cardkit.builder</span><span class="w"> </span><span class="kn">import</span> <span class="n">CardBuilder</span>
 
-<span class="c1"># 创建卡片</span>
-<span class="n">card</span> <span class="o">=</span> <span class="n">CardBuilder</span><span class="p">()</span> \
-    <span class="o">.</span><span class="n">add_header</span><span class="p">(</span><span class="s2">&quot;欢迎使用 Lark Service&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;blue&quot;</span><span class="p">)</span> \
-    <span class="o">.</span><span class="n">add_text</span><span class="p">(</span><span class="s2">&quot;这是一条交互式卡片消息&quot;</span><span class="p">)</span> \
-    <span class="o">.</span><span class="n">add_button</span><span class="p">(</span><span class="s2">&quot;点击我&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;action&quot;</span><span class="p">:</span> <span class="s2">&quot;click&quot;</span><span class="p">})</span> \
-    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="c1"># 创建通知卡片</span>
+<span class="n">card</span> <span class="o">=</span> <span class="n">CardBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">build_notification_card</span><span class="p">(</span>
+    <span class="n">title</span><span class="o">=</span><span class="s2">&quot;欢迎使用 Lark Service&quot;</span><span class="p">,</span>
+    <span class="n">content</span><span class="o">=</span><span class="s2">&quot;这是一条交互式卡片消息，支持 **Markdown** 格式！&quot;</span><span class="p">,</span>
+    <span class="n">level</span><span class="o">=</span><span class="s2">&quot;info&quot;</span><span class="p">,</span>
+    <span class="n">action_text</span><span class="o">=</span><span class="s2">&quot;查看详情&quot;</span><span class="p">,</span>
+    <span class="n">action_url</span><span class="o">=</span><span class="s2">&quot;https://example.com&quot;</span>
+<span class="p">)</span>
 
 <span class="c1"># 发送卡片（使用与步骤6相同的接收者）</span>
 <span class="n">response</span> <span class="o">=</span> <span class="n">messaging_client</span><span class="o">.</span><span class="n">send_card_message</span><span class="p">(</span>

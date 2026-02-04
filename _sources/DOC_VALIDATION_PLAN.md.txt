@@ -78,3 +78,4 @@ from lark_service.core.storage.postgres_storage import TokenStorageService
 ## 🚀 自动化验证脚本
 
 创建 `scripts/validate_docs.py` 来自动验证所有文档代码。
+ou_aa3866e78bfb355ff526dca76ff3868c

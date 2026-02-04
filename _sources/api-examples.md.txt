@@ -70,16 +70,21 @@ client.send_post(
 ### 发送卡片消息
 
 ```python
-from lark_service.cardkit import CardBuilder
+from lark_service.cardkit.builder import CardBuilder
 
-card = CardBuilder() \
-    .add_header("通知标题", "blue") \
-    .add_text("这是通知内容") \
-    .add_button("查看详情", "https://example.com") \
-    .build()
+# 创建通知卡片
+card = CardBuilder().build_notification_card(
+    title="通知标题",
+    content="这是通知内容，支持 **Markdown** 格式",
+    level="info",
+    action_text="查看详情",
+    action_url="https://example.com"
+)
 
-client.send_interactive(
-    receive_id="ou_123",
+# 发送卡片
+messaging_client.send_card_message(
+    app_id="cli_xxx",
+    receiver_id="ou_123",
     card=card
 )
 ```

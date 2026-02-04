@@ -1551,16 +1551,21 @@
 </section>
 <section id="id5">
 <h3>发送卡片消息<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lark_service.cardkit</span><span class="w"> </span><span class="kn">import</span> <span class="n">CardBuilder</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lark_service.cardkit.builder</span><span class="w"> </span><span class="kn">import</span> <span class="n">CardBuilder</span>
 
-<span class="n">card</span> <span class="o">=</span> <span class="n">CardBuilder</span><span class="p">()</span> \
-    <span class="o">.</span><span class="n">add_header</span><span class="p">(</span><span class="s2">&quot;通知标题&quot;</span><span class="p">,</span> <span class="s2">&quot;blue&quot;</span><span class="p">)</span> \
-    <span class="o">.</span><span class="n">add_text</span><span class="p">(</span><span class="s2">&quot;这是通知内容&quot;</span><span class="p">)</span> \
-    <span class="o">.</span><span class="n">add_button</span><span class="p">(</span><span class="s2">&quot;查看详情&quot;</span><span class="p">,</span> <span class="s2">&quot;https://example.com&quot;</span><span class="p">)</span> \
-    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="c1"># 创建通知卡片</span>
+<span class="n">card</span> <span class="o">=</span> <span class="n">CardBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">build_notification_card</span><span class="p">(</span>
+    <span class="n">title</span><span class="o">=</span><span class="s2">&quot;通知标题&quot;</span><span class="p">,</span>
+    <span class="n">content</span><span class="o">=</span><span class="s2">&quot;这是通知内容，支持 **Markdown** 格式&quot;</span><span class="p">,</span>
+    <span class="n">level</span><span class="o">=</span><span class="s2">&quot;info&quot;</span><span class="p">,</span>
+    <span class="n">action_text</span><span class="o">=</span><span class="s2">&quot;查看详情&quot;</span><span class="p">,</span>
+    <span class="n">action_url</span><span class="o">=</span><span class="s2">&quot;https://example.com&quot;</span>
+<span class="p">)</span>
 
-<span class="n">client</span><span class="o">.</span><span class="n">send_interactive</span><span class="p">(</span>
-    <span class="n">receive_id</span><span class="o">=</span><span class="s2">&quot;ou_123&quot;</span><span class="p">,</span>
+<span class="c1"># 发送卡片</span>
+<span class="n">messaging_client</span><span class="o">.</span><span class="n">send_card_message</span><span class="p">(</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_xxx&quot;</span><span class="p">,</span>
+    <span class="n">receiver_id</span><span class="o">=</span><span class="s2">&quot;ou_123&quot;</span><span class="p">,</span>
     <span class="n">card</span><span class="o">=</span><span class="n">card</span>
 <span class="p">)</span>
 </pre></div>
