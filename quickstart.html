@@ -1547,7 +1547,7 @@ alembic<span class="w"> </span>upgrade<span class="w"> </span>head
 <span class="p">)</span>
 
 <span class="c1"># 3. 创建消息客户端</span>
-<span class="n">messaging_client</span> <span class="o">=</span> <span class="n">MessagingClient</span><span class="p">(</span><span class="n">pool</span><span class="o">=</span><span class="n">credential_pool</span><span class="p">)</span>
+<span class="n">messaging_client</span> <span class="o">=</span> <span class="n">MessagingClient</span><span class="p">(</span><span class="n">credential_pool</span><span class="p">)</span>
 
 <span class="c1"># 4. 发送文本消息</span>
 <span class="n">response</span> <span class="o">=</span> <span class="n">messaging_client</span><span class="o">.</span><span class="n">send_text_message</span><span class="p">(</span>

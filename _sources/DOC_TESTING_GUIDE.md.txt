@@ -89,7 +89,7 @@ credential_pool = CredentialPool(
 )
 
 # 3. 创建消息客户端
-messaging_client = MessagingClient(pool=credential_pool)
+messaging_client = MessagingClient(credential_pool)
 
 print("✅ 所有组件初始化成功！")
 print(f"Config DB: {config.config_db_path}")

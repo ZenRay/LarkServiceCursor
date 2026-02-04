@@ -70,7 +70,7 @@ credential_pool = CredentialPool(
 )
 
 # 3. 创建消息客户端
-messaging_client = MessagingClient(pool=credential_pool)
+messaging_client = MessagingClient(credential_pool)
 
 # 4. 发送文本消息
 response = messaging_client.send_text_message(
