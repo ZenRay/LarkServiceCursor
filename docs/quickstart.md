@@ -46,7 +46,49 @@ lark-service-cli app add \
     --app-name "我的测试应用"
 ```
 
-## 步骤 5: 发送第一条消息
+## 步骤 5: 获取接收者 ID
+
+发送消息前需要获取接收者的 ID。有以下几种方式：
+
+### 方式 1: 群聊 ID（推荐用于测试）
+
+1. 在飞书中打开目标群聊
+2. 点击右上角「...」→「设置」
+3. 在群设置中找到「群组 ID」（格式：`oc_xxx`）
+4. 复制群组 ID 用于发送消息
+
+### 方式 2: 用户 open_id
+
+**注意**：每个应用的用户 open_id 是独立的，不能跨应用使用。
+
+使用 CLI 工具查询：
+
+```bash
+# 通过手机号查询
+lark-service-cli contact get-user-by-mobile \
+    --app-id cli_a8d27f9bf635500e \
+    --mobile "+8613800138000"
+
+# 通过邮箱查询
+lark-service-cli contact get-user-by-email \
+    --app-id cli_a8d27f9bf635500e \
+    --email "user@example.com"
+```
+
+或使用 Python 代码：
+
+```python
+from lark_service.contact.client import ContactClient
+
+contact_client = ContactClient(credential_pool)
+user = contact_client.get_user_by_mobile(
+    app_id="cli_a8d27f9bf635500e",
+    mobile="+8613800138000"
+)
+print(f"用户 open_id: {user['open_id']}")
+```
+
+## 步骤 6: 发送第一条消息
 
 ```python
 from lark_service.core.config import Config
@@ -73,16 +115,33 @@ credential_pool = CredentialPool(
 messaging_client = MessagingClient(credential_pool)
 
 # 4. 发送文本消息
+# 注意：需要使用当前应用的接收者 ID
+# 选项1：发送到群聊（推荐用于测试，群聊 ID 通用）
 response = messaging_client.send_text_message(
     app_id="cli_a8d27f9bf635500e",
-    receiver_id="ou_xxx",  # 用户 open_id
-    content="你好，这是来自 Lark Service 的第一条消息！"
+    receiver_id="oc_xxx",  # 群聊 ID，从飞书群聊设置中获取
+    content="你好，这是来自 Lark Service 的第一条消息！",
+    receive_id_type="chat_id"  # 指定接收者类型为群聊
 )
+
+# 选项2：发送到个人（open_id 是应用特定的）
+# 需要先通过手机号或邮箱获取用户的 open_id
+# from lark_service.contact.client import ContactClient
+# contact_client = ContactClient(credential_pool)
+# user = contact_client.get_user_by_mobile(
+#     app_id="cli_a8d27f9bf635500e",
+#     mobile="+8613800138000"
+# )
+# response = messaging_client.send_text_message(
+#     app_id="cli_a8d27f9bf635500e",
+#     receiver_id=user['open_id'],
+#     content="你好！"
+# )
 
 print(f"✅ 消息发送成功！message_id: {response['message_id']}")
 ```
 
-## 步骤 6: 发送交互式卡片
+## 步骤 7: 发送交互式卡片
 
 ```python
 from lark_service.cardkit.builder import CardBuilder
@@ -94,11 +153,12 @@ card = CardBuilder() \
     .add_button("点击我", value={"action": "click"}) \
     .build()
 
-# 发送卡片
+# 发送卡片（使用与步骤6相同的接收者）
 response = messaging_client.send_card_message(
     app_id="cli_a8d27f9bf635500e",
-    receiver_id="ou_xxx",
-    card=card
+    receiver_id="oc_xxx",  # 替换为实际的群聊 ID
+    card=card,
+    receive_id_type="chat_id"
 )
 
 print(f"✅ 卡片发送成功！message_id: {response['message_id']}")
