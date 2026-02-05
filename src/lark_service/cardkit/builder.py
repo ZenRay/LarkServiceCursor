@@ -18,25 +18,410 @@ class CardBuilder:
     """
     Builder for constructing Lark interactive cards.
 
-    Provides methods for building cards with various templates and components,
-    including approval cards, notification cards, and form cards.
+    Supports two usage patterns:
+
+    1. **Template Methods** (Quick & Easy): Use pre-built templates for common scenarios
+    2. **Fluent API** (Flexible): Chain method calls to build custom cards
 
     Examples
     --------
-        >>> builder = CardBuilder()
-        >>> card = builder.build_approval_card(
-        ...     title="Leave Request",
-        ...     applicant="John Doe",
-        ...     fields={"Type": "Annual Leave", "Days": "3"},
-        ...     approve_action_id="approve_leave",
-        ...     reject_action_id="reject_leave"
+    Template method (quick):
+
+        >>> card = CardBuilder().build_notification_card(
+        ...     title="System Alert",
+        ...     content="Service maintenance scheduled",
+        ...     level="warning"
         ... )
-        >>> print(card)
+
+    Fluent API (flexible):
+
+        >>> card = (CardBuilder()
+        ...     .add_header("Custom Card", template="blue")
+        ...     .add_markdown("**Important**: Please review")
+        ...     .add_text("This is a custom notification")
+        ...     .add_divider()
+        ...     .add_button("Confirm", action_id="confirm")
+        ...     .build()
+        ... )
+
+    Combined approach:
+
+        >>> card = (CardBuilder()
+        ...     .add_header("Alert", template="red")
+        ...     .add_markdown("**Error**: System failure")
+        ...     .add_button("View Details", url="https://status.example.com")
+        ...     .build()
+        ... )
     """
 
     def __init__(self) -> None:
-        """Initialize CardBuilder."""
-        pass
+        """Initialize CardBuilder with empty state."""
+        self._header: dict[str, Any] | None = None
+        self._elements: list[dict[str, Any]] = []
+        self._card_link: dict[str, Any] | None = None
+
+    # ========================================================================
+    # Fluent API Methods (Chain-able)
+    # ========================================================================
+
+    def add_header(
+        self,
+        title: str,
+        template: str = "blue",
+        subtitle: str | None = None,
+    ) -> "CardBuilder":
+        """
+        Add header to card (fluent API).
+
+        Parameters
+        ----------
+            title : str
+                Header title
+            template : str
+                Color template: "blue", "green", "red", "orange", "purple", "indigo"
+            subtitle : str | None
+                Optional subtitle text
+
+        Returns
+        -------
+            CardBuilder
+                Self for method chaining
+
+        Examples
+        --------
+            >>> card = (CardBuilder()
+            ...     .add_header("Welcome", template="green")
+            ...     .add_text("Hello World")
+            ...     .build()
+            ... )
+        """
+        self._header = {
+            "title": {"tag": "plain_text", "content": title},
+            "template": template,
+        }
+        if subtitle:
+            self._header["subtitle"] = {"tag": "plain_text", "content": subtitle}
+        return self
+
+    def add_markdown(self, content: str) -> "CardBuilder":
+        """
+        Add markdown text element (fluent API).
+
+        Supports markdown formatting: **bold**, *italic*, [links](url), etc.
+
+        Parameters
+        ----------
+            content : str
+                Markdown content
+
+        Returns
+        -------
+            CardBuilder
+                Self for method chaining
+
+        Examples
+        --------
+            >>> card = (CardBuilder()
+            ...     .add_markdown("**Important**: Please review")
+            ...     .build()
+            ... )
+        """
+        self._elements.append({"tag": "div", "text": {"tag": "lark_md", "content": content}})
+        return self
+
+    def add_text(self, content: str) -> "CardBuilder":
+        """
+        Add plain text element (fluent API).
+
+        Parameters
+        ----------
+            content : str
+                Plain text content
+
+        Returns
+        -------
+            CardBuilder
+                Self for method chaining
+
+        Examples
+        --------
+            >>> card = (CardBuilder()
+            ...     .add_text("This is plain text")
+            ...     .build()
+            ... )
+        """
+        self._elements.append({"tag": "div", "text": {"tag": "plain_text", "content": content}})
+        return self
+
+    def add_divider(self) -> "CardBuilder":
+        """
+        Add horizontal divider (fluent API).
+
+        Returns
+        -------
+            CardBuilder
+                Self for method chaining
+
+        Examples
+        --------
+            >>> card = (CardBuilder()
+            ...     .add_text("Section 1")
+            ...     .add_divider()
+            ...     .add_text("Section 2")
+            ...     .build()
+            ... )
+        """
+        self._elements.append({"tag": "hr"})
+        return self
+
+    def add_button(
+        self,
+        text: str,
+        action_id: str | None = None,
+        url: str | None = None,
+        button_type: str = "default",
+        value: dict[str, Any] | None = None,
+    ) -> "CardBuilder":
+        """
+        Add action button (fluent API).
+
+        Parameters
+        ----------
+            text : str
+                Button text
+            action_id : str | None
+                Action ID for callback handling
+            url : str | None
+                URL to open when clicked (alternative to action_id)
+            button_type : str
+                Button style: "default", "primary", "danger"
+            value : dict[str, Any] | None
+                Additional data to pass with action
+
+        Returns
+        -------
+            CardBuilder
+                Self for method chaining
+
+        Examples
+        --------
+            >>> # Callback button
+            >>> card = (CardBuilder()
+            ...     .add_button("Confirm", action_id="confirm", button_type="primary")
+            ...     .build()
+            ... )
+
+            >>> # URL button
+            >>> card = (CardBuilder()
+            ...     .add_button("Learn More", url="https://example.com")
+            ...     .build()
+            ... )
+        """
+        button: dict[str, Any] = {
+            "tag": "button",
+            "text": {"tag": "plain_text", "content": text},
+            "type": button_type,
+        }
+
+        if action_id:
+            button["action_id"] = action_id
+            button["value"] = value or {"action": "click"}
+
+        if url:
+            button["url"] = url
+
+        # Check if last element is action container, if so add to it
+        if self._elements and self._elements[-1].get("tag") == "action":
+            self._elements[-1]["actions"].append(button)
+        else:
+            self._elements.append({"tag": "action", "actions": [button]})
+
+        return self
+
+    def add_field(self, label: str, value: str) -> "CardBuilder":
+        """
+        Add key-value field (fluent API).
+
+        Parameters
+        ----------
+            label : str
+                Field label
+            value : str
+                Field value
+
+        Returns
+        -------
+            CardBuilder
+                Self for method chaining
+
+        Examples
+        --------
+            >>> card = (CardBuilder()
+            ...     .add_field("Name", "John Doe")
+            ...     .add_field("Email", "john@example.com")
+            ...     .build()
+            ... )
+        """
+        self._elements.append(
+            {"tag": "div", "text": {"tag": "lark_md", "content": f"**{label}**: {value}"}}
+        )
+        return self
+
+    def add_image(self, image_key: str, alt: str = "", title: str | None = None) -> "CardBuilder":
+        """
+        Add image element (fluent API).
+
+        Parameters
+        ----------
+            image_key : str
+                Image key from Lark media upload
+            alt : str
+                Alt text for image
+            title : str | None
+                Optional image title
+
+        Returns
+        -------
+            CardBuilder
+                Self for method chaining
+
+        Examples
+        --------
+            >>> card = (CardBuilder()
+            ...     .add_image("img_xxx", alt="Product", title="New Product")
+            ...     .build()
+            ... )
+        """
+        img_element: dict[str, Any] = {
+            "tag": "img",
+            "img_key": image_key,
+            "alt": {"tag": "plain_text", "content": alt},
+        }
+        if title:
+            img_element["title"] = {"tag": "plain_text", "content": title}
+
+        self._elements.append(img_element)
+        return self
+
+    def add_note(self, content: str, note_type: str = "default") -> "CardBuilder":
+        """
+        Add note/alert element (fluent API).
+
+        Parameters
+        ----------
+            content : str
+                Note content (supports markdown)
+            note_type : str
+                Note style: "default", "info", "warning", "error"
+
+        Returns
+        -------
+            CardBuilder
+                Self for method chaining
+
+        Examples
+        --------
+            >>> card = (CardBuilder()
+            ...     .add_note("**Important**: Please review", note_type="warning")
+            ...     .build()
+            ... )
+        """
+        self._elements.append(
+            {
+                "tag": "note",
+                "elements": [{"tag": "plain_text", "content": content}],
+            }
+        )
+        return self
+
+    def add_card_link(self, url: str, text: str = "查看详情") -> "CardBuilder":
+        """
+        Add card-level link (fluent API).
+
+        Makes entire card clickable.
+
+        Parameters
+        ----------
+            url : str
+                Link URL
+            text : str
+                Link text (default: "查看详情")
+
+        Returns
+        -------
+            CardBuilder
+                Self for method chaining
+
+        Examples
+        --------
+            >>> card = (CardBuilder()
+            ...     .add_text("Click anywhere to view")
+            ...     .add_card_link("https://example.com")
+            ...     .build()
+            ... )
+        """
+        self._card_link = {
+            "url": url,
+            "text": {"tag": "plain_text", "content": text},
+        }
+        return self
+
+    def build(self) -> dict[str, Any]:
+        """
+        Build final card and reset state (fluent API).
+
+        Returns
+        -------
+            dict[str, Any]
+                Complete card JSON structure
+
+        Raises
+        ------
+            InvalidParameterError
+                If no elements added
+
+        Examples
+        --------
+            >>> card = (CardBuilder()
+            ...     .add_header("Title")
+            ...     .add_text("Content")
+            ...     .build()
+            ... )
+        """
+        if not self._elements:
+            raise InvalidParameterError(
+                "Card must have at least one element",
+                details={"elements": self._elements},
+            )
+
+        card_dict: dict[str, Any] = {}
+
+        if self._header:
+            card_dict["header"] = self._header
+
+        card_dict["elements"] = self._elements
+
+        if self._card_link:
+            card_dict["card_link"] = self._card_link
+
+        # Validate using Pydantic model
+        config = CardConfig(**card_dict)
+
+        logger.debug(
+            "Card built successfully (fluent API)",
+            extra={"element_count": len(self._elements), "has_header": bool(self._header)},
+        )
+
+        # Reset state for reuse
+        self._header = None
+        self._elements = []
+        self._card_link = None
+
+        return config.model_dump(exclude_none=True)
+
+    # ========================================================================
+    # Template Methods (Quick & Easy)
+    # ========================================================================
 
     def build_card(
         self,

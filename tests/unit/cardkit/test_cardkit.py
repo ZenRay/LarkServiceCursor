@@ -29,6 +29,168 @@ class TestCardBuilder:
         """Test initialization."""
         builder = CardBuilder()
         assert builder is not None
+        assert builder._header is None
+        assert builder._elements == []
+        assert builder._card_link is None
+
+    # ========================================================================
+    # Fluent API Tests
+    # ========================================================================
+
+    def test_fluent_add_header(self, card_builder: CardBuilder) -> None:
+        """Test fluent add_header method."""
+        result = card_builder.add_header("Test Title", template="green")
+
+        assert result is card_builder  # Returns self for chaining
+        assert card_builder._header is not None
+        assert card_builder._header["title"]["content"] == "Test Title"
+        assert card_builder._header["template"] == "green"
+
+    def test_fluent_add_header_with_subtitle(self, card_builder: CardBuilder) -> None:
+        """Test add_header with subtitle."""
+        card_builder.add_header("Main Title", subtitle="Subtitle Text")
+
+        assert card_builder._header["subtitle"]["content"] == "Subtitle Text"
+
+    def test_fluent_add_markdown(self, card_builder: CardBuilder) -> None:
+        """Test fluent add_markdown method."""
+        result = card_builder.add_markdown("**Bold** text")
+
+        assert result is card_builder
+        assert len(card_builder._elements) == 1
+        assert card_builder._elements[0]["text"]["tag"] == "lark_md"
+        assert card_builder._elements[0]["text"]["content"] == "**Bold** text"
+
+    def test_fluent_add_text(self, card_builder: CardBuilder) -> None:
+        """Test fluent add_text method."""
+        result = card_builder.add_text("Plain text")
+
+        assert result is card_builder
+        assert len(card_builder._elements) == 1
+        assert card_builder._elements[0]["text"]["tag"] == "plain_text"
+
+    def test_fluent_add_divider(self, card_builder: CardBuilder) -> None:
+        """Test fluent add_divider method."""
+        result = card_builder.add_divider()
+
+        assert result is card_builder
+        assert len(card_builder._elements) == 1
+        assert card_builder._elements[0]["tag"] == "hr"
+
+    def test_fluent_add_button_with_action(self, card_builder: CardBuilder) -> None:
+        """Test add_button with action_id."""
+        result = card_builder.add_button("Click Me", action_id="btn_click", button_type="primary")
+
+        assert result is card_builder
+        assert len(card_builder._elements) == 1
+        assert card_builder._elements[0]["tag"] == "action"
+
+        button = card_builder._elements[0]["actions"][0]
+        assert button["text"]["content"] == "Click Me"
+        assert button["type"] == "primary"
+        assert button["action_id"] == "btn_click"
+
+    def test_fluent_add_button_with_url(self, card_builder: CardBuilder) -> None:
+        """Test add_button with URL."""
+        card_builder.add_button("Visit", url="https://example.com")
+
+        button = card_builder._elements[0]["actions"][0]
+        assert button["url"] == "https://example.com"
+
+    def test_fluent_add_multiple_buttons(self, card_builder: CardBuilder) -> None:
+        """Test adding multiple buttons to same action container."""
+        card_builder.add_button("Button 1", action_id="btn1")
+        card_builder.add_button("Button 2", action_id="btn2")
+
+        # Should be in same action container
+        assert len(card_builder._elements) == 1
+        assert len(card_builder._elements[0]["actions"]) == 2
+
+    def test_fluent_add_field(self, card_builder: CardBuilder) -> None:
+        """Test fluent add_field method."""
+        result = card_builder.add_field("Name", "John Doe")
+
+        assert result is card_builder
+        assert "**Name**: John Doe" in card_builder._elements[0]["text"]["content"]
+
+    def test_fluent_add_image(self, card_builder: CardBuilder) -> None:
+        """Test fluent add_image method."""
+        result = card_builder.add_image("img_key_123", alt="Test Image", title="My Image")
+
+        assert result is card_builder
+        assert card_builder._elements[0]["tag"] == "img"
+        assert card_builder._elements[0]["img_key"] == "img_key_123"
+        assert card_builder._elements[0]["title"]["content"] == "My Image"
+
+    def test_fluent_add_note(self, card_builder: CardBuilder) -> None:
+        """Test fluent add_note method."""
+        result = card_builder.add_note("Important message", note_type="warning")
+
+        assert result is card_builder
+        assert card_builder._elements[0]["tag"] == "note"
+
+    def test_fluent_add_card_link(self, card_builder: CardBuilder) -> None:
+        """Test fluent add_card_link method."""
+        result = card_builder.add_card_link("https://example.com", text="View More")
+
+        assert result is card_builder
+        assert card_builder._card_link["url"] == "https://example.com"
+        assert card_builder._card_link["text"]["content"] == "View More"
+
+    def test_fluent_build_simple_card(self, card_builder: CardBuilder) -> None:
+        """Test building card with fluent API."""
+        card = card_builder.add_header("Title", template="blue").add_text("Content").build()
+
+        assert card["header"]["title"]["content"] == "Title"
+        assert len(card["elements"]) == 1
+
+    def test_fluent_build_complex_card(self, card_builder: CardBuilder) -> None:
+        """Test building complex card with multiple elements."""
+        card = (
+            card_builder.add_header("Complex Card", template="green")
+            .add_markdown("**Introduction**")
+            .add_text("Plain text content")
+            .add_divider()
+            .add_field("Name", "John")
+            .add_field("Email", "john@example.com")
+            .add_divider()
+            .add_button("Confirm", action_id="confirm", button_type="primary")
+            .add_button("Cancel", action_id="cancel")
+            .build()
+        )
+
+        assert card["header"]["title"]["content"] == "Complex Card"
+        assert len(card["elements"]) > 5
+
+    def test_fluent_build_empty_raises_error(self, card_builder: CardBuilder) -> None:
+        """Test building without elements raises error."""
+        with pytest.raises(InvalidParameterError):
+            card_builder.build()
+
+    def test_fluent_build_resets_state(self, card_builder: CardBuilder) -> None:
+        """Test that build() resets builder state."""
+        card_builder.add_header("Title").add_text("Content")
+        card_builder.build()
+
+        # State should be reset
+        assert card_builder._header is None
+        assert card_builder._elements == []
+        assert card_builder._card_link is None
+
+    def test_fluent_build_reusable(self, card_builder: CardBuilder) -> None:
+        """Test builder can be reused after build()."""
+        # Build first card
+        card1 = card_builder.add_text("Card 1").build()
+
+        # Build second card
+        card2 = card_builder.add_text("Card 2").build()
+
+        assert card1["elements"][0]["text"]["content"] == "Card 1"
+        assert card2["elements"][0]["text"]["content"] == "Card 2"
+
+    # ========================================================================
+    # Template Methods Tests (Existing)
+    # ========================================================================
 
     def test_build_card_success(self, card_builder: CardBuilder) -> None:
         """Test building card with elements."""

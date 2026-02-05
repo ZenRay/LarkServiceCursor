@@ -146,13 +146,25 @@ print(f"✅ 消息发送成功！message_id: {response['message_id']}")
 ```python
 from lark_service.cardkit.builder import CardBuilder
 
-# 创建通知卡片
+# 方式 1: 使用模板方法 (快速)
 card = CardBuilder().build_notification_card(
     title="欢迎使用 Lark Service",
     content="这是一条交互式卡片消息，支持 **Markdown** 格式！",
     level="info",
     action_text="查看详情",
     action_url="https://example.com"
+)
+
+# 方式 2: 使用链式 API (灵活)
+card = (CardBuilder()
+    .add_header("欢迎使用 Lark Service", template="blue")
+    .add_markdown("**功能特点**:")
+    .add_text("• 简单易用的 API")
+    .add_text("• 完善的错误处理")
+    .add_text("• 详细的文档支持")
+    .add_divider()
+    .add_button("查看文档", url="https://example.com", button_type="primary")
+    .build()
 )
 
 # 发送卡片（使用与步骤6相同的接收者）
