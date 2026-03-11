@@ -92,6 +92,7 @@ archive/temp-reports/coverage.json
 # Archived temporary files
 archive/temp-reports/PROJECT_SUMMARY.md
 archive/temp-guides/
+/archive/DOC_TESTING_GUIDE.md
 
 # Sphinx documentation
 docs/_build/

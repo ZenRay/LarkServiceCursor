@@ -53,6 +53,13 @@ repos:
       - id: check-merge-conflict
       - id: detect-private-key
 
+  # Secret scanning
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.24.2
+    hooks:
+      - id: gitleaks
+        args: ["--redact"]
+
   # 安全检查
   - repo: https://github.com/PyCQA/bandit
     rev: 1.7.6
