@@ -218,11 +218,26 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="messaging.html">消息服务</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="messaging.html#id2">基本用法</a></li>
-<li class="toctree-l2"><a class="reference internal" href="messaging.html#id3">应用管理</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="messaging.html#id4">快速示例</a></li>
+<li class="toctree-l2"><a class="reference internal" href="messaging.html#id2">快速开始</a></li>
+<li class="toctree-l2"><a class="reference internal" href="messaging.html#id3">接收者类型说明</a></li>
+<li class="toctree-l2"><a class="reference internal" href="messaging.html#id4">各类消息发送示例</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="messaging.html#id5">1) 文本消息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="messaging.html#post">2) 富文本消息（post）</a></li>
+<li class="toctree-l3"><a class="reference internal" href="messaging.html#id6">3) 图片消息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="messaging.html#id7">4) 文件消息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="messaging.html#id8">5) 交互式卡片消息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="messaging.html#id9">6) 批量发送</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="messaging.html#id10">消息生命周期（撤回、编辑、回复）</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="messaging.html#id11">撤回消息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="messaging.html#id12">编辑文本消息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="messaging.html#id13">回复消息</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="messaging.html#id14">常见易错点</a></li>
+<li class="toctree-l2"><a class="reference internal" href="messaging.html#id15">与卡片更新的关系</a></li>
+<li class="toctree-l2"><a class="reference internal" href="messaging.html#id16">应用管理</a></li>
 </ul>
 </li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">卡片服务</a><ul>
@@ -303,17 +318,62 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="contact.html">通讯录服务</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="contact.html#id2">应用管理</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="contact.html#id3">快速示例</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contact.html#id2">快速开始</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contact.html#id3">常用方法参数速查</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contact.html#id4">关键返回字段</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contact.html#id5">用户查询</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contact.html#id6">1) 按邮箱查询</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contact.html#id7">2) 按手机号查询</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contact.html#user-id">3) 按 user_id 查询</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="contact.html#id8">批量查询用户</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contact.html#id9">部门能力</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contact.html#id10">获取部门信息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contact.html#id11">获取部门成员（分页）</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="contact.html#id12">群聊能力</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contact.html#id13">获取群聊信息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contact.html#id14">获取群成员（分页）</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="contact.html#id15">缓存能力（可选）</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contact.html#id16">常见易错点</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contact.html#id17">应用管理</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="clouddoc.html">云文档服务</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="clouddoc.html#id2">应用管理</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="clouddoc.html#id3">快速示例</a></li>
+<li class="toctree-l2"><a class="reference internal" href="clouddoc.html#id2">快速开始</a></li>
+<li class="toctree-l2"><a class="reference internal" href="clouddoc.html#id3">常用方法参数速查</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="clouddoc.html#docclient">DocClient</a></li>
+<li class="toctree-l3"><a class="reference internal" href="clouddoc.html#sheetclient">SheetClient</a></li>
+<li class="toctree-l3"><a class="reference internal" href="clouddoc.html#bitableclient">BitableClient</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="clouddoc.html#id4">关键返回字段</a></li>
+<li class="toctree-l2"><a class="reference internal" href="clouddoc.html#id5">文档（DocClient）</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="clouddoc.html#id6">1) 创建文档</a></li>
+<li class="toctree-l3"><a class="reference internal" href="clouddoc.html#id7">2) 追加内容</a></li>
+<li class="toctree-l3"><a class="reference internal" href="clouddoc.html#id8">3) 获取文档信息 / 内容</a></li>
+<li class="toctree-l3"><a class="reference internal" href="clouddoc.html#id9">4) 更新块内容</a></li>
+<li class="toctree-l3"><a class="reference internal" href="clouddoc.html#id10">5) 权限管理</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="clouddoc.html#id11">电子表格（SheetClient）</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="clouddoc.html#id12">1) 读取工作表元信息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="clouddoc.html#id13">2) 读取 / 更新 / 追加数据</a></li>
+<li class="toctree-l3"><a class="reference internal" href="clouddoc.html#id14">3) 常见格式与视图操作</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="clouddoc.html#id15">多维表格（BitableClient）</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="clouddoc.html#id16">1) 字段与记录基础操作</a></li>
+<li class="toctree-l3"><a class="reference internal" href="clouddoc.html#id17">2) 查询（普通 / 结构化）</a></li>
+<li class="toctree-l3"><a class="reference internal" href="clouddoc.html#id18">3) 批量操作</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="clouddoc.html#id19">常见易错点</a></li>
+<li class="toctree-l2"><a class="reference internal" href="clouddoc.html#id20">应用管理</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="apaas.html">aPaaS 数据空间</a><ul>

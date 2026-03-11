@@ -218,11 +218,26 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="messaging.html">消息服务</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="messaging.html#id2">基本用法</a></li>
-<li class="toctree-l2"><a class="reference internal" href="messaging.html#id3">应用管理</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="messaging.html#id4">快速示例</a></li>
+<li class="toctree-l2"><a class="reference internal" href="messaging.html#id2">快速开始</a></li>
+<li class="toctree-l2"><a class="reference internal" href="messaging.html#id3">接收者类型说明</a></li>
+<li class="toctree-l2"><a class="reference internal" href="messaging.html#id4">各类消息发送示例</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="messaging.html#id5">1) 文本消息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="messaging.html#post">2) 富文本消息（post）</a></li>
+<li class="toctree-l3"><a class="reference internal" href="messaging.html#id6">3) 图片消息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="messaging.html#id7">4) 文件消息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="messaging.html#id8">5) 交互式卡片消息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="messaging.html#id9">6) 批量发送</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="messaging.html#id10">消息生命周期（撤回、编辑、回复）</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="messaging.html#id11">撤回消息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="messaging.html#id12">编辑文本消息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="messaging.html#id13">回复消息</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="messaging.html#id14">常见易错点</a></li>
+<li class="toctree-l2"><a class="reference internal" href="messaging.html#id15">与卡片更新的关系</a></li>
+<li class="toctree-l2"><a class="reference internal" href="messaging.html#id16">应用管理</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="card.html">卡片服务</a><ul>
@@ -303,17 +318,62 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="contact.html">通讯录服务</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="contact.html#id2">应用管理</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="contact.html#id3">快速示例</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contact.html#id2">快速开始</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contact.html#id3">常用方法参数速查</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contact.html#id4">关键返回字段</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contact.html#id5">用户查询</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contact.html#id6">1) 按邮箱查询</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contact.html#id7">2) 按手机号查询</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contact.html#user-id">3) 按 user_id 查询</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="contact.html#id8">批量查询用户</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contact.html#id9">部门能力</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contact.html#id10">获取部门信息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contact.html#id11">获取部门成员（分页）</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="contact.html#id12">群聊能力</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contact.html#id13">获取群聊信息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contact.html#id14">获取群成员（分页）</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="contact.html#id15">缓存能力（可选）</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contact.html#id16">常见易错点</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contact.html#id17">应用管理</a></li>
 </ul>
 </li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">云文档服务</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#id2">应用管理</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id3">快速示例</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id2">快速开始</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id3">常用方法参数速查</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#docclient">DocClient</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sheetclient">SheetClient</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bitableclient">BitableClient</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#id4">关键返回字段</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id5">文档（DocClient）</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id6">1) 创建文档</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id7">2) 追加内容</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id8">3) 获取文档信息 / 内容</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id9">4) 更新块内容</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id10">5) 权限管理</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id11">电子表格（SheetClient）</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id12">1) 读取工作表元信息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id13">2) 读取 / 更新 / 追加数据</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id14">3) 常见格式与视图操作</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id15">多维表格（BitableClient）</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id16">1) 字段与记录基础操作</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id17">2) 查询（普通 / 结构化）</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id18">3) 批量操作</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id19">常见易错点</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id20">应用管理</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="apaas.html">aPaaS 数据空间</a><ul>
@@ -1622,55 +1682,473 @@
              
   <section id="id1">
 <h1>云文档服务<a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
+<p>云文档模块包含三类客户端：</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">DocClient</span></code>：云文档（文档创建、内容追加、权限管理）</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SheetClient</span></code>：电子表格（读写、格式、冻结等）</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">BitableClient</span></code>：多维表格（记录 CRUD、字段、查询）</p></li>
+</ul>
 <section id="id2">
-<h2>应用管理<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
-<p>LarkService 支持多应用管理和灵活的应用切换。详细信息请参考 <a class="reference internal" href="app-management.html"><span class="std std-doc">应用管理文档</span></a>。</p>
-<section id="id3">
-<h3>快速示例<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<h2>快速开始<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lark_service.clouddoc</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocClient</span><span class="p">,</span> <span class="n">SheetClient</span><span class="p">,</span> <span class="n">BitableClient</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">lark_service.core.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">Config</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">lark_service.core.credential_pool</span><span class="w"> </span><span class="kn">import</span> <span class="n">CredentialPool</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">lark_service.core.storage.sqlite_storage</span><span class="w"> </span><span class="kn">import</span> <span class="n">ApplicationManager</span><span class="p">,</span> <span class="n">TokenStorageService</span>
-
-<span class="c1"># 初始化</span>
-<span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
-<span class="n">app_manager</span> <span class="o">=</span> <span class="n">ApplicationManager</span><span class="p">(</span><span class="n">db_path</span><span class="o">=</span><span class="s2">&quot;data/applications.db&quot;</span><span class="p">)</span>
-<span class="n">token_storage</span> <span class="o">=</span> <span class="n">TokenStorageService</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get_postgres_url</span><span class="p">())</span>
-<span class="n">credential_pool</span> <span class="o">=</span> <span class="n">CredentialPool</span><span class="p">(</span>
-    <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span>
-    <span class="n">app_manager</span><span class="o">=</span><span class="n">app_manager</span><span class="p">,</span>
-    <span class="n">token_storage</span><span class="o">=</span><span class="n">token_storage</span><span class="p">,</span>
-    <span class="n">lock_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;data/locks&quot;</span><span class="p">)</span>
-<span class="p">)</span>
-
-<span class="c1"># 添加应用</span>
-<span class="n">app_manager</span><span class="o">.</span><span class="n">add_application</span><span class="p">(</span>
-    <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_your_app_id_here&quot;</span><span class="p">,</span>
-    <span class="n">app_secret</span><span class="o">=</span><span class="s2">&quot;your_app_secret_min_16_chars_required&quot;</span><span class="p">,</span>
-    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;我的应用&quot;</span>
-<span class="p">)</span>
-
-<span class="c1"># 使用工厂方法创建客户端</span>
-<span class="n">client</span> <span class="o">=</span> <span class="n">credential_pool</span><span class="o">.</span><span class="n">create_clouddoc_client</span><span class="p">(</span><span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_your_app_id_here&quot;</span><span class="p">)</span>
-
-<span class="c1"># 使用上下文管理器临时切换应用</span>
-<span class="k">with</span> <span class="n">client</span><span class="o">.</span><span class="n">use_app</span><span class="p">(</span><span class="s2">&quot;cli_another_app_id&quot;</span><span class="p">):</span>
-    <span class="c1"># 在此代码块内使用另一个应用</span>
-    <span class="k">pass</span>
-
-<span class="c1"># 方法参数覆盖 (最高优先级)</span>
-<span class="c1"># result = client.some_method(..., app_id=&quot;cli_override_app&quot;)</span>
+<span class="n">doc_client</span> <span class="o">=</span> <span class="n">DocClient</span><span class="p">(</span><span class="n">credential_pool</span><span class="o">=</span><span class="n">credential_pool</span><span class="p">)</span>
+<span class="n">sheet_client</span> <span class="o">=</span> <span class="n">SheetClient</span><span class="p">(</span><span class="n">credential_pool</span><span class="o">=</span><span class="n">credential_pool</span><span class="p">)</span>
+<span class="n">bitable_client</span> <span class="o">=</span> <span class="n">BitableClient</span><span class="p">(</span><span class="n">credential_pool</span><span class="o">=</span><span class="n">credential_pool</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>更多应用管理功能:</p>
+</section>
+<section id="id3">
+<h2>常用方法参数速查<a class="headerlink" href="#id3" title="Link to this heading"></a></h2>
+<section id="docclient">
+<h3>DocClient<a class="headerlink" href="#docclient" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>方法</p></th>
+<th class="head"><p>关键参数</p></th>
+<th class="head"><p>返回值</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">create_document()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">title</span></code>, <code class="docutils literal notranslate"><span class="pre">folder_token?</span></code>, <code class="docutils literal notranslate"><span class="pre">app_id?</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Document</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">append_content()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">doc_id</span></code>, <code class="docutils literal notranslate"><span class="pre">blocks(&lt;=100)</span></code>, <code class="docutils literal notranslate"><span class="pre">location?</span></code>, <code class="docutils literal notranslate"><span class="pre">app_id?</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_document()</span></code> / <code class="docutils literal notranslate"><span class="pre">get_document_content()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">doc_id</span></code>, <code class="docutils literal notranslate"><span class="pre">app_id?</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Document</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">update_block()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">doc_id</span></code>, <code class="docutils literal notranslate"><span class="pre">block_id</span></code>, <code class="docutils literal notranslate"><span class="pre">block</span></code>, <code class="docutils literal notranslate"><span class="pre">app_id?</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">grant_permission()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">doc_id</span></code>, <code class="docutils literal notranslate"><span class="pre">member_type</span></code>, <code class="docutils literal notranslate"><span class="pre">member_id</span></code>, <code class="docutils literal notranslate"><span class="pre">permission_type</span></code>, <code class="docutils literal notranslate"><span class="pre">app_id?</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Permission</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">revoke_permission()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">doc_id</span></code>, <code class="docutils literal notranslate"><span class="pre">permission_id</span></code>, <code class="docutils literal notranslate"><span class="pre">app_id?</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">list_permissions()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">doc_id</span></code>, <code class="docutils literal notranslate"><span class="pre">app_id?</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">list[Permission]</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="sheetclient">
+<h3>SheetClient<a class="headerlink" href="#sheetclient" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>方法</p></th>
+<th class="head"><p>关键参数</p></th>
+<th class="head"><p>返回值</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_sheet_info()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">app_id</span></code>, <code class="docutils literal notranslate"><span class="pre">spreadsheet_token</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">list[dict]</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_sheet_data()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">app_id</span></code>, <code class="docutils literal notranslate"><span class="pre">spreadsheet_token</span></code>, <code class="docutils literal notranslate"><span class="pre">sheet_id</span></code>, <code class="docutils literal notranslate"><span class="pre">range_str</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">list[list[CellData]]</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">update_sheet_data()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">app_id</span></code>, <code class="docutils literal notranslate"><span class="pre">spreadsheet_token</span></code>, <code class="docutils literal notranslate"><span class="pre">sheet_id</span></code>, <code class="docutils literal notranslate"><span class="pre">range_str</span></code>, <code class="docutils literal notranslate"><span class="pre">values</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">append_data()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">app_id</span></code>, <code class="docutils literal notranslate"><span class="pre">spreadsheet_token</span></code>, <code class="docutils literal notranslate"><span class="pre">sheet_id</span></code>, <code class="docutils literal notranslate"><span class="pre">range_str</span></code>, <code class="docutils literal notranslate"><span class="pre">values</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">format_cells()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">app_id</span></code>, <code class="docutils literal notranslate"><span class="pre">spreadsheet_token</span></code>, <code class="docutils literal notranslate"><span class="pre">sheet_id</span></code>, <code class="docutils literal notranslate"><span class="pre">range_str</span></code>, 样式参数</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">merge_cells()</span></code> / <code class="docutils literal notranslate"><span class="pre">unmerge_cells()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">app_id</span></code>, <code class="docutils literal notranslate"><span class="pre">spreadsheet_token</span></code>, <code class="docutils literal notranslate"><span class="pre">sheet_id</span></code>, <code class="docutils literal notranslate"><span class="pre">range_str</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">set_column_width()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">app_id</span></code>, <code class="docutils literal notranslate"><span class="pre">spreadsheet_token</span></code>, <code class="docutils literal notranslate"><span class="pre">sheet_id</span></code>, <code class="docutils literal notranslate"><span class="pre">start_column</span></code>, <code class="docutils literal notranslate"><span class="pre">end_column</span></code>, <code class="docutils literal notranslate"><span class="pre">width</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">set_row_height()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">app_id</span></code>, <code class="docutils literal notranslate"><span class="pre">spreadsheet_token</span></code>, <code class="docutils literal notranslate"><span class="pre">sheet_id</span></code>, <code class="docutils literal notranslate"><span class="pre">start_row</span></code>, <code class="docutils literal notranslate"><span class="pre">end_row</span></code>, <code class="docutils literal notranslate"><span class="pre">height</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">freeze_panes()</span></code> / <code class="docutils literal notranslate"><span class="pre">unfreeze_panes()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">app_id</span></code>, <code class="docutils literal notranslate"><span class="pre">spreadsheet_token</span></code>, <code class="docutils literal notranslate"><span class="pre">sheet_id</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="bitableclient">
+<h3>BitableClient<a class="headerlink" href="#bitableclient" title="Link to this heading"></a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>方法</p></th>
+<th class="head"><p>关键参数</p></th>
+<th class="head"><p>返回值</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">create_record()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">app_id</span></code>, <code class="docutils literal notranslate"><span class="pre">app_token</span></code>, <code class="docutils literal notranslate"><span class="pre">table_id</span></code>, <code class="docutils literal notranslate"><span class="pre">fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">BaseRecord</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">update_record()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">app_id</span></code>, <code class="docutils literal notranslate"><span class="pre">app_token</span></code>, <code class="docutils literal notranslate"><span class="pre">table_id</span></code>, <code class="docutils literal notranslate"><span class="pre">record_id</span></code>, <code class="docutils literal notranslate"><span class="pre">fields</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">BaseRecord</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">delete_record()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">app_id</span></code>, <code class="docutils literal notranslate"><span class="pre">app_token</span></code>, <code class="docutils literal notranslate"><span class="pre">table_id</span></code>, <code class="docutils literal notranslate"><span class="pre">record_id</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">query_records()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">app_id</span></code>, <code class="docutils literal notranslate"><span class="pre">app_token</span></code>, <code class="docutils literal notranslate"><span class="pre">table_id</span></code>, <code class="docutils literal notranslate"><span class="pre">filter_conditions?</span></code>, <code class="docutils literal notranslate"><span class="pre">page_size?</span></code>, <code class="docutils literal notranslate"><span class="pre">page_token?</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(list[BaseRecord],</span> <span class="pre">next_page_token)</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">query_records_structured()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">app_id</span></code>, <code class="docutils literal notranslate"><span class="pre">app_token</span></code>, <code class="docutils literal notranslate"><span class="pre">table_id</span></code>, <code class="docutils literal notranslate"><span class="pre">filter_info?</span></code>, <code class="docutils literal notranslate"><span class="pre">page_size?</span></code>, <code class="docutils literal notranslate"><span class="pre">page_token?</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(list[BaseRecord],</span> <span class="pre">next_page_token)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">batch_create_records()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">app_id</span></code>, <code class="docutils literal notranslate"><span class="pre">app_token</span></code>, <code class="docutils literal notranslate"><span class="pre">table_id</span></code>, <code class="docutils literal notranslate"><span class="pre">records(&lt;=500)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">list[BaseRecord]</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">batch_update_records()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">app_id</span></code>, <code class="docutils literal notranslate"><span class="pre">app_token</span></code>, <code class="docutils literal notranslate"><span class="pre">table_id</span></code>, <code class="docutils literal notranslate"><span class="pre">records(&lt;=500)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">list[BaseRecord]</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">batch_delete_records()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">app_id</span></code>, <code class="docutils literal notranslate"><span class="pre">app_token</span></code>, <code class="docutils literal notranslate"><span class="pre">table_id</span></code>, <code class="docutils literal notranslate"><span class="pre">record_ids(&lt;=500)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_table_fields()</span></code> / <code class="docutils literal notranslate"><span class="pre">list_fields()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">app_id</span></code>, <code class="docutils literal notranslate"><span class="pre">app_token</span></code>, <code class="docutils literal notranslate"><span class="pre">table_id</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">list[dict]</span></code> / <code class="docutils literal notranslate"><span class="pre">list[FieldDefinition]</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="id4">
+<h2>关键返回字段<a class="headerlink" href="#id4" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>返回模型</p></th>
+<th class="head"><p>关键字段</p></th>
+<th class="head"><p>说明</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Document</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">doc_id</span></code>, <code class="docutils literal notranslate"><span class="pre">title</span></code>, <code class="docutils literal notranslate"><span class="pre">owner_id</span></code>, <code class="docutils literal notranslate"><span class="pre">create_time</span></code>, <code class="docutils literal notranslate"><span class="pre">update_time</span></code></p></td>
+<td><p>文档基础信息</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Permission</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">doc_id</span></code>, <code class="docutils literal notranslate"><span class="pre">member_type</span></code>, <code class="docutils literal notranslate"><span class="pre">member_id</span></code>, <code class="docutils literal notranslate"><span class="pre">permission_type</span></code></p></td>
+<td><p>文档权限记录</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CellData</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">value</span></code>, <code class="docutils literal notranslate"><span class="pre">formula</span></code>, <code class="docutils literal notranslate"><span class="pre">number_format</span></code></p></td>
+<td><p>表格单元格数据</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">BaseRecord</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">record_id</span></code>, <code class="docutils literal notranslate"><span class="pre">fields</span></code></p></td>
+<td><p>多维表格记录</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FieldDefinition</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">field_id</span></code>, <code class="docutils literal notranslate"><span class="pre">field_name</span></code>, <code class="docutils literal notranslate"><span class="pre">type</span></code></p></td>
+<td><p>字段定义</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id5">
+<h2>文档（DocClient）<a class="headerlink" href="#id5" title="Link to this heading"></a></h2>
+<section id="id6">
+<h3>1) 创建文档<a class="headerlink" href="#id6" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">doc</span> <span class="o">=</span> <span class="n">doc_client</span><span class="o">.</span><span class="n">create_document</span><span class="p">(</span>
+    <span class="n">title</span><span class="o">=</span><span class="s2">&quot;项目周报&quot;</span><span class="p">,</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_xxx&quot;</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">doc_id</span><span class="p">,</span> <span class="n">doc</span><span class="o">.</span><span class="n">title</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id7">
+<h3>2) 追加内容<a class="headerlink" href="#id7" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lark_service.clouddoc.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ContentBlock</span>
+
+<span class="n">blocks</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">ContentBlock</span><span class="p">(</span><span class="n">block_type</span><span class="o">=</span><span class="s2">&quot;heading_1&quot;</span><span class="p">,</span> <span class="n">content</span><span class="o">=</span><span class="s2">&quot;本周进展&quot;</span><span class="p">),</span>
+    <span class="n">ContentBlock</span><span class="p">(</span><span class="n">block_type</span><span class="o">=</span><span class="s2">&quot;paragraph&quot;</span><span class="p">,</span> <span class="n">content</span><span class="o">=</span><span class="s2">&quot;已完成接口联调与回归验证。&quot;</span><span class="p">),</span>
+<span class="p">]</span>
+
+<span class="n">ok</span> <span class="o">=</span> <span class="n">doc_client</span><span class="o">.</span><span class="n">append_content</span><span class="p">(</span>
+    <span class="n">doc_id</span><span class="o">=</span><span class="s2">&quot;doxcn_xxx&quot;</span><span class="p">,</span>
+    <span class="n">blocks</span><span class="o">=</span><span class="n">blocks</span><span class="p">,</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_xxx&quot;</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">ok</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id8">
+<h3>3) 获取文档信息 / 内容<a class="headerlink" href="#id8" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">doc</span> <span class="o">=</span> <span class="n">doc_client</span><span class="o">.</span><span class="n">get_document</span><span class="p">(</span><span class="n">doc_id</span><span class="o">=</span><span class="s2">&quot;doxcn_xxx&quot;</span><span class="p">,</span> <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_xxx&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">title</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id9">
+<h3>4) 更新块内容<a class="headerlink" href="#id9" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lark_service.clouddoc.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ContentBlock</span>
+
+<span class="n">ok</span> <span class="o">=</span> <span class="n">doc_client</span><span class="o">.</span><span class="n">update_block</span><span class="p">(</span>
+    <span class="n">doc_id</span><span class="o">=</span><span class="s2">&quot;doxcn_xxx&quot;</span><span class="p">,</span>
+    <span class="n">block_id</span><span class="o">=</span><span class="s2">&quot;blk_xxx&quot;</span><span class="p">,</span>
+    <span class="n">block</span><span class="o">=</span><span class="n">ContentBlock</span><span class="p">(</span><span class="n">block_type</span><span class="o">=</span><span class="s2">&quot;paragraph&quot;</span><span class="p">,</span> <span class="n">content</span><span class="o">=</span><span class="s2">&quot;这是更新后的内容&quot;</span><span class="p">),</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_xxx&quot;</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">ok</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id10">
+<h3>5) 权限管理<a class="headerlink" href="#id10" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">perm</span> <span class="o">=</span> <span class="n">doc_client</span><span class="o">.</span><span class="n">grant_permission</span><span class="p">(</span>
+    <span class="n">doc_id</span><span class="o">=</span><span class="s2">&quot;doxcn_xxx&quot;</span><span class="p">,</span>
+    <span class="n">member_type</span><span class="o">=</span><span class="s2">&quot;user&quot;</span><span class="p">,</span>
+    <span class="n">member_id</span><span class="o">=</span><span class="s2">&quot;ou_xxx&quot;</span><span class="p">,</span>
+    <span class="n">permission_type</span><span class="o">=</span><span class="s2">&quot;read&quot;</span><span class="p">,</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_xxx&quot;</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">perm</span><span class="o">.</span><span class="n">permission_type</span><span class="p">)</span>
+
+<span class="n">permissions</span> <span class="o">=</span> <span class="n">doc_client</span><span class="o">.</span><span class="n">list_permissions</span><span class="p">(</span>
+    <span class="n">doc_id</span><span class="o">=</span><span class="s2">&quot;doxcn_xxx&quot;</span><span class="p">,</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_xxx&quot;</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">permissions</span><span class="p">))</span>
+
+<span class="c1"># permission_id 以实际返回值为准</span>
+<span class="n">ok</span> <span class="o">=</span> <span class="n">doc_client</span><span class="o">.</span><span class="n">revoke_permission</span><span class="p">(</span>
+    <span class="n">doc_id</span><span class="o">=</span><span class="s2">&quot;doxcn_xxx&quot;</span><span class="p">,</span>
+    <span class="n">permission_id</span><span class="o">=</span><span class="s2">&quot;perm_xxx&quot;</span><span class="p">,</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_xxx&quot;</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">ok</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id11">
+<h2>电子表格（SheetClient）<a class="headerlink" href="#id11" title="Link to this heading"></a></h2>
+<section id="id12">
+<h3>1) 读取工作表元信息<a class="headerlink" href="#id12" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sheets</span> <span class="o">=</span> <span class="n">sheet_client</span><span class="o">.</span><span class="n">get_sheet_info</span><span class="p">(</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_xxx&quot;</span><span class="p">,</span>
+    <span class="n">spreadsheet_token</span><span class="o">=</span><span class="s2">&quot;shtcn_xxx&quot;</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">sheets</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;sheet_id&quot;</span><span class="p">],</span> <span class="n">sheets</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;title&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="id13">
+<h3>2) 读取 / 更新 / 追加数据<a class="headerlink" href="#id13" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">sheet_client</span><span class="o">.</span><span class="n">get_sheet_data</span><span class="p">(</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_xxx&quot;</span><span class="p">,</span>
+    <span class="n">spreadsheet_token</span><span class="o">=</span><span class="s2">&quot;shtcn_xxx&quot;</span><span class="p">,</span>
+    <span class="n">sheet_id</span><span class="o">=</span><span class="s2">&quot;a3fb01&quot;</span><span class="p">,</span>
+    <span class="n">range_str</span><span class="o">=</span><span class="s2">&quot;A1:C10&quot;</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+
+<span class="n">ok</span> <span class="o">=</span> <span class="n">sheet_client</span><span class="o">.</span><span class="n">update_sheet_data</span><span class="p">(</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_xxx&quot;</span><span class="p">,</span>
+    <span class="n">spreadsheet_token</span><span class="o">=</span><span class="s2">&quot;shtcn_xxx&quot;</span><span class="p">,</span>
+    <span class="n">sheet_id</span><span class="o">=</span><span class="s2">&quot;a3fb01&quot;</span><span class="p">,</span>
+    <span class="n">range_str</span><span class="o">=</span><span class="s2">&quot;A1:B2&quot;</span><span class="p">,</span>
+    <span class="n">values</span><span class="o">=</span><span class="p">[[</span><span class="s2">&quot;Name&quot;</span><span class="p">,</span> <span class="s2">&quot;Age&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;Ray&quot;</span><span class="p">,</span> <span class="mi">30</span><span class="p">]]</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">ok</span><span class="p">)</span>
+
+<span class="n">ok</span> <span class="o">=</span> <span class="n">sheet_client</span><span class="o">.</span><span class="n">append_data</span><span class="p">(</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_xxx&quot;</span><span class="p">,</span>
+    <span class="n">spreadsheet_token</span><span class="o">=</span><span class="s2">&quot;shtcn_xxx&quot;</span><span class="p">,</span>
+    <span class="n">sheet_id</span><span class="o">=</span><span class="s2">&quot;a3fb01&quot;</span><span class="p">,</span>
+    <span class="n">range_str</span><span class="o">=</span><span class="s2">&quot;A1:B1&quot;</span><span class="p">,</span>
+    <span class="n">values</span><span class="o">=</span><span class="p">[[</span><span class="s2">&quot;Alice&quot;</span><span class="p">,</span> <span class="mi">28</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;Bob&quot;</span><span class="p">,</span> <span class="mi">31</span><span class="p">]]</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">ok</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id14">
+<h3>3) 常见格式与视图操作<a class="headerlink" href="#id14" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 单元格格式</span>
+<span class="n">sheet_client</span><span class="o">.</span><span class="n">format_cells</span><span class="p">(</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_xxx&quot;</span><span class="p">,</span>
+    <span class="n">spreadsheet_token</span><span class="o">=</span><span class="s2">&quot;shtcn_xxx&quot;</span><span class="p">,</span>
+    <span class="n">sheet_id</span><span class="o">=</span><span class="s2">&quot;a3fb01&quot;</span><span class="p">,</span>
+    <span class="n">range_str</span><span class="o">=</span><span class="s2">&quot;A1:B1&quot;</span><span class="p">,</span>
+    <span class="n">bold</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">font_size</span><span class="o">=</span><span class="mi">12</span>
+<span class="p">)</span>
+
+<span class="c1"># 合并 / 取消合并</span>
+<span class="n">sheet_client</span><span class="o">.</span><span class="n">merge_cells</span><span class="p">(</span><span class="s2">&quot;cli_xxx&quot;</span><span class="p">,</span> <span class="s2">&quot;shtcn_xxx&quot;</span><span class="p">,</span> <span class="s2">&quot;a3fb01&quot;</span><span class="p">,</span> <span class="s2">&quot;A1:B1&quot;</span><span class="p">)</span>
+<span class="n">sheet_client</span><span class="o">.</span><span class="n">unmerge_cells</span><span class="p">(</span><span class="s2">&quot;cli_xxx&quot;</span><span class="p">,</span> <span class="s2">&quot;shtcn_xxx&quot;</span><span class="p">,</span> <span class="s2">&quot;a3fb01&quot;</span><span class="p">,</span> <span class="s2">&quot;A1:B1&quot;</span><span class="p">)</span>
+
+<span class="c1"># 行高列宽</span>
+<span class="n">sheet_client</span><span class="o">.</span><span class="n">set_column_width</span><span class="p">(</span><span class="s2">&quot;cli_xxx&quot;</span><span class="p">,</span> <span class="s2">&quot;shtcn_xxx&quot;</span><span class="p">,</span> <span class="s2">&quot;a3fb01&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">120</span><span class="p">)</span>
+<span class="n">sheet_client</span><span class="o">.</span><span class="n">set_row_height</span><span class="p">(</span><span class="s2">&quot;cli_xxx&quot;</span><span class="p">,</span> <span class="s2">&quot;shtcn_xxx&quot;</span><span class="p">,</span> <span class="s2">&quot;a3fb01&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
+
+<span class="c1"># 冻结 / 取消冻结</span>
+<span class="n">sheet_client</span><span class="o">.</span><span class="n">freeze_panes</span><span class="p">(</span><span class="s2">&quot;cli_xxx&quot;</span><span class="p">,</span> <span class="s2">&quot;shtcn_xxx&quot;</span><span class="p">,</span> <span class="s2">&quot;a3fb01&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">sheet_client</span><span class="o">.</span><span class="n">unfreeze_panes</span><span class="p">(</span><span class="s2">&quot;cli_xxx&quot;</span><span class="p">,</span> <span class="s2">&quot;shtcn_xxx&quot;</span><span class="p">,</span> <span class="s2">&quot;a3fb01&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id15">
+<h2>多维表格（BitableClient）<a class="headerlink" href="#id15" title="Link to this heading"></a></h2>
+<section id="id16">
+<h3>1) 字段与记录基础操作<a class="headerlink" href="#id16" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">fields</span> <span class="o">=</span> <span class="n">bitable_client</span><span class="o">.</span><span class="n">get_table_fields</span><span class="p">(</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_xxx&quot;</span><span class="p">,</span>
+    <span class="n">app_token</span><span class="o">=</span><span class="s2">&quot;bascn_xxx&quot;</span><span class="p">,</span>
+    <span class="n">table_id</span><span class="o">=</span><span class="s2">&quot;tbl_xxx&quot;</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">fields</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;field_name&quot;</span><span class="p">])</span>
+
+<span class="n">record</span> <span class="o">=</span> <span class="n">bitable_client</span><span class="o">.</span><span class="n">create_record</span><span class="p">(</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_xxx&quot;</span><span class="p">,</span>
+    <span class="n">app_token</span><span class="o">=</span><span class="s2">&quot;bascn_xxx&quot;</span><span class="p">,</span>
+    <span class="n">table_id</span><span class="o">=</span><span class="s2">&quot;tbl_xxx&quot;</span><span class="p">,</span>
+    <span class="n">fields</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Name&quot;</span><span class="p">:</span> <span class="s2">&quot;Ray&quot;</span><span class="p">,</span> <span class="s2">&quot;Status&quot;</span><span class="p">:</span> <span class="s2">&quot;Active&quot;</span><span class="p">}</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">record_id</span><span class="p">)</span>
+
+<span class="n">updated</span> <span class="o">=</span> <span class="n">bitable_client</span><span class="o">.</span><span class="n">update_record</span><span class="p">(</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_xxx&quot;</span><span class="p">,</span>
+    <span class="n">app_token</span><span class="o">=</span><span class="s2">&quot;bascn_xxx&quot;</span><span class="p">,</span>
+    <span class="n">table_id</span><span class="o">=</span><span class="s2">&quot;tbl_xxx&quot;</span><span class="p">,</span>
+    <span class="n">record_id</span><span class="o">=</span><span class="n">record</span><span class="o">.</span><span class="n">record_id</span><span class="p">,</span>
+    <span class="n">fields</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Status&quot;</span><span class="p">:</span> <span class="s2">&quot;Done&quot;</span><span class="p">}</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">updated</span><span class="o">.</span><span class="n">record_id</span><span class="p">)</span>
+
+<span class="n">ok</span> <span class="o">=</span> <span class="n">bitable_client</span><span class="o">.</span><span class="n">delete_record</span><span class="p">(</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_xxx&quot;</span><span class="p">,</span>
+    <span class="n">app_token</span><span class="o">=</span><span class="s2">&quot;bascn_xxx&quot;</span><span class="p">,</span>
+    <span class="n">table_id</span><span class="o">=</span><span class="s2">&quot;tbl_xxx&quot;</span><span class="p">,</span>
+    <span class="n">record_id</span><span class="o">=</span><span class="n">record</span><span class="o">.</span><span class="n">record_id</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">ok</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id17">
+<h3>2) 查询（普通 / 结构化）<a class="headerlink" href="#id17" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lark_service.clouddoc.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">FilterCondition</span>
+
+<span class="n">records</span><span class="p">,</span> <span class="n">next_token</span> <span class="o">=</span> <span class="n">bitable_client</span><span class="o">.</span><span class="n">query_records</span><span class="p">(</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_xxx&quot;</span><span class="p">,</span>
+    <span class="n">app_token</span><span class="o">=</span><span class="s2">&quot;bascn_xxx&quot;</span><span class="p">,</span>
+    <span class="n">table_id</span><span class="o">=</span><span class="s2">&quot;tbl_xxx&quot;</span><span class="p">,</span>
+    <span class="n">filter_conditions</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">FilterCondition</span><span class="p">(</span><span class="n">field_name</span><span class="o">=</span><span class="s2">&quot;Status&quot;</span><span class="p">,</span> <span class="n">operator</span><span class="o">=</span><span class="s2">&quot;eq&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;Active&quot;</span><span class="p">)</span>
+    <span class="p">],</span>
+    <span class="n">page_size</span><span class="o">=</span><span class="mi">100</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">records</span><span class="p">),</span> <span class="n">next_token</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lark_service.clouddoc.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">StructuredFilterCondition</span><span class="p">,</span> <span class="n">StructuredFilterInfo</span>
+
+<span class="n">filter_info</span> <span class="o">=</span> <span class="n">StructuredFilterInfo</span><span class="p">(</span>
+    <span class="n">conjunction</span><span class="o">=</span><span class="s2">&quot;and&quot;</span><span class="p">,</span>
+    <span class="n">conditions</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">StructuredFilterCondition</span><span class="p">(</span><span class="n">field_name</span><span class="o">=</span><span class="s2">&quot;Status&quot;</span><span class="p">,</span> <span class="n">operator</span><span class="o">=</span><span class="s2">&quot;is&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Active&quot;</span><span class="p">])</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+
+<span class="n">records</span><span class="p">,</span> <span class="n">next_token</span> <span class="o">=</span> <span class="n">bitable_client</span><span class="o">.</span><span class="n">query_records_structured</span><span class="p">(</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_xxx&quot;</span><span class="p">,</span>
+    <span class="n">app_token</span><span class="o">=</span><span class="s2">&quot;bascn_xxx&quot;</span><span class="p">,</span>
+    <span class="n">table_id</span><span class="o">=</span><span class="s2">&quot;tbl_xxx&quot;</span><span class="p">,</span>
+    <span class="n">filter_info</span><span class="o">=</span><span class="n">filter_info</span><span class="p">,</span>
+    <span class="n">page_size</span><span class="o">=</span><span class="mi">100</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">records</span><span class="p">),</span> <span class="n">next_token</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id18">
+<h3>3) 批量操作<a class="headerlink" href="#id18" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">created</span> <span class="o">=</span> <span class="n">bitable_client</span><span class="o">.</span><span class="n">batch_create_records</span><span class="p">(</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_xxx&quot;</span><span class="p">,</span>
+    <span class="n">app_token</span><span class="o">=</span><span class="s2">&quot;bascn_xxx&quot;</span><span class="p">,</span>
+    <span class="n">table_id</span><span class="o">=</span><span class="s2">&quot;tbl_xxx&quot;</span><span class="p">,</span>
+    <span class="n">records</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">{</span><span class="s2">&quot;Name&quot;</span><span class="p">:</span> <span class="s2">&quot;Alice&quot;</span><span class="p">,</span> <span class="s2">&quot;Status&quot;</span><span class="p">:</span> <span class="s2">&quot;New&quot;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s2">&quot;Name&quot;</span><span class="p">:</span> <span class="s2">&quot;Bob&quot;</span><span class="p">,</span> <span class="s2">&quot;Status&quot;</span><span class="p">:</span> <span class="s2">&quot;New&quot;</span><span class="p">},</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">created</span><span class="p">))</span>
+
+<span class="n">updated</span> <span class="o">=</span> <span class="n">bitable_client</span><span class="o">.</span><span class="n">batch_update_records</span><span class="p">(</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_xxx&quot;</span><span class="p">,</span>
+    <span class="n">app_token</span><span class="o">=</span><span class="s2">&quot;bascn_xxx&quot;</span><span class="p">,</span>
+    <span class="n">table_id</span><span class="o">=</span><span class="s2">&quot;tbl_xxx&quot;</span><span class="p">,</span>
+    <span class="n">records</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;rec_xxx1&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;Status&quot;</span><span class="p">:</span> <span class="s2">&quot;Done&quot;</span><span class="p">}),</span>
+        <span class="p">(</span><span class="s2">&quot;rec_xxx2&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;Status&quot;</span><span class="p">:</span> <span class="s2">&quot;Done&quot;</span><span class="p">}),</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">updated</span><span class="p">))</span>
+
+<span class="n">ok</span> <span class="o">=</span> <span class="n">bitable_client</span><span class="o">.</span><span class="n">batch_delete_records</span><span class="p">(</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_xxx&quot;</span><span class="p">,</span>
+    <span class="n">app_token</span><span class="o">=</span><span class="s2">&quot;bascn_xxx&quot;</span><span class="p">,</span>
+    <span class="n">table_id</span><span class="o">=</span><span class="s2">&quot;tbl_xxx&quot;</span><span class="p">,</span>
+    <span class="n">record_ids</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;rec_xxx1&quot;</span><span class="p">,</span> <span class="s2">&quot;rec_xxx2&quot;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">ok</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id19">
+<h2>常见易错点<a class="headerlink" href="#id19" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p><a class="reference internal" href="app-management.html#5层-app_id-解析优先级"><span class="std std-ref">5层 app_id 解析优先级</span></a></p></li>
-<li><p><a class="reference internal" href="app-management.html#场景-2-多应用场景---客户端级别默认值"><span class="std std-ref">多应用场景</span></a></p></li>
-<li><p><a class="reference internal" href="app-management.html#场景-3-动态切换应用---使用上下文管理器"><span class="std std-ref">动态切换应用</span></a></p></li>
-<li><p><a class="reference internal" href="advanced.html"><span class="std std-doc">高级用法</span></a></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DocClient</span></code> 的文档 ID 与权限 API 的参数要对应同一文档</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SheetClient</span></code> 的 <code class="docutils literal notranslate"><span class="pre">range_str</span></code> 必须是合法区间（如 <code class="docutils literal notranslate"><span class="pre">A1:B10</span></code>）</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">query_records</span></code> 的 <code class="docutils literal notranslate"><span class="pre">operator</span></code> 使用实现支持的操作符（如 <code class="docutils literal notranslate"><span class="pre">eq</span></code>、<code class="docutils literal notranslate"><span class="pre">gt</span></code>、<code class="docutils literal notranslate"><span class="pre">contains</span></code>）</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">query_records_structured</span></code> 建议用于复杂过滤，且优先校验字段名/字段 ID</p></li>
 </ul>
 </section>
+<section id="id20">
+<h2>应用管理<a class="headerlink" href="#id20" title="Link to this heading"></a></h2>
+<p>云文档服务同样支持多应用切换，详见 <a class="reference internal" href="app-management.html"><span class="std std-doc">应用管理文档</span></a>。</p>
+<p>更多参考：</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="app-management.html"><span class="std std-doc">5 层 app_id 解析优先级</span></a></p></li>
+<li><p><a class="reference internal" href="app-management.html"><span class="std std-doc">多应用场景</span></a></p></li>
+<li><p><a class="reference internal" href="app-management.html"><span class="std std-doc">动态切换应用</span></a></p></li>
+<li><p><a class="reference internal" href="advanced.html"><span class="std std-doc">高级用法</span></a></p></li>
+</ul>
 </section>
 </section>
 

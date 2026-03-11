@@ -218,11 +218,26 @@
 </ul>
 </li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">消息服务</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#id2">基本用法</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id3">应用管理</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id4">快速示例</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id2">快速开始</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id3">接收者类型说明</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id4">各类消息发送示例</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id5">1) 文本消息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#post">2) 富文本消息（post）</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id6">3) 图片消息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id7">4) 文件消息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id8">5) 交互式卡片消息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id9">6) 批量发送</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#id10">消息生命周期（撤回、编辑、回复）</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id11">撤回消息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id12">编辑文本消息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id13">回复消息</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id14">常见易错点</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id15">与卡片更新的关系</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id16">应用管理</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="card.html">卡片服务</a><ul>
@@ -303,17 +318,62 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="contact.html">通讯录服务</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="contact.html#id2">应用管理</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="contact.html#id3">快速示例</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contact.html#id2">快速开始</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contact.html#id3">常用方法参数速查</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contact.html#id4">关键返回字段</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contact.html#id5">用户查询</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contact.html#id6">1) 按邮箱查询</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contact.html#id7">2) 按手机号查询</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contact.html#user-id">3) 按 user_id 查询</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="contact.html#id8">批量查询用户</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contact.html#id9">部门能力</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contact.html#id10">获取部门信息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contact.html#id11">获取部门成员（分页）</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="contact.html#id12">群聊能力</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contact.html#id13">获取群聊信息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contact.html#id14">获取群成员（分页）</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="contact.html#id15">缓存能力（可选）</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contact.html#id16">常见易错点</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contact.html#id17">应用管理</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="clouddoc.html">云文档服务</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="clouddoc.html#id2">应用管理</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="clouddoc.html#id3">快速示例</a></li>
+<li class="toctree-l2"><a class="reference internal" href="clouddoc.html#id2">快速开始</a></li>
+<li class="toctree-l2"><a class="reference internal" href="clouddoc.html#id3">常用方法参数速查</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="clouddoc.html#docclient">DocClient</a></li>
+<li class="toctree-l3"><a class="reference internal" href="clouddoc.html#sheetclient">SheetClient</a></li>
+<li class="toctree-l3"><a class="reference internal" href="clouddoc.html#bitableclient">BitableClient</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="clouddoc.html#id4">关键返回字段</a></li>
+<li class="toctree-l2"><a class="reference internal" href="clouddoc.html#id5">文档（DocClient）</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="clouddoc.html#id6">1) 创建文档</a></li>
+<li class="toctree-l3"><a class="reference internal" href="clouddoc.html#id7">2) 追加内容</a></li>
+<li class="toctree-l3"><a class="reference internal" href="clouddoc.html#id8">3) 获取文档信息 / 内容</a></li>
+<li class="toctree-l3"><a class="reference internal" href="clouddoc.html#id9">4) 更新块内容</a></li>
+<li class="toctree-l3"><a class="reference internal" href="clouddoc.html#id10">5) 权限管理</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="clouddoc.html#id11">电子表格（SheetClient）</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="clouddoc.html#id12">1) 读取工作表元信息</a></li>
+<li class="toctree-l3"><a class="reference internal" href="clouddoc.html#id13">2) 读取 / 更新 / 追加数据</a></li>
+<li class="toctree-l3"><a class="reference internal" href="clouddoc.html#id14">3) 常见格式与视图操作</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="clouddoc.html#id15">多维表格（BitableClient）</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="clouddoc.html#id16">1) 字段与记录基础操作</a></li>
+<li class="toctree-l3"><a class="reference internal" href="clouddoc.html#id17">2) 查询（普通 / 结构化）</a></li>
+<li class="toctree-l3"><a class="reference internal" href="clouddoc.html#id18">3) 批量操作</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="clouddoc.html#id19">常见易错点</a></li>
+<li class="toctree-l2"><a class="reference internal" href="clouddoc.html#id20">应用管理</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="apaas.html">aPaaS 数据空间</a><ul>
@@ -1622,70 +1682,203 @@
              
   <section id="id1">
 <h1>消息服务<a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
+<p>本文档覆盖消息模块的主要发送与生命周期能力，示例均与当前接口签名保持一致。</p>
 <section id="id2">
-<h2>基本用法<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
+<h2>快速开始<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lark_service.messaging</span><span class="w"> </span><span class="kn">import</span> <span class="n">MessagingClient</span>
 
 <span class="n">messaging_client</span> <span class="o">=</span> <span class="n">MessagingClient</span><span class="p">(</span><span class="n">credential_pool</span><span class="o">=</span><span class="n">credential_pool</span><span class="p">)</span>
 
-<span class="c1"># 发送文本消息</span>
 <span class="n">response</span> <span class="o">=</span> <span class="n">messaging_client</span><span class="o">.</span><span class="n">send_text_message</span><span class="p">(</span>
     <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_xxx&quot;</span><span class="p">,</span>
     <span class="n">receiver_id</span><span class="o">=</span><span class="s2">&quot;ou_xxx&quot;</span><span class="p">,</span>
     <span class="n">content</span><span class="o">=</span><span class="s2">&quot;Hello, Lark!&quot;</span>
 <span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="s2">&quot;message_id&quot;</span><span class="p">])</span>
 </pre></div>
 </div>
 </section>
 <section id="id3">
-<h2>应用管理<a class="headerlink" href="#id3" title="Link to this heading"></a></h2>
-<p>LarkService 支持多应用管理和灵活的应用切换。详细信息请参考 <a class="reference internal" href="app-management.html"><span class="std std-doc">应用管理文档</span></a>。</p>
-<section id="id4">
-<h3>快速示例<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-
-<span class="kn">from</span><span class="w"> </span><span class="nn">lark_service.core.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">Config</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">lark_service.core.credential_pool</span><span class="w"> </span><span class="kn">import</span> <span class="n">CredentialPool</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">lark_service.core.storage.sqlite_storage</span><span class="w"> </span><span class="kn">import</span> <span class="n">ApplicationManager</span><span class="p">,</span> <span class="n">TokenStorageService</span>
-
-<span class="c1"># 初始化</span>
-<span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
-<span class="n">app_manager</span> <span class="o">=</span> <span class="n">ApplicationManager</span><span class="p">(</span><span class="n">db_path</span><span class="o">=</span><span class="s2">&quot;data/applications.db&quot;</span><span class="p">)</span>
-<span class="n">token_storage</span> <span class="o">=</span> <span class="n">TokenStorageService</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get_postgres_url</span><span class="p">())</span>
-<span class="n">credential_pool</span> <span class="o">=</span> <span class="n">CredentialPool</span><span class="p">(</span>
-    <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span>
-    <span class="n">app_manager</span><span class="o">=</span><span class="n">app_manager</span><span class="p">,</span>
-    <span class="n">token_storage</span><span class="o">=</span><span class="n">token_storage</span><span class="p">,</span>
-    <span class="n">lock_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;data/locks&quot;</span><span class="p">)</span>
-<span class="p">)</span>
-
-<span class="c1"># 添加应用</span>
-<span class="n">app_manager</span><span class="o">.</span><span class="n">add_application</span><span class="p">(</span>
-    <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_your_app_id_here&quot;</span><span class="p">,</span>
-    <span class="n">app_secret</span><span class="o">=</span><span class="s2">&quot;your_app_secret_min_16_chars_required&quot;</span><span class="p">,</span>
-    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;我的应用&quot;</span>
-<span class="p">)</span>
-
-<span class="c1"># 使用工厂方法创建客户端</span>
-<span class="n">client</span> <span class="o">=</span> <span class="n">credential_pool</span><span class="o">.</span><span class="n">create_messaging_client</span><span class="p">(</span><span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_your_app_id_here&quot;</span><span class="p">)</span>
-
-<span class="c1"># 使用上下文管理器临时切换应用</span>
-<span class="k">with</span> <span class="n">client</span><span class="o">.</span><span class="n">use_app</span><span class="p">(</span><span class="s2">&quot;cli_another_app_id&quot;</span><span class="p">):</span>
-    <span class="c1"># 在此代码块内使用另一个应用</span>
-    <span class="k">pass</span>
-
-<span class="c1"># 方法参数覆盖 (最高优先级)</span>
-<span class="c1"># result = client.some_method(..., app_id=&quot;cli_override_app&quot;)</span>
-</pre></div>
-</div>
-<p>更多应用管理功能:</p>
+<h2>接收者类型说明<a class="headerlink" href="#id3" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p><a class="reference internal" href="app-management.html#5层-app_id-解析优先级"><span class="std std-ref">5层 app_id 解析优先级</span></a></p></li>
-<li><p><a class="reference internal" href="app-management.html#场景-2-多应用场景---客户端级别默认值"><span class="std std-ref">多应用场景</span></a></p></li>
-<li><p><a class="reference internal" href="app-management.html#场景-3-动态切换应用---使用上下文管理器"><span class="std std-ref">动态切换应用</span></a></p></li>
-<li><p><a class="reference internal" href="advanced.html"><span class="std std-doc">高级用法</span></a></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">receive_id_type=&quot;open_id&quot;</span></code>: 发送给个人（<code class="docutils literal notranslate"><span class="pre">receiver_id</span></code> 示例：<code class="docutils literal notranslate"><span class="pre">ou_xxx</span></code>）</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">receive_id_type=&quot;chat_id&quot;</span></code>: 发送到群聊（<code class="docutils literal notranslate"><span class="pre">receiver_id</span></code> 示例：<code class="docutils literal notranslate"><span class="pre">oc_xxx</span></code>）</p></li>
+<li><p>默认值是 <code class="docutils literal notranslate"><span class="pre">open_id</span></code></p></li>
 </ul>
 </section>
+<section id="id4">
+<h2>各类消息发送示例<a class="headerlink" href="#id4" title="Link to this heading"></a></h2>
+<section id="id5">
+<h3>1) 文本消息<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">response</span> <span class="o">=</span> <span class="n">messaging_client</span><span class="o">.</span><span class="n">send_text_message</span><span class="p">(</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_xxx&quot;</span><span class="p">,</span>
+    <span class="n">receiver_id</span><span class="o">=</span><span class="s2">&quot;ou_xxx&quot;</span><span class="p">,</span>
+    <span class="n">content</span><span class="o">=</span><span class="s2">&quot;系统通知：任务执行成功&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="post">
+<h3>2) 富文本消息（post）<a class="headerlink" href="#post" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">rich_content</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;zh_cn&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;发布通知&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">[{</span><span class="s2">&quot;tag&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;版本已发布，查看 &quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;tag&quot;</span><span class="p">:</span> <span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;发布说明&quot;</span><span class="p">,</span> <span class="s2">&quot;href&quot;</span><span class="p">:</span> <span class="s2">&quot;https://example.com/release&quot;</span><span class="p">}],</span>
+            <span class="p">[{</span><span class="s2">&quot;tag&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;如有问题请联系管理员&quot;</span><span class="p">}],</span>
+        <span class="p">],</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="n">response</span> <span class="o">=</span> <span class="n">messaging_client</span><span class="o">.</span><span class="n">send_rich_text_message</span><span class="p">(</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_xxx&quot;</span><span class="p">,</span>
+    <span class="n">receiver_id</span><span class="o">=</span><span class="s2">&quot;ou_xxx&quot;</span><span class="p">,</span>
+    <span class="n">content</span><span class="o">=</span><span class="n">rich_content</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id6">
+<h3>3) 图片消息<a class="headerlink" href="#id6" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 方式 A: 传本地路径，自动上传</span>
+<span class="n">response</span> <span class="o">=</span> <span class="n">messaging_client</span><span class="o">.</span><span class="n">send_image_message</span><span class="p">(</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_xxx&quot;</span><span class="p">,</span>
+    <span class="n">receiver_id</span><span class="o">=</span><span class="s2">&quot;ou_xxx&quot;</span><span class="p">,</span>
+    <span class="n">image_path</span><span class="o">=</span><span class="s2">&quot;assets/alert.png&quot;</span>
+<span class="p">)</span>
+
+<span class="c1"># 方式 B: 使用已上传 image_key</span>
+<span class="n">response</span> <span class="o">=</span> <span class="n">messaging_client</span><span class="o">.</span><span class="n">send_image_message</span><span class="p">(</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_xxx&quot;</span><span class="p">,</span>
+    <span class="n">receiver_id</span><span class="o">=</span><span class="s2">&quot;ou_xxx&quot;</span><span class="p">,</span>
+    <span class="n">image_key</span><span class="o">=</span><span class="s2">&quot;img_v2_xxx&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id7">
+<h3>4) 文件消息<a class="headerlink" href="#id7" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 方式 A: 传本地路径，自动上传</span>
+<span class="n">response</span> <span class="o">=</span> <span class="n">messaging_client</span><span class="o">.</span><span class="n">send_file_message</span><span class="p">(</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_xxx&quot;</span><span class="p">,</span>
+    <span class="n">receiver_id</span><span class="o">=</span><span class="s2">&quot;ou_xxx&quot;</span><span class="p">,</span>
+    <span class="n">file_path</span><span class="o">=</span><span class="s2">&quot;reports/daily-report.pdf&quot;</span>
+<span class="p">)</span>
+
+<span class="c1"># 方式 B: 使用已上传 file_key</span>
+<span class="n">response</span> <span class="o">=</span> <span class="n">messaging_client</span><span class="o">.</span><span class="n">send_file_message</span><span class="p">(</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_xxx&quot;</span><span class="p">,</span>
+    <span class="n">receiver_id</span><span class="o">=</span><span class="s2">&quot;ou_xxx&quot;</span><span class="p">,</span>
+    <span class="n">file_key</span><span class="o">=</span><span class="s2">&quot;file_v2_xxx&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id8">
+<h3>5) 交互式卡片消息<a class="headerlink" href="#id8" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lark_service.cardkit.builder</span><span class="w"> </span><span class="kn">import</span> <span class="n">CardBuilder</span>
+
+<span class="n">card</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">CardBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_header</span><span class="p">(</span><span class="s2">&quot;服务告警&quot;</span><span class="p">,</span> <span class="n">template</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_markdown</span><span class="p">(</span><span class="s2">&quot;**CPU 使用率超过阈值**&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_button</span><span class="p">(</span><span class="s2">&quot;查看监控&quot;</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="s2">&quot;https://example.com/monitor&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s2">&quot;primary&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+
+<span class="n">response</span> <span class="o">=</span> <span class="n">messaging_client</span><span class="o">.</span><span class="n">send_card_message</span><span class="p">(</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_xxx&quot;</span><span class="p">,</span>
+    <span class="n">receiver_id</span><span class="o">=</span><span class="s2">&quot;oc_xxx&quot;</span><span class="p">,</span>              <span class="c1"># 群聊示例</span>
+    <span class="n">card_content</span><span class="o">=</span><span class="n">card</span><span class="p">,</span>
+    <span class="n">receive_id_type</span><span class="o">=</span><span class="s2">&quot;chat_id&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id9">
+<h3>6) 批量发送<a class="headerlink" href="#id9" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">batch_result</span> <span class="o">=</span> <span class="n">messaging_client</span><span class="o">.</span><span class="n">send_batch_messages</span><span class="p">(</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_xxx&quot;</span><span class="p">,</span>
+    <span class="n">receiver_ids</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;ou_user1&quot;</span><span class="p">,</span> <span class="s2">&quot;ou_user2&quot;</span><span class="p">,</span> <span class="s2">&quot;ou_user3&quot;</span><span class="p">],</span>
+    <span class="n">msg_type</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span>
+    <span class="n">content</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;今晚 22:00 进行系统维护&quot;</span><span class="p">},</span>
+    <span class="n">continue_on_error</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">batch_result</span><span class="o">.</span><span class="n">total</span><span class="p">,</span> <span class="n">batch_result</span><span class="o">.</span><span class="n">success</span><span class="p">,</span> <span class="n">batch_result</span><span class="o">.</span><span class="n">failed</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">batch_result</span><span class="o">.</span><span class="n">results</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">receiver_id</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">status</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">message_id</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">error</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id10">
+<h2>消息生命周期（撤回、编辑、回复）<a class="headerlink" href="#id10" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">MessagingClient</span></code> 负责发送；消息生命周期由 <code class="docutils literal notranslate"><span class="pre">MessageLifecycleManager</span></code> 提供。</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lark_service.messaging</span><span class="w"> </span><span class="kn">import</span> <span class="n">MessageLifecycleManager</span>
+
+<span class="n">lifecycle</span> <span class="o">=</span> <span class="n">MessageLifecycleManager</span><span class="p">(</span><span class="n">credential_pool</span><span class="o">=</span><span class="n">credential_pool</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="id11">
+<h3>撤回消息<a class="headerlink" href="#id11" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">lifecycle</span><span class="o">.</span><span class="n">recall_message</span><span class="p">(</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_xxx&quot;</span><span class="p">,</span>
+    <span class="n">message_id</span><span class="o">=</span><span class="s2">&quot;om_xxx&quot;</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;success&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="id12">
+<h3>编辑文本消息<a class="headerlink" href="#id12" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">lifecycle</span><span class="o">.</span><span class="n">edit_message</span><span class="p">(</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_xxx&quot;</span><span class="p">,</span>
+    <span class="n">message_id</span><span class="o">=</span><span class="s2">&quot;om_xxx&quot;</span><span class="p">,</span>
+    <span class="n">content</span><span class="o">=</span><span class="s2">&quot;这是编辑后的文本&quot;</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;success&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="id13">
+<h3>回复消息<a class="headerlink" href="#id13" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 文本回复</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">lifecycle</span><span class="o">.</span><span class="n">reply_message</span><span class="p">(</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="s2">&quot;cli_xxx&quot;</span><span class="p">,</span>
+    <span class="n">message_id</span><span class="o">=</span><span class="s2">&quot;om_xxx&quot;</span><span class="p">,</span>
+    <span class="n">msg_type</span><span class="o">=</span><span class="s2">&quot;text&quot;</span><span class="p">,</span>
+    <span class="n">content</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;已收到，正在处理&quot;</span><span class="p">}</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;reply_message_id&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id14">
+<h2>常见易错点<a class="headerlink" href="#id14" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">send_card_message</span></code> 参数名是 <code class="docutils literal notranslate"><span class="pre">card_content</span></code>，不是 <code class="docutils literal notranslate"><span class="pre">card</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">send_image_message</span></code> 必须提供 <code class="docutils literal notranslate"><span class="pre">image_path</span></code> 或 <code class="docutils literal notranslate"><span class="pre">image_key</span></code> 二选一</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">send_file_message</span></code> 必须提供 <code class="docutils literal notranslate"><span class="pre">file_path</span></code> 或 <code class="docutils literal notranslate"><span class="pre">file_key</span></code> 二选一</p></li>
+<li><p>批量发送 <code class="docutils literal notranslate"><span class="pre">msg_type=&quot;text&quot;</span></code> 时，建议使用 <code class="docutils literal notranslate"><span class="pre">content={&quot;text&quot;:</span> <span class="pre">&quot;...&quot;}</span></code></p></li>
+<li><p>生命周期操作需要 <code class="docutils literal notranslate"><span class="pre">message_id</span></code>（通常来自发送响应中的 <code class="docutils literal notranslate"><span class="pre">message_id</span></code>）</p></li>
+</ul>
+</section>
+<section id="id15">
+<h2>与卡片更新的关系<a class="headerlink" href="#id15" title="Link to this heading"></a></h2>
+<p>卡片发送在消息服务中完成；卡片内容更新不在 <code class="docutils literal notranslate"><span class="pre">MessagingClient</span></code> 中，请使用卡片服务能力（参见 <a class="reference internal" href="card.html"><span class="std std-doc">卡片服务</span></a>）。</p>
+</section>
+<section id="id16">
+<h2>应用管理<a class="headerlink" href="#id16" title="Link to this heading"></a></h2>
+<p>LarkService 支持多应用管理和灵活切换，详细说明见 <a class="reference internal" href="app-management.html"><span class="std std-doc">应用管理文档</span></a>。</p>
+<p>更多参考：</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="app-management.html"><span class="std std-doc">5 层 app_id 解析优先级</span></a></p></li>
+<li><p><a class="reference internal" href="app-management.html"><span class="std std-doc">多应用场景</span></a></p></li>
+<li><p><a class="reference internal" href="app-management.html"><span class="std std-doc">动态切换应用</span></a></p></li>
+<li><p><a class="reference internal" href="advanced.html"><span class="std std-doc">高级用法</span></a></p></li>
+</ul>
 </section>
 </section>
 
