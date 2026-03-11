@@ -85,7 +85,7 @@ user = contact_client.get_user_by_mobile(
     app_id="cli_a8d27f9bf635500e",
     mobile="+8613800138000"
 )
-print(f"用户 open_id: {user['open_id']}")
+print(f"用户 open_id: {user.open_id}")
 ```
 
 ## 步骤 6: 发送第一条消息
@@ -134,7 +134,7 @@ response = messaging_client.send_text_message(
 # )
 # response = messaging_client.send_text_message(
 #     app_id="cli_a8d27f9bf635500e",
-#     receiver_id=user['open_id'],
+#     receiver_id=user.open_id,
 #     content="你好！"
 # )
 
@@ -171,7 +171,7 @@ card = (CardBuilder()
 response = messaging_client.send_card_message(
     app_id="cli_a8d27f9bf635500e",
     receiver_id="oc_xxx",  # 替换为实际的群聊 ID
-    card=card,
+    card_content=card,
     receive_id_type="chat_id"
 )
 
