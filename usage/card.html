@@ -231,15 +231,36 @@
 <li class="toctree-l3"><a class="reference internal" href="#id4">基础使用</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id5">预定义卡片模板</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#api">链式 API 详解</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id5">基本元素</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id6">添加标题</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id7">添加文本</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id8">添加分割线</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id9">添加按钮</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id10">添加字段</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id11">添加图片</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id12">添加提示框</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id13">添加卡片链接</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#id14">完整示例</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id15">示例 1: 任务通知卡片</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id16">示例 2: 告警卡片</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id17">示例 3: 用户信息卡片</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#id18">混合使用</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id19">预定义卡片模板</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#notification-card">1. 通知卡片 (Notification Card)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#approval-card">2. 审批卡片 (Approval Card)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#form-card">3. 表单卡片 (Form Card)</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id6">自定义卡片构建</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id20">自定义卡片构建</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#build-card">使用 build_card 方法</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id7">常用卡片元素</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id21">常用卡片元素</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#div">文本元素 (div)</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#markdown">Markdown 文本</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#button">按钮 (button)</a></li>
@@ -250,35 +271,35 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id8">卡片交互回调</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id9">设置回调服务器</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id10">卡片回调数据结构</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id22">卡片交互回调</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id23">设置回调服务器</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id24">卡片回调数据结构</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id11">更新卡片</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id25">更新卡片</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#cardupdater">使用 CardUpdater</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id12">在回调中更新卡片</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id26">在回调中更新卡片</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id13">高级用法</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id14">条件渲染</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id15">数据绑定</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id16">卡片链</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id27">高级用法</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id28">条件渲染</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id29">数据绑定</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id30">卡片链</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id17">最佳实践</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id18">1. 卡片设计原则</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id19">2. 错误处理</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id20">3. 回调安全验证</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id21">4. 性能优化</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id31">最佳实践</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id32">1. 卡片设计原则</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id33">2. 错误处理</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id34">3. 回调安全验证</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id35">4. 性能优化</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id22">故障排查</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id23">卡片发送失败</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id24">回调未触发</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id36">故障排查</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id37">卡片发送失败</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id38">回调未触发</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id25">相关文档</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id39">相关文档</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="contact.html">通讯录服务</a><ul>
@@ -1136,7 +1157,81 @@
 </ul>
 </li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">开发与测试</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../development-environment.html">开发环境配置指南</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../development-environment.html#vs-fr-093-chk009">🎯 开发环境 vs 生产环境差异 (FR-093, CHK009)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../development-environment.html#id2">关键差异点</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../development-environment.html#id3">环境配置文件</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../development-environment.html#id4">环境检测</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../development-environment.html#id5">1. 环境管理</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../development-environment.html#conda">1.1 Conda 环境管理 (推荐)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../development-environment.html#id6">安装 Conda</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../development-environment.html#id7">创建项目环境</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../development-environment.html#id8">环境管理命令</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../development-environment.html#id9">2. 包管理</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../development-environment.html#uv-python">2.1 uv - 快速 Python 包管理器 (推荐)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../development-environment.html#uv">安装 uv</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../development-environment.html#id10">使用 uv 安装依赖</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../development-environment.html#id11">uv 优势</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../development-environment.html#pip">2.2 pip (备选方案)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../development-environment.html#docker">3. Docker 环境</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../development-environment.html#id12">3.1 Docker 版本确认</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../development-environment.html#id13">检查 Docker 版本</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../development-environment.html#docker-compose">如果使用旧版本 docker-compose</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../development-environment.html#id14">Docker Compose 命令对比</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../development-environment.html#id15">4. 完整开发环境设置</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../development-environment.html#id16">4.1 首次设置</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../development-environment.html#id17">4.2 日常开发流程</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../development-environment.html#ide">5. IDE 配置</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../development-environment.html#vs-code-cursor">5.1 VS Code / Cursor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../development-environment.html#pycharm">5.2 PyCharm</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../development-environment.html#id18">6. 环境变量管理</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../development-environment.html#id19">6.1 开发环境</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../development-environment.html#env">6.2 .env 文件示例</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../development-environment.html#id20">6.3 环境变量加载</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../development-environment.html#id21">7. 常见问题</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../development-environment.html#id22">7.1 Conda 环境问题</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../development-environment.html#id23">7.2 uv 安装问题</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../development-environment.html#id24">7.3 Docker Compose 命令问题</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../development-environment.html#python">7.4 Python 版本问题</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../development-environment.html#id25">8. 性能优化建议</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../development-environment.html#id26">8.1 使用 uv 加速安装</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../development-environment.html#id27">8.2 使用 Conda 缓存</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../development-environment.html#id28">8.3 Docker 镜像加速</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../development-environment.html#id29">9. 环境检查清单</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../development-environment.html#id30">10. 总结</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../development-environment.html#id31">环境配置要点</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../development-environment.html#id32">技术亮点</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../development-environment.html#id33">快速开始命令</a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="../features/token-monitoring.html">Token 过期监控 (Token Expiry Monitoring)</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../features/token-monitoring.html#id1">概述</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../features/token-monitoring.html#token">Token 类型说明</a></li>
@@ -1184,6 +1279,50 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../features/token-monitoring.html#id25">参考资料</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../features/scheduled-tasks.html">定时任务 (Scheduled Tasks)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../features/scheduled-tasks.html#id1">概述</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../features/scheduled-tasks.html#id2">内置定时任务</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../features/scheduled-tasks.html#user-info-sync">1. 用户信息同步 (User Info Sync)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../features/scheduled-tasks.html#token-token-expiry-check">2. Token 过期检查 (Token Expiry Check)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../features/scheduled-tasks.html#token-expired-token-cleanup">3. 过期 Token 清理 (Expired Token Cleanup)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../features/scheduled-tasks.html#health-check">4. 健康检查 (Health Check)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../features/scheduled-tasks.html#id3">自定义定时任务</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../features/scheduled-tasks.html#interval">添加 Interval 任务</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../features/scheduled-tasks.html#cron">添加 Cron 任务</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../features/scheduled-tasks.html#id4">Cron 表达式说明</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../features/scheduled-tasks.html#id5">监控和管理</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../features/scheduled-tasks.html#prometheus">Prometheus 指标</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../features/scheduled-tasks.html#grafana">Grafana 监控面板</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../features/scheduled-tasks.html#id6">日志查看</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../features/scheduled-tasks.html#id7">手动执行任务</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../features/scheduled-tasks.html#id8">临时禁用任务</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../features/scheduled-tasks.html#id9">配置选项</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../features/scheduled-tasks.html#id10">调度器配置</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../features/scheduled-tasks.html#token">Token 过期监控配置</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../features/scheduled-tasks.html#id11">最佳实践</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../features/scheduled-tasks.html#id12">1. 任务设计原则</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../features/scheduled-tasks.html#id13">2. 调度策略选择</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../features/scheduled-tasks.html#id14">3. 监控和告警</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../features/scheduled-tasks.html#id15">4. 性能优化</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../features/scheduled-tasks.html#id16">故障排查</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../features/scheduled-tasks.html#id17">任务未执行</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../features/scheduled-tasks.html#id18">任务执行失败</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../features/scheduled-tasks.html#id19">性能问题</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../features/scheduled-tasks.html#id20">参考资料</a></li>
 </ul>
 </li>
 </ul>
@@ -1488,6 +1627,7 @@
 <h2>功能特点<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>✅ <strong>预定义模板</strong>: 审批卡片、通知卡片、表单卡片</p></li>
+<li><p>✅ <strong>链式构建 (新)</strong>: 流畅的链式 API,灵活组合卡片元素</p></li>
 <li><p>✅ <strong>灵活构建</strong>: 自定义卡片元素和布局</p></li>
 <li><p>✅ <strong>交互回调</strong>: 按钮点击、表单提交等事件处理</p></li>
 <li><p>✅ <strong>卡片更新</strong>: 动态更新已发送的卡片内容</p></li>
@@ -1498,6 +1638,11 @@
 <h2>快速开始<a class="headerlink" href="#id3" title="Link to this heading"></a></h2>
 <section id="id4">
 <h3>基础使用<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">CardBuilder</span></code> 支持两种使用方式:</p>
+<ol class="arabic simple">
+<li><p><strong>模板方法</strong> (快速简单): 使用预定义模板快速创建常见卡片</p></li>
+<li><p><strong>链式 API</strong> (灵活强大): 链式调用方法自由组合卡片元素</p></li>
+</ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lark_service.core.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">Config</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">lark_service.core.credential_pool</span><span class="w"> </span><span class="kn">import</span> <span class="n">CredentialPool</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">lark_service.core.storage</span><span class="w"> </span><span class="kn">import</span> <span class="n">ApplicationManager</span><span class="p">,</span> <span class="n">TokenStorageService</span>
@@ -1512,16 +1657,22 @@
 <span class="p">)</span>
 <span class="n">token_storage</span> <span class="o">=</span> <span class="n">TokenStorageService</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get_postgres_url</span><span class="p">())</span>
 <span class="n">pool</span> <span class="o">=</span> <span class="n">CredentialPool</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="n">app_manager</span><span class="o">=</span><span class="n">app_manager</span><span class="p">,</span> <span class="n">token_storage</span><span class="o">=</span><span class="n">token_storage</span><span class="p">)</span>
-<span class="n">messaging_client</span> <span class="o">=</span> <span class="n">MessagingClient</span><span class="p">(</span><span class="n">pool</span><span class="o">=</span><span class="n">pool</span><span class="p">)</span>
+<span class="n">messaging_client</span> <span class="o">=</span> <span class="n">MessagingClient</span><span class="p">(</span><span class="n">pool</span><span class="p">)</span>
 
-<span class="c1"># 创建卡片构建器</span>
-<span class="n">builder</span> <span class="o">=</span> <span class="n">CardBuilder</span><span class="p">()</span>
-
-<span class="c1"># 构建简单通知卡片</span>
-<span class="n">card</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">build_notification_card</span><span class="p">(</span>
+<span class="c1"># 方式 1: 模板方法 (快速)</span>
+<span class="n">card</span> <span class="o">=</span> <span class="n">CardBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">build_notification_card</span><span class="p">(</span>
     <span class="n">title</span><span class="o">=</span><span class="s2">&quot;系统通知&quot;</span><span class="p">,</span>
     <span class="n">content</span><span class="o">=</span><span class="s2">&quot;您有一条新消息待查看&quot;</span><span class="p">,</span>
     <span class="n">level</span><span class="o">=</span><span class="s2">&quot;info&quot;</span>
+<span class="p">)</span>
+
+<span class="c1"># 方式 2: 链式 API (灵活)</span>
+<span class="n">card</span> <span class="o">=</span> <span class="p">(</span><span class="n">CardBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_header</span><span class="p">(</span><span class="s2">&quot;自定义通知&quot;</span><span class="p">,</span> <span class="n">template</span><span class="o">=</span><span class="s2">&quot;blue&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_markdown</span><span class="p">(</span><span class="s2">&quot;**重要**: 请查看最新更新&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_divider</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_button</span><span class="p">(</span><span class="s2">&quot;查看详情&quot;</span><span class="p">,</span> <span class="n">action_id</span><span class="o">=</span><span class="s2">&quot;view_details&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s2">&quot;primary&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="p">)</span>
 
 <span class="c1"># 发送卡片</span>
@@ -1535,8 +1686,211 @@
 </div>
 </section>
 </section>
+<section id="api">
+<h2>链式 API 详解<a class="headerlink" href="#api" title="Link to this heading"></a></h2>
+<p>链式 API 提供了更灵活的卡片构建方式,适合需要精细控制的场景。</p>
 <section id="id5">
-<h2>预定义卡片模板<a class="headerlink" href="#id5" title="Link to this heading"></a></h2>
+<h3>基本元素<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
+<section id="id6">
+<h4>添加标题<a class="headerlink" href="#id6" title="Link to this heading"></a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 基础标题</span>
+<span class="n">card</span> <span class="o">=</span> <span class="p">(</span><span class="n">CardBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_header</span><span class="p">(</span><span class="s2">&quot;卡片标题&quot;</span><span class="p">,</span> <span class="n">template</span><span class="o">=</span><span class="s2">&quot;blue&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_text</span><span class="p">(</span><span class="s2">&quot;内容&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+
+<span class="c1"># 带副标题</span>
+<span class="n">card</span> <span class="o">=</span> <span class="p">(</span><span class="n">CardBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_header</span><span class="p">(</span><span class="s2">&quot;主标题&quot;</span><span class="p">,</span> <span class="n">template</span><span class="o">=</span><span class="s2">&quot;green&quot;</span><span class="p">,</span> <span class="n">subtitle</span><span class="o">=</span><span class="s2">&quot;副标题说明&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_text</span><span class="p">(</span><span class="s2">&quot;内容&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+
+<span class="c1"># 模板颜色: blue, green, red, orange, purple, indigo</span>
+</pre></div>
+</div>
+</section>
+<section id="id7">
+<h4>添加文本<a class="headerlink" href="#id7" title="Link to this heading"></a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Markdown 文本 (支持格式化)</span>
+<span class="n">card</span> <span class="o">=</span> <span class="p">(</span><span class="n">CardBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_markdown</span><span class="p">(</span><span class="s2">&quot;**粗体** *斜体* [链接](https://example.com)&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+
+<span class="c1"># 普通文本</span>
+<span class="n">card</span> <span class="o">=</span> <span class="p">(</span><span class="n">CardBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_text</span><span class="p">(</span><span class="s2">&quot;这是普通文本,不支持格式化&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id8">
+<h4>添加分割线<a class="headerlink" href="#id8" title="Link to this heading"></a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">card</span> <span class="o">=</span> <span class="p">(</span><span class="n">CardBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_text</span><span class="p">(</span><span class="s2">&quot;第一部分&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_divider</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_text</span><span class="p">(</span><span class="s2">&quot;第二部分&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id9">
+<h4>添加按钮<a class="headerlink" href="#id9" title="Link to this heading"></a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 回调按钮 (触发 action)</span>
+<span class="n">card</span> <span class="o">=</span> <span class="p">(</span><span class="n">CardBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_button</span><span class="p">(</span><span class="s2">&quot;确认&quot;</span><span class="p">,</span> <span class="n">action_id</span><span class="o">=</span><span class="s2">&quot;confirm&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s2">&quot;primary&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_button</span><span class="p">(</span><span class="s2">&quot;取消&quot;</span><span class="p">,</span> <span class="n">action_id</span><span class="o">=</span><span class="s2">&quot;cancel&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s2">&quot;default&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+
+<span class="c1"># URL 按钮 (打开链接)</span>
+<span class="n">card</span> <span class="o">=</span> <span class="p">(</span><span class="n">CardBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_button</span><span class="p">(</span><span class="s2">&quot;访问官网&quot;</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="s2">&quot;https://example.com&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+
+<span class="c1"># 按钮类型:</span>
+<span class="c1"># - &quot;primary&quot; (蓝色主按钮)</span>
+<span class="c1"># - &quot;default&quot; (灰色默认按钮)</span>
+<span class="c1"># - &quot;danger&quot; (红色危险按钮)</span>
+</pre></div>
+</div>
+</section>
+<section id="id10">
+<h4>添加字段<a class="headerlink" href="#id10" title="Link to this heading"></a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 键值对字段</span>
+<span class="n">card</span> <span class="o">=</span> <span class="p">(</span><span class="n">CardBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="s2">&quot;姓名&quot;</span><span class="p">,</span> <span class="s2">&quot;张三&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="s2">&quot;部门&quot;</span><span class="p">,</span> <span class="s2">&quot;技术部&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="s2">&quot;职位&quot;</span><span class="p">,</span> <span class="s2">&quot;工程师&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id11">
+<h4>添加图片<a class="headerlink" href="#id11" title="Link to this heading"></a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 需要先上传图片获取 image_key</span>
+<span class="n">card</span> <span class="o">=</span> <span class="p">(</span><span class="n">CardBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_image</span><span class="p">(</span><span class="s2">&quot;img_xxx&quot;</span><span class="p">,</span> <span class="n">alt</span><span class="o">=</span><span class="s2">&quot;产品图&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;新产品&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id12">
+<h4>添加提示框<a class="headerlink" href="#id12" title="Link to this heading"></a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">card</span> <span class="o">=</span> <span class="p">(</span><span class="n">CardBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_note</span><span class="p">(</span><span class="s2">&quot;**提示**: 此操作不可撤销&quot;</span><span class="p">,</span> <span class="n">note_type</span><span class="o">=</span><span class="s2">&quot;warning&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id13">
+<h4>添加卡片链接<a class="headerlink" href="#id13" title="Link to this heading"></a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 整张卡片可点击</span>
+<span class="n">card</span> <span class="o">=</span> <span class="p">(</span><span class="n">CardBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_text</span><span class="p">(</span><span class="s2">&quot;点击卡片查看详情&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_card_link</span><span class="p">(</span><span class="s2">&quot;https://example.com&quot;</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;查看更多&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id14">
+<h3>完整示例<a class="headerlink" href="#id14" title="Link to this heading"></a></h3>
+<section id="id15">
+<h4>示例 1: 任务通知卡片<a class="headerlink" href="#id15" title="Link to this heading"></a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">card</span> <span class="o">=</span> <span class="p">(</span><span class="n">CardBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_header</span><span class="p">(</span><span class="s2">&quot;新任务分配&quot;</span><span class="p">,</span> <span class="n">template</span><span class="o">=</span><span class="s2">&quot;blue&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_markdown</span><span class="p">(</span><span class="s2">&quot;**@张三** 为您分配了新任务&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_divider</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="s2">&quot;任务名称&quot;</span><span class="p">,</span> <span class="s2">&quot;优化数据库查询性能&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="s2">&quot;优先级&quot;</span><span class="p">,</span> <span class="s2">&quot;高&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="s2">&quot;截止日期&quot;</span><span class="p">,</span> <span class="s2">&quot;2026-02-10&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_divider</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_button</span><span class="p">(</span><span class="s2">&quot;接受任务&quot;</span><span class="p">,</span> <span class="n">action_id</span><span class="o">=</span><span class="s2">&quot;accept_task&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s2">&quot;primary&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_button</span><span class="p">(</span><span class="s2">&quot;查看详情&quot;</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="s2">&quot;https://task.example.com/123&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id16">
+<h4>示例 2: 告警卡片<a class="headerlink" href="#id16" title="Link to this heading"></a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">card</span> <span class="o">=</span> <span class="p">(</span><span class="n">CardBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_header</span><span class="p">(</span><span class="s2">&quot;系统告警&quot;</span><span class="p">,</span> <span class="n">template</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_markdown</span><span class="p">(</span><span class="s2">&quot;🚨 **严重**: 生产环境 CPU 使用率过高&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_divider</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="s2">&quot;服务器&quot;</span><span class="p">,</span> <span class="s2">&quot;prod-server-01&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="s2">&quot;CPU 使用率&quot;</span><span class="p">,</span> <span class="s2">&quot;92%&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="s2">&quot;内存使用率&quot;</span><span class="p">,</span> <span class="s2">&quot;78%&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="s2">&quot;告警时间&quot;</span><span class="p">,</span> <span class="s2">&quot;2026-02-04 14:30:00&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_divider</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_note</span><span class="p">(</span><span class="s2">&quot;**建议**: 立即检查后台任务并重启服务&quot;</span><span class="p">,</span> <span class="n">note_type</span><span class="o">=</span><span class="s2">&quot;warning&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_divider</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_button</span><span class="p">(</span><span class="s2">&quot;查看监控&quot;</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="s2">&quot;https://monitor.example.com&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s2">&quot;primary&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_button</span><span class="p">(</span><span class="s2">&quot;确认告警&quot;</span><span class="p">,</span> <span class="n">action_id</span><span class="o">=</span><span class="s2">&quot;ack_alert&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="id17">
+<h4>示例 3: 用户信息卡片<a class="headerlink" href="#id17" title="Link to this heading"></a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">card</span> <span class="o">=</span> <span class="p">(</span><span class="n">CardBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_header</span><span class="p">(</span><span class="s2">&quot;用户资料&quot;</span><span class="p">,</span> <span class="n">template</span><span class="o">=</span><span class="s2">&quot;green&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_image</span><span class="p">(</span><span class="s2">&quot;img_user_avatar&quot;</span><span class="p">,</span> <span class="n">alt</span><span class="o">=</span><span class="s2">&quot;用户头像&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_divider</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="s2">&quot;姓名&quot;</span><span class="p">,</span> <span class="s2">&quot;李四&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="s2">&quot;邮箱&quot;</span><span class="p">,</span> <span class="s2">&quot;lisi@example.com&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="s2">&quot;部门&quot;</span><span class="p">,</span> <span class="s2">&quot;产品部&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="s2">&quot;入职日期&quot;</span><span class="p">,</span> <span class="s2">&quot;2025-01-15&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_divider</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_markdown</span><span class="p">(</span><span class="s2">&quot;**简介**: 资深产品经理,擅长需求分析和用户体验设计&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_divider</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_button</span><span class="p">(</span><span class="s2">&quot;发送消息&quot;</span><span class="p">,</span> <span class="n">action_id</span><span class="o">=</span><span class="s2">&quot;send_message&quot;</span><span class="p">,</span> <span class="n">button_type</span><span class="o">=</span><span class="s2">&quot;primary&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_button</span><span class="p">(</span><span class="s2">&quot;查看完整资料&quot;</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="s2">&quot;https://profile.example.com/lisi&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id18">
+<h3>混合使用<a class="headerlink" href="#id18" title="Link to this heading"></a></h3>
+<p>可以结合模板和链式 API:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 使用模板快速创建基础卡片,然后继续添加元素</span>
+<span class="c1"># 注意: 模板方法会直接返回 dict,不支持继续链式调用</span>
+<span class="c1"># 推荐: 完全使用链式 API 或完全使用模板方法</span>
+
+<span class="c1"># ✅ 推荐: 纯链式 API</span>
+<span class="n">card</span> <span class="o">=</span> <span class="p">(</span><span class="n">CardBuilder</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">add_header</span><span class="p">(</span><span class="s2">&quot;标题&quot;</span><span class="p">,</span> <span class="n">template</span><span class="o">=</span><span class="s2">&quot;blue&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_markdown</span><span class="p">(</span><span class="s2">&quot;**内容**&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">add_button</span><span class="p">(</span><span class="s2">&quot;操作&quot;</span><span class="p">,</span> <span class="n">action_id</span><span class="o">=</span><span class="s2">&quot;action&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<span class="p">)</span>
+
+<span class="c1"># ✅ 推荐: 纯模板方法</span>
+<span class="n">card</span> <span class="o">=</span> <span class="n">CardBuilder</span><span class="p">()</span><span class="o">.</span><span class="n">build_notification_card</span><span class="p">(</span>
+    <span class="n">title</span><span class="o">=</span><span class="s2">&quot;标题&quot;</span><span class="p">,</span>
+    <span class="n">content</span><span class="o">=</span><span class="s2">&quot;内容&quot;</span><span class="p">,</span>
+    <span class="n">action_text</span><span class="o">=</span><span class="s2">&quot;操作&quot;</span><span class="p">,</span>
+    <span class="n">action_id</span><span class="o">=</span><span class="s2">&quot;action&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="id19">
+<h2>预定义卡片模板<a class="headerlink" href="#id19" title="Link to this heading"></a></h2>
 <section id="notification-card">
 <h3>1. 通知卡片 (Notification Card)<a class="headerlink" href="#notification-card" title="Link to this heading"></a></h3>
 <p>用于发送系统通知、提醒消息等。</p>
@@ -1655,8 +2009,8 @@
 </div>
 </section>
 </section>
-<section id="id6">
-<h2>自定义卡片构建<a class="headerlink" href="#id6" title="Link to this heading"></a></h2>
+<section id="id20">
+<h2>自定义卡片构建<a class="headerlink" href="#id20" title="Link to this heading"></a></h2>
 <section id="build-card">
 <h3>使用 build_card 方法<a class="headerlink" href="#build-card" title="Link to this heading"></a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 创建自定义卡片</span>
@@ -1719,8 +2073,8 @@
 </pre></div>
 </div>
 </section>
-<section id="id7">
-<h3>常用卡片元素<a class="headerlink" href="#id7" title="Link to this heading"></a></h3>
+<section id="id21">
+<h3>常用卡片元素<a class="headerlink" href="#id21" title="Link to this heading"></a></h3>
 <section id="div">
 <h4>文本元素 (div)<a class="headerlink" href="#div" title="Link to this heading"></a></h4>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -1821,10 +2175,10 @@
 </section>
 </section>
 </section>
-<section id="id8">
-<h2>卡片交互回调<a class="headerlink" href="#id8" title="Link to this heading"></a></h2>
-<section id="id9">
-<h3>设置回调服务器<a class="headerlink" href="#id9" title="Link to this heading"></a></h3>
+<section id="id22">
+<h2>卡片交互回调<a class="headerlink" href="#id22" title="Link to this heading"></a></h2>
+<section id="id23">
+<h3>设置回调服务器<a class="headerlink" href="#id23" title="Link to this heading"></a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lark_service.cardkit.callback_handler</span><span class="w"> </span><span class="kn">import</span> <span class="n">CallbackHandler</span>
 
 <span class="c1"># 创建回调处理器</span>
@@ -1869,8 +2223,8 @@
 </pre></div>
 </div>
 </section>
-<section id="id10">
-<h3>卡片回调数据结构<a class="headerlink" href="#id10" title="Link to this heading"></a></h3>
+<section id="id24">
+<h3>卡片回调数据结构<a class="headerlink" href="#id24" title="Link to this heading"></a></h3>
 <p>回调会收到以下数据:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
     <span class="s2">&quot;user_id&quot;</span><span class="p">:</span> <span class="s2">&quot;ou_xxx&quot;</span><span class="p">,</span>           <span class="c1"># 点击用户的 open_id</span>
@@ -1887,8 +2241,8 @@
 </div>
 </section>
 </section>
-<section id="id11">
-<h2>更新卡片<a class="headerlink" href="#id11" title="Link to this heading"></a></h2>
+<section id="id25">
+<h2>更新卡片<a class="headerlink" href="#id25" title="Link to this heading"></a></h2>
 <section id="cardupdater">
 <h3>使用 CardUpdater<a class="headerlink" href="#cardupdater" title="Link to this heading"></a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lark_service.cardkit.updater</span><span class="w"> </span><span class="kn">import</span> <span class="n">CardUpdater</span>
@@ -1910,8 +2264,8 @@
 </pre></div>
 </div>
 </section>
-<section id="id12">
-<h3>在回调中更新卡片<a class="headerlink" href="#id12" title="Link to this heading"></a></h3>
+<section id="id26">
+<h3>在回调中更新卡片<a class="headerlink" href="#id26" title="Link to this heading"></a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">handle_refresh</span><span class="p">(</span><span class="n">event</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;刷新卡片状态&quot;&quot;&quot;</span>
     <span class="c1"># 获取最新数据</span>
@@ -1933,10 +2287,10 @@
 </div>
 </section>
 </section>
-<section id="id13">
-<h2>高级用法<a class="headerlink" href="#id13" title="Link to this heading"></a></h2>
-<section id="id14">
-<h3>条件渲染<a class="headerlink" href="#id14" title="Link to this heading"></a></h3>
+<section id="id27">
+<h2>高级用法<a class="headerlink" href="#id27" title="Link to this heading"></a></h2>
+<section id="id28">
+<h3>条件渲染<a class="headerlink" href="#id28" title="Link to this heading"></a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">build_dynamic_card</span><span class="p">(</span><span class="n">user_role</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;根据用户角色构建不同的卡片&quot;&quot;&quot;</span>
     <span class="n">elements</span> <span class="o">=</span> <span class="p">[</span>
@@ -1967,8 +2321,8 @@
 </pre></div>
 </div>
 </section>
-<section id="id15">
-<h3>数据绑定<a class="headerlink" href="#id15" title="Link to this heading"></a></h3>
+<section id="id29">
+<h3>数据绑定<a class="headerlink" href="#id29" title="Link to this heading"></a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">build_data_card</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;从数据构建卡片&quot;&quot;&quot;</span>
     <span class="n">elements</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1998,8 +2352,8 @@
 </pre></div>
 </div>
 </section>
-<section id="id16">
-<h3>卡片链<a class="headerlink" href="#id16" title="Link to this heading"></a></h3>
+<section id="id30">
+<h3>卡片链<a class="headerlink" href="#id30" title="Link to this heading"></a></h3>
 <p>发送一系列相关的卡片:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 步骤 1: 发送初始卡片</span>
 <span class="n">card1</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">build_notification_card</span><span class="p">(</span>
@@ -2040,10 +2394,10 @@
 </div>
 </section>
 </section>
-<section id="id17">
-<h2>最佳实践<a class="headerlink" href="#id17" title="Link to this heading"></a></h2>
-<section id="id18">
-<h3>1. 卡片设计原则<a class="headerlink" href="#id18" title="Link to this heading"></a></h3>
+<section id="id31">
+<h2>最佳实践<a class="headerlink" href="#id31" title="Link to this heading"></a></h2>
+<section id="id32">
+<h3>1. 卡片设计原则<a class="headerlink" href="#id32" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>简洁明了</strong>: 避免信息过载,突出重点</p></li>
 <li><p><strong>操作明确</strong>: 按钮文字清晰,操作目的明确</p></li>
@@ -2051,8 +2405,8 @@
 <li><p><strong>响应及时</strong>: 交互后立即给予反馈</p></li>
 </ul>
 </section>
-<section id="id19">
-<h3>2. 错误处理<a class="headerlink" href="#id19" title="Link to this heading"></a></h3>
+<section id="id33">
+<h3>2. 错误处理<a class="headerlink" href="#id33" title="Link to this heading"></a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lark_service.core.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">LarkAPIError</span>
 
 <span class="k">try</span><span class="p">:</span>
@@ -2072,8 +2426,8 @@
 </pre></div>
 </div>
 </section>
-<section id="id20">
-<h3>3. 回调安全验证<a class="headerlink" href="#id20" title="Link to this heading"></a></h3>
+<section id="id34">
+<h3>3. 回调安全验证<a class="headerlink" href="#id34" title="Link to this heading"></a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lark_service.cardkit.callback_handler</span><span class="w"> </span><span class="kn">import</span> <span class="n">CallbackHandler</span>
 
 <span class="n">callback_handler</span> <span class="o">=</span> <span class="n">CallbackHandler</span><span class="p">(</span>
@@ -2096,8 +2450,8 @@
 </pre></div>
 </div>
 </section>
-<section id="id21">
-<h3>4. 性能优化<a class="headerlink" href="#id21" title="Link to this heading"></a></h3>
+<section id="id35">
+<h3>4. 性能优化<a class="headerlink" href="#id35" title="Link to this heading"></a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 批量发送卡片</span>
 <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">send_cards_batch</span><span class="p">(</span><span class="n">receiver_ids</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">card</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;批量发送卡片&quot;&quot;&quot;</span>
@@ -2120,10 +2474,10 @@
 </div>
 </section>
 </section>
-<section id="id22">
-<h2>故障排查<a class="headerlink" href="#id22" title="Link to this heading"></a></h2>
-<section id="id23">
-<h3>卡片发送失败<a class="headerlink" href="#id23" title="Link to this heading"></a></h3>
+<section id="id36">
+<h2>故障排查<a class="headerlink" href="#id36" title="Link to this heading"></a></h2>
+<section id="id37">
+<h3>卡片发送失败<a class="headerlink" href="#id37" title="Link to this heading"></a></h3>
 <ol class="arabic">
 <li><p><strong>检查卡片 JSON 结构</strong>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
@@ -2148,8 +2502,8 @@
 </li>
 </ol>
 </section>
-<section id="id24">
-<h3>回调未触发<a class="headerlink" href="#id24" title="Link to this heading"></a></h3>
+<section id="id38">
+<h3>回调未触发<a class="headerlink" href="#id38" title="Link to this heading"></a></h3>
 <ol class="arabic simple">
 <li><p>检查回调 URL 配置</p></li>
 <li><p>验证 action_id 是否注册</p></li>
@@ -2158,8 +2512,8 @@
 </ol>
 </section>
 </section>
-<section id="id25">
-<h2>相关文档<a class="headerlink" href="#id25" title="Link to this heading"></a></h2>
+<section id="id39">
+<h2>相关文档<a class="headerlink" href="#id39" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>📖 <a class="reference internal" href="messaging.html"><span class="std std-doc">消息服务</span></a> - 消息发送</p></li>
 <li><p>🔐 <a class="reference internal" href="auth.html"><span class="std std-doc">用户授权</span></a> - OAuth 授权流程</p></li>

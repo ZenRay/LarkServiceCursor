@@ -69,11 +69,13 @@ Lark Service 文档
    architecture
 
 .. toctree::
-   :maxdepth:开发与测试
+   :maxdepth: 2
+   :caption: 开发与测试
 
-   development-environment   :caption: 功能特性
+   development-environment
 
    features/token-monitoring
+   features/scheduled-tasks
 
 .. toctree::
    :maxdepth: 2

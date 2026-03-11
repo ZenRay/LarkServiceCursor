@@ -5,6 +5,7 @@
 ## 功能特点
 
 - ✅ **预定义模板**: 审批卡片、通知卡片、表单卡片
+- ✅ **链式构建 (新)**: 流畅的链式 API,灵活组合卡片元素
 - ✅ **灵活构建**: 自定义卡片元素和布局
 - ✅ **交互回调**: 按钮点击、表单提交等事件处理
 - ✅ **卡片更新**: 动态更新已发送的卡片内容
@@ -13,6 +14,11 @@
 ## 快速开始
 
 ### 基础使用
+
+`CardBuilder` 支持两种使用方式:
+
+1. **模板方法** (快速简单): 使用预定义模板快速创建常见卡片
+2. **链式 API** (灵活强大): 链式调用方法自由组合卡片元素
 
 ```python
 from lark_service.core.config import Config
@@ -29,16 +35,22 @@ app_manager = ApplicationManager(
 )
 token_storage = TokenStorageService(config.get_postgres_url())
 pool = CredentialPool(config=config, app_manager=app_manager, token_storage=token_storage)
-messaging_client = MessagingClient(pool=pool)
+messaging_client = MessagingClient(pool)
 
-# 创建卡片构建器
-builder = CardBuilder()
-
-# 构建简单通知卡片
-card = builder.build_notification_card(
+# 方式 1: 模板方法 (快速)
+card = CardBuilder().build_notification_card(
     title="系统通知",
     content="您有一条新消息待查看",
     level="info"
+)
+
+# 方式 2: 链式 API (灵活)
+card = (CardBuilder()
+    .add_header("自定义通知", template="blue")
+    .add_markdown("**重要**: 请查看最新更新")
+    .add_divider()
+    .add_button("查看详情", action_id="view_details", button_type="primary")
+    .build()
 )
 
 # 发送卡片
@@ -48,6 +60,208 @@ response = messaging_client.send_card_message(
     card=card
 )
 print(f"✅ 卡片发送成功! message_id: {response['message_id']}")
+```
+
+## 链式 API 详解
+
+链式 API 提供了更灵活的卡片构建方式,适合需要精细控制的场景。
+
+### 基本元素
+
+#### 添加标题
+
+```python
+# 基础标题
+card = (CardBuilder()
+    .add_header("卡片标题", template="blue")
+    .add_text("内容")
+    .build()
+)
+
+# 带副标题
+card = (CardBuilder()
+    .add_header("主标题", template="green", subtitle="副标题说明")
+    .add_text("内容")
+    .build()
+)
+
+# 模板颜色: blue, green, red, orange, purple, indigo
+```
+
+#### 添加文本
+
+```python
+# Markdown 文本 (支持格式化)
+card = (CardBuilder()
+    .add_markdown("**粗体** *斜体* [链接](https://example.com)")
+    .build()
+)
+
+# 普通文本
+card = (CardBuilder()
+    .add_text("这是普通文本,不支持格式化")
+    .build()
+)
+```
+
+#### 添加分割线
+
+```python
+card = (CardBuilder()
+    .add_text("第一部分")
+    .add_divider()
+    .add_text("第二部分")
+    .build()
+)
+```
+
+#### 添加按钮
+
+```python
+# 回调按钮 (触发 action)
+card = (CardBuilder()
+    .add_button("确认", action_id="confirm", button_type="primary")
+    .add_button("取消", action_id="cancel", button_type="default")
+    .build()
+)
+
+# URL 按钮 (打开链接)
+card = (CardBuilder()
+    .add_button("访问官网", url="https://example.com")
+    .build()
+)
+
+# 按钮类型:
+# - "primary" (蓝色主按钮)
+# - "default" (灰色默认按钮)
+# - "danger" (红色危险按钮)
+```
+
+#### 添加字段
+
+```python
+# 键值对字段
+card = (CardBuilder()
+    .add_field("姓名", "张三")
+    .add_field("部门", "技术部")
+    .add_field("职位", "工程师")
+    .build()
+)
+```
+
+#### 添加图片
+
+```python
+# 需要先上传图片获取 image_key
+card = (CardBuilder()
+    .add_image("img_xxx", alt="产品图", title="新产品")
+    .build()
+)
+```
+
+#### 添加提示框
+
+```python
+card = (CardBuilder()
+    .add_note("**提示**: 此操作不可撤销", note_type="warning")
+    .build()
+)
+```
+
+#### 添加卡片链接
+
+```python
+# 整张卡片可点击
+card = (CardBuilder()
+    .add_text("点击卡片查看详情")
+    .add_card_link("https://example.com", text="查看更多")
+    .build()
+)
+```
+
+### 完整示例
+
+#### 示例 1: 任务通知卡片
+
+```python
+card = (CardBuilder()
+    .add_header("新任务分配", template="blue")
+    .add_markdown("**@张三** 为您分配了新任务")
+    .add_divider()
+    .add_field("任务名称", "优化数据库查询性能")
+    .add_field("优先级", "高")
+    .add_field("截止日期", "2026-02-10")
+    .add_divider()
+    .add_button("接受任务", action_id="accept_task", button_type="primary")
+    .add_button("查看详情", url="https://task.example.com/123")
+    .build()
+)
+```
+
+#### 示例 2: 告警卡片
+
+```python
+card = (CardBuilder()
+    .add_header("系统告警", template="red")
+    .add_markdown("🚨 **严重**: 生产环境 CPU 使用率过高")
+    .add_divider()
+    .add_field("服务器", "prod-server-01")
+    .add_field("CPU 使用率", "92%")
+    .add_field("内存使用率", "78%")
+    .add_field("告警时间", "2026-02-04 14:30:00")
+    .add_divider()
+    .add_note("**建议**: 立即检查后台任务并重启服务", note_type="warning")
+    .add_divider()
+    .add_button("查看监控", url="https://monitor.example.com", button_type="primary")
+    .add_button("确认告警", action_id="ack_alert")
+    .build()
+)
+```
+
+#### 示例 3: 用户信息卡片
+
+```python
+card = (CardBuilder()
+    .add_header("用户资料", template="green")
+    .add_image("img_user_avatar", alt="用户头像")
+    .add_divider()
+    .add_field("姓名", "李四")
+    .add_field("邮箱", "lisi@example.com")
+    .add_field("部门", "产品部")
+    .add_field("入职日期", "2025-01-15")
+    .add_divider()
+    .add_markdown("**简介**: 资深产品经理,擅长需求分析和用户体验设计")
+    .add_divider()
+    .add_button("发送消息", action_id="send_message", button_type="primary")
+    .add_button("查看完整资料", url="https://profile.example.com/lisi")
+    .build()
+)
+```
+
+### 混合使用
+
+可以结合模板和链式 API:
+
+```python
+# 使用模板快速创建基础卡片,然后继续添加元素
+# 注意: 模板方法会直接返回 dict,不支持继续链式调用
+# 推荐: 完全使用链式 API 或完全使用模板方法
+
+# ✅ 推荐: 纯链式 API
+card = (CardBuilder()
+    .add_header("标题", template="blue")
+    .add_markdown("**内容**")
+    .add_button("操作", action_id="action")
+    .build()
+)
+
+# ✅ 推荐: 纯模板方法
+card = CardBuilder().build_notification_card(
+    title="标题",
+    content="内容",
+    action_text="操作",
+    action_id="action"
+)
 ```
 
 ## 预定义卡片模板
