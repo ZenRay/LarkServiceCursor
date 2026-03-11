@@ -6,13 +6,13 @@ including message types, media assets, and related data structures.
 """
 
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
 
-class MessageType(str, Enum):
+class MessageType(StrEnum):
     """Supported message types in Lark IM API."""
 
     TEXT = "text"

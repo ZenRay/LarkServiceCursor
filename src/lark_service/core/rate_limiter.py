@@ -9,7 +9,7 @@ import time
 from collections import defaultdict, deque
 from collections.abc import Callable
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from threading import Lock
 from typing import Any
 
@@ -18,7 +18,7 @@ from lark_service.utils.logger import setup_logger
 logger = setup_logger(__name__)
 
 
-class RateLimitStrategy(str, Enum):
+class RateLimitStrategy(StrEnum):
     """速率限制策略"""
 
     FIXED_WINDOW = "fixed_window"  # 固定窗口

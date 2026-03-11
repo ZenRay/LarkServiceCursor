@@ -5,13 +5,13 @@ This module defines Pydantic models for Lark CardKit operations,
 including card configurations, elements, callback events, and related structures.
 """
 
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
 
-class CardElementTag(str, Enum):
+class CardElementTag(StrEnum):
     """Supported card element tags."""
 
     HEADER = "header"
@@ -23,7 +23,7 @@ class CardElementTag(str, Enum):
     FORM = "form"
 
 
-class CardTemplateType(str, Enum):
+class CardTemplateType(StrEnum):
     """Predefined card template types."""
 
     APPROVAL = "approval"

@@ -10,13 +10,13 @@ All models use Pydantic for data validation and serialization.
 """
 
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field
 
 
-class FieldType(str, Enum):
+class FieldType(StrEnum):
     """Field type enumeration.
 
     Supported field types include:
